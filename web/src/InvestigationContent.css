@@ -1,0 +1,68 @@
+.investigation-content,
+.investigation-overview {
+  min-width: 0;
+}
+.investigation-content .panel,
+.investigation-overview .panel {
+  overflow-wrap: anywhere;
+}
+.investigation-item {
+  padding: 18px 0;
+  border-bottom: 1px solid #e5ebf2;
+  scroll-margin-top: 24px;
+}
+.investigation-item:last-child {
+  border-bottom: 0;
+}
+.investigation-item h3 {
+  margin: 0;
+}
+.incident-status {
+  display: grid;
+  gap: 14px;
+}
+.incident-status dt {
+  color: #64748b;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.incident-status dd {
+  margin: 4px 0 0;
+}
+.conclusion {
+  border-left: 3px solid #16766d;
+  padding-left: 14px;
+}
+.report-summary {
+  font-size: 16px;
+  line-height: 1.7;
+}
+.evidence-citations {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.evidence-citations a {
+  color: #12635c;
+  background: #e8f6f2;
+  border-radius: 4px;
+  padding: 2px 7px;
+  font-size: 12px;
+  text-decoration: underline;
+}
+.source-data {
+  margin-top: 12px;
+}
+.source-data pre {
+  max-height: 360px;
+  overflow: auto;
+}
+.verification-pass {
+  color: #12635c;
+  font-weight: 700;
+}
+.verification-review {
+  color: #965711;
+  font-weight: 700;
+}

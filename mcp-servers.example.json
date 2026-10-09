@@ -1,0 +1,19 @@
+{
+  "servers": [
+    {
+      "name": "runbooks",
+      "enabled": false,
+      "transport": "http",
+      "url": "https://mcp.example.com/mcp",
+      "headers_from_env": {"Authorization": "MCP_RUNBOOK_AUTH"},
+      "tools": {
+        "search_runbooks": {
+          "domains": ["changes"],
+          "evidence_type": "changes",
+          "side_effect_level": "read_only",
+          "idempotent": true
+        }
+      }
+    }
+  ]
+}

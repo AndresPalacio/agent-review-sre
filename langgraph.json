@@ -1,0 +1,8 @@
+{
+  "python_version": "3.12",
+  "dependencies": ["."],
+  "graphs": {
+    "investigation": "./src/sre_graph/graphs/investigation/runtime.py:make_runtime_graph_async"
+  },
+  "env": ".env"
+}

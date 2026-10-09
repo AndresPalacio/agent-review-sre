@@ -1,0 +1,71 @@
+name: ci
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: pgvector/pgvector:pg17
+        env:
+          POSTGRES_USER: sre_graph
+          POSTGRES_PASSWORD: sre_graph
+          POSTGRES_DB: sre_graph
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U sre_graph -d sre_graph"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 20
+    env:
+      SRE_GRAPH_TEST_DATABASE_URL: postgresql://sre_graph:sre_graph@localhost:5432/sre_graph
+      SRE_GRAPH_REQUIRE_POSTGRES: "1"
+      LANGSMITH_TRACING: "false"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          python-version: "3.12"
+      - run: uv sync --locked
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - run: npm ci
+        working-directory: web
+      - run: npm run typecheck
+        working-directory: web
+      - run: npm test
+        working-directory: web
+      - run: npm run build
+        working-directory: web
+      - run: npx playwright install --with-deps chromium
+        working-directory: web
+      - run: npm run test:e2e
+        working-directory: web
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-results
+          path: web/test-results/
+          retention-days: 7
+      - run: uv run ruff check .
+      - run: uv run ruff format --check .
+      - run: uv run mypy
+      - run: uv run lint-imports
+      - run: uv run pytest
+      - run: uv run sre-graph eval run --suite all --model scripted --output-dir .eval-results
+      - run: uv run python scripts/phase8_acceptance.py load
+      - run: uv build --wheel
+      - name: Verify UI in wheel
+        run: >-
+          uv run python -c "from pathlib import Path; from zipfile import ZipFile;
+          wheel = next(Path('dist').glob('*.whl'));
+          names = ZipFile(wheel).namelist();
+          assert 'sre_graph/server/static/index.html' in names;
+          assert any(n.startswith('sre_graph/server/static/assets/') for n in names)"

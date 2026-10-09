@@ -1,0 +1,13 @@
+sre-graph
+Copyright 2026 The sre-graph authors
+
+This product includes material adapted from the following Apache-2.0 licensed projects:
+
+* OpenSRE - https://github.com/Tracer-Cloud/opensre
+  Copyright 2026 Tracer Cloud
+  Investigation prompts, heuristics, domain rules and synthetic evaluation scenarios,
+  adapted from its git history as they are ported. Nothing is imported at runtime.
+
+* LangGraph Starter Kit - https://github.com/ac12644/langgraph-starter-kit
+  Copyright 2025 Abhishek Chauhan
+  Agent composition patterns (supervisor with subagents as tools) and the scripted test model.
