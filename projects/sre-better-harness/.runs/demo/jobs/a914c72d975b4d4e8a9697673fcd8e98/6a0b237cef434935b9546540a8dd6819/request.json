@@ -1,0 +1,6 @@
+{
+  "kind": "ppc",
+  "mode": "smoke",
+  "scenario": "eks/001-oomkilled-crashloop",
+  "max_iterations": 1
+}

@@ -15,6 +15,7 @@ build/
 .worktrees/
 .superpowers/
 .eval-results/
+.harness-runs/
 web/node_modules/
 web/test-results/
 web/playwright-report/

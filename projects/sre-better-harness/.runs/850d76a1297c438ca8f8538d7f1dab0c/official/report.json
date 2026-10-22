@@ -1,0 +1,251 @@
+{
+  "created_at": "2026-10-21T13:42:23+00:00",
+  "config_path": "C:\\Users\\USUARIO\\Desktop\\devops-telemetri\\sre-graph\\projects\\sre-better-harness\\.runs\\850d76a1297c438ca8f8538d7f1dab0c\\experiment.toml",
+  "model": "scripted-smoke",
+  "better_agent_model": "scripted-smoke",
+  "baseline": {
+    "label": "baseline",
+    "model": "scripted-smoke",
+    "changed_surfaces": [],
+    "surfaces": {
+      "instructions": {
+        "name": "instructions",
+        "kind": "module_attr",
+        "target": "sre_deepagents.prompts:EXTRA_INSTRUCTIONS",
+        "base_value": "Build falsifiable hypotheses. Compare observations within the incident\nwindow, distinguish symptoms from causes, and identify missing evidence explicitly.\nUse the evidence-reviewer when a causal explanation needs a second look.",
+        "filename": "instructions.txt"
+      }
+    },
+    "values": {
+      "instructions": "Build falsifiable hypotheses. Compare observations within the incident\nwindow, distinguish symptoms from causes, and identify missing evidence explicitly.\nUse the evidence-reviewer when a causal explanation needs a second look."
+    }
+  },
+  "final": {
+    "label": "baseline",
+    "model": "scripted-smoke",
+    "changed_surfaces": [],
+    "surfaces": {
+      "instructions": {
+        "name": "instructions",
+        "kind": "module_attr",
+        "target": "sre_deepagents.prompts:EXTRA_INSTRUCTIONS",
+        "base_value": "Build falsifiable hypotheses. Compare observations within the incident\nwindow, distinguish symptoms from causes, and identify missing evidence explicitly.\nUse the evidence-reviewer when a causal explanation needs a second look.",
+        "filename": "instructions.txt"
+      }
+    },
+    "values": {
+      "instructions": "Build falsifiable hypotheses. Compare observations within the incident\nwindow, distinguish symptoms from causes, and identify missing evidence explicitly.\nUse the evidence-reviewer when a causal explanation needs a second look."
+    }
+  },
+  "baseline_train": {
+    "split": "train",
+    "variant": "baseline",
+    "model": "scripted-smoke",
+    "passed": 2,
+    "total": 2,
+    "score": 2.0,
+    "correctness": 1.0,
+    "returncode": 0,
+    "run_dir": "C:\\Users\\USUARIO\\Desktop\\devops-telemetri\\sre-graph\\projects\\sre-better-harness\\.runs\\850d76a1297c438ca8f8538d7f1dab0c\\official\\history\\visible\\train\\baseline",
+    "outcomes": [
+      {
+        "case_id": "tests/evals/test_rca.py::test_rca[eks/001-oomkilled-crashloop]",
+        "split": "train",
+        "stratum": "eks",
+        "status": "passed",
+        "score": 1.0,
+        "duration_s": 3.509,
+        "failure_message": null,
+        "artifacts_dir": "C:\\Users\\USUARIO\\Desktop\\devops-telemetri\\sre-graph\\projects\\sre-better-harness\\.runs\\850d76a1297c438ca8f8538d7f1dab0c\\official\\history\\visible\\train\\baseline\\cases\\tests-evals-test-rca-py--test-rca-eks-001-oomkilled-crashloop",
+        "trace_ref": null
+      },
+      {
+        "case_id": "tests/evals/test_rca.py::test_rca[rds_postgres/001-replication-lag]",
+        "split": "train",
+        "stratum": "rds_postgres",
+        "status": "passed",
+        "score": 1.0,
+        "duration_s": 3.489,
+        "failure_message": null,
+        "artifacts_dir": "C:\\Users\\USUARIO\\Desktop\\devops-telemetri\\sre-graph\\projects\\sre-better-harness\\.runs\\850d76a1297c438ca8f8538d7f1dab0c\\official\\history\\visible\\train\\baseline\\cases\\tests-evals-test-rca-py--test-rca-rds-postgres-001-replication-lag",
+        "trace_ref": null
+      }
+    ]
+  },
+  "baseline_holdout": {
+    "split": "holdout",
+    "variant": "baseline",
+    "model": "scripted-smoke",
+    "passed": 2,
+    "total": 2,
+    "score": 2.0,
+    "correctness": 1.0,
+    "returncode": 0,
+    "run_dir": "C:\\Users\\USUARIO\\Desktop\\devops-telemetri\\sre-graph\\projects\\sre-better-harness\\.runs\\850d76a1297c438ca8f8538d7f1dab0c\\official\\history\\private\\holdout\\baseline",
+    "outcomes": [
+      {
+        "case_id": "tests/evals/test_rca.py::test_rca[eks/002-image-pull-backoff]",
+        "split": "holdout",
+        "stratum": "eks",
+        "status": "passed",
+        "score": 1.0,
+        "duration_s": 3.533,
+        "failure_message": null,
+        "artifacts_dir": "C:\\Users\\USUARIO\\Desktop\\devops-telemetri\\sre-graph\\projects\\sre-better-harness\\.runs\\850d76a1297c438ca8f8538d7f1dab0c\\official\\history\\private\\holdout\\baseline\\cases\\tests-evals-test-rca-py--test-rca-eks-002-image-pull-backoff",
+        "trace_ref": null
+      },
+      {
+        "case_id": "tests/evals/test_rca.py::test_rca[rds_postgres/002-connection-exhaustion]",
+        "split": "holdout",
+        "stratum": "rds_postgres",
+        "status": "passed",
+        "score": 1.0,
+        "duration_s": 3.463,
+        "failure_message": null,
+        "artifacts_dir": "C:\\Users\\USUARIO\\Desktop\\devops-telemetri\\sre-graph\\projects\\sre-better-harness\\.runs\\850d76a1297c438ca8f8538d7f1dab0c\\official\\history\\private\\holdout\\baseline\\cases\\tests-evals-test-rca-py--test-rca-rds-postgres-002-connection-exhaustion",
+        "trace_ref": null
+      }
+    ]
+  },
+  "final_train": {
+    "split": "train",
+    "variant": "baseline",
+    "model": "scripted-smoke",
+    "passed": 2,
+    "total": 2,
+    "score": 2.0,
+    "correctness": 1.0,
+    "returncode": 0,
+    "run_dir": "C:\\Users\\USUARIO\\Desktop\\devops-telemetri\\sre-graph\\projects\\sre-better-harness\\.runs\\850d76a1297c438ca8f8538d7f1dab0c\\official\\history\\visible\\train\\baseline",
+    "outcomes": [
+      {
+        "case_id": "tests/evals/test_rca.py::test_rca[eks/001-oomkilled-crashloop]",
+        "split": "train",
+        "stratum": "eks",
+        "status": "passed",
+        "score": 1.0,
+        "duration_s": 3.509,
+        "failure_message": null,
+        "artifacts_dir": "C:\\Users\\USUARIO\\Desktop\\devops-telemetri\\sre-graph\\projects\\sre-better-harness\\.runs\\850d76a1297c438ca8f8538d7f1dab0c\\official\\history\\visible\\train\\baseline\\cases\\tests-evals-test-rca-py--test-rca-eks-001-oomkilled-crashloop",
+        "trace_ref": null
+      },
+      {
+        "case_id": "tests/evals/test_rca.py::test_rca[rds_postgres/001-replication-lag]",
+        "split": "train",
+        "stratum": "rds_postgres",
+        "status": "passed",
+        "score": 1.0,
+        "duration_s": 3.489,
+        "failure_message": null,
+        "artifacts_dir": "C:\\Users\\USUARIO\\Desktop\\devops-telemetri\\sre-graph\\projects\\sre-better-harness\\.runs\\850d76a1297c438ca8f8538d7f1dab0c\\official\\history\\visible\\train\\baseline\\cases\\tests-evals-test-rca-py--test-rca-rds-postgres-001-replication-lag",
+        "trace_ref": null
+      }
+    ]
+  },
+  "final_holdout": {
+    "split": "holdout",
+    "variant": "baseline",
+    "model": "scripted-smoke",
+    "passed": 2,
+    "total": 2,
+    "score": 2.0,
+    "correctness": 1.0,
+    "returncode": 0,
+    "run_dir": "C:\\Users\\USUARIO\\Desktop\\devops-telemetri\\sre-graph\\projects\\sre-better-harness\\.runs\\850d76a1297c438ca8f8538d7f1dab0c\\official\\history\\private\\holdout\\baseline",
+    "outcomes": [
+      {
+        "case_id": "tests/evals/test_rca.py::test_rca[eks/002-image-pull-backoff]",
+        "split": "holdout",
+        "stratum": "eks",
+        "status": "passed",
+        "score": 1.0,
+        "duration_s": 3.533,
+        "failure_message": null,
+        "artifacts_dir": "C:\\Users\\USUARIO\\Desktop\\devops-telemetri\\sre-graph\\projects\\sre-better-harness\\.runs\\850d76a1297c438ca8f8538d7f1dab0c\\official\\history\\private\\holdout\\baseline\\cases\\tests-evals-test-rca-py--test-rca-eks-002-image-pull-backoff",
+        "trace_ref": null
+      },
+      {
+        "case_id": "tests/evals/test_rca.py::test_rca[rds_postgres/002-connection-exhaustion]",
+        "split": "holdout",
+        "stratum": "rds_postgres",
+        "status": "passed",
+        "score": 1.0,
+        "duration_s": 3.463,
+        "failure_message": null,
+        "artifacts_dir": "C:\\Users\\USUARIO\\Desktop\\devops-telemetri\\sre-graph\\projects\\sre-better-harness\\.runs\\850d76a1297c438ca8f8538d7f1dab0c\\official\\history\\private\\holdout\\baseline\\cases\\tests-evals-test-rca-py--test-rca-rds-postgres-002-connection-exhaustion",
+        "trace_ref": null
+      }
+    ]
+  },
+  "baseline_scorecard": {
+    "split": "scorecard",
+    "variant": "baseline",
+    "model": "scripted-smoke",
+    "passed": 2,
+    "total": 2,
+    "score": 2.0,
+    "correctness": 1.0,
+    "returncode": 0,
+    "run_dir": "C:\\Users\\USUARIO\\Desktop\\devops-telemetri\\sre-graph\\projects\\sre-better-harness\\.runs\\850d76a1297c438ca8f8538d7f1dab0c\\official\\history\\private\\scorecard\\baseline",
+    "outcomes": [
+      {
+        "case_id": "tests/evals/test_rca.py::test_rca[eks/006-dns-resolution-failure]",
+        "split": "scorecard",
+        "stratum": "eks",
+        "status": "passed",
+        "score": 1.0,
+        "duration_s": 3.506,
+        "failure_message": null,
+        "artifacts_dir": "C:\\Users\\USUARIO\\Desktop\\devops-telemetri\\sre-graph\\projects\\sre-better-harness\\.runs\\850d76a1297c438ca8f8538d7f1dab0c\\official\\history\\private\\scorecard\\baseline\\cases\\tests-evals-test-rca-py--test-rca-eks-006-dns-resolution-failure",
+        "trace_ref": null
+      },
+      {
+        "case_id": "tests/evals/test_rca.py::test_rca[rds_postgres/003-storage-full]",
+        "split": "scorecard",
+        "stratum": "rds_postgres",
+        "status": "passed",
+        "score": 1.0,
+        "duration_s": 3.452,
+        "failure_message": null,
+        "artifacts_dir": "C:\\Users\\USUARIO\\Desktop\\devops-telemetri\\sre-graph\\projects\\sre-better-harness\\.runs\\850d76a1297c438ca8f8538d7f1dab0c\\official\\history\\private\\scorecard\\baseline\\cases\\tests-evals-test-rca-py--test-rca-rds-postgres-003-storage-full",
+        "trace_ref": null
+      }
+    ]
+  },
+  "final_scorecard": {
+    "split": "scorecard",
+    "variant": "baseline",
+    "model": "scripted-smoke",
+    "passed": 2,
+    "total": 2,
+    "score": 2.0,
+    "correctness": 1.0,
+    "returncode": 0,
+    "run_dir": "C:\\Users\\USUARIO\\Desktop\\devops-telemetri\\sre-graph\\projects\\sre-better-harness\\.runs\\850d76a1297c438ca8f8538d7f1dab0c\\official\\history\\private\\scorecard\\baseline",
+    "outcomes": [
+      {
+        "case_id": "tests/evals/test_rca.py::test_rca[eks/006-dns-resolution-failure]",
+        "split": "scorecard",
+        "stratum": "eks",
+        "status": "passed",
+        "score": 1.0,
+        "duration_s": 3.506,
+        "failure_message": null,
+        "artifacts_dir": "C:\\Users\\USUARIO\\Desktop\\devops-telemetri\\sre-graph\\projects\\sre-better-harness\\.runs\\850d76a1297c438ca8f8538d7f1dab0c\\official\\history\\private\\scorecard\\baseline\\cases\\tests-evals-test-rca-py--test-rca-eks-006-dns-resolution-failure",
+        "trace_ref": null
+      },
+      {
+        "case_id": "tests/evals/test_rca.py::test_rca[rds_postgres/003-storage-full]",
+        "split": "scorecard",
+        "stratum": "rds_postgres",
+        "status": "passed",
+        "score": 1.0,
+        "duration_s": 3.452,
+        "failure_message": null,
+        "artifacts_dir": "C:\\Users\\USUARIO\\Desktop\\devops-telemetri\\sre-graph\\projects\\sre-better-harness\\.runs\\850d76a1297c438ca8f8538d7f1dab0c\\official\\history\\private\\scorecard\\baseline\\cases\\tests-evals-test-rca-py--test-rca-rds-postgres-003-storage-full",
+        "trace_ref": null
+      }
+    ]
+  },
+  "iterations": []
+}

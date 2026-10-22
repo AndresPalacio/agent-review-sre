@@ -1,0 +1,16 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="SRE Graph - Async Agent Server" type="PythonConfigurationType" factoryName="Python">
+    <module name="sre-graph" />
+    <option name="PARENT_ENVS" value="true" />
+    <envs><env name="PYTHONUTF8" value="1" /><env name="PYTHONUNBUFFERED" value="1" /><env name="SRE_ASYNC_MODEL" value="offline" /><env name="LANGSMITH_TRACING" value="false" /><env name="LANGCHAIN_TRACING_V2" value="false" /></envs>
+    <option name="SDK_HOME" value="" />
+    <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+    <option name="IS_MODULE_SDK" value="true" />
+    <option name="ADD_CONTENT_ROOTS" value="true" />
+    <option name="ADD_SOURCE_ROOTS" value="true" />
+    <option name="SCRIPT_NAME" value="langgraph_cli" />
+    <option name="PARAMETERS" value="dev --config examples/langgraph.async.json --no-browser --no-reload --host 127.0.0.1 --port 8011 --n-jobs-per-worker 4" />
+    <option name="MODULE_MODE" value="true" />
+    <method v="2" />
+  </configuration>
+</component>

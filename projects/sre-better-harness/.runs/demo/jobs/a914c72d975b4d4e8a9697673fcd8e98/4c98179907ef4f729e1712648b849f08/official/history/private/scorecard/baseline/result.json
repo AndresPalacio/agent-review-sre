@@ -1,0 +1,35 @@
+{
+  "correctness": 1.0,
+  "model": "scripted-smoke",
+  "outcomes": [
+    {
+      "artifacts_dir": "C:\\Users\\USUARIO\\Desktop\\devops-telemetri\\sre-graph\\projects\\sre-better-harness\\.runs\\demo\\jobs\\a914c72d975b4d4e8a9697673fcd8e98\\4c98179907ef4f729e1712648b849f08\\official\\history\\private\\scorecard\\baseline\\cases\\tests-evals-test-rca-py--test-rca-eks-006-dns-resolution-failure",
+      "case_id": "tests/evals/test_rca.py::test_rca[eks/006-dns-resolution-failure]",
+      "duration_s": 3.531,
+      "failure_message": null,
+      "score": 1.0,
+      "split": "scorecard",
+      "status": "passed",
+      "stratum": "eks",
+      "trace_ref": null
+    },
+    {
+      "artifacts_dir": "C:\\Users\\USUARIO\\Desktop\\devops-telemetri\\sre-graph\\projects\\sre-better-harness\\.runs\\demo\\jobs\\a914c72d975b4d4e8a9697673fcd8e98\\4c98179907ef4f729e1712648b849f08\\official\\history\\private\\scorecard\\baseline\\cases\\tests-evals-test-rca-py--test-rca-rds-postgres-003-storage-full",
+      "case_id": "tests/evals/test_rca.py::test_rca[rds_postgres/003-storage-full]",
+      "duration_s": 3.464,
+      "failure_message": null,
+      "score": 1.0,
+      "split": "scorecard",
+      "status": "passed",
+      "stratum": "rds_postgres",
+      "trace_ref": null
+    }
+  ],
+  "passed": 2,
+  "returncode": 0,
+  "run_dir": "C:\\Users\\USUARIO\\Desktop\\devops-telemetri\\sre-graph\\projects\\sre-better-harness\\.runs\\demo\\jobs\\a914c72d975b4d4e8a9697673fcd8e98\\4c98179907ef4f729e1712648b849f08\\official\\history\\private\\scorecard\\baseline",
+  "score": 2.0,
+  "split": "scorecard",
+  "total": 2,
+  "variant": "baseline"
+}

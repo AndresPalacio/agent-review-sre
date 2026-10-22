@@ -71,6 +71,17 @@ DEFAULT_LIMITS = InvestigationLimits()
 def make_investigation_graph(
     services: InvestigationServices,
     registry: ToolSource,
+    **kwargs: Any,
+) -> CompiledStateGraph[Any, Any, Any, Any]:
+    """Compatibility factory; all investigations use the production harness."""
+    from sre_graph.harness.runtime import make_investigation_graph as build
+
+    return build(services, registry, **kwargs)
+
+
+def _compile_investigation_graph(
+    services: InvestigationServices,
+    registry: ToolSource,
     *,
     delivery: ReportDelivery | None = None,
     clock: Callable[[], datetime] = lambda: datetime.now(UTC),
@@ -78,6 +89,7 @@ def make_investigation_graph(
     checkpointer: BaseCheckpointSaver[Any] | Literal[False] | None = None,
     memory: IncidentMemory | None = None,
     replay_intake: tuple[NormalizedAlert, IncidentWindow] | None = None,
+    instrument: Callable[[str, Callable[..., Any]], Callable[..., Any]] | None = None,
 ) -> CompiledStateGraph[Any, Any, Any, Any]:
     """Compile with optional trusted replay intake, never read from public graph state."""
     if (
@@ -225,8 +237,7 @@ def make_investigation_graph(
         _emit(state, "stage", "plan")
         _emit(
             state,
-            ""
-            "",
+            "plan",
             "plan",
             {
                 "wave": state.get("wave", 0) + 1,
@@ -261,6 +272,7 @@ def make_investigation_graph(
                     "started_at": state["started_at"],
                     "thread_id": state.get("thread_id", ""),
                     "run_id": state.get("run_id", ""),
+                    "harness": state.get("harness", {}),
                 },
             )
             for task in tasks
@@ -469,16 +481,20 @@ def make_investigation_graph(
         return result
 
     graph = StateGraph(InvestigationState, context_schema=RunContext)
-    graph.add_node("intake", intake)
-    graph.add_node("gather_context", gather_context)
-    graph.add_node("plan", plan)
-    graph.add_node("specialist", cast(Any, specialist))
-    graph.add_node("synthesize", synthesize)
-    graph.add_node("verify", verify)
-    graph.add_node("refine", refine)
-    graph.add_node("propose_remediation", propose_remediation)
-    graph.add_node("report", report)
-    graph.add_node("deliver", deliver)
+    nodes: dict[str, Callable[..., Any]] = {
+        "intake": intake,
+        "gather_context": gather_context,
+        "plan": plan,
+        "specialist": specialist,
+        "synthesize": synthesize,
+        "verify": verify,
+        "refine": refine,
+        "propose_remediation": propose_remediation,
+        "report": report,
+        "deliver": deliver,
+    }
+    for name, node in nodes.items():
+        graph.add_node(name, cast(Any, instrument(name, node) if instrument else node))
     graph.add_edge(START, "intake")
     graph.add_conditional_edges(
         "intake", lambda state: END if state.get("is_noise") else "gather_context"

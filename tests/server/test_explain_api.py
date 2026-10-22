@@ -138,7 +138,7 @@ async def test_explain_shows_observed_events_and_derived_checkpoint_without_tool
         assert execution["waves"][0] == {
             "number": 1,
             "provenance": "observed",
-            "tasks": [{"domain": "metrics", "provenance": "observed"}],
+            "tasks": [{"domain": "metrics", "hypothesis_ids": ["H1"], "provenance": "observed"}],
             "specialists": [
                 {
                     "domain": "metrics",
@@ -149,7 +149,7 @@ async def test_explain_shows_observed_events_and_derived_checkpoint_without_tool
         }
         assert execution["waves"][1]["number"] == 2
         assert execution["waves"][1]["tasks"] == [
-            {"domain": "logs", "provenance": "derived"}
+            {"domain": "logs", "hypothesis_ids": ["H1"], "provenance": "derived"}
         ]
         assert execution["findings"][1]["evidence_ids"] == ["ev_log"]
         assert execution["findings"][1]["provenance"] == "derived"

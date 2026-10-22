@@ -1,8 +1,13 @@
 from __future__ import annotations
 
+import asyncio
+import threading
+import time
 from datetime import UTC, datetime, timedelta
+from pathlib import Path
 
-from sqlalchemy import update
+import pytest
+from sqlalchemy import event, update
 from sqlalchemy.ext.asyncio import create_async_engine
 
 from sre_graph.server.storage import Base, RunRow, Storage
@@ -169,4 +174,52 @@ async def test_webhook_claim_and_run_are_committed_together() -> None:
         "alertmanager", "f1", "t2", "r2", now, timedelta(minutes=5)
     ) == (False, "t1")
     assert await storage.get_run("r2") is None
+    await engine.dispose()
+
+
+async def test_cancelled_query_does_not_leave_sqlite_locked(tmp_path: Path) -> None:
+    # Cancellation used to cut a query off midway. The interrupted cursor stayed
+    # referenced by the task's CancelledError traceback, and SQLite kept that
+    # connection's read lock, so every later write failed with "database is locked".
+    engine = create_async_engine(
+        f"sqlite+aiosqlite:///{tmp_path / 'cancel.sqlite'}", connect_args={"timeout": 1}
+    )
+    async with engine.begin() as connection:
+        await connection.run_sync(Base.metadata.create_all)
+    storage = Storage(engine)
+    await storage.create_run("run", "thread")
+    loop = asyncio.get_running_loop()
+    armed = threading.Event()
+    victim: asyncio.Task[object] | None = None
+
+    def interrupt_in_worker() -> int:
+        # Runs in the aiosqlite thread while the statement is executing.
+        if armed.is_set() and victim is not None:
+            armed.clear()
+            loop.call_soon_threadsafe(victim.cancel)
+            time.sleep(0.2)
+        return 0
+
+    @event.listens_for(engine.sync_engine, "connect")
+    def install(dbapi_connection: object, _record: object) -> None:
+        dbapi_connection.run_async(  # type: ignore[attr-defined]
+            lambda raw: raw.set_progress_handler(interrupt_in_worker, 1)
+        )
+
+    async def interrupted_run() -> None:
+        # Same shape as RunManager._execute: record the interruption while the
+        # CancelledError, and its traceback, is still being handled.
+        try:
+            await storage.get_run("run")
+        except asyncio.CancelledError:
+            await asyncio.wait_for(storage.set_status_with_event("run", "interrupted"), 10)
+            raise
+
+    await engine.dispose()  # reconnect so every pooled connection has the handler
+    victim = asyncio.create_task(interrupted_run())
+    armed.set()
+    with pytest.raises(asyncio.CancelledError):
+        await victim
+    run = await storage.get_run("run")
+    assert run is not None and run["status"] == "interrupted"
     await engine.dispose()

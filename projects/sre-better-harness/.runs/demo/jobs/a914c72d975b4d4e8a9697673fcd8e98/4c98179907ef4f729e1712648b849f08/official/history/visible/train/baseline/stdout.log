@@ -1,0 +1,8 @@
+## tests/evals/test_rca.py::test_rca[eks/001-oomkilled-crashloop]
+.                                                                        [100%]
+1 passed in 3.66s
+
+
+## tests/evals/test_rca.py::test_rca[rds_postgres/001-replication-lag]
+.                                                                        [100%]
+1 passed in 3.66s

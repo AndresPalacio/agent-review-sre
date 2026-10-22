@@ -1,0 +1,263 @@
+# Official better-harness format; SRE CLI adds strict acceptance and grouped corpus checks.
+[experiment]
+name = "sre-rca"
+runner = "pytest"
+workspace_root = ".."
+model = "openai:gpt-4.1-mini"
+max_iterations = 3
+
+[better_agent]
+model = "anthropic:claude-sonnet-4-6"
+max_turns = 40
+
+[runner.pytest]
+project_root = ".."
+uv_group = "harness"
+model_flag = "--harness-model"
+summary_flag = "--evals-report-file"
+pytest_args = ["-q", "-o", "junit_family=legacy", "-o", "testpaths=evals/harness"]
+
+[sre]
+repeat = 3
+case_timeout = 180
+proposer_timeout = 300
+split_timeout = 3600
+max_case_tokens = 100000
+max_case_latency = 180
+# Optional independent reference judge (also requires its provider credentials):
+# judge_model = "openai:gpt-4.1-mini"
+# min_judge_score = 0.8
+
+[surfaces.tools]
+kind = "workspace_file"
+target = "src/sre_graph/graphs/investigation/strategy/tools.py"
+filename = "tools.py"
+base_file = "../src/sre_graph/graphs/investigation/strategy/tools.py"
+
+[surfaces.skills]
+kind = "workspace_file"
+target = "src/sre_graph/graphs/investigation/strategy/skills.md"
+filename = "skills.md"
+base_file = "../src/sre_graph/graphs/investigation/strategy/skills.md"
+
+[surfaces.planning]
+kind = "workspace_file"
+target = "src/sre_graph/graphs/investigation/strategy/planning.py"
+filename = "planning.py"
+base_file = "../src/sre_graph/graphs/investigation/strategy/planning.py"
+
+[surfaces.middleware]
+kind = "workspace_file"
+target = "src/sre_graph/graphs/investigation/strategy/middleware.py"
+filename = "middleware.py"
+base_file = "../src/sre_graph/graphs/investigation/strategy/middleware.py"
+
+[surfaces.middleware_registration]
+kind = "workspace_file"
+target = "src/sre_graph/graphs/investigation/strategy/registration.py"
+filename = "registration.py"
+base_file = "../src/sre_graph/graphs/investigation/strategy/registration.py"
+
+[surfaces.plan]
+kind = "module_attr"
+target = "sre_graph.graphs.investigation.prompts:PLAN_PROMPT"
+filename = "plan.txt"
+base_value = "Propose 1-4 falsifiable hypotheses and one concrete task per useful available domain."
+
+[surfaces.specialist]
+kind = "module_attr"
+target = "sre_graph.graphs.investigation.prompts:SPECIALIST_PROMPT"
+filename = "specialist.txt"
+base_value = "Return a finding grounded in the observed evidence."
+
+[surfaces.synthesis]
+kind = "module_attr"
+target = "sre_graph.graphs.investigation.prompts:SYNTHESIS_PROMPT"
+filename = "synthesis.txt"
+base_value = "Write an incident-command diagnosis. Keep unsupported causes unknown and cite evidence ids."
+
+[surfaces.judge]
+kind = "module_attr"
+target = "sre_graph.graphs.investigation.prompts:JUDGE_PROMPT"
+filename = "judge.txt"
+base_value = "Decide whether these specific observations support the factual claim. Be skeptical."
+
+[[cases]]
+case_id = "evals/harness/train/test_rca.py::test_rca[eks/000-healthy]"
+split = "train"
+stratum = "eks"
+
+[[cases]]
+case_id = "evals/harness/train/test_rca.py::test_rca[eks/001-oomkilled-crashloop]"
+split = "train"
+stratum = "eks"
+
+[[cases]]
+case_id = "evals/harness/holdout/test_rca.py::test_rca[eks/002-image-pull-backoff]"
+split = "holdout"
+stratum = "eks"
+
+[[cases]]
+case_id = "evals/harness/train/test_rca.py::test_rca[eks/003-pending-insufficient-resources]"
+split = "train"
+stratum = "eks"
+
+[[cases]]
+case_id = "evals/harness/holdout/test_rca.py::test_rca[eks/004-liveness-probe-killing]"
+split = "holdout"
+stratum = "eks"
+
+[[cases]]
+case_id = "evals/harness/train/test_rca.py::test_rca[eks/005-resource-quota-exceeded]"
+split = "train"
+stratum = "eks"
+
+[[cases]]
+case_id = "evals/harness/holdout/test_rca.py::test_rca[eks/006-dns-resolution-failure]"
+split = "holdout"
+stratum = "eks"
+
+[[cases]]
+case_id = "evals/harness/scorecard/test_rca.py::test_rca[eks/007-node-not-ready]"
+split = "scorecard"
+stratum = "eks"
+
+[[cases]]
+case_id = "evals/harness/scorecard/test_rca.py::test_rca[eks/008-deployment-rollout-stuck]"
+split = "scorecard"
+stratum = "eks"
+
+[[cases]]
+case_id = "evals/harness/train/test_rca.py::test_rca[eks/009-noisy-healthy-restart-recovered]"
+split = "train"
+stratum = "eks"
+
+[[cases]]
+case_id = "evals/harness/train/test_rca.py::test_rca[eks/010-red-herring-old-rollout]"
+split = "train"
+stratum = "eks"
+
+[[cases]]
+case_id = "evals/harness/train/test_rca.py::test_rca[eks/011-recovered-rollout]"
+split = "train"
+stratum = "eks"
+
+[[cases]]
+case_id = "evals/harness/train/test_rca.py::test_rca[eks/012-pending-recovered]"
+split = "train"
+stratum = "eks"
+
+[[cases]]
+case_id = "evals/harness/train/test_rca.py::test_rca[eks/013-spurious-alert-storm]"
+split = "train"
+stratum = "eks"
+
+[[cases]]
+case_id = "evals/harness/train/test_rca.py::test_rca[rds_postgres/000-healthy]"
+split = "train"
+stratum = "rds"
+
+[[cases]]
+case_id = "evals/harness/train/test_rca.py::test_rca[rds_postgres/001-replication-lag]"
+split = "train"
+stratum = "rds"
+
+[[cases]]
+case_id = "evals/harness/holdout/test_rca.py::test_rca[rds_postgres/002-connection-exhaustion]"
+split = "holdout"
+stratum = "rds"
+
+[[cases]]
+case_id = "evals/harness/train/test_rca.py::test_rca[rds_postgres/003-storage-full]"
+split = "train"
+stratum = "rds"
+
+[[cases]]
+case_id = "evals/harness/scorecard/test_rca.py::test_rca[rds_postgres/004-cpu-saturation-bad-query]"
+split = "scorecard"
+stratum = "rds"
+
+[[cases]]
+case_id = "evals/harness/holdout/test_rca.py::test_rca[rds_postgres/005-failover]"
+split = "holdout"
+stratum = "rds"
+
+[[cases]]
+case_id = "evals/harness/train/test_rca.py::test_rca[rds_postgres/006-replication-lag-cpu-redherring]"
+split = "train"
+stratum = "rds"
+
+[[cases]]
+case_id = "evals/harness/train/test_rca.py::test_rca[rds_postgres/007-connection-pressure-noisy-healthy]"
+split = "train"
+stratum = "rds"
+
+[[cases]]
+case_id = "evals/harness/train/test_rca.py::test_rca[rds_postgres/008-storage-full-missing-metric]"
+split = "train"
+stratum = "rds"
+
+[[cases]]
+case_id = "evals/harness/holdout/test_rca.py::test_rca[rds_postgres/009-dual-fault-connection-cpu]"
+split = "holdout"
+stratum = "rds"
+
+[[cases]]
+case_id = "evals/harness/train/test_rca.py::test_rca[rds_postgres/010-replication-lag-missing-metric]"
+split = "train"
+stratum = "rds"
+
+[[cases]]
+case_id = "evals/harness/scorecard/test_rca.py::test_rca[rds_postgres/011-cpu-storage-compositional]"
+split = "scorecard"
+stratum = "rds"
+
+[[cases]]
+case_id = "evals/harness/train/test_rca.py::test_rca[rds_postgres/012-replication-lag-misleading-events]"
+split = "train"
+stratum = "rds"
+
+[[cases]]
+case_id = "evals/harness/train/test_rca.py::test_rca[rds_postgres/013-storage-recovery-false-alert]"
+split = "train"
+stratum = "rds"
+
+[[cases]]
+case_id = "evals/harness/scorecard/test_rca.py::test_rca[rds_postgres/014-checkpoint-storm-cpu-saturation]"
+split = "scorecard"
+stratum = "rds"
+
+[[cases]]
+case_id = "evals/harness/holdout/test_rca.py::test_rca[rds_postgres/015-mysql-ec2-load-attribution]"
+split = "holdout"
+stratum = "rds"
+
+[[cases]]
+case_id = "evals/harness/holdout/test_rca.py::test_rca[rds_postgres/016-hpa-retry-connection-storm]"
+split = "holdout"
+stratum = "rds"
+
+[[cases]]
+case_id = "evals/harness/scorecard/test_rca.py::test_rca[rds_postgres/017-rollout-query-regression]"
+split = "scorecard"
+stratum = "rds"
+
+[[cases]]
+case_id = "evals/harness/train/test_rca.py::test_rca[rds_postgres/018-cron-fanout-replica-lag]"
+split = "train"
+stratum = "rds"
+
+[[cases]]
+case_id = "evals/harness/holdout/test_rca.py::test_rca[rds_postgres/019-failover-dns-stale-endpoint]"
+split = "holdout"
+stratum = "rds"
+
+[[cases]]
+case_id = "evals/harness/scorecard/test_rca.py::test_rca[rds_postgres/020-cni-loss-db-timeout-storm]"
+split = "scorecard"
+stratum = "rds"
+
+[[cases]]
+case_id = "evals/harness/holdout/test_rca.py::test_rca[rds_upstream/001-request-burst-ec2-app-tier]"
+split = "holdout"
+stratum = "rds"

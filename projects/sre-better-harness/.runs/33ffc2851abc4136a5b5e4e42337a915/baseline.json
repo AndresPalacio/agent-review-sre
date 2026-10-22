@@ -1,0 +1,307 @@
+{
+  "schema_version": 1,
+  "run_id": "0c2a6f7c-6d24-4d6b-b8a9-cbdbe627c796",
+  "engine": "deepagents",
+  "mode": "smoke",
+  "model": "scripted",
+  "scenario": "eks/001-oomkilled-crashloop",
+  "status": "completed",
+  "baseline_eligible": false,
+  "report": {
+    "alert": {
+      "source": "datadog",
+      "title": "[synthetic-k8s] CrashLoopBackOff \u2014 payments-api-7f9dd8b6c4-x7gr9",
+      "fingerprint": "851ce2a066313293",
+      "status": "firing",
+      "severity": "critical",
+      "started_at": null,
+      "ended_at": null,
+      "summary": "Pod payments-api-7f9dd8b6c4-x7gr9 has restarted 8 times in the last 25 minutes.",
+      "error": "Container exit code 137 reported by kubelet; no ImagePullBackOff observed.",
+      "labels": {
+        "alertname": "KubernetesPodCrashLooping",
+        "severity": "critical",
+        "pipeline_name": "k8s-eks-synthetic",
+        "service": "payments-api",
+        "cluster_name": "payments-prod-eks",
+        "namespace": "payments",
+        "workload_type": "deployment",
+        "workload_name": "payments-api"
+      },
+      "annotations": {
+        "summary": "Pod payments-api-7f9dd8b6c4-x7gr9 has restarted 8 times in the last 25 minutes.",
+        "description": "One of three replicas of payments-api is repeatedly restarting; the other two remain Running and Ready.",
+        "error": "Container exit code 137 reported by kubelet; no ImagePullBackOff observed.",
+        "suspected_symptom": "CrashLoopBackOff on a single replica while sibling pods stay healthy.",
+        "cluster_name": "payments-prod-eks",
+        "kube_namespace": "payments",
+        "kube_deployment": "payments-api",
+        "kube_pod": "payments-api-7f9dd8b6c4-x7gr9",
+        "k8s_failure_mode": "crashloop_backoff",
+        "context_sources": "eks,datadog"
+      },
+      "service": "payments-api",
+      "namespace": "payments",
+      "cluster": "payments-prod-eks",
+      "workload": "payments-api",
+      "pod": "payments-api-7f9dd8b6c4-x7gr9",
+      "url": null,
+      "alert_count": 1
+    },
+    "diagnosis": {
+      "triage_summary": "[synthetic-k8s] CrashLoopBackOff \u2014 payments-api-7f9dd8b6c4-x7gr9: the investigation could not reach a conclusion.",
+      "status": {
+        "confirmed": "The alert fired.",
+        "open": "The root cause.",
+        "next": "Investigate manually.",
+        "owner": "On-call responder"
+      },
+      "hypotheses": [],
+      "verification": [],
+      "follow_up_questions": [],
+      "remediation_tradeoffs": "",
+      "root_cause": "Root cause not verified",
+      "category": "unknown",
+      "causal_chain": [],
+      "claims": [],
+      "remediation_steps": [],
+      "confidence": 0.0
+    },
+    "verification": {
+      "claims": [],
+      "missing_sections": [
+        "hypotheses",
+        "verification",
+        "follow_up_questions",
+        "remediation_tradeoffs"
+      ],
+      "category_mismatch": null,
+      "healthy_conflict": null,
+      "score": 0.0,
+      "passed": false
+    },
+    "claims": [],
+    "actions": [
+      {
+        "title": "Enable debug logging and re-run the failing workload to gather more signal",
+        "rationale": "Proposed from the diagnosis; manual review required",
+        "tool": null,
+        "args": {},
+        "side_effect_level": "mutating",
+        "risk": "medium",
+        "reversible": true,
+        "rollback": "",
+        "blast_radius": "service"
+      },
+      {
+        "title": "Escalate to the owning team with the investigation trace and causal chain attached",
+        "rationale": "Proposed from the diagnosis; manual review required",
+        "tool": null,
+        "args": {},
+        "side_effect_level": "mutating",
+        "risk": "medium",
+        "reversible": true,
+        "rollback": "",
+        "blast_radius": "service"
+      }
+    ],
+    "evidence": [],
+    "labels": {},
+    "duration_seconds": null
+  },
+  "diagnosis": {
+    "triage_summary": "[synthetic-k8s] CrashLoopBackOff \u2014 payments-api-7f9dd8b6c4-x7gr9: the investigation could not reach a conclusion.",
+    "status": {
+      "confirmed": "The alert fired.",
+      "open": "The root cause.",
+      "next": "Investigate manually.",
+      "owner": "On-call responder"
+    },
+    "hypotheses": [],
+    "verification": [],
+    "follow_up_questions": [],
+    "remediation_tradeoffs": "",
+    "root_cause": "Root cause not verified",
+    "category": "unknown",
+    "causal_chain": [],
+    "claims": [],
+    "remediation_steps": [],
+    "confidence": 0.0
+  },
+  "evidence": [
+    {
+      "id": "ev_9e70a4514b",
+      "integration": "kubernetes",
+      "tool": "k8s_list_pods",
+      "evidence_type": "topology",
+      "domains": [
+        "kubernetes"
+      ],
+      "summary": "[{\"name\":\"payments-api-7f9dd8b6c4-x7gr9\",\"namespace\":\"payments\",\"phase\":\"Running\",\"node_name\":\"ip-10-0-1-42.us-east-1.compute.internal\",\"start_time\":\"2026-04-18T10:00:00Z\",\"containers\":[{\"name\":\"payments-api\",\"ready\":false,\"restart_count\":8,\"state\":{\"waiting\":true,\"reason\":\"CrashLoopBackOff\",\"message\":\"back-off 5m0s restarting failed container=payments-api pod=payments-api-7f9dd8b6c4-x7gr9_payments(a1b2c3d4); last terminated: reason=OOMKilled, exit_code=137\",\"exit_code\":137}}],\"conditions\":[{\"type\":\"Initialized\",\"status\":\"True\",\"reason\":\"\",\"message\":\"\"},{\"type\":\"Ready\",\"status\":\"False\",\"reason\":\"ContainersNotReady\",\"message\":\"containers with unready status: [payments-api]\"},{\"type\":\"ContainersReady\",\"status\":\"False\",\"reason\":\"ContainersNotReady\",\"message\":\"containers with unready status: [payments-api]\"},{\"type\":\"PodScheduled\",\"status\":\"True\",\"reason\":\"\",\"message\":\"\"}]},{\"name\":\"payments-api-7f9dd8b6c4-k2m4p\",\"namespace\":\"payments\",\"phase\":\"Running\",\"node_name\":\"ip-10-0-1-73.us-east-1.",
+      "args": {
+        "namespace": "payments"
+      },
+      "data": [
+        {
+          "name": "payments-api-7f9dd8b6c4-x7gr9",
+          "namespace": "payments",
+          "phase": "Running",
+          "node_name": "ip-10-0-1-42.us-east-1.compute.internal",
+          "start_time": "2026-04-18T10:00:00Z",
+          "containers": [
+            {
+              "name": "payments-api",
+              "ready": false,
+              "restart_count": 8,
+              "state": {
+                "waiting": true,
+                "reason": "CrashLoopBackOff",
+                "message": "back-off 5m0s restarting failed container=payments-api pod=payments-api-7f9dd8b6c4-x7gr9_payments(a1b2c3d4); last terminated: reason=OOMKilled, exit_code=137",
+                "exit_code": 137
+              }
+            }
+          ],
+          "conditions": [
+            {
+              "type": "Initialized",
+              "status": "True",
+              "reason": "",
+              "message": ""
+            },
+            {
+              "type": "Ready",
+              "status": "False",
+              "reason": "ContainersNotReady",
+              "message": "containers with unready status: [payments-api]"
+            },
+            {
+              "type": "ContainersReady",
+              "status": "False",
+              "reason": "ContainersNotReady",
+              "message": "containers with unready status: [payments-api]"
+            },
+            {
+              "type": "PodScheduled",
+              "status": "True",
+              "reason": "",
+              "message": ""
+            }
+          ]
+        },
+        {
+          "name": "payments-api-7f9dd8b6c4-k2m4p",
+          "namespace": "payments",
+          "phase": "Running",
+          "node_name": "ip-10-0-1-73.us-east-1.compute.internal",
+          "start_time": "2026-04-13T14:02:14Z",
+          "containers": [
+            {
+              "name": "payments-api",
+              "ready": true,
+              "restart_count": 0,
+              "state": {
+                "running": true,
+                "started_at": "2026-04-13T14:02:22Z"
+              }
+            }
+          ],
+          "conditions": [
+            {
+              "type": "Initialized",
+              "status": "True",
+              "reason": "",
+              "message": ""
+            },
+            {
+              "type": "Ready",
+              "status": "True",
+              "reason": "",
+              "message": ""
+            },
+            {
+              "type": "ContainersReady",
+              "status": "True",
+              "reason": "",
+              "message": ""
+            },
+            {
+              "type": "PodScheduled",
+              "status": "True",
+              "reason": "",
+              "message": ""
+            }
+          ]
+        },
+        {
+          "name": "payments-api-7f9dd8b6c4-9bvlq",
+          "namespace": "payments",
+          "phase": "Running",
+          "node_name": "ip-10-0-1-42.us-east-1.compute.internal",
+          "start_time": "2026-04-13T14:02:17Z",
+          "containers": [
+            {
+              "name": "payments-api",
+              "ready": true,
+              "restart_count": 0,
+              "state": {
+                "running": true,
+                "started_at": "2026-04-13T14:02:25Z"
+              }
+            }
+          ],
+          "conditions": [
+            {
+              "type": "Initialized",
+              "status": "True",
+              "reason": "",
+              "message": ""
+            },
+            {
+              "type": "Ready",
+              "status": "True",
+              "reason": "",
+              "message": ""
+            },
+            {
+              "type": "ContainersReady",
+              "status": "True",
+              "reason": "",
+              "message": ""
+            },
+            {
+              "type": "PodScheduled",
+              "status": "True",
+              "reason": "",
+              "message": ""
+            }
+          ]
+        }
+      ],
+      "collected_at": "2026-10-21T13:32:53.452256Z",
+      "error": null
+    }
+  ],
+  "verification": {
+    "claims": [],
+    "missing_sections": [
+      "hypotheses",
+      "verification",
+      "follow_up_questions",
+      "remediation_tradeoffs"
+    ],
+    "category_mismatch": null,
+    "healthy_conflict": null,
+    "score": 0.0,
+    "passed": false
+  },
+  "errors": [],
+  "score": null,
+  "elapsed_seconds": 0.26882120000664145,
+  "tokens": null,
+  "runtime_features": {
+    "deepagents_executed": true,
+    "outer_orchestration": "sre-graph/LangGraph",
+    "filesystem": "virtual, per invocation",
+    "quality_measured": false
+  }
+}

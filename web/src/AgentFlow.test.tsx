@@ -18,7 +18,7 @@ it("shows a pending verification and empty diagnosis for an unfinished thread", 
       }
     />,
   );
-  expect(screen.getByText("Qué ocurrió en este hilo")).toBeVisible();
+  expect(screen.getByRole("heading", { name: "Qué ocurrió en esta ejecución" })).toBeVisible();
   expect(screen.getByText("Pendiente de verificación.")).toBeVisible();
   expect(screen.getByText("Aún sin causa establecida.")).toBeVisible();
   expect(screen.queryByText("Requiere más evidencia")).not.toBeInTheDocument();

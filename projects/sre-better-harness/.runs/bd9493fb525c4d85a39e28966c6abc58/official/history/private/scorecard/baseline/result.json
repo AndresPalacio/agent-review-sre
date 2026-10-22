@@ -1,0 +1,35 @@
+{
+  "correctness": 0.0,
+  "model": "scripted-smoke",
+  "outcomes": [
+    {
+      "artifacts_dir": "C:\\Users\\USUARIO\\Desktop\\devops-telemetri\\sre-graph\\projects\\sre-better-harness\\.runs\\bd9493fb525c4d85a39e28966c6abc58\\official\\history\\private\\scorecard\\baseline\\cases\\evals-test-rca-py--test-rca-eks-006-dns-resolution-failure",
+      "case_id": "evals/test_rca.py::test_rca[eks/006-dns-resolution-failure]",
+      "duration_s": 0.0,
+      "failure_message": "case missing from junit.xml",
+      "score": 0.0,
+      "split": "scorecard",
+      "status": "missing",
+      "stratum": "eks",
+      "trace_ref": null
+    },
+    {
+      "artifacts_dir": "C:\\Users\\USUARIO\\Desktop\\devops-telemetri\\sre-graph\\projects\\sre-better-harness\\.runs\\bd9493fb525c4d85a39e28966c6abc58\\official\\history\\private\\scorecard\\baseline\\cases\\evals-test-rca-py--test-rca-rds-postgres-003-storage-full",
+      "case_id": "evals/test_rca.py::test_rca[rds_postgres/003-storage-full]",
+      "duration_s": 0.0,
+      "failure_message": "case missing from junit.xml",
+      "score": 0.0,
+      "split": "scorecard",
+      "status": "missing",
+      "stratum": "rds_postgres",
+      "trace_ref": null
+    }
+  ],
+  "passed": 0,
+  "returncode": 0,
+  "run_dir": "C:\\Users\\USUARIO\\Desktop\\devops-telemetri\\sre-graph\\projects\\sre-better-harness\\.runs\\bd9493fb525c4d85a39e28966c6abc58\\official\\history\\private\\scorecard\\baseline",
+  "score": 0.0,
+  "split": "scorecard",
+  "total": 2,
+  "variant": "baseline"
+}

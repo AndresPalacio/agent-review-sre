@@ -1,0 +1,35 @@
+{
+  "correctness": 1.0,
+  "model": "scripted-smoke",
+  "outcomes": [
+    {
+      "artifacts_dir": "C:\\Users\\USUARIO\\Desktop\\devops-telemetri\\sre-graph\\projects\\sre-better-harness\\.runs\\95b446e9469d40039ada0daafd7218d5\\official\\history\\private\\holdout\\baseline\\cases\\tests-evals-test-rca-py--test-rca-eks-002-image-pull-backoff",
+      "case_id": "tests/evals/test_rca.py::test_rca[eks/002-image-pull-backoff]",
+      "duration_s": 3.497,
+      "failure_message": null,
+      "score": 1.0,
+      "split": "holdout",
+      "status": "passed",
+      "stratum": "eks",
+      "trace_ref": null
+    },
+    {
+      "artifacts_dir": "C:\\Users\\USUARIO\\Desktop\\devops-telemetri\\sre-graph\\projects\\sre-better-harness\\.runs\\95b446e9469d40039ada0daafd7218d5\\official\\history\\private\\holdout\\baseline\\cases\\tests-evals-test-rca-py--test-rca-rds-postgres-002-connection-exhaustion",
+      "case_id": "tests/evals/test_rca.py::test_rca[rds_postgres/002-connection-exhaustion]",
+      "duration_s": 3.875,
+      "failure_message": null,
+      "score": 1.0,
+      "split": "holdout",
+      "status": "passed",
+      "stratum": "rds_postgres",
+      "trace_ref": null
+    }
+  ],
+  "passed": 2,
+  "returncode": 0,
+  "run_dir": "C:\\Users\\USUARIO\\Desktop\\devops-telemetri\\sre-graph\\projects\\sre-better-harness\\.runs\\95b446e9469d40039ada0daafd7218d5\\official\\history\\private\\holdout\\baseline",
+  "score": 2.0,
+  "split": "holdout",
+  "total": 2,
+  "variant": "baseline"
+}

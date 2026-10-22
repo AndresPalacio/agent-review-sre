@@ -1,0 +1,213 @@
+{
+  "schema_version": 1,
+  "run_id": "bdca248b-43b8-4c83-8e0d-6c7043066fa0",
+  "engine": "deepagents",
+  "mode": "smoke",
+  "model": "scripted",
+  "scenario": "rds_postgres/002-connection-exhaustion",
+  "status": "completed",
+  "baseline_eligible": false,
+  "report": {
+    "alert": {
+      "source": "cloudwatch",
+      "title": "[synthetic-rds] Connection Exhaustion On payments-prod",
+      "fingerprint": "94d0b069985fa782",
+      "status": "firing",
+      "severity": "critical",
+      "started_at": null,
+      "ended_at": null,
+      "summary": "DatabaseConnections reached 98% of max_connections and application traffic started receiving too many clients errors.",
+      "error": "remaining connection slots are reserved for non-replication superuser connections",
+      "labels": {
+        "alertname": "RDSDatabaseConnectionsHigh",
+        "severity": "critical",
+        "pipeline_name": "rds-postgres-synthetic",
+        "service": "rds",
+        "engine": "postgres"
+      },
+      "annotations": {
+        "summary": "DatabaseConnections reached 98% of max_connections and application traffic started receiving too many clients errors.",
+        "error": "remaining connection slots are reserved for non-replication superuser connections",
+        "suspected_symptom": "API requests intermittently fail because the pool cannot obtain new sessions.",
+        "db_instance_identifier": "payments-prod",
+        "db_instance": "payments-prod",
+        "db_cluster": "payments-cluster",
+        "cloudwatch_region": "us-east-1",
+        "rds_failure_mode": "connection_exhaustion",
+        "context_sources": "cloudwatch"
+      },
+      "service": "rds",
+      "namespace": null,
+      "cluster": null,
+      "workload": null,
+      "pod": null,
+      "url": null,
+      "alert_count": 1
+    },
+    "diagnosis": {
+      "triage_summary": "[synthetic-rds] Connection Exhaustion On payments-prod: the investigation could not reach a conclusion.",
+      "status": {
+        "confirmed": "The alert fired.",
+        "open": "The root cause.",
+        "next": "Investigate manually.",
+        "owner": "On-call responder"
+      },
+      "hypotheses": [],
+      "verification": [],
+      "follow_up_questions": [],
+      "remediation_tradeoffs": "",
+      "root_cause": "Root cause not verified",
+      "category": "unknown",
+      "causal_chain": [],
+      "claims": [],
+      "remediation_steps": [],
+      "confidence": 0.0
+    },
+    "verification": {
+      "claims": [],
+      "missing_sections": [
+        "hypotheses",
+        "verification",
+        "follow_up_questions",
+        "remediation_tradeoffs"
+      ],
+      "category_mismatch": null,
+      "healthy_conflict": null,
+      "score": 0.0,
+      "passed": false
+    },
+    "claims": [],
+    "actions": [
+      {
+        "title": "Enable debug logging and re-run the failing workload to gather more signal",
+        "rationale": "Proposed from the diagnosis; manual review required",
+        "tool": null,
+        "args": {},
+        "side_effect_level": "mutating",
+        "risk": "medium",
+        "reversible": true,
+        "rollback": "",
+        "blast_radius": "service"
+      },
+      {
+        "title": "Escalate to the owning team with the investigation trace and causal chain attached",
+        "rationale": "Proposed from the diagnosis; manual review required",
+        "tool": null,
+        "args": {},
+        "side_effect_level": "mutating",
+        "risk": "medium",
+        "reversible": true,
+        "rollback": "",
+        "blast_radius": "service"
+      }
+    ],
+    "evidence": [],
+    "labels": {},
+    "duration_seconds": null
+  },
+  "diagnosis": {
+    "triage_summary": "[synthetic-rds] Connection Exhaustion On payments-prod: the investigation could not reach a conclusion.",
+    "status": {
+      "confirmed": "The alert fired.",
+      "open": "The root cause.",
+      "next": "Investigate manually.",
+      "owner": "On-call responder"
+    },
+    "hypotheses": [],
+    "verification": [],
+    "follow_up_questions": [],
+    "remediation_tradeoffs": "",
+    "root_cause": "Root cause not verified",
+    "category": "unknown",
+    "causal_chain": [],
+    "claims": [],
+    "remediation_steps": [],
+    "confidence": 0.0
+  },
+  "evidence": [
+    {
+      "id": "ev_b2355d3fed",
+      "integration": "aws",
+      "tool": "aws_metric_data",
+      "evidence_type": "metrics",
+      "domains": [
+        "metrics"
+      ],
+      "summary": "{\"MetricDataResults\":[{\"Id\":\"m_db_connections\",\"Label\":\"DatabaseConnections\",\"Timestamps\":[\"2026-03-26T11:50:00Z\",\"2026-03-26T11:51:00Z\",\"2026-03-26T11:52:00Z\",\"2026-03-26T11:53:00Z\",\"2026-03-26T11:54:00Z\",\"2026-03-26T11:55:00Z\",\"2026-03-26T11:56:00Z\",\"2026-03-26T11:57:00Z\",\"2026-03-26T11:58:00Z\",\"2026-03-26T11:59:00Z\",\"2026-03-26T12:00:00Z\",\"2026-03-26T12:01:00Z\",\"2026-03-26T12:02:00Z\",\"2026-03-26T12:03:00Z\",\"2026-03-26T12:04:00Z\"],\"Values\":[312.0,341.0,368.0,392.0,411.0,429.0,444.0,458.0,469.0,477.0,484.0,489.0,492.0,493.0,494.0],\"StatusCode\":\"Complete\"}]}",
+      "args": {
+        "namespace": "AWS/RDS",
+        "metric_name": "DatabaseConnections",
+        "start": 1774519500,
+        "end": 1774526700
+      },
+      "data": {
+        "MetricDataResults": [
+          {
+            "Id": "m_db_connections",
+            "Label": "DatabaseConnections",
+            "Timestamps": [
+              "2026-03-26T11:50:00Z",
+              "2026-03-26T11:51:00Z",
+              "2026-03-26T11:52:00Z",
+              "2026-03-26T11:53:00Z",
+              "2026-03-26T11:54:00Z",
+              "2026-03-26T11:55:00Z",
+              "2026-03-26T11:56:00Z",
+              "2026-03-26T11:57:00Z",
+              "2026-03-26T11:58:00Z",
+              "2026-03-26T11:59:00Z",
+              "2026-03-26T12:00:00Z",
+              "2026-03-26T12:01:00Z",
+              "2026-03-26T12:02:00Z",
+              "2026-03-26T12:03:00Z",
+              "2026-03-26T12:04:00Z"
+            ],
+            "Values": [
+              312.0,
+              341.0,
+              368.0,
+              392.0,
+              411.0,
+              429.0,
+              444.0,
+              458.0,
+              469.0,
+              477.0,
+              484.0,
+              489.0,
+              492.0,
+              493.0,
+              494.0
+            ],
+            "StatusCode": "Complete"
+          }
+        ]
+      },
+      "collected_at": "2026-10-21T13:31:53.849536Z",
+      "error": null
+    }
+  ],
+  "verification": {
+    "claims": [],
+    "missing_sections": [
+      "hypotheses",
+      "verification",
+      "follow_up_questions",
+      "remediation_tradeoffs"
+    ],
+    "category_mismatch": null,
+    "healthy_conflict": null,
+    "score": 0.0,
+    "passed": false
+  },
+  "errors": [],
+  "score": null,
+  "elapsed_seconds": 0.24455569998826832,
+  "tokens": null,
+  "runtime_features": {
+    "deepagents_executed": true,
+    "outer_orchestration": "sre-graph/LangGraph",
+    "filesystem": "virtual, per invocation",
+    "quality_measured": false
+  }
+}

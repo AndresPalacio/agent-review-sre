@@ -1,0 +1,1 @@
+Check assumptions against observations. Build a time-ordered causal chain, distinguish symptoms from causes, check recovery, state uncertainty, and cite evidence IDs.

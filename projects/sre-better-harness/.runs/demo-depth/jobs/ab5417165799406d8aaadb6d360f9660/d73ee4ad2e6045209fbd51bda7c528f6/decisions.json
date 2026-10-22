@@ -1,0 +1,17 @@
+[
+  {
+    "action": "execute_composed_successor",
+    "reason": "Deterministic demo proposal for smoke wiring only.",
+    "production_prompt_modified": false,
+    "promoted": false
+  },
+  {
+    "action": "insufficient_evidence",
+    "reasons": [
+      "smoke_is_wiring_only",
+      "incomplete_or_invalid_observations"
+    ],
+    "production_prompt_modified": false,
+    "promoted": false
+  }
+]

@@ -5,6 +5,7 @@ from __future__ import annotations
 import asyncio
 import hashlib
 import json
+import math
 import os
 import time
 from collections.abc import Sequence
@@ -38,16 +39,19 @@ from sre_graph.domain.window import IncidentWindow
 from sre_graph.evals.fixtures import FixtureBackend
 from sre_graph.evals.scenarios import Scenario, load_suite
 from sre_graph.evals.scoring import JudgeVerdict, judge_against_reference, score_scenario
-from sre_graph.graphs.investigation.graph import make_investigation_graph
+from sre_graph.evals.trajectory import contract_for, grade_trajectory
+from sre_graph.graphs.investigation.graph import InvestigationLimits
 from sre_graph.graphs.investigation.services import (
     ClaimJudgment,
     InvestigationServices,
     LangChainServices,
     _collect_evidence,
 )
+from sre_graph.harness.runtime import make_investigation_graph
+from sre_graph.harness.trace import ExecutionTrace
 from sre_graph.integrations.context import RunContext
 from sre_graph.llm.models import ModelRole
-from sre_graph.safety.secrets import redact_secrets
+from sre_graph.safety.secrets import redact_secrets, redact_value
 
 _KEYS = {
     "openai": "OPENAI_API_KEY",
@@ -197,14 +201,21 @@ async def run_suite(
     output_dir: Path,
     *,
     judge_model: str | None = None,
+    scenarios: Sequence[Scenario] | None = None,
+    case_timeout: float = 300.0,
+    runtime_limits: InvestigationLimits | None = None,
 ) -> dict[str, Any]:
     """Continue past individual failures; persist honest run statuses and scores."""
     if repeat < 1 or repeat > 20:
         raise ValueError("repeat must be between 1 and 20")
     if model == "scripted" and judge_model is not None:
         raise ValueError("scripted evaluation cannot use a reference judge")
+    if not math.isfinite(case_timeout) or case_timeout <= 0:
+        raise ValueError("case_timeout must be positive and finite")
     disable_external_tracing()
-    scenarios = load_suite(suite)
+    scenarios = list(load_suite(suite) if scenarios is None else scenarios)
+    if not scenarios or len({scenario.key for scenario in scenarios}) != len(scenarios):
+        raise ValueError("scenarios must be nonempty and unique")
     runs: list[dict[str, Any]] = []
     for scenario in scenarios:
         for attempt in range(1, repeat + 1):
@@ -216,6 +227,7 @@ async def run_suite(
                 "deliveries": [],
             }
             started = time.perf_counter()
+            trace = ExecutionTrace()
             try:
                 backend = FixtureBackend(scenario)
                 if backend.coverage.missing:
@@ -236,20 +248,28 @@ async def run_suite(
                     # Retain real deadline progression while replaying historical dates.
                     return reference_time + timedelta(seconds=time.perf_counter() - clock_started)
 
-                graph = make_investigation_graph(services, backend.registry, clock=scenario_clock)
+                graph = make_investigation_graph(
+                    services,
+                    backend.registry,
+                    clock=scenario_clock,
+                    trace=trace,
+                    limits=runtime_limits,
+                    verify_variant_pin=False,
+                )
                 callback = UsageMetadataCallbackHandler()
                 run_id = str(uuid4())
-                state = await graph.ainvoke(
-                    {
-                        "raw_alert": scenario.alert,
-                        "user_requested": True,
-                        "destinations": {},
-                        "thread_id": run_id,
-                        "run_id": run_id,
-                    },
-                    context=backend.context,
-                    config={"recursion_limit": 64, "callbacks": [callback]},
-                )
+                async with asyncio.timeout(case_timeout):
+                    state = await graph.ainvoke(
+                        {
+                            "raw_alert": scenario.alert,
+                            "user_requested": True,
+                            "destinations": {},
+                            "thread_id": run_id,
+                            "run_id": run_id,
+                        },
+                        context=backend.context,
+                        config={"recursion_limit": 64, "callbacks": [callback]},
+                    )
                 if not state.get("report"):
                     raise RuntimeError("graph produced no report")
                 usage = callback.usage_metadata
@@ -263,11 +283,12 @@ async def run_suite(
                     usage={"total_tokens": tokens} if tokens is not None else None,
                 )
                 if reference_model is not None:
-                    assessment = await judge_against_reference(
-                        scenario,
-                        state,
-                        judge=partial(_reference_judge, reference_model),
-                    )
+                    async with asyncio.timeout(case_timeout):
+                        assessment = await judge_against_reference(
+                            scenario,
+                            state,
+                            judge=partial(_reference_judge, reference_model),
+                        )
                     score.llm_judge_status = assessment.status
                     score.llm_judge_score = assessment.score
                     score.llm_judge_reason = assessment.reason
@@ -277,6 +298,9 @@ async def run_suite(
                     score=score.model_dump(mode="json"),
                     deliveries=state.get("deliveries", []),
                     graph_errors=graph_errors,
+                    diagnosis=redact_value(state.get("diagnosis")),
+                    evidence=redact_value(state.get("evidence", [])),
+                    harness=state.get("harness", {}),
                 )
             except Exception as exc:
                 blocked = isinstance(exc, (ValueError, ImportError)) or (
@@ -286,6 +310,14 @@ async def run_suite(
                     status="blocked" if blocked else "failed",
                     error=redact_secrets(f"{type(exc).__name__}: {exc}"),
                 )
+            record["trace"] = trace.events
+            record["trajectory"] = grade_trajectory(contract_for(scenario), trace.events)
+            trace_path = (
+                output_dir / "traces" / f"{scenario.key.replace('/', '--')}--{attempt}.json"
+            )
+            trace_path.parent.mkdir(parents=True, exist_ok=True)
+            trace_path.write_text(json.dumps(trace.events, indent=2), encoding="utf-8")
+            record["trace_artifact"] = str(trace_path)
             runs.append(record)
     baseline_eligible = model != "scripted" and all(
         run["status"] == "completed"

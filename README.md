@@ -5,6 +5,18 @@ Diseño completo: [docs/specs/2026-10-07-sre-graph-design.md](docs/specs/2026-10
 Guía de los patrones de agentes y del recorrido de una pregunta:
 [docs/arquitectura-agentes.md](docs/arquitectura-agentes.md).
 
+Piloto optativo con supervisor, hijos asíncronos, Decisions y MCP:
+[panel ejecutable y guía Run/Debug](docs/arquitecture-review/2026-10-22-piloto-async-ejecutable.md).
+Arranca con `.venv\Scripts\python.exe examples/demo_supervisor_async.py --serve`;
+panel en `http://127.0.0.1:8012`, modelo offline y datos sintéticos explícitos.
+
+Las investigaciones del producto se ejecutan por defecto mediante el
+[runtime del harness](docs/better-harness.md#ejecución-predeterminada-del-producto):
+CLI, chat, API/UI, webhooks, gateways, tareas programadas y Studio comparten
+configuración, identidad de variante y trazas. `uv run sre-graph harness runtime`
+muestra la variante instalada y sus límites. La optimización train/holdout/scorecard
+es una operación explícita aparte; la ejecución habitual no requiere el extra `harness`.
+
 > Estado: fases 0–7 y entregables concretos de fase 8 implementados y validados
 > localmente. El cierre incluye multi-réplica, límites de carga, 13 integraciones
 > adicionales, MCP conectado, setup y grabación/replay. La validación con LLM y
@@ -294,6 +306,28 @@ manual en un workspace sandbox queda pendiente de credenciales; no se hizo enví
 a servicios externos durante las pruebas.
 
 ## Evaluación offline
+
+Para optimizar el agente mediante el **better-harness oficial + Deep Agents**,
+hay un flujo con **19 casos train, 10 holdout y 7 scorecard**, tres repeticiones
+por caso y aceptación sin regresiones por caso holdout. Incluye nueve superficies
+editables (prompts, selección de tools, skills, planificación y middleware), contratos
+de llamadas y delegación, ejecución en copias temporales y exportación de cambios,
+variantes, métricas, reportes y CI offline. Guía completa:
+[better-harness de principio a fin](docs/better-harness.md).
+
+El harness ya es el flujo predeterminado de investigación.
+[Validación de la transición](docs/progress/2026-10-21-better-harness-full.md#cierre-de-la-tarea-7-2026-10-22).
+La [revisión de arquitectura hacia Rovo](docs/arquitecture-review/2026-10-22-revision-rovo.md)
+propone la evolución posterior con prioridades y criterios de aceptación.
+
+```powershell
+uv sync --locked --extra harness
+uv run --extra harness sre-graph harness validate
+uv run --extra harness sre-graph harness smoke
+```
+
+Smoke comprueba el funcionamiento del circuito; medir mejoras reales requiere
+credenciales del modelo. Ninguna variante se despliega automáticamente.
 
 ```powershell
 uv run sre-graph eval run --suite smoke --model scripted --output-dir .eval-results

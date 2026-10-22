@@ -1,0 +1,7 @@
+{
+  "kind": "better-harness",
+  "mode": "smoke",
+  "scenario": null,
+  "holdout_scenarios": [],
+  "max_iterations": 0
+}

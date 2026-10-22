@@ -1,0 +1,222 @@
+{
+  "version": 1,
+  "dataset_fingerprint": "f94edcb45f77f4e00905ab1138ec2e371f0290f2f1c60022bff96f7768af9a43",
+  "cases": [
+    {
+      "scenario": "eks/000-healthy",
+      "split": "train",
+      "stratum": "eks",
+      "family": "eks-healthy"
+    },
+    {
+      "scenario": "eks/001-oomkilled-crashloop",
+      "split": "train",
+      "stratum": "eks",
+      "family": "eks-resources"
+    },
+    {
+      "scenario": "eks/002-image-pull-backoff",
+      "split": "holdout",
+      "stratum": "eks",
+      "family": "eks-image"
+    },
+    {
+      "scenario": "eks/003-pending-insufficient-resources",
+      "split": "train",
+      "stratum": "eks",
+      "family": "eks-resources"
+    },
+    {
+      "scenario": "eks/004-liveness-probe-killing",
+      "split": "holdout",
+      "stratum": "eks",
+      "family": "eks-probe"
+    },
+    {
+      "scenario": "eks/005-resource-quota-exceeded",
+      "split": "train",
+      "stratum": "eks",
+      "family": "eks-resources"
+    },
+    {
+      "scenario": "eks/006-dns-resolution-failure",
+      "split": "holdout",
+      "stratum": "eks",
+      "family": "eks-dns"
+    },
+    {
+      "scenario": "eks/007-node-not-ready",
+      "split": "scorecard",
+      "stratum": "eks",
+      "family": "eks-node"
+    },
+    {
+      "scenario": "eks/008-deployment-rollout-stuck",
+      "split": "scorecard",
+      "stratum": "eks",
+      "family": "eks-rollout"
+    },
+    {
+      "scenario": "eks/009-noisy-healthy-restart-recovered",
+      "split": "train",
+      "stratum": "eks",
+      "family": "eks-healthy"
+    },
+    {
+      "scenario": "eks/010-red-herring-old-rollout",
+      "split": "train",
+      "stratum": "eks",
+      "family": "eks-healthy"
+    },
+    {
+      "scenario": "eks/011-recovered-rollout",
+      "split": "train",
+      "stratum": "eks",
+      "family": "eks-healthy"
+    },
+    {
+      "scenario": "eks/012-pending-recovered",
+      "split": "train",
+      "stratum": "eks",
+      "family": "eks-healthy"
+    },
+    {
+      "scenario": "eks/013-spurious-alert-storm",
+      "split": "train",
+      "stratum": "eks",
+      "family": "eks-healthy"
+    },
+    {
+      "scenario": "rds_postgres/000-healthy",
+      "split": "train",
+      "stratum": "rds",
+      "family": "rds-healthy"
+    },
+    {
+      "scenario": "rds_postgres/001-replication-lag",
+      "split": "train",
+      "stratum": "rds",
+      "family": "rds-replication"
+    },
+    {
+      "scenario": "rds_postgres/002-connection-exhaustion",
+      "split": "holdout",
+      "stratum": "rds",
+      "family": "rds-connections"
+    },
+    {
+      "scenario": "rds_postgres/003-storage-full",
+      "split": "train",
+      "stratum": "rds",
+      "family": "rds-storage"
+    },
+    {
+      "scenario": "rds_postgres/004-cpu-saturation-bad-query",
+      "split": "scorecard",
+      "stratum": "rds",
+      "family": "rds-query"
+    },
+    {
+      "scenario": "rds_postgres/005-failover",
+      "split": "holdout",
+      "stratum": "rds",
+      "family": "rds-failover"
+    },
+    {
+      "scenario": "rds_postgres/006-replication-lag-cpu-redherring",
+      "split": "train",
+      "stratum": "rds",
+      "family": "rds-replication"
+    },
+    {
+      "scenario": "rds_postgres/007-connection-pressure-noisy-healthy",
+      "split": "train",
+      "stratum": "rds",
+      "family": "rds-healthy"
+    },
+    {
+      "scenario": "rds_postgres/008-storage-full-missing-metric",
+      "split": "train",
+      "stratum": "rds",
+      "family": "rds-storage"
+    },
+    {
+      "scenario": "rds_postgres/009-dual-fault-connection-cpu",
+      "split": "holdout",
+      "stratum": "rds",
+      "family": "rds-connections"
+    },
+    {
+      "scenario": "rds_postgres/010-replication-lag-missing-metric",
+      "split": "train",
+      "stratum": "rds",
+      "family": "rds-replication"
+    },
+    {
+      "scenario": "rds_postgres/011-cpu-storage-compositional",
+      "split": "scorecard",
+      "stratum": "rds",
+      "family": "rds-composite"
+    },
+    {
+      "scenario": "rds_postgres/012-replication-lag-misleading-events",
+      "split": "train",
+      "stratum": "rds",
+      "family": "rds-replication"
+    },
+    {
+      "scenario": "rds_postgres/013-storage-recovery-false-alert",
+      "split": "train",
+      "stratum": "rds",
+      "family": "rds-healthy"
+    },
+    {
+      "scenario": "rds_postgres/014-checkpoint-storm-cpu-saturation",
+      "split": "scorecard",
+      "stratum": "rds",
+      "family": "rds-checkpoint"
+    },
+    {
+      "scenario": "rds_postgres/015-mysql-ec2-load-attribution",
+      "split": "holdout",
+      "stratum": "rds",
+      "family": "rds-app-load"
+    },
+    {
+      "scenario": "rds_postgres/016-hpa-retry-connection-storm",
+      "split": "holdout",
+      "stratum": "rds",
+      "family": "rds-connections"
+    },
+    {
+      "scenario": "rds_postgres/017-rollout-query-regression",
+      "split": "scorecard",
+      "stratum": "rds",
+      "family": "rds-query"
+    },
+    {
+      "scenario": "rds_postgres/018-cron-fanout-replica-lag",
+      "split": "train",
+      "stratum": "rds",
+      "family": "rds-replication"
+    },
+    {
+      "scenario": "rds_postgres/019-failover-dns-stale-endpoint",
+      "split": "holdout",
+      "stratum": "rds",
+      "family": "rds-failover"
+    },
+    {
+      "scenario": "rds_postgres/020-cni-loss-db-timeout-storm",
+      "split": "scorecard",
+      "stratum": "rds",
+      "family": "rds-cni"
+    },
+    {
+      "scenario": "rds_upstream/001-request-burst-ec2-app-tier",
+      "split": "holdout",
+      "stratum": "rds",
+      "family": "rds-app-load"
+    }
+  ]
+}

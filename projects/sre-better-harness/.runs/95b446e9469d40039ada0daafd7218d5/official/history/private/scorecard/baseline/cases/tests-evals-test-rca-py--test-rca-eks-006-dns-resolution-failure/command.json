@@ -1,0 +1,29 @@
+{
+  "argv": [
+    "uv",
+    "run",
+    "--project",
+    "C:\\Users\\USUARIO\\Desktop\\devops-telemetri\\sre-graph\\projects\\sre-better-harness",
+    "--group",
+    "test",
+    "pytest",
+    "-p",
+    "better_harness_plugin",
+    "--evals-report-file",
+    "C:\\Users\\USUARIO\\Desktop\\devops-telemetri\\sre-graph\\projects\\sre-better-harness\\.runs\\95b446e9469d40039ada0daafd7218d5\\official\\history\\private\\scorecard\\baseline\\cases\\tests-evals-test-rca-py--test-rca-eks-006-dns-resolution-failure\\summary.json",
+    "--junitxml",
+    "C:\\Users\\USUARIO\\Desktop\\devops-telemetri\\sre-graph\\projects\\sre-better-harness\\.runs\\95b446e9469d40039ada0daafd7218d5\\official\\history\\private\\scorecard\\baseline\\cases\\tests-evals-test-rca-py--test-rca-eks-006-dns-resolution-failure\\junit.xml",
+    "-q",
+    "--tb=short",
+    "--lab-mode",
+    "smoke",
+    "tests/evals/test_rca.py::test_rca[eks/006-dns-resolution-failure]"
+  ],
+  "cwd": "C:\\Users\\USUARIO\\Desktop\\devops-telemetri\\sre-graph\\projects\\sre-better-harness",
+  "env": {
+    "BETTER_HARNESS_VARIANT_FILE": "C:\\Users\\USUARIO\\Desktop\\devops-telemetri\\sre-graph\\projects\\sre-better-harness\\.runs\\95b446e9469d40039ada0daafd7218d5\\official\\variants\\baseline.json",
+    "LANGSMITH_TEST_SUITE": "better-harness-sre-rca",
+    "PYTHONPATH": "C:\\Users\\USUARIO\\Desktop\\devops-telemetri\\sre-graph\\projects\\sre-better-harness\\.runs\\95b446e9469d40039ada0daafd7218d5\\official\\_runtime;C:\\Users\\USUARIO\\Desktop\\devops-telemetri\\sre-graph\\projects\\sre-better-harness\\.venv\\Lib\\site-packages;C:\\Users\\USUARIO\\Desktop\\devops-telemetri\\sre-graph\\projects\\sre-better-harness"
+  },
+  "shell": "uv run --project 'C:\\Users\\USUARIO\\Desktop\\devops-telemetri\\sre-graph\\projects\\sre-better-harness' --group test pytest -p better_harness_plugin --evals-report-file 'C:\\Users\\USUARIO\\Desktop\\devops-telemetri\\sre-graph\\projects\\sre-better-harness\\.runs\\95b446e9469d40039ada0daafd7218d5\\official\\history\\private\\scorecard\\baseline\\cases\\tests-evals-test-rca-py--test-rca-eks-006-dns-resolution-failure\\summary.json' --junitxml 'C:\\Users\\USUARIO\\Desktop\\devops-telemetri\\sre-graph\\projects\\sre-better-harness\\.runs\\95b446e9469d40039ada0daafd7218d5\\official\\history\\private\\scorecard\\baseline\\cases\\tests-evals-test-rca-py--test-rca-eks-006-dns-resolution-failure\\junit.xml' -q --tb=short --lab-mode smoke 'tests/evals/test_rca.py::test_rca[eks/006-dns-resolution-failure]'"
+}

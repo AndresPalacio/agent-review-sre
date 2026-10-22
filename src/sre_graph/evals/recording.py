@@ -272,8 +272,8 @@ async def replay_graph(
     from sre_graph.evals.runner import _real_services
     from sre_graph.evals.scenarios import Scenario
     from sre_graph.evals.scoring import score_scenario
-    from sre_graph.graphs.investigation.graph import make_investigation_graph
     from sre_graph.graphs.investigation.services import ClaimJudgment, UnavailableServices
+    from sre_graph.harness.runtime import make_investigation_graph
     from sre_graph.integrations.context import RunContext
 
     disable_external_tracing()

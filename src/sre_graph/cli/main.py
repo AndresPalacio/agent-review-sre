@@ -19,6 +19,7 @@ from rich.console import Console
 
 from sre_graph.cli.chat import ChatSession, RemoteChatSession
 from sre_graph.cli.eval_tools import register_eval_tools
+from sre_graph.cli.harness import app as harness_app
 from sre_graph.cli.integrations import app as integrations_app
 from sre_graph.cli.schedules import app as schedules_app
 from sre_graph.config.settings import PersistenceBackend, Settings
@@ -28,9 +29,8 @@ from sre_graph.domain.alerts.model import AlertSource
 from sre_graph.domain.rendering.markdown import render_markdown
 from sre_graph.domain.report import Report
 from sre_graph.graphs.chat.graph import make_chat_graph
-from sre_graph.graphs.investigation.graph import make_investigation_graph
-from sre_graph.graphs.investigation.runtime import _services, make_runtime
 from sre_graph.graphs.remediation.actions import default_action_catalog
+from sre_graph.harness.runtime import _services, make_investigation_graph, make_runtime
 from sre_graph.integrations.catalog import default_registry
 from sre_graph.integrations.context import RunContext
 from sre_graph.llm.models import ModelRole, get_model
@@ -43,6 +43,7 @@ from sre_graph.safety.approval import ApprovalPolicy
 app = typer.Typer(help="Investigación local de incidentes SRE.", no_args_is_help=True)
 eval_app = typer.Typer(help="Evaluación reproducible del grafo RCA.", no_args_is_help=True)
 app.add_typer(eval_app, name="eval")
+app.add_typer(harness_app, name="harness")
 app.add_typer(schedules_app, name="schedules")
 app.add_typer(integrations_app, name="integrations")
 register_eval_tools(eval_app)

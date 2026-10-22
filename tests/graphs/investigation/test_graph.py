@@ -204,7 +204,7 @@ async def test_progress_exposes_safe_plan_and_specialist_metadata() -> None:
     assert plan["data"] == {
         "stage": "plan",
         "wave": 1,
-        "tasks": [{"domain": "metrics"}],
+        "tasks": [{"domain": "metrics", "hypothesis_ids": ["H1"]}],
     }
     assert specialist["data"] == {
         "stage": "metrics",
@@ -680,7 +680,7 @@ async def test_stream_contains_progress_events() -> None:
             stream_mode="custom",
         )
     ]
-    assert [event["data"]["stage"] for event in events][:3] == [
+    assert [event["data"]["stage"] for event in events if event["type"] == "stage"][:3] == [
         "intake",
         "gather_context",
         "plan",

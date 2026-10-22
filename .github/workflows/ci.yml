@@ -5,6 +5,35 @@ on:
   pull_request:
 
 jobs:
+  harness:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    env:
+      PYTHONUTF8: "1"
+      LANGSMITH_TRACING: "false"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          python-version: "3.12"
+      - run: uv sync --locked --extra harness
+      - run: uv run sre-graph harness runtime
+      - run: uv run --extra harness sre-graph harness validate
+      - run: uv run --extra harness better-harness validate harness/sre.toml
+      - run: uv run --extra harness pytest tests/harness tests/evals -q
+      - run: uv run --extra harness sre-graph harness smoke --output-dir .harness-runs/ci-smoke
+      - run: uv run --extra harness sre-graph harness export .harness-runs/ci-smoke --output-dir .harness-runs/ci-review
+      - run: uv run --extra harness pytest evals/harness --harness-model scripted -q
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: harness-${{ matrix.os }}
+          path: .harness-runs/ci-smoke/
+          include-hidden-files: true
+          retention-days: 14
+
   quality:
     runs-on: ubuntu-latest
     services:
@@ -31,6 +60,7 @@ jobs:
         with:
           python-version: "3.12"
       - run: uv sync --locked
+      - run: uv run sre-graph harness runtime
       - uses: actions/setup-node@v4
         with:
           node-version: "22"

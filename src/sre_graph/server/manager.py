@@ -11,6 +11,7 @@ from typing import Any
 from uuid import uuid4
 from weakref import WeakValueDictionary
 
+from sre_graph.safety.secrets import redact_secrets
 from sre_graph.server.storage import Storage
 
 _LOG = logging.getLogger(__name__)
@@ -278,6 +279,24 @@ class RunManager:
                     if mode == "custom" and isinstance(event, dict):
                         kind = event.get("type")
                         data = event.get("data")
+                        if kind == "harness_trace" and isinstance(data, dict):
+                            # Public history/SSE exposes execution metadata only.
+                            # Redacted arguments stay in the private checkpoint.
+                            safe_trace = {
+                                key: redact_secrets(data[key])[:128]
+                                for key in (
+                                    "kind",
+                                    "name",
+                                    "call_id",
+                                    "parent",
+                                    "node",
+                                    "status",
+                                    "error",
+                                    "observed_at",
+                                )
+                                if isinstance(data.get(key), str)
+                            }
+                            await self.storage.add_event(run_id, "harness_trace", safe_trace)
                         if kind in {"stage", "report", "done", "plan", "specialist"} and isinstance(
                             data, dict
                         ):

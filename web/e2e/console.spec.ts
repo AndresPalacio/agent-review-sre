@@ -49,7 +49,7 @@ test('investigación real, preparación explícita y aprobación única con audi
     const response = await request.get(`${backend}/v1/investigations/${investigation.thread_id}`, { headers: admin });
     return (await response.json()).run.status;
   }).toBe('completed');
-  await expect(page.getByText('k8s_list_pods', { exact: false }).first()).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'k8s_list_pods', exact: true }).first()).toBeVisible();
   const timeline = page.getByRole('heading', { name: 'Timeline', exact: true }).locator('..').locator('..');
   await expect(timeline.getByRole('listitem').first()).toBeVisible();
   await expect(timeline).toContainText('completed');

@@ -3,8 +3,10 @@
 from __future__ import annotations
 
 import asyncio
+import functools
 import hashlib
-from collections.abc import AsyncIterator
+import inspect
+from collections.abc import AsyncIterator, Callable, Coroutine
 from contextlib import asynccontextmanager
 from contextvars import ContextVar
 from datetime import UTC, datetime, timedelta
@@ -1118,6 +1120,41 @@ class Storage:
                     GatewayEventRow.status.in_(("completed", "dead")),
                 )
             )
+
+
+def _complete_on_cancel[T](
+    method: Callable[..., Coroutine[Any, Any, T]],
+) -> Callable[..., Coroutine[Any, Any, T]]:
+    """Finish a ledger operation before honoring a caller's cancellation.
+
+    Cancelling a query midway leaves its cursor referenced by the CancelledError
+    traceback; SQLite then keeps that connection's read lock and every later write
+    fails with "database is locked". The operation runs in its own task, and the
+    caller's cancellation is re-raised once it has completed.
+    """
+
+    @functools.wraps(method)
+    async def run(*args: Any, **kwargs: Any) -> T:
+        operation = asyncio.ensure_future(method(*args, **kwargs))
+        cancellation: asyncio.CancelledError | None = None
+        while not operation.done():
+            try:
+                # Unlike shield(), wait() never raises the operation's own errors here.
+                await asyncio.wait((operation,))
+            except asyncio.CancelledError as exc:
+                cancellation = exc
+        if cancellation is not None:
+            if not operation.cancelled():
+                operation.exception()  # retrieved; the caller's cancellation prevails
+            raise cancellation
+        return operation.result()
+
+    return run
+
+
+for _name, _method in list(vars(Storage).items()):
+    if inspect.iscoroutinefunction(_method):
+        setattr(Storage, _name, _complete_on_cancel(_method))
 
 
 def _run_dict(row: RunRow) -> dict[str, Any]:

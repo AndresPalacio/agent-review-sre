@@ -1,0 +1,2073 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>SRE Graph · Así funciona el piloto</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --ink: #182c40;
+        --muted: #5c6c7d;
+        --line: #d9e2e8;
+        --blue: #225de0;
+        --bluebg: #edf3ff;
+        --green: #137966;
+        --greenbg: #eaf8f2;
+        --amber: #9a5d12;
+        --amberbg: #fff5df;
+        --paper: #fff;
+        --bg: #f3f6f9;
+        font-family:
+          Inter,
+          Segoe UI,
+          system-ui,
+          sans-serif;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--ink);
+        font-size: 15px;
+        line-height: 1.5;
+      }
+      button,
+      select {
+        font: inherit;
+      }
+      button,
+      a,
+      select,
+      summary {
+        -webkit-tap-highlight-color: transparent;
+      }
+      button {
+        cursor: pointer;
+      }
+      button:focus-visible,
+      a:focus-visible,
+      select:focus-visible,
+      summary:focus-visible {
+        outline: 3px solid #f4ac35;
+        outline-offset: 3px;
+      }
+      button:disabled {
+        opacity: 0.4;
+        cursor: default;
+      }
+      a {
+        color: var(--blue);
+      }
+      .shell {
+        max-width: 1440px;
+        margin: auto;
+        padding: 0 32px 38px;
+      }
+      .topbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        padding: 20px 0;
+        border-bottom: 1px solid var(--line);
+        font-size: 13px;
+      }
+      .brand {
+        font-weight: 750;
+        letter-spacing: 0.5px;
+      }
+      .brand b {
+        display: inline-grid;
+        place-items: center;
+        background: var(--ink);
+        color: white;
+        width: 28px;
+        height: 28px;
+        border-radius: 8px;
+        margin-right: 9px;
+        font-size: 12px;
+      }
+      .toplinks {
+        display: flex;
+        gap: 20px;
+      }
+      .toplinks a {
+        text-decoration: none;
+      }
+      .hero {
+        padding: 26px 0 20px;
+        display: flex;
+        gap: 30px;
+        align-items: start;
+        justify-content: space-between;
+      }
+      .eyebrow {
+        font-size: 11px;
+        letter-spacing: 1.5px;
+        text-transform: uppercase;
+        font-weight: 750;
+        color: var(--blue);
+      }
+      h1 {
+        font-size: 34px;
+        letter-spacing: -1.1px;
+        line-height: 1.16;
+        margin: 7px 0 12px;
+        font-weight: 750;
+        max-width: 790px;
+      }
+      .lede {
+        color: var(--muted);
+        max-width: 820px;
+        margin: 0;
+        line-height: 1.65;
+      }
+      .guidebadge {
+        flex: none;
+        display: flex;
+        gap: 8px;
+        align-items: center;
+        font-size: 12px;
+        background: var(--amberbg);
+        border: 1px solid #ecd6af;
+        color: #805314;
+        border-radius: 99px;
+        padding: 8px 12px;
+        margin-top: 8px;
+      }
+      .guidebadge i {
+        width: 7px;
+        height: 7px;
+        background: #ba771c;
+        border-radius: 50%;
+      }
+      .toolbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 14px;
+        background: white;
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        padding: 14px 16px;
+        margin-bottom: 18px;
+      }
+      .picker {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+      .picker label {
+        font-weight: 650;
+        font-size: 13px;
+      }
+      select {
+        background: #fff;
+        border: 1px solid #bfccd8;
+        border-radius: 7px;
+        padding: 9px 32px 9px 10px;
+        color: var(--ink);
+        max-width: 100%;
+      }
+      .playtools {
+        display: flex;
+        gap: 7px;
+        align-items: center;
+      }
+      .btn {
+        border: 1px solid #c5d1dd;
+        border-radius: 7px;
+        padding: 9px 13px;
+        background: white;
+        color: var(--ink);
+        font-weight: 600;
+        font-size: 13px;
+        white-space: nowrap;
+      }
+      .btn.primary {
+        background: var(--blue);
+        border-color: var(--blue);
+        color: white;
+      }
+      .btn.icon {
+        padding: 9px 11px;
+      }
+      .layout {
+        display: grid;
+        grid-template-columns: minmax(310px, 0.85fr) minmax(540px, 1.65fr);
+        gap: 20px;
+        align-items: start;
+      }
+      .panel {
+        background: white;
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        overflow: hidden;
+      }
+      .panelhead {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 16px 18px;
+        border-bottom: 1px solid var(--line);
+        gap: 10px;
+      }
+      .panelhead h2 {
+        font-size: 15px;
+        margin: 0;
+        font-weight: 700;
+      }
+      .small {
+        color: var(--muted);
+        font-size: 12px;
+      }
+      .tabs {
+        display: flex;
+        gap: 5px;
+        background: #eaf0f6;
+        border-radius: 9px;
+        padding: 4px;
+        margin: 16px 16px 10px;
+      }
+      .tab {
+        flex: 1;
+        background: none;
+        border: none;
+        border-radius: 6px;
+        padding: 8px 5px;
+        color: var(--muted);
+        font-size: 13px;
+        font-weight: 600;
+      }
+      .tab[aria-selected="true"] {
+        color: var(--blue);
+        background: white;
+        box-shadow: 0 1px 3px #1c34481a;
+      }
+      .channelnote {
+        margin: 0 17px 16px;
+        font-size: 12px;
+        color: var(--muted);
+        min-height: 54px;
+      }
+      .channelnote strong {
+        color: var(--amber);
+      }
+      .clientbody {
+        min-height: 376px;
+        padding: 0 17px 18px;
+      }
+      .chatapp {
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        overflow: hidden;
+        background: #f8fafc;
+      }
+      .chathead {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 12px;
+        border-bottom: 1px solid var(--line);
+        background: white;
+        font-size: 13px;
+      }
+      .avatar {
+        background: var(--bluebg);
+        color: var(--blue);
+        font-weight: 750;
+        border-radius: 9px;
+        display: grid;
+        place-items: center;
+        width: 32px;
+        height: 32px;
+      }
+      .messages {
+        padding: 15px 12px;
+        min-height: 290px;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        max-height: 480px;
+        overflow: auto;
+      }
+      .message {
+        max-width: 94%;
+        border: 1px solid var(--line);
+        border-radius: 12px 12px 12px 3px;
+        padding: 11px 12px;
+        background: white;
+        white-space: pre-wrap;
+        font-size: 13px;
+        line-height: 1.55;
+      }
+      .message.user {
+        align-self: flex-end;
+        color: #fff;
+        background: var(--blue);
+        border-color: var(--blue);
+        border-radius: 12px 12px 3px 12px;
+      }
+      .message.meta {
+        align-self: center;
+        border: none;
+        background: transparent;
+        padding: 0;
+        color: var(--muted);
+        text-align: center;
+        font-size: 11px;
+      }
+      .message strong {
+        display: block;
+        font-size: 10px;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+        margin-bottom: 4px;
+      }
+      .chatcompose {
+        border-top: 1px solid var(--line);
+        padding: 11px 12px;
+        background: white;
+        color: #778898;
+        font-size: 12px;
+      }
+      .wire {
+        border: 1px solid #273e58;
+        border-radius: 10px;
+        overflow: hidden;
+        background: #14263a;
+        color: #dce9f9;
+      }
+      .wiretitle {
+        padding: 9px 12px;
+        background: #1e354e;
+        font-size: 11px;
+        color: #adc2d9;
+        font-family: ui-monospace, Consolas, monospace;
+        overflow-wrap: anywhere;
+      }
+      .wire pre {
+        font:
+          12px/1.65 ui-monospace,
+          Consolas,
+          monospace;
+        white-space: pre-wrap;
+        overflow-wrap: anywhere;
+        margin: 0;
+        padding: 14px;
+        max-height: 290px;
+        overflow: auto;
+      }
+      .wire + .wire {
+        margin-top: 12px;
+      }
+      .hint {
+        padding: 11px 13px;
+        border: 1px solid var(--line);
+        border-radius: 9px;
+        margin-top: 12px;
+        color: var(--muted);
+        font-size: 12px;
+        background: #f9fbfd;
+      }
+      .clientstate {
+        display: flex;
+        gap: 6px;
+        flex-wrap: wrap;
+        padding: 0 17px 16px;
+      }
+      .chip {
+        font:
+          11px/1.5 ui-monospace,
+          Consolas,
+          monospace;
+        border: 1px solid var(--line);
+        background: #f8fafc;
+        color: #566c80;
+        border-radius: 5px;
+        padding: 4px 7px;
+      }
+      .chip.ok {
+        background: var(--greenbg);
+        color: var(--green);
+        border-color: #b5dfd1;
+      }
+      .chip.active {
+        background: var(--bluebg);
+        color: var(--blue);
+        border-color: #c2d4fb;
+      }
+      .graphhead {
+        font-size: 11px;
+        color: var(--muted);
+        display: flex;
+        gap: 12px;
+        align-items: center;
+      }
+      .dot {
+        display: inline-block;
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: var(--blue);
+        margin-right: 5px;
+      }
+      .dot.done {
+        background: var(--green);
+      }
+      .diagram {
+        position: relative;
+        padding: 20px 24px 18px;
+        isolation: isolate;
+      }
+      .edges {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        z-index: -1;
+        overflow: visible;
+        pointer-events: none;
+      }
+      .edge {
+        fill: none;
+        stroke: #cbd6df;
+        stroke-width: 1.7;
+        transition: stroke 0.25s;
+      }
+      .edge.visited {
+        stroke: #91cdbb;
+      }
+      .edge.current {
+        stroke: var(--blue);
+        stroke-width: 2.5;
+        stroke-dasharray: 7 6;
+        animation: travel 1s linear infinite;
+      }
+      .edge.shortcut {
+        stroke-dasharray: 4 4;
+      }
+      .toprow {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 24px;
+        margin-bottom: 32px;
+      }
+      .node {
+        position: relative;
+        background: white;
+        text-align: left;
+        border: 1px solid #cfdbe5;
+        border-radius: 10px;
+        padding: 12px;
+        min-width: 0;
+        color: var(--ink);
+        transition:
+          background 0.25s,
+          border-color 0.25s,
+          box-shadow 0.25s,
+          opacity 0.25s;
+        width: 100%;
+        font-size: 12px;
+      }
+      .node strong {
+        display: block;
+        font-size: 13px;
+        line-height: 1.3;
+        margin: 3px 0 5px;
+      }
+      .node .num {
+        font:
+          10px/1.4 ui-monospace,
+          Consolas,
+          monospace;
+        color: var(--muted);
+        display: block;
+      }
+      .node .sub {
+        font-size: 11px;
+        line-height: 1.4;
+        display: block;
+        color: var(--muted);
+      }
+      .node.active {
+        border-color: var(--blue);
+        background: #f0f5ff;
+        box-shadow: 0 0 0 3px #225de014;
+      }
+      .node.done {
+        border-color: #94cbb8;
+        background: #f3fbf7;
+      }
+      .node.skipped {
+        opacity: 0.38;
+      }
+      .node.selected {
+        box-shadow: 0 0 0 3px #f4ac3540;
+      }
+      .engine {
+        border: 1px dashed #c9d4e1;
+        border-radius: 13px;
+        background: #eef3f833;
+        padding: 20px 18px 16px;
+        position: relative;
+      }
+      .engine-label {
+        font-size: 10px;
+        letter-spacing: 0.8px;
+        color: #57718a;
+        background: white;
+        padding: 0 6px;
+        position: absolute;
+        left: 14px;
+        top: -9px;
+        text-transform: uppercase;
+      }
+      .decisionrow {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 28px;
+      }
+      .childrenrow {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 28px;
+        margin: 32px 0;
+      }
+      .node.worker .num {
+        color: var(--green);
+      }
+      .collectrow {
+        width: 75%;
+        margin: auto;
+      }
+      .outputrow {
+        width: 75%;
+        margin: 28px auto 0;
+      }
+      .outputrow .node {
+        text-align: center;
+      }
+      .node .state {
+        margin-top: 6px;
+        display: block;
+        font:
+          10px/1.3 ui-monospace,
+          Consolas,
+          monospace;
+        color: var(--blue);
+        overflow-wrap: anywhere;
+      }
+      .stepbar {
+        padding: 16px 20px 19px;
+        border-top: 1px solid var(--line);
+        background: #f9fbfd;
+      }
+      .stepheading {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+        margin-bottom: 8px;
+      }
+      .stepnum {
+        display: grid;
+        place-items: center;
+        flex: none;
+        height: 29px;
+        min-width: 29px;
+        border-radius: 8px;
+        background: var(--blue);
+        color: white;
+        font-weight: 750;
+        font-size: 12px;
+      }
+      .stepheading h3 {
+        font-size: 16px;
+        line-height: 1.3;
+        margin: 0;
+      }
+      .stepbar p {
+        font-size: 13px;
+        line-height: 1.6;
+        color: #465d73;
+        margin: 0;
+      }
+      .roleline {
+        margin-top: 10px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 11px;
+        color: var(--muted);
+      }
+      .roletag {
+        display: inline-block;
+        color: var(--blue);
+        background: var(--bluebg);
+        border: 1px solid #caddff;
+        border-radius: 5px;
+        padding: 2px 6px;
+        font-size: 10px;
+        font-weight: 700;
+      }
+      .timeline {
+        display: flex;
+        gap: 5px;
+        padding: 0 20px 15px;
+        background: #f9fbfd;
+      }
+      .tick {
+        flex: 1;
+        border: 0;
+        border-radius: 5px;
+        height: 7px;
+        background: #dae4ed;
+        padding: 0;
+      }
+      .tick.done {
+        background: #9dcebd;
+      }
+      .tick.active {
+        background: var(--blue);
+        height: 9px;
+        margin-top: -1px;
+      }
+      .explain {
+        margin-top: 14px;
+        background: white;
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        padding: 16px 18px;
+      }
+      .explain h3 {
+        font-size: 14px;
+        margin: 0 0 6px;
+      }
+      .explain p {
+        font-size: 12px;
+        color: var(--muted);
+        margin: 0 0 10px;
+      }
+      .explain code {
+        display: block;
+        font:
+          11px/1.5 ui-monospace,
+          Consolas,
+          monospace;
+        color: var(--blue);
+        overflow-wrap: anywhere;
+      }
+      .facts {
+        margin-top: 22px;
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        background: white;
+        padding: 15px 20px;
+      }
+      .facts summary {
+        cursor: pointer;
+        font-weight: 650;
+        font-size: 13px;
+      }
+      .factscontent {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 24px;
+        padding-top: 16px;
+      }
+      .factscontent h3 {
+        font-size: 13px;
+        margin: 0 0 5px;
+      }
+      .factscontent p,
+      .factscontent li {
+        font-size: 12px;
+        color: var(--muted);
+        line-height: 1.7;
+      }
+      .factscontent ul {
+        padding-left: 18px;
+        margin: 5px 0;
+      }
+      .factscontent code {
+        font:
+          11px ui-monospace,
+          Consolas,
+          monospace;
+      }
+      .bottom {
+        display: flex;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 12px;
+        font-size: 11px;
+        color: var(--muted);
+        margin-top: 16px;
+      }
+      .bottom p {
+        margin: 0;
+      }
+      .sr {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+      }
+      .visuallygone {
+        display: none !important;
+      }
+      @keyframes travel {
+        to {
+          stroke-dashoffset: -26;
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .edge.current {
+          animation: none;
+        }
+        * {
+          transition: none !important;
+        }
+      }
+      @media (max-width: 1060px) {
+        .shell {
+          padding: 0 20px 28px;
+        }
+        .layout {
+          grid-template-columns: minmax(280px, 0.85fr) minmax(450px, 1.5fr);
+        }
+        .hero {
+          gap: 15px;
+        }
+        h1 {
+          font-size: 29px;
+        }
+        .guidebadge {
+          font-size: 11px;
+        }
+        .diagram {
+          padding: 20px 16px 16px;
+        }
+        .toprow {
+          gap: 15px;
+        }
+        .node {
+          padding: 10px;
+        }
+        .node strong {
+          font-size: 12px;
+        }
+        .engine {
+          padding: 19px 12px 14px;
+        }
+        .childrenrow,
+        .decisionrow {
+          gap: 18px;
+        }
+        .toplinks {
+          gap: 10px;
+        }
+      }
+      @media (max-width: 820px) {
+        .layout {
+          display: flex;
+          flex-direction: column;
+        }
+        .clientpanel,
+        .flowcolumn {
+          width: 100%;
+        }
+        .clientbody {
+          min-height: 0;
+        }
+        .messages {
+          min-height: 140px;
+          max-height: 230px;
+        }
+        .wire pre {
+          max-height: 190px;
+        }
+        .channelnote {
+          min-height: 0;
+        }
+        .hero {
+          display: block;
+        }
+        .guidebadge {
+          display: inline-flex;
+          margin: 13px 0 0;
+        }
+        .topbar {
+          align-items: start;
+        }
+        .toplinks {
+          flex-wrap: wrap;
+          justify-content: flex-end;
+          font-size: 11px;
+        }
+        .hero {
+          padding-top: 20px;
+        }
+        .toolbar {
+          gap: 12px;
+        }
+        .playtools {
+          flex-wrap: wrap;
+        }
+        .factscontent {
+          grid-template-columns: 1fr;
+          gap: 12px;
+        }
+        .diagram {
+          padding: 22px 14px 16px;
+        }
+        .engine {
+          padding: 22px 12px 16px;
+        }
+      }
+      @media (max-width: 430px) {
+        .shell {
+          padding: 0 12px 24px;
+        }
+        h1 {
+          font-size: 27px;
+        }
+        .topbar {
+          gap: 6px;
+        }
+        .brand {
+          font-size: 11px;
+        }
+        .toplinks a:first-child {
+          display: none;
+        }
+        .toolbar {
+          padding: 12px;
+        }
+        .picker {
+          width: 100%;
+        }
+        .picker select {
+          width: 100%;
+        }
+        .playtools {
+          width: 100%;
+          justify-content: space-between;
+        }
+        .btn {
+          font-size: 12px;
+          padding: 9px 10px;
+        }
+        .panelhead {
+          padding: 14px;
+        }
+        .graphhead {
+          gap: 6px;
+          font-size: 10px;
+        }
+        .toprow {
+          gap: 13px;
+        }
+        .node {
+          padding: 8px;
+        }
+        .node strong {
+          font-size: 11px;
+        }
+        .node .sub {
+          font-size: 10px;
+        }
+        .node .num {
+          font-size: 9px;
+        }
+        .engine-label {
+          font-size: 9px;
+        }
+        .collectrow,
+        .outputrow {
+          width: 85%;
+        }
+        .stepbar {
+          padding: 15px;
+        }
+        .timeline {
+          padding: 0 15px 15px;
+        }
+        .stepheading h3 {
+          font-size: 14px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="shell">
+      <nav class="topbar" aria-label="Enlaces de la guía">
+        <div class="brand"><b>SG</b> SRE GRAPH / RECORRIDO</div>
+        <div class="toplinks">
+          <a href="2026-10-22-piloto-async-ejecutable.md">Guía técnica</a
+          ><a href="http://127.0.0.1:8012" target="_blank" rel="noopener"
+            >Abrir el piloto real ↗</a
+          >
+        </div>
+      </nav>
+      <header class="hero">
+        <div>
+          <div class="eyebrow">
+            Lo que quedó construido · explicado con un incidente
+          </div>
+          <h1>Entra un pedido.<br />El supervisor organiza el trabajo.</h1>
+          <p class="lede">
+            Imagina que el servicio de <b>pagos está lento</b>. Sigue el pedido
+            desde la persona o la API hasta los agentes de métricas y logs, y
+            observa cómo vuelve la respuesta.
+          </p>
+        </div>
+        <div class="guidebadge">
+          <i></i>Ejemplo guiado · no ejecuta trabajos
+        </div>
+      </header>
+      <section class="toolbar" aria-label="Controles del recorrido">
+        <div class="picker">
+          <label for="scenario">Caso</label
+          ><select id="scenario">
+            <option value="investigate">
+              1. Investigar la lentitud de pagos
+            </option>
+            <option value="update">2. Cambiar el foco mientras trabajan</option>
+            <option value="cancel">3. Cancelar una investigación</option>
+            <option value="direct">4. Una pregunta sencilla</option>
+            <option value="clarify">5. Falta información</option>
+          </select>
+        </div>
+        <div class="playtools">
+          <button
+            class="btn icon"
+            id="reset"
+            title="Volver al inicio"
+            aria-label="Volver al inicio"
+          >
+            ↺</button
+          ><button class="btn" id="previous">← Anterior</button
+          ><button class="btn primary" id="play">▶ Reproducir</button
+          ><button class="btn" id="next">Siguiente →</button>
+        </div>
+      </section>
+      <div class="layout">
+        <section class="panel clientpanel">
+          <div class="panelhead">
+            <h2>Así entraría el pedido</h2>
+            <span class="small">Mismo caso, tres entradas</span>
+          </div>
+          <div class="tabs" role="tablist" aria-label="Canal de entrada">
+            <button
+              class="tab"
+              id="tab-chat"
+              role="tab"
+              aria-controls="clientbody"
+              aria-selected="true"
+              data-channel="chat"
+            >
+              Chat</button
+            ><button
+              class="tab"
+              id="tab-http"
+              role="tab"
+              aria-controls="clientbody"
+              aria-selected="false"
+              tabindex="-1"
+              data-channel="http"
+            >
+              Endpoint HTTP</button
+            ><button
+              class="tab"
+              id="tab-mcp"
+              role="tab"
+              aria-controls="clientbody"
+              aria-selected="false"
+              tabindex="-1"
+              data-channel="mcp"
+            >
+              Cliente MCP
+            </button>
+          </div>
+          <p class="channelnote" id="channelnote"></p>
+          <div
+            class="clientbody"
+            id="clientbody"
+            role="tabpanel"
+            aria-labelledby="tab-chat"
+          ></div>
+          <div class="clientstate" id="clientstate"></div>
+        </section>
+        <div class="flowcolumn">
+          <section class="panel flowpanel">
+            <div class="panelhead">
+              <h2>Qué pasa dentro</h2>
+              <div class="graphhead">
+                <span><i class="dot"></i>Ahora</span
+                ><span><i class="dot done"></i>Recorrido</span>
+              </div>
+            </div>
+            <div class="diagram" id="diagram">
+              <svg class="edges" id="edges" aria-hidden="true">
+                <defs>
+                  <marker
+                    id="arrow"
+                    markerWidth="7"
+                    markerHeight="7"
+                    refX="6"
+                    refY="3.5"
+                    orient="auto"
+                  >
+                    <path d="M0,0 L7,3.5 L0,7" fill="#9aadc0" />
+                  </marker>
+                  <marker
+                    id="arrow-active"
+                    markerWidth="7"
+                    markerHeight="7"
+                    refX="6"
+                    refY="3.5"
+                    orient="auto"
+                  >
+                    <path d="M0,0 L7,3.5 L0,7" fill="#225de0" />
+                  </marker>
+                </defs>
+                <g id="paths"></g>
+              </svg>
+              <div class="toprow">
+                <button class="node" data-node="entry" id="node-entry">
+                  <span class="num">ENTRADA</span
+                  ><strong id="entrytitle">Interfaz de chat</strong
+                  ><span class="sub" id="entrysub"
+                    >Convierte el texto en una petición.</span
+                  ></button
+                ><button class="node" data-node="work" id="node-work">
+                  <span class="num">SERVICIO</span><strong>WorkService</strong
+                  ><span class="sub"
+                    >Valida el pedido y controla el trabajo.</span
+                  ></button
+                ><button class="node" data-node="router" id="node-router">
+                  <span class="num">PRIMERA DECISIÓN</span
+                  ><strong>Elegir la ruta</strong
+                  ><span class="sub">Reglas; Decisions es opcional.</span
+                  ><span class="state" id="routestate"
+                    >¿Responder, investigar o preguntar?</span
+                  >
+                </button>
+              </div>
+              <div class="engine">
+                <span class="engine-label"
+                  >Agent Server · aquí se ejecutan los agentes</span
+                >
+                <div class="decisionrow">
+                  <button
+                    class="node"
+                    data-node="supervisor"
+                    id="node-supervisor"
+                  >
+                    <span class="num">AGENTE SUPERVISOR</span
+                    ><strong>Elegir qué hacer</strong
+                    ><span class="sub"
+                      >El modelo propone llamadas a herramientas.</span
+                    ></button
+                  ><button class="node" data-node="guard" id="node-guard">
+                    <span class="num">CONTROL EN CÓDIGO</span
+                    ><strong>Validar y delegar</strong
+                    ><span class="sub"
+                      >Límites, permisos y middleware asíncrono.</span
+                    >
+                  </button>
+                </div>
+                <div class="childrenrow">
+                  <button
+                    class="node worker"
+                    data-node="metrics"
+                    id="node-metrics"
+                  >
+                    <span class="num">HIJO 1 · DEEP AGENT</span
+                    ><strong>Revisar métricas</strong
+                    ><span class="sub">Latencia y tasa de errores.</span
+                    ><span class="state" id="metricstate"
+                      >Esperando delegación</span
+                    ></button
+                  ><button class="node worker" data-node="logs" id="node-logs">
+                    <span class="num">HIJO 2 · DEEP AGENT</span
+                    ><strong>Revisar logs</strong
+                    ><span class="sub">Timeouts y eventos del servicio.</span
+                    ><span class="state" id="logstate"
+                      >Esperando delegación</span
+                    >
+                  </button>
+                </div>
+                <div class="collectrow">
+                  <button class="node" data-node="collect" id="node-collect">
+                    <span class="num">VUELVE AL SUPERVISOR</span
+                    ><strong>Reunir los resultados</strong
+                    ><span class="sub"
+                      >Los hijos notifican al padre. Se verifica la revisión
+                      actual.</span
+                    >
+                  </button>
+                </div>
+              </div>
+              <div class="outputrow">
+                <button class="node" data-node="result" id="node-result">
+                  <span class="num">SALIDA AL MISMO CLIENTE</span
+                  ><strong id="resulttitle"
+                    >Consultar y mostrar la respuesta</strong
+                  ><span class="sub" id="resultsub"
+                    >GET /work/{work_id} o work_get por MCP.</span
+                  >
+                </button>
+              </div>
+            </div>
+            <div class="stepbar" aria-live="polite" aria-atomic="true">
+              <div class="stepheading">
+                <span class="stepnum" id="stepnum">1</span>
+                <h3 id="steptitle"></h3>
+              </div>
+              <p id="steptext"></p>
+              <div class="roleline">
+                <span class="roletag" id="steprole"></span
+                ><span id="stepcount"></span>
+              </div>
+            </div>
+            <div
+              class="timeline"
+              id="timeline"
+              aria-label="Elegir un paso"
+            ></div>
+          </section>
+          <aside class="explain" id="inspector">
+            <h3 id="inspecttitle">Pulsa un componente para entenderlo</h3>
+            <p id="inspecttext">
+              Puedes inspeccionarlo sin cambiar el paso del recorrido.
+            </p>
+            <code id="inspectcode"
+              >La traza permite ver las herramientas elegidas y sus
+              argumentos.</code
+            >
+          </aside>
+        </div>
+      </div>
+      <details class="facts">
+        <summary>Qué está funcionando hoy y qué es una representación</summary>
+        <div class="factscontent">
+          <div>
+            <h3>Implementado en el piloto</h3>
+            <ul>
+              <li>
+                Panel local, HTTP <code>/work</code> y MCP <code>/mcp/</code>,
+                sobre un mismo servicio.
+              </li>
+              <li>
+                Supervisor y dos hijos con Deep Agents; actualización,
+                cancelación, revisión e idempotencia.
+              </li>
+              <li>
+                Agent Server ejecuta el trabajo. SQLite guarda identidad y
+                comandos; no ejecuta los agentes.
+              </li>
+              <li>
+                Modelo offline determinista y datos sintéticos. Un modelo real y
+                Decisions son configurables, pero falta validarlos con
+                credenciales.
+              </li>
+            </ul>
+          </div>
+          <div>
+            <h3>Cómo interpretar esta página</h3>
+            <ul>
+              <li>
+                Es un recorrido educativo: no consulta el backend, no usa claves
+                ni inicia investigaciones.
+              </li>
+              <li>
+                La vista de chat y sus respuestas se presentan de forma
+                simplificada. Conectar un chat a este piloto es un paso
+                posterior.
+              </li>
+              <li>
+                El chat existente del producto usa
+                <code>/v1/chat/threads/{id}/messages</code> y su grafo anterior;
+                no se conectó automáticamente a <code>WorkService</code>.
+              </li>
+              <li>
+                En producción habría que conectar telemetría real y completar
+                autenticación y persistencia. A2A/Jira y Temporal no están
+                implementados en este piloto.
+              </li>
+            </ul>
+          </div>
+        </div>
+      </details>
+      <footer class="bottom">
+        <p>
+          Datos de ejemplo: p95 = 820 ms · errores = 8 % · logs de timeout y
+          conexiones agotadas.
+        </p>
+        <p>Sin dependencias externas. Puedes abrir este HTML directamente.</p>
+      </footer>
+    </div>
+    <script>
+      "use strict";
+      const $ = (id) => document.getElementById(id);
+      const WORK = "8c192c5e-6ad4-5da1-b925-2c51b258d7b1";
+      const PROMPT = "Investiga la latencia de pagos con métricas y logs";
+      const UPDATE = "Actualiza el hijo de logs para revisar últimos 5 minutos";
+      const RESULT =
+        "Encontré latencia p95 de 820 ms y 8 % de errores en pagos. Los logs muestran timeouts y agotamiento del pool de conexiones. Son señales para investigar; no confirman por sí solas una causa raíz.";
+      const base = [
+        {
+          title: "La persona o la aplicación pide ayuda",
+          text: "El pedido entra como texto. Una interfaz de chat lo convertiría en una petición HTTP; un cliente MCP llamaría work_start. Ambos pueden usar el mismo servicio.",
+          role: "Cliente",
+          nodes: ["entry"],
+          state: "draft",
+          phase: "send",
+        },
+        {
+          title: "El servicio comprueba quién pide y qué comando es",
+          text: "WorkService recibe el pedido, usa el actor configurado y comprueba command_id. Repetir el mismo comando conserva el trabajo; reutilizarlo con otro contenido genera un conflicto.",
+          role: "Código determinista",
+          nodes: ["work"],
+          state: "validating",
+          phase: "send",
+          edges: ["entry-work"],
+        },
+        {
+          title: "La primera decisión: hay que investigar",
+          text: "La política reconoce una investigación de incidente y elige investigate. Hoy se usan reglas. OpenAI Decisions puede sustituir esa selección inicial; no elige las herramientas de cada agente.",
+          role: "Política de ruta",
+          nodes: ["router"],
+          state: "routing",
+          route: "investigate",
+          phase: "send",
+          edges: ["work-router"],
+        },
+        {
+          title: "Se devuelve un ID y arranca el supervisor",
+          text: "El servicio registra el trabajo y lo envía al Agent Server. La petición inicial devuelve work_id y status: running sin esperar el diagnóstico. El cliente puede consultar mientras el supervisor sigue trabajando.",
+          role: "Servicio + motor",
+          nodes: ["work", "supervisor"],
+          state: "running",
+          route: "investigate",
+          phase: "accepted",
+          edges: ["router-supervisor"],
+        },
+        {
+          title: "El supervisor elige dos herramientas; el código las valida",
+          text: "El modelo emite start_async_task para metrics y logs. PilotGuard comprueba permisos, revisión, plazo y el límite de dos hijos; AsyncSubAgentMiddleware realiza la delegación. En modo offline estas elecciones las reproduce un modelo de prueba.",
+          role: "Modelo elige · código valida",
+          nodes: ["supervisor", "guard"],
+          state: "running",
+          route: "investigate",
+          phase: "delegate",
+          edges: ["supervisor-guard"],
+        },
+        {
+          title: "Los dos hijos trabajan en paralelo",
+          text: "Cada Deep Agent ejecuta su lectura y conserva su propio thread_id. El padre puede haber terminado su primer turno, pero el trabajo sigue running mientras los hijos trabajan. Las consultas actuales leen fixtures sintéticos.",
+          role: "Agentes hijos",
+          nodes: ["metrics", "logs"],
+          state: "running",
+          route: "investigate",
+          phase: "children",
+          edges: ["guard-metrics", "guard-logs"],
+        },
+        {
+          title: "Los resultados vuelven al supervisor",
+          text: "Los hijos notifican al padre. El supervisor recibe las observaciones y compone una respuesta; el servicio evita entregar resultados de una revisión antigua. Si falta una notificación, hay recuperación acotada.",
+          role: "Notificación + supervisor",
+          nodes: ["collect"],
+          state: "running",
+          route: "investigate",
+          phase: "collect",
+          edges: ["metrics-collect", "logs-collect"],
+        },
+        {
+          title: "El cliente consulta y muestra la respuesta",
+          text: "Cuando el padre y los hijos han terminado y la respuesta corresponde a la revisión actual, el trabajo queda completed. HTTP usa GET /work/{work_id}; MCP usa work_get. Un chat mostraría ese resultado en la conversación.",
+          role: "Servicio → cliente",
+          nodes: ["result"],
+          state: "completed",
+          route: "investigate",
+          phase: "final",
+          edges: ["collect-result"],
+        },
+      ];
+      const scenarios = {
+        investigate: { prompt: PROMPT, steps: base },
+        update: {
+          prompt: PROMPT,
+          steps: [
+            ...base.slice(0, 6),
+            {
+              title: "La persona cambia el foco sin crear otro trabajo",
+              text: "Envía una nueva instrucción con expected_revision: 1 y un command_id nuevo. WorkService acepta la revisión 2 y encola el mensaje para el supervisor. El ID del trabajo se conserva.",
+              role: "Cliente → servicio",
+              nodes: ["entry", "work"],
+              state: "running",
+              route: "investigate",
+              phase: "update",
+              revision: 2,
+              edges: ["entry-work"],
+            },
+            {
+              title: "El supervisor decide actualizar el hijo de logs",
+              text: "Al recibir la instrucción, el modelo elige update_async_task con el task_id de logs. El middleware inicia un nuevo run en el mismo thread del hijo; el agente de métricas puede continuar con su ventana original.",
+              role: "Modelo + middleware",
+              nodes: ["supervisor", "guard", "logs"],
+              state: "running",
+              route: "investigate",
+              phase: "redirect",
+              revision: 2,
+              edges: ["supervisor-guard", "guard-logs"],
+            },
+            {
+              title: "Logs cambia a cinco minutos",
+              text: "El hijo de logs conserva su conversación e identidad, y su nueva ejecución consulta la ventana 5m. No se añade un tercer hijo. El cliente sigue consultando el mismo work_id.",
+              role: "Hijo de logs",
+              nodes: ["logs"],
+              state: "running",
+              route: "investigate",
+              phase: "updated-child",
+              revision: 2,
+              edges: ["guard-logs"],
+            },
+            {
+              ...base[6],
+              title: "El supervisor reúne la evidencia actual",
+              text: "La respuesta combina las métricas originales con logs de los últimos cinco minutos. El servicio solo entrega la respuesta de la revisión 2; un mensaje tardío de la revisión 1 no puede reemplazarla.",
+              revision: 2,
+            },
+            { ...base[7], revision: 2 },
+          ],
+        },
+        cancel: {
+          prompt: PROMPT,
+          steps: [
+            ...base.slice(0, 6),
+            {
+              title: "La persona solicita cancelar",
+              text: "El cliente envía work_cancel por MCP o POST /work/{work_id}/cancel. WorkService registra cancel_requested antes de actuar. La solicitud y la cancelación confirmada son estados distintos.",
+              role: "Cliente → servicio",
+              nodes: ["entry", "work"],
+              state: "cancel_requested",
+              route: "investigate",
+              phase: "cancel",
+              revision: 2,
+              edges: ["entry-work"],
+            },
+            {
+              title: "El servicio interrumpe padre e hijos",
+              text: "El adaptador cancela las ejecuciones activas y vuelve a consultar los hijos para comprobar el estado. Esta operación de control del trabajo la ejecuta el servicio; no necesita que un modelo la decida.",
+              role: "Código de control",
+              nodes: ["work", "supervisor", "metrics", "logs"],
+              state: "cancel_requested",
+              route: "investigate",
+              phase: "cancelling",
+              revision: 2,
+              edges: [],
+            },
+            {
+              title: "La cancelación queda confirmada",
+              text: "Una vez comprobada la interrupción, el estado pasa a cancelled y result permanece null. Un resultado que llegue tarde no se presenta como respuesta válida del trabajo cancelado.",
+              role: "Servicio → cliente",
+              nodes: ["result"],
+              state: "cancelled",
+              route: "investigate",
+              phase: "cancelled",
+              revision: 2,
+              edges: ["collect-result"],
+            },
+          ],
+        },
+        direct: {
+          prompt: "¿Qué es p95?",
+          steps: [
+            base[0],
+            base[1],
+            {
+              title: "Una pregunta sencilla toma la ruta directa",
+              text: "La política reconoce una pregunta conceptual y elige direct. El servicio configura max_children: 0, porque no hace falta iniciar una investigación para explicar p95.",
+              role: "Política de ruta",
+              nodes: ["router"],
+              state: "routing",
+              route: "direct",
+              phase: "send",
+              edges: ["work-router"],
+            },
+            {
+              title: "El supervisor responde sin delegar",
+              text: "El supervisor genera una respuesta conceptual. En este caso no se crean hijos de métricas ni logs. En el piloto offline la explicación es una respuesta de prueba conocida.",
+              role: "Modelo del supervisor",
+              nodes: ["supervisor"],
+              state: "running",
+              route: "direct",
+              phase: "accepted",
+              edges: ["router-supervisor"],
+            },
+            {
+              title: "La respuesta vuelve por el mismo canal",
+              text: "El cliente consulta el trabajo y muestra la explicación. Elegir direct evita ejecutar una investigación completa para esta consulta.",
+              role: "Servicio → cliente",
+              nodes: ["result"],
+              state: "completed",
+              route: "direct",
+              phase: "final",
+              edges: ["supervisor-result"],
+            },
+          ],
+        },
+        clarify: {
+          prompt: "Ayuda con algo raro",
+          steps: [
+            base[0],
+            base[1],
+            {
+              title: "Falta contexto: primero hay que preguntar",
+              text: "La política elige clarify. WorkService devuelve una solicitud de contexto sin crear un thread del supervisor ni iniciar hijos. No intenta adivinar qué servicio hay que investigar.",
+              role: "Política + servicio",
+              nodes: ["router"],
+              state: "routing",
+              route: "clarify",
+              phase: "send",
+              edges: ["work-router"],
+            },
+            {
+              title: "Se pide servicio, incidente y periodo",
+              text: "El resultado local queda completed y run_id es null. Después, con datos suficientes, el cliente iniciaría un trabajo nuevo con otro command_id.",
+              role: "Servicio → cliente",
+              nodes: ["result"],
+              state: "completed",
+              route: "clarify",
+              phase: "final",
+              edges: ["router-result"],
+            },
+          ],
+        },
+      };
+      const info = {
+        entry: {
+          title: "Entrada: el canal no es el orquestador",
+          text: "HTTP y MCP son entradas ya disponibles. El chat de esta página representa una interfaz posible sobre /work. El chat existente del producto sigue utilizando su grafo anterior.",
+          code: "api.py: POST /work · mcp.py: work_start(command)",
+        },
+        work: {
+          title: "WorkService: el contrato del trabajo",
+          text: "Controla actor, command_id, revisiones, consulta, actualización y cancelación. Conserva comandos en SQLite y utiliza el SDK para enviar ejecuciones al Agent Server. No contiene un segundo scheduler.",
+          code: "src/sre_graph/work/service.py → start / update / cancel / _refresh",
+        },
+        router: {
+          title: "Primera decisión: qué clase de petición es",
+          text: "RulesPolicy decide direct, investigate o clarify. OpenAIDecisionPolicy permite usar Decisions en esa misma posición. Una confianza baja, error o rechazo provoca fallback a reglas; 0.7 es un umbral de piloto sin calibrar.",
+          code: "src/sre_graph/work/policy.py → decide(text, eligible=...)",
+        },
+        supervisor: {
+          title: "Aquí el agente elige su siguiente acción",
+          text: "El modelo recibe los mensajes y las herramientas disponibles y emite tool_calls. Puedes ver los nombres y argumentos en PilotGuard.after_model. Offline reproduce decisiones de prueba; provider:model habilita inferencia real.",
+          code: "src/sre_graph/work/graphs.py → supervisor / PilotGuard.after_model",
+        },
+        guard: {
+          title: "Una propuesta del modelo debe pasar controles",
+          text: "PilotGuard comprueba el contexto y limita los hijos y herramientas. AsyncSubAgentMiddleware crea, consulta, dirige o cancela tareas mediante Agent Protocol. MCP no participa como transporte interno entre estos hijos.",
+          code: "graphs.py → PilotGuard._denial · AsyncSubAgentMiddleware",
+        },
+        metrics: {
+          title: "Hijo de métricas: una ejecución independiente",
+          text: "Es un Deep Agent con su propio thread y run. Lee p95 y tasa de errores de un fixture. El valor 820 ms y el 8 % pertenecen a datos sintéticos; aún no consulta Prometheus ni infraestructura real.",
+          code: 'graphs.py → metrics / _fixture_tool("metrics")',
+        },
+        logs: {
+          title: "Hijo de logs: se puede dirigir mientras trabaja",
+          text: "Lee eventos sintéticos de timeout y conexiones agotadas. Una actualización conserva el thread_id del hijo y cambia su run_id y ventana de consulta. No crea un tercer agente.",
+          code: 'graphs.py → logs / _fixture_tool("logs") · update_async_task',
+        },
+        collect: {
+          title: "Reunir evidencia y respetar la revisión",
+          text: "Los hijos notifican al supervisor de forma asíncrona. WorkService contrasta work_revision y result_revision. Si falta una notificación o el contexto es viejo, puede solicitar una consolidación sin herramientas, con intentos limitados.",
+          code: "service.py → _refresh / _consolidate · engine.py → snapshot",
+        },
+        result: {
+          title: "La respuesta inicial y el resultado final son distintos",
+          text: "Iniciar devuelve un work_id; consultar devuelve estado, hijos, trazas y resultado. El cliente mantiene la conversación mientras el backend continúa. Un trabajo cancelado conserva result: null.",
+          code: "GET /work/{work_id} · MCP work_get(work_id)",
+        },
+      };
+      const allEdges = [
+        ["entry", "work", "horizontal"],
+        ["work", "router", "horizontal"],
+        ["router", "supervisor", "vertical"],
+        ["supervisor", "guard", "horizontal"],
+        ["guard", "metrics", "vertical"],
+        ["guard", "logs", "vertical"],
+        ["metrics", "collect", "vertical"],
+        ["logs", "collect", "vertical"],
+        ["collect", "result", "vertical"],
+      ];
+      let scenario = "investigate",
+        channel = "chat",
+        index = 0,
+        timer = null,
+        selected = null;
+      const current = () => scenarios[scenario].steps[index];
+      const steps = () => scenarios[scenario].steps;
+      const json = (value) => JSON.stringify(value, null, 2);
+      function element(tag, cls, text) {
+        const el = document.createElement(tag);
+        if (cls) el.className = cls;
+        if (text !== undefined) el.textContent = text;
+        return el;
+      }
+      function pause() {
+        if (timer) clearInterval(timer);
+        timer = null;
+        $("play").textContent = "▶ Reproducir";
+      }
+      function setStep(value) {
+        index = Math.max(0, Math.min(steps().length - 1, value));
+        render();
+        if (index === steps().length - 1) pause();
+      }
+      function workResponse() {
+        const s = current();
+        if (["draft", "validating", "routing"].includes(s.state)) return null;
+        const response = {
+          work_id: WORK,
+          revision: s.revision || 1,
+          status: s.state,
+          decision: { route: s.route, policy: "rules" },
+          data_mode: "synthetic",
+          result: null,
+        };
+        if (s.phase === "final") {
+          response.result =
+            scenario === "clarify"
+              ? "Indica el incidente, servicio y periodo."
+              : scenario === "direct"
+                ? "Offline deterministic pilot (no LLM inference). p95 is the 95th percentile: 95% of observed values are at or below it."
+                : "Ejemplo resumido con datos sintéticos: " +
+                  RESULT +
+                  (scenario === "update" ? " Ventana de logs: 5m." : "");
+        }
+        if (s.route === "clarify") response.run_id = null;
+        if (
+          [
+            "children",
+            "collect",
+            "final",
+            "update",
+            "redirect",
+            "updated-child",
+            "cancel",
+            "cancelling",
+          ].includes(s.phase) &&
+          s.route === "investigate"
+        ) {
+          response.children = [
+            {
+              agent_name: "metrics",
+              thread_id: "hijo-metrics",
+              status: ["collect", "final"].includes(s.phase)
+                ? "success"
+                : "running",
+            },
+            {
+              agent_name: "logs",
+              thread_id: "hijo-logs",
+              status: ["collect", "final"].includes(s.phase)
+                ? "success"
+                : "running",
+            },
+          ];
+        }
+        return response;
+      }
+      function operation() {
+        const s = current();
+        const body = {
+          command_id: "incidente-pagos-001",
+          text: scenarios[scenario].prompt,
+        };
+        if (s.phase === "update")
+          return {
+            method: "POST",
+            path: `/work/${WORK}/update`,
+            tool: "work_update",
+            args: {
+              work_id: WORK,
+              command: {
+                command_id: "ajuste-001",
+                expected_revision: 1,
+                message: UPDATE,
+              },
+            },
+            body: {
+              command_id: "ajuste-001",
+              expected_revision: 1,
+              message: UPDATE,
+            },
+          };
+        if (s.phase === "cancel")
+          return {
+            method: "POST",
+            path: `/work/${WORK}/cancel`,
+            tool: "work_cancel",
+            args: {
+              work_id: WORK,
+              command: { command_id: "cancelar-001", expected_revision: 1 },
+            },
+            body: { command_id: "cancelar-001", expected_revision: 1 },
+          };
+        if (
+          [
+            "delegate",
+            "children",
+            "redirect",
+            "updated-child",
+            "collect",
+            "final",
+            "cancelling",
+            "cancelled",
+          ].includes(s.phase) &&
+          scenario !== "clarify"
+        )
+          return {
+            method: "GET",
+            path: `/work/${WORK}`,
+            tool: "work_get",
+            args: { work_id: WORK },
+            body: null,
+          };
+        return {
+          method: "POST",
+          path: "/work",
+          tool: "work_start",
+          args: { command: body },
+          body,
+        };
+      }
+      function chat() {
+        const app = element("div", "chatapp"),
+          head = element("div", "chathead");
+        head.append(
+          element("div", "avatar", "SG"),
+          element("div", "", "Asistente SRE · conversación de ejemplo"),
+        );
+        app.append(head);
+        const messages = element("div", "messages");
+        function msg(who, text, kind) {
+          const m = element("div", "message " + (kind || ""));
+          m.append(element("strong", "", who), document.createTextNode(text));
+          messages.append(m);
+        }
+        msg("Persona", scenarios[scenario].prompt, "user");
+        const s = current();
+        if (index < 3 && s.phase !== "final")
+          messages.append(
+            element(
+              "div",
+              "message meta",
+              "Avanza para ver cómo se procesa el pedido.",
+            ),
+          );
+        if (s.route === "investigate" && index >= 3)
+          msg(
+            "Asistente",
+            "He iniciado la investigación de pagos. Puedes seguir escribiendo mientras reviso métricas y logs.",
+          );
+        if (s.route === "investigate" && index >= 5)
+          messages.append(
+            element(
+              "div",
+              "message meta",
+              "Métricas y logs están trabajando en segundo plano.",
+            ),
+          );
+        if (scenario === "update" && index >= 6) {
+          msg(
+            "Persona",
+            "Revisa los logs solo de los últimos 5 minutos.",
+            "user",
+          );
+          msg(
+            "Asistente",
+            index >= 7
+              ? "He dirigido esa instrucción al hijo de logs. La investigación conserva su ID."
+              : "He recibido la nueva instrucción.",
+          );
+        }
+        if (scenario === "cancel" && index >= 6) {
+          msg("Persona", "Cancela esta investigación.", "user");
+          msg(
+            "Asistente",
+            s.state === "cancelled"
+              ? "La investigación está cancelada. No entregaré un resultado tardío."
+              : "He registrado la solicitud. Estoy comprobando que se detengan el supervisor y sus hijos.",
+          );
+        }
+        if (s.phase === "final") {
+          msg(
+            "Asistente",
+            scenario === "direct"
+              ? "p95 es el percentil 95: el 95 % de las observaciones está por debajo o igual a ese valor."
+              : scenario === "clarify"
+                ? "Indica el incidente, servicio y periodo."
+                : RESULT +
+                  (scenario === "update"
+                    ? " En esta respuesta, los logs corresponden a los últimos 5 minutos."
+                    : ""),
+          );
+          if (s.route === "investigate")
+            messages.append(
+              element(
+                "div",
+                "message meta",
+                "Datos sintéticos del piloto · respuesta resumida para explicar el flujo.",
+              ),
+            );
+        }
+        app.append(
+          messages,
+          element(
+            "div",
+            "chatcompose",
+            "Vista ilustrativa: usa los controles de arriba para avanzar.",
+          ),
+        );
+        $("clientbody").append(app);
+        messages.scrollTop = messages.scrollHeight;
+      }
+      function wire(title, content) {
+        const box = element("div", "wire");
+        box.append(
+          element("div", "wiretitle", title),
+          element("pre", "", content),
+        );
+        $("clientbody").append(box);
+      }
+      function renderClient() {
+        const s = current(),
+          op = operation();
+        $("clientbody").replaceChildren();
+        $("clientbody").setAttribute("aria-labelledby", "tab-" + channel);
+        for (const tab of document.querySelectorAll(".tab")) {
+          const yes = tab.dataset.channel === channel;
+          tab.setAttribute("aria-selected", String(yes));
+          tab.tabIndex = yes ? 0 : -1;
+        }
+        $("channelnote").replaceChildren();
+        if (channel === "chat") {
+          const strong = element("strong", "", "Chat ilustrativo. ");
+          $("channelnote").append(
+            strong,
+            document.createTextNode(
+              "Así se vería una interfaz conectada a /work. El chat existente del producto aún usa su grafo anterior.",
+            ),
+          );
+          $("entrytitle").textContent = "Interfaz de chat";
+          $("entrysub").textContent = "Ejemplo de cliente que usaría HTTP.";
+          chat();
+        } else if (channel === "http") {
+          $("channelnote").textContent =
+            "HTTP ya existe en el piloto. Estos ejemplos no se envían: muestran respuestas resumidas e IDs de hijos abreviados.";
+          $("entrytitle").textContent = "Aplicación / API";
+          $("entrysub").textContent = "Envía un comando HTTP.";
+          wire(
+            `${op.method} ${op.path}`,
+            op.body
+              ? json(op.body)
+              : "Sin cuerpo. Se consulta el trabajo existente.",
+          );
+          const response = workResponse();
+          wire(
+            response
+              ? "200 OK · fragmento de la respuesta"
+              : "Respuesta aún no recibida",
+            response
+              ? json(response)
+              : "El cliente envía el comando y espera la aceptación.",
+          );
+        } else {
+          $("channelnote").textContent =
+            "MCP ya existe en /mcp/ y usa el mismo WorkService. Se ilustran las llamadas con respuestas resumidas e IDs de hijos abreviados.";
+          $("entrytitle").textContent = "Cliente MCP";
+          $("entrysub").textContent = "Invoca una herramienta expuesta.";
+          wire(
+            "tools/call · " + op.tool,
+            json({ name: op.tool, arguments: op.args }),
+          );
+          const response = workResponse();
+          wire(
+            response
+              ? "structuredContent · fragmento"
+              : "Esperando resultado de la herramienta",
+            response
+              ? json(response)
+              : "work_start devuelve el ID inicial; work_get permite consultar después.",
+          );
+        }
+        if (channel !== "chat")
+          $("clientbody").append(
+            element(
+              "div",
+              "hint",
+              s.phase === "delegate"
+                ? "Dentro del supervisor: start_async_task(metrics) + start_async_task(logs). Estas no son las herramientas MCP de entrada."
+                : s.phase === "redirect"
+                  ? "Dentro del supervisor: update_async_task(task_id del hijo de logs, nueva instrucción)."
+                  : s.phase === "cancel" || s.phase === "cancelling"
+                    ? "Cancelar el trabajo es una operación del servicio. No depende de que el modelo acepte cancelarlo."
+                    : "El cliente recibe un ID primero y consulta el resultado después. No mantiene la petición inicial abierta hasta terminar.",
+            ),
+          );
+        $("clientstate").replaceChildren();
+        for (const value of [
+          s.state,
+          s.route ? "ruta: " + s.route : "ruta: por decidir",
+          "revisión: " + (s.revision || 1),
+        ])
+          $("clientstate").append(
+            element(
+              "span",
+              "chip " +
+                (["completed", "cancelled"].includes(s.state)
+                  ? "ok"
+                  : s.state === "running"
+                    ? "active"
+                    : ""),
+              value,
+            ),
+          );
+      }
+      function draw() {
+        const canvas = $("diagram"),
+          rect = canvas.getBoundingClientRect();
+        $("edges").setAttribute("viewBox", `0 0 ${rect.width} ${rect.height}`);
+        $("paths").replaceChildren();
+        const previous = new Set(
+            steps()
+              .slice(0, index)
+              .flatMap((s) => s.edges || []),
+          ),
+          active = new Set(current().edges || []);
+        const kinds = current().route;
+        const edges = allEdges.slice();
+        if (kinds === "direct") edges.push(["supervisor", "result", "left"]);
+        if (kinds === "clarify") edges.push(["router", "result", "right"]);
+        for (const [a, b, layout] of edges) {
+          const key = a + "-" + b;
+          const ra = $("node-" + a).getBoundingClientRect(),
+            rb = $("node-" + b).getBoundingClientRect();
+          let path;
+          const sx = ra.left - rect.left + ra.width / 2,
+            sy = ra.bottom - rect.top,
+            ex = rb.left - rect.left + rb.width / 2,
+            ey = rb.top - rect.top;
+          if (layout === "horizontal") {
+            const y = ra.top - rect.top + ra.height / 2;
+            path = `M${ra.right - rect.left},${y} L${rb.left - rect.left},${rb.top - rect.top + rb.height / 2}`;
+          } else if (layout === "left" || layout === "right") {
+            const x = layout === "left" ? 7 : rect.width - 7;
+            const originX =
+              layout === "left" ? ra.left - rect.left : ra.right - rect.left;
+            const originY = ra.top - rect.top + ra.height / 2;
+            path = `M${originX},${originY} C${x},${originY} ${x},${originY} ${x},${originY + 25} L${x},${ey - 17} Q${x},${ey - 8} ${x + (layout === "left" ? 10 : -10)},${ey - 8} L${ex},${ey - 8} L${ex},${ey}`;
+          } else {
+            const mid = sy + (ey - sy) / 2;
+            path = `M${sx},${sy} C${sx},${mid} ${ex},${mid} ${ex},${ey}`;
+          }
+          const node = document.createElementNS(
+            "http://www.w3.org/2000/svg",
+            "path",
+          );
+          node.setAttribute("d", path);
+          node.setAttribute(
+            "class",
+            "edge" +
+              (previous.has(key) ? " visited" : "") +
+              (active.has(key) ? " current" : "") +
+              (["left", "right"].includes(layout) ? " shortcut" : ""),
+          );
+          node.setAttribute(
+            "marker-end",
+            active.has(key) ? "url(#arrow-active)" : "url(#arrow)",
+          );
+          if (
+            (kinds === "clarify" &&
+              !["entry-work", "work-router", "router-result"].includes(key)) ||
+            (kinds === "direct" &&
+              ![
+                "entry-work",
+                "work-router",
+                "router-supervisor",
+                "supervisor-result",
+              ].includes(key))
+          )
+            node.style.opacity = ".22";
+          $("paths").append(node);
+        }
+      }
+      function inspect(id) {
+        selected = id;
+        const data = info[id];
+        $("inspecttitle").textContent = data.title;
+        $("inspecttext").textContent = data.text;
+        $("inspectcode").textContent = data.code;
+        for (const node of document.querySelectorAll("[data-node]"))
+          node.classList.toggle("selected", node.dataset.node === id);
+      }
+      function render() {
+        const s = current(),
+          visited = new Set(
+            steps()
+              .slice(0, index)
+              .flatMap((step) => step.nodes),
+          );
+        $("stepnum").textContent = index + 1;
+        $("steptitle").textContent = s.title;
+        $("steptext").textContent = s.text;
+        $("steprole").textContent = s.role;
+        $("stepcount").textContent = `Paso ${index + 1} de ${steps().length}`;
+        $("previous").disabled = index === 0;
+        $("next").disabled = index === steps().length - 1;
+        $("timeline").replaceChildren();
+        steps().forEach((step, i) => {
+          const button = element(
+            "button",
+            "tick" + (i < index ? " done" : i === index ? " active" : ""),
+          );
+          button.setAttribute("aria-label", `Paso ${i + 1}: ${step.title}`);
+          if (i === index) button.setAttribute("aria-current", "step");
+          button.title = step.title;
+          button.onclick = () => {
+            pause();
+            setStep(i);
+          };
+          $("timeline").append(button);
+        });
+        for (const node of document.querySelectorAll("[data-node]")) {
+          const id = node.dataset.node;
+          node.classList.toggle("active", s.nodes.includes(id));
+          node.classList.toggle(
+            "done",
+            visited.has(id) && !s.nodes.includes(id),
+          );
+          node.classList.toggle(
+            "skipped",
+            (s.route === "direct" &&
+              ["guard", "metrics", "logs", "collect"].includes(id)) ||
+              (s.route === "clarify" &&
+                ["supervisor", "guard", "metrics", "logs", "collect"].includes(
+                  id,
+                )),
+          );
+          node.classList.toggle("selected", id === selected);
+        }
+        $("routestate").textContent = s.route
+          ? `ruta → ${s.route}`
+          : "¿Responder, investigar o preguntar?";
+        const hasChildren = s.route === "investigate" && index >= 5;
+        let status = hasChildren
+          ? "Trabajando · ventana 15m"
+          : "Esperando delegación";
+        if (s.route === "direct" || s.route === "clarify")
+          status = "No se necesita este hijo";
+        if (
+          s.phase === "collect" ||
+          (s.phase === "final" && s.route === "investigate")
+        )
+          status = "Terminado · ventana 15m";
+        if (s.state === "cancelled") status = "Cancelación confirmada";
+        $("metricstate").textContent = status;
+        $("logstate").textContent =
+          scenario === "update" && index >= 7
+            ? s.phase === "collect" || s.phase === "final"
+              ? "Terminado · ventana 5m"
+              : "Nuevo run · mismo thread · 5m"
+            : status;
+        $("resulttitle").textContent =
+          s.state === "cancelled"
+            ? "Confirmar la cancelación"
+            : "Consultar y mostrar la respuesta";
+        $("resultsub").textContent =
+          s.route === "clarify"
+            ? "Respuesta local: no se inició un agente."
+            : channel === "mcp"
+              ? "work_get(work_id) devuelve estado y resultado."
+              : "GET /work/{work_id} devuelve estado y resultado.";
+        renderClient();
+        requestAnimationFrame(draw);
+      }
+      $("scenario").onchange = (event) => {
+        pause();
+        scenario = event.target.value;
+        index = 0;
+        selected = null;
+        $("inspecttitle").textContent = "Pulsa un componente para entenderlo";
+        $("inspecttext").textContent =
+          "Puedes inspeccionarlo sin cambiar el paso del recorrido.";
+        $("inspectcode").textContent =
+          "La traza permite ver las herramientas elegidas y sus argumentos.";
+        render();
+      };
+      $("previous").onclick = () => {
+        pause();
+        setStep(index - 1);
+      };
+      $("next").onclick = () => {
+        pause();
+        setStep(index + 1);
+      };
+      $("reset").onclick = () => {
+        pause();
+        setStep(0);
+      };
+      $("play").onclick = () => {
+        if (timer) {
+          pause();
+          return;
+        }
+        if (index === steps().length - 1) setStep(0);
+        $("play").textContent = "Ⅱ Pausar";
+        timer = setInterval(() => setStep(index + 1), 4200);
+      };
+      for (const tab of document.querySelectorAll(".tab")) {
+        tab.onclick = () => {
+          channel = tab.dataset.channel;
+          render();
+        };
+        tab.onkeydown = (event) => {
+          if (!["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key))
+            return;
+          event.preventDefault();
+          const order = ["chat", "http", "mcp"];
+          const next =
+            event.key === "Home"
+              ? 0
+              : event.key === "End"
+                ? 2
+                : (order.indexOf(channel) +
+                    (event.key === "ArrowRight" ? 1 : 2)) %
+                  3;
+          channel = order[next];
+          render();
+          $("tab-" + channel).focus();
+        };
+      }
+      for (const node of document.querySelectorAll("[data-node]"))
+        node.onclick = () => inspect(node.dataset.node);
+      new ResizeObserver(draw).observe($("diagram"));
+      render();
+    </script>
+  </body>
+</html>

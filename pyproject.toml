@@ -40,7 +40,23 @@ dependencies = [
 [project.scripts]
 sre-graph = "sre_graph.cli.main:main"
 
+[project.optional-dependencies]
+agents = [
+    "deepagents>=0.7.29,<0.8",
+    "langgraph-sdk>=0.4.6,<0.5",
+    "openai>=3.26.0,<4",
+    "mcp>=1.30.0,<2",
+]
+harness = [
+    "better-harness",
+    "deepagents>=0.7.29,<0.8",
+]
+
 [dependency-groups]
+harness = [
+    "better-harness",
+    "deepagents>=0.7.29,<0.8",
+]
 dev = [
     "pytest>=9.1",
     "pytest-asyncio>=1.4",
@@ -74,6 +90,7 @@ markers = [
 line-length = 100
 target-version = "py312"
 src = ["src", "tests"]
+extend-exclude = ["**/.scratch/**", "**/.runs/**", ".harness-runs/**"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "B", "UP", "SIM", "RUF", "ASYNC"]
@@ -91,6 +108,10 @@ untyped_calls_exclude = ["kubernetes.config"]
 module = ["apscheduler.*"]
 ignore_missing_imports = true
 
+[[tool.mypy.overrides]]
+module = ["better_harness.*"]
+ignore_missing_imports = true
+
 [tool.importlinter]
 root_package = "sre_graph"
 
@@ -106,3 +127,6 @@ layers = [
     "sre_graph.llm | sre_graph.persistence",
     "sre_graph.config",
 ]
+
+[tool.uv.sources]
+better-harness = { git = "https://github.com/langchain-ai/deepagents.git", subdirectory = "examples/better-harness", rev = "be75459c444b53d21d633ef2ab997a01d0739c71" }

@@ -44,8 +44,8 @@ export type AgentFlowData = {
       provenance: "observed" | "derived";
     }[];
     verification?: {
-      passed?: boolean;
-      score?: number;
+      passed?: boolean | null;
+      score?: number | null;
       claims?: { statement?: string; status?: string; reason?: string }[];
       missing_sections?: string[];
       provenance?: "observed" | "derived";
@@ -226,7 +226,7 @@ export function AgentFlow({ data }: { data: AgentFlowData }) {
               </span>
             )}
           </div>
-          {execution.verification?.passed === undefined ? (
+          {execution.verification?.passed == null ? (
             <p className="muted">Pendiente de verificación.</p>
           ) : (
             <>
@@ -262,7 +262,7 @@ export function AgentFlow({ data }: { data: AgentFlowData }) {
             )}
           </div>
           <p>
-            {execution.diagnosis?.root_cause ?? "Aún sin causa establecida."}
+            {execution.diagnosis?.root_cause?.trim() || "Aún sin causa establecida."}
           </p>
         </section>
       </div>

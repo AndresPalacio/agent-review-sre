@@ -1,0 +1,52 @@
+[experiment]
+name = "sre-rca"
+runner = "pytest"
+workspace_root = "C:\\Users\\USUARIO\\Desktop\\devops-telemetri\\sre-graph\\projects\\sre-better-harness"
+model = "scripted-smoke"
+max_iterations = 1
+
+[better_agent]
+model = "scripted-smoke"
+max_turns = 40
+
+[runner.pytest]
+project_root = "C:\\Users\\USUARIO\\Desktop\\devops-telemetri\\sre-graph\\projects\\sre-better-harness"
+uv_group = "test"
+summary_flag = "--evals-report-file"
+pytest_args = ["-q", "--tb=short", "--lab-mode", "smoke"]
+
+[surfaces.instructions]
+kind = "module_attr"
+target = "sre_deepagents.prompts:EXTRA_INSTRUCTIONS"
+filename = "instructions.txt"
+base_value = "Build falsifiable hypotheses. Compare observations within the incident\nwindow, distinguish symptoms from causes, and identify missing evidence explicitly.\nUse the evidence-reviewer when a causal explanation needs a second look."
+
+[[cases]]
+case_id = "tests/evals/test_rca.py::test_rca[eks/001-oomkilled-crashloop]"
+split = "train"
+stratum = "eks"
+
+[[cases]]
+case_id = "tests/evals/test_rca.py::test_rca[rds_postgres/001-replication-lag]"
+split = "train"
+stratum = "rds_postgres"
+
+[[cases]]
+case_id = "tests/evals/test_rca.py::test_rca[eks/002-image-pull-backoff]"
+split = "holdout"
+stratum = "eks"
+
+[[cases]]
+case_id = "tests/evals/test_rca.py::test_rca[rds_postgres/002-connection-exhaustion]"
+split = "holdout"
+stratum = "rds_postgres"
+
+[[cases]]
+case_id = "tests/evals/test_rca.py::test_rca[eks/006-dns-resolution-failure]"
+split = "scorecard"
+stratum = "eks"
+
+[[cases]]
+case_id = "tests/evals/test_rca.py::test_rca[rds_postgres/003-storage-full]"
+split = "scorecard"
+stratum = "rds_postgres"

@@ -1,0 +1,10 @@
+{
+  "python_version": "3.12",
+  "dependencies": ["."],
+  "graphs": {
+    "supervisor": "sre_graph.work.graphs:supervisor",
+    "metrics": "sre_graph.work.graphs:metrics",
+    "logs": "sre_graph.work.graphs:logs"
+  },
+  "env": ".env"
+}

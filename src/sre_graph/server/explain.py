@@ -190,7 +190,6 @@ def build_explanation(
             "id": item.get("id"),
             "integration": item.get("integration"),
             "tool": item.get("tool"),
-            "summary": str(item.get("summary", ""))[:500],
             "provenance": "derived",
         }
         for item in _objects(values.get("evidence"))

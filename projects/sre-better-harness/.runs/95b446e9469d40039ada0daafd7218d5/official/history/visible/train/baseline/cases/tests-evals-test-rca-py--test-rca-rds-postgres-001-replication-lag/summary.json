@@ -1,0 +1,214 @@
+{
+  "schema_version": 1,
+  "run_id": "d630e4fa-0a4d-4ceb-ae7c-73d5a65b2086",
+  "engine": "deepagents",
+  "mode": "smoke",
+  "model": "scripted",
+  "scenario": "rds_postgres/001-replication-lag",
+  "status": "completed",
+  "baseline_eligible": false,
+  "report": {
+    "alert": {
+      "source": "cloudwatch",
+      "title": "[synthetic-rds] Replication Lag On payments-prod",
+      "fingerprint": "4966c74f24bf926a",
+      "status": "firing",
+      "severity": "critical",
+      "started_at": null,
+      "ended_at": null,
+      "summary": "Read replica lag exceeded 900 seconds on payments-prod-replica-1 while primary write throughput remained elevated.",
+      "error": "Replica lag breached alert threshold for 15 minutes.",
+      "labels": {
+        "alertname": "RDSReplicationLagHigh",
+        "severity": "critical",
+        "pipeline_name": "rds-postgres-synthetic",
+        "service": "rds",
+        "engine": "postgres"
+      },
+      "annotations": {
+        "summary": "Read replica lag exceeded 900 seconds on payments-prod-replica-1 while primary write throughput remained elevated.",
+        "error": "Replica lag breached alert threshold for 15 minutes.",
+        "suspected_symptom": "Replica-backed reads are stale and analytics queries are delayed.",
+        "db_instance_identifier": "payments-prod",
+        "db_instance": "payments-prod",
+        "db_cluster": "payments-cluster",
+        "read_replica": "payments-prod-replica-1",
+        "cloudwatch_region": "us-east-1",
+        "rds_failure_mode": "replication_lag",
+        "context_sources": "cloudwatch"
+      },
+      "service": "rds",
+      "namespace": null,
+      "cluster": null,
+      "workload": null,
+      "pod": null,
+      "url": null,
+      "alert_count": 1
+    },
+    "diagnosis": {
+      "triage_summary": "[synthetic-rds] Replication Lag On payments-prod: the investigation could not reach a conclusion.",
+      "status": {
+        "confirmed": "The alert fired.",
+        "open": "The root cause.",
+        "next": "Investigate manually.",
+        "owner": "On-call responder"
+      },
+      "hypotheses": [],
+      "verification": [],
+      "follow_up_questions": [],
+      "remediation_tradeoffs": "",
+      "root_cause": "Root cause not verified",
+      "category": "unknown",
+      "causal_chain": [],
+      "claims": [],
+      "remediation_steps": [],
+      "confidence": 0.0
+    },
+    "verification": {
+      "claims": [],
+      "missing_sections": [
+        "hypotheses",
+        "verification",
+        "follow_up_questions",
+        "remediation_tradeoffs"
+      ],
+      "category_mismatch": null,
+      "healthy_conflict": null,
+      "score": 0.0,
+      "passed": false
+    },
+    "claims": [],
+    "actions": [
+      {
+        "title": "Enable debug logging and re-run the failing workload to gather more signal",
+        "rationale": "Proposed from the diagnosis; manual review required",
+        "tool": null,
+        "args": {},
+        "side_effect_level": "mutating",
+        "risk": "medium",
+        "reversible": true,
+        "rollback": "",
+        "blast_radius": "service"
+      },
+      {
+        "title": "Escalate to the owning team with the investigation trace and causal chain attached",
+        "rationale": "Proposed from the diagnosis; manual review required",
+        "tool": null,
+        "args": {},
+        "side_effect_level": "mutating",
+        "risk": "medium",
+        "reversible": true,
+        "rollback": "",
+        "blast_radius": "service"
+      }
+    ],
+    "evidence": [],
+    "labels": {},
+    "duration_seconds": null
+  },
+  "diagnosis": {
+    "triage_summary": "[synthetic-rds] Replication Lag On payments-prod: the investigation could not reach a conclusion.",
+    "status": {
+      "confirmed": "The alert fired.",
+      "open": "The root cause.",
+      "next": "Investigate manually.",
+      "owner": "On-call responder"
+    },
+    "hypotheses": [],
+    "verification": [],
+    "follow_up_questions": [],
+    "remediation_tradeoffs": "",
+    "root_cause": "Root cause not verified",
+    "category": "unknown",
+    "causal_chain": [],
+    "claims": [],
+    "remediation_steps": [],
+    "confidence": 0.0
+  },
+  "evidence": [
+    {
+      "id": "ev_056c59ab6c",
+      "integration": "aws",
+      "tool": "aws_metric_data",
+      "evidence_type": "metrics",
+      "domains": [
+        "metrics"
+      ],
+      "summary": "{\"MetricDataResults\":[{\"Id\":\"m_replica_lag\",\"Label\":\"ReplicaLag\",\"Timestamps\":[\"2026-03-26T11:20:00Z\",\"2026-03-26T11:21:00Z\",\"2026-03-26T11:22:00Z\",\"2026-03-26T11:23:00Z\",\"2026-03-26T11:24:00Z\",\"2026-03-26T11:25:00Z\",\"2026-03-26T11:26:00Z\",\"2026-03-26T11:27:00Z\",\"2026-03-26T11:28:00Z\",\"2026-03-26T11:29:00Z\",\"2026-03-26T11:30:00Z\",\"2026-03-26T11:31:00Z\",\"2026-03-26T11:32:00Z\",\"2026-03-26T11:33:00Z\",\"2026-03-26T11:34:00Z\"],\"Values\":[1.25,1.21,74.0,151.0,263.0,388.0,491.0,582.0,664.0,738.0,812.0,889.0,962.0,1047.0,1140.0],\"StatusCode\":\"Complete\"}]}",
+      "args": {
+        "namespace": "AWS/RDS",
+        "metric_name": "ReplicaLag",
+        "start": 1774517700,
+        "end": 1774524900
+      },
+      "data": {
+        "MetricDataResults": [
+          {
+            "Id": "m_replica_lag",
+            "Label": "ReplicaLag",
+            "Timestamps": [
+              "2026-03-26T11:20:00Z",
+              "2026-03-26T11:21:00Z",
+              "2026-03-26T11:22:00Z",
+              "2026-03-26T11:23:00Z",
+              "2026-03-26T11:24:00Z",
+              "2026-03-26T11:25:00Z",
+              "2026-03-26T11:26:00Z",
+              "2026-03-26T11:27:00Z",
+              "2026-03-26T11:28:00Z",
+              "2026-03-26T11:29:00Z",
+              "2026-03-26T11:30:00Z",
+              "2026-03-26T11:31:00Z",
+              "2026-03-26T11:32:00Z",
+              "2026-03-26T11:33:00Z",
+              "2026-03-26T11:34:00Z"
+            ],
+            "Values": [
+              1.25,
+              1.21,
+              74.0,
+              151.0,
+              263.0,
+              388.0,
+              491.0,
+              582.0,
+              664.0,
+              738.0,
+              812.0,
+              889.0,
+              962.0,
+              1047.0,
+              1140.0
+            ],
+            "StatusCode": "Complete"
+          }
+        ]
+      },
+      "collected_at": "2026-10-21T13:34:57.735170Z",
+      "error": null
+    }
+  ],
+  "verification": {
+    "claims": [],
+    "missing_sections": [
+      "hypotheses",
+      "verification",
+      "follow_up_questions",
+      "remediation_tradeoffs"
+    ],
+    "category_mismatch": null,
+    "healthy_conflict": null,
+    "score": 0.0,
+    "passed": false
+  },
+  "errors": [],
+  "score": null,
+  "elapsed_seconds": 0.24052969994954765,
+  "tokens": null,
+  "runtime_features": {
+    "deepagents_executed": true,
+    "outer_orchestration": "sre-graph/LangGraph",
+    "filesystem": "virtual, per invocation",
+    "quality_measured": false
+  }
+}

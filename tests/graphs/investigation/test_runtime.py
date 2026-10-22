@@ -4,7 +4,7 @@ from typing import Any
 
 import pytest
 
-from sre_graph.graphs.investigation import runtime
+from sre_graph.harness import runtime
 from sre_graph.integrations.registry import IntegrationRegistry
 
 
@@ -25,6 +25,7 @@ async def test_runtime_without_model_still_reports_unknown(
         graph, context = runtime.make_runtime()
     result = await graph.ainvoke({"raw_alert": {"title": "Checkout error"}}, context=context)
     assert result["diagnosis"]["category"] == "unknown"
+    assert result["harness"]["mode"] == "incident"
     assert "provider secret" not in str(result)
 
 

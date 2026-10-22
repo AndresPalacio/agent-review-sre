@@ -1,0 +1,35 @@
+{
+  "correctness": 1.0,
+  "model": "scripted-smoke",
+  "outcomes": [
+    {
+      "artifacts_dir": "C:\\Users\\USUARIO\\Desktop\\devops-telemetri\\sre-graph\\projects\\sre-better-harness\\.runs\\demo-depth\\jobs\\ab5417165799406d8aaadb6d360f9660\\abe529fe1c7a45df8ff644007616d37f\\official\\history\\visible\\train\\baseline\\cases\\tests-evals-test-rca-py--test-rca-eks-001-oomkilled-crashloop",
+      "case_id": "tests/evals/test_rca.py::test_rca[eks/001-oomkilled-crashloop]",
+      "duration_s": 3.77,
+      "failure_message": null,
+      "score": 1.0,
+      "split": "train",
+      "status": "passed",
+      "stratum": "eks",
+      "trace_ref": null
+    },
+    {
+      "artifacts_dir": "C:\\Users\\USUARIO\\Desktop\\devops-telemetri\\sre-graph\\projects\\sre-better-harness\\.runs\\demo-depth\\jobs\\ab5417165799406d8aaadb6d360f9660\\abe529fe1c7a45df8ff644007616d37f\\official\\history\\visible\\train\\baseline\\cases\\tests-evals-test-rca-py--test-rca-rds-postgres-001-replication-lag",
+      "case_id": "tests/evals/test_rca.py::test_rca[rds_postgres/001-replication-lag]",
+      "duration_s": 3.643,
+      "failure_message": null,
+      "score": 1.0,
+      "split": "train",
+      "status": "passed",
+      "stratum": "rds_postgres",
+      "trace_ref": null
+    }
+  ],
+  "passed": 2,
+  "returncode": 0,
+  "run_dir": "C:\\Users\\USUARIO\\Desktop\\devops-telemetri\\sre-graph\\projects\\sre-better-harness\\.runs\\demo-depth\\jobs\\ab5417165799406d8aaadb6d360f9660\\abe529fe1c7a45df8ff644007616d37f\\official\\history\\visible\\train\\baseline",
+  "score": 2.0,
+  "split": "train",
+  "total": 2,
+  "variant": "baseline"
+}

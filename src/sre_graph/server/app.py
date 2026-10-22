@@ -39,14 +39,13 @@ from sre_graph.gateway.settings import SlackGatewaySettings, TelegramGatewaySett
 from sre_graph.gateway.slack import SlackGateway
 from sre_graph.gateway.telegram import TelegramGateway
 from sre_graph.graphs.chat.graph import make_chat_graph
-from sre_graph.graphs.investigation.graph import make_investigation_graph
-from sre_graph.graphs.investigation.runtime import _services
 from sre_graph.graphs.remediation.actions import default_action_catalog
 from sre_graph.graphs.remediation.graph import (
     ActionCatalog,
     UncertainActionOutcome,
     make_remediation_graph,
 )
+from sre_graph.harness.runtime import _services, make_investigation_graph
 from sre_graph.integrations.base import IntegrationError, IntegrationNotConfiguredError
 from sre_graph.integrations.catalog import default_registry
 from sre_graph.integrations.context import RunContext
@@ -804,6 +803,7 @@ def create_app(
                     "run": run,
                     "report": values.get("report") or None,
                     "alert": values.get("alert") or None,
+                    "harness": values.get("harness") or None,
                     **{
                         key: values.get(key)
                         for key in (

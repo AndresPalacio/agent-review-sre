@@ -86,7 +86,7 @@ async def test_manager_persists_only_safe_plan_and_specialist_metadata(tmp_path:
     assert events[1]["data"] == {
         "stage": "plan",
         "wave": 1,
-        "tasks": [{"domain": "metrics"}],
+        "tasks": [{"domain": "metrics", "hypothesis_ids": ["H1"]}],
     }
     assert events[2]["data"] == {
         "stage": "metrics",

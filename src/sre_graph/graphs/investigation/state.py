@@ -76,3 +76,5 @@ class InvestigationState(TypedDict, total=False):
     started_at: str
     thread_id: str
     run_id: str
+    harness: dict[str, Any]
+    harness_trace: Annotated[list[dict[str, Any]], operator.add]
