@@ -39,7 +39,7 @@ def candidate(name: str, domain: Domain, effect: SideEffectLevel) -> Any:
 
 def test_all_seven_specialists_exist_and_only_read_tools_route() -> None:
     # The financial analyst domains belong to the analysis graph, not to incident review.
-    assert set(SPECIALISTS) == set(Domain) - set(ANALYST_DOMAINS)
+    assert set(SPECIALISTS) == set(Domain) - set(ANALYST_DOMAINS) - {Domain.PORTFOLIO}
     tools = [
         candidate("metric", Domain.METRICS, SideEffectLevel.READ_ONLY),
         candidate("delete", Domain.METRICS, SideEffectLevel.MUTATING),

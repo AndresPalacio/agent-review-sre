@@ -46,8 +46,14 @@ def _no_external_tracing() -> None:
 
 
 @pytest.fixture(autouse=True)
-def _isolated_env(monkeypatch: pytest.MonkeyPatch) -> None:
-    """Keep a developer's real settings, integration config and provider keys out of tests."""
+def _isolated_env(
+    monkeypatch: pytest.MonkeyPatch, tmp_path_factory: pytest.TempPathFactory
+) -> None:
+    """Keep a developer's real settings, integration config and provider keys out of tests.
+
+    The paper ledger (and the order threads beside it) go to a fresh temporary folder, so no
+    test reads or changes the developer's paper portfolio.
+    """
     for name in (
         *(field.upper() for field in Settings.model_fields),
         *_PROVIDER_AND_TRACING_ENV,
@@ -58,6 +64,8 @@ def _isolated_env(monkeypatch: pytest.MonkeyPatch) -> None:
         if name.startswith(_INTEGRATION_ENV_PREFIXES):
             monkeypatch.delenv(name, raising=False)
     monkeypatch.setenv("LANGSMITH_TRACING", "false")
+    ledger = tmp_path_factory.mktemp("paper") / "paper.sqlite"
+    monkeypatch.setenv("PAPER_LEDGER_PATH", str(ledger))
 
 
 @pytest.fixture

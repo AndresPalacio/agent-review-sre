@@ -45,14 +45,22 @@ from fin_graph.graphs.remediation.graph import (
     UncertainActionOutcome,
     make_remediation_graph,
 )
-from fin_graph.harness.runtime import _services, make_investigation_graph
+from fin_graph.harness.runtime import (
+    _analysis_services,
+    _services,
+    make_analysis_graph,
+    make_investigation_graph,
+)
 from fin_graph.integrations.base import IntegrationError, IntegrationNotConfiguredError
+from fin_graph.integrations.broker.paper.runtime import context_quotes, paper_broker
 from fin_graph.integrations.catalog import default_registry
 from fin_graph.integrations.context import RunContext
 from fin_graph.integrations.registry import IntegrationRegistry
 from fin_graph.llm.models import ModelRole, get_model
 from fin_graph.memory.service import IncidentMemory
+from fin_graph.memory.theses import ThesisMemory
 from fin_graph.persistence.checkpointer import open_checkpointer
+from fin_graph.persistence.paper_ledger import PaperLedgerStore
 from fin_graph.persistence.store import open_store
 from fin_graph.safety.approval import ApprovalPolicy
 from fin_graph.safety.secrets import redact_secrets, redact_value
@@ -180,8 +188,17 @@ def create_app(
                 active_registry = await with_configured_mcp(active_registry)
             delivery = DeliveryService.from_env(ledger=storage)
 
+            # Paper orders share the server database; migration 0011 creates the tables.
+            paper = paper_broker(
+                settings,
+                PaperLedgerStore(engine),
+                context_quotes(active_registry.run_context()),
+            )
+            app.state.paper_broker = paper
+
             def context_factory() -> RunContext:
-                return delivery.extend_run_context(active_registry.run_context())
+                context = delivery.extend_run_context(active_registry.run_context())
+                return replace(context, clients={**context.clients, "paper_broker": paper})
 
             investigation_services = _services(settings)
             graph = make_investigation_graph(
@@ -200,20 +217,21 @@ def create_app(
                     _LOGGER.warning("chat model unavailable at startup")
                     active_chat = None
                 else:
-                    chat_investigation = make_investigation_graph(
-                        investigation_services,
+                    theses = ThesisMemory(store)
+                    chat_analysis = make_analysis_graph(
+                        _analysis_services(settings),
                         active_registry,
-                        memory=memory,
+                        memory=theses,
                         checkpointer=False,  # Disable the inherited chat saver.
+                        settings=settings,
                     )
                     active_chat = make_chat_graph(
                         model,
                         active_registry,
                         context_factory(),
-                        memory,
-                        actions,
+                        theses,
                         policy=active_policy,
-                        investigation=chat_investigation,
+                        analysis=chat_analysis,
                         checkpointer=saver,
                         store=store,
                         settings=settings,
@@ -1207,12 +1225,6 @@ def _approval_records(pending: list[Any], decisions: list[Any]) -> list[tuple[st
             args = edited.get("args")
             if not isinstance(args, dict):
                 raise HTTPException(422, "edited action arguments must be an object")
-        if name == "execute_remediation":
-            action_name = args.get("name")
-            action_args = args.get("action_args")
-            if not isinstance(action_name, str) or not isinstance(action_args, dict):
-                raise HTTPException(422, "invalid remediation action")
-            name, args = action_name, action_args
         digest = hashlib.sha256(json.dumps(args, sort_keys=True).encode()).hexdigest()
         records.append((decision["type"], name, digest))
     return records

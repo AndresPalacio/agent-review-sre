@@ -35,7 +35,7 @@ def create_mcp_server(service: WorkService, *, actor: str = "local-demo") -> Fas
     gateway operator, never by tool arguments or transport headers.
     """
     server: FastMCP[None] = FastMCP(
-        "SRE Work local pilot",
+        "fin-graph Work local pilot",
         streamable_http_path="/",
         stateless_http=True,
         json_response=True,

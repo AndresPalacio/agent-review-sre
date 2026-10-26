@@ -16,36 +16,40 @@ from langchain_core.language_models import BaseChatModel
 from langchain_core.messages import AIMessage, BaseMessage, HumanMessage, ToolMessage
 from langchain_core.outputs import ChatGeneration, ChatResult
 
+_HORIZONS = {
+    "short": "short",
+    "corto": "short",
+    "medium": "medium",
+    "medio": "medium",
+    "long": "long",
+    "largo": "long",
+}
 
-def fixture_scope(
-    text: str, previous: tuple[str, str] = ("demo-checkout", "15m")
-) -> tuple[str, str]:
+
+def fixture_scope(text: str, previous: tuple[str, str] = ("DEMO", "medium")) -> tuple[str, str]:
     """Read a small explicit demo vocabulary; all returned data remains synthetic."""
-    service = re.search(r"(?:service|servicio)\s*[:=]\s*([\w.-]+)", text, re.I)
-    window = re.search(r"(?:window|ventana)\s*[:=]\s*(\d+\s*[mhd])", text, re.I)
-    natural_window = re.search(r"(\d+)\s*(minutos?|minutes?|horas?|hours?)", text, re.I)
-    service_name = (
-        service.group(1) if service else ("pagos" if "pagos" in text.lower() else previous[0])
-    )
-    if window:
-        window_name = window.group(1).replace(" ", "").lower()
-    elif natural_window:
-        unit = "h" if natural_window.group(2).lower().startswith("h") else "m"
-        window_name = natural_window.group(1) + unit
+    ticker = re.search(r"(?:ticker|acci[oó]n)\s*[:=]\s*([A-Za-z.]{1,10})", text, re.I)
+    horizon = re.search(r"(?:horizon|horizonte)\s*[:=]\s*(\w+)", text, re.I)
+    natural = re.search(r"(corto|medio|largo)\s+plazo|(short|medium|long)[- ]term", text, re.I)
+    symbol = ticker.group(1).upper() if ticker else previous[0]
+    if horizon and horizon.group(1).lower() in _HORIZONS:
+        span = _HORIZONS[horizon.group(1).lower()]
+    elif natural:
+        span = _HORIZONS[(natural.group(1) or natural.group(2)).lower()]
     else:
-        window_name = previous[1]
-    return service_name, window_name
+        span = previous[1]
+    return symbol, span
 
 
 class OfflinePilotModel(BaseChatModel):
     """Choose repeatable tool calls from conversation state, without any provider."""
 
-    role: Literal["supervisor", "metrics", "logs"]
+    role: Literal["supervisor", "fundamentals", "technicals"]
     allow_delegation: bool = True
 
     @property
     def _llm_type(self) -> str:
-        return "sre-pilot-offline"
+        return "fin-pilot-offline"
 
     def bind_tools(self, tools: Sequence[Any], **kwargs: Any) -> OfflinePilotModel:
         return self
@@ -88,18 +92,19 @@ class OfflinePilotModel(BaseChatModel):
                 content="Offline pilot: synthetic task results.\n" + "\n".join(notices.values())
             )
         if self.role != "supervisor":
-            service, window = "demo-checkout", "15m"
+            ticker, horizon = "DEMO", "medium"
             for message in messages:
                 if isinstance(message, HumanMessage):
-                    service, window = fixture_scope(message.text, (service, window))
+                    ticker, horizon = fixture_scope(message.text, (ticker, horizon))
             return self._calls(
-                [(f"read_{self.role}_fixture", {"service": service, "window": window})]
+                [(f"read_{self.role}_fixture", {"ticker": ticker, "horizon": horizon})]
             )
         lower = text.lower()
         if not self.allow_delegation:
             answer = (
-                "p95 is the 95th percentile: 95% of observed values are at or below it."
-                if "p95" in lower
+                "P/E is the share price divided by earnings per share: what investors pay "
+                "for one unit of profit."
+                if "p/e" in lower
                 else "Direct-response fixture for: " + text
             )
             return AIMessage(content="Offline deterministic pilot (no LLM inference). " + answer)
@@ -136,11 +141,11 @@ class OfflinePilotModel(BaseChatModel):
     @staticmethod
     def _requested_agents(text: str) -> list[str]:
         names = []
-        if any(word in text for word in ("metric", "métric", "latencia", "latency")):
-            names.append("metrics")
-        if any(word in text for word in ("log", "registro")):
-            names.append("logs")
-        return names or ["metrics", "logs"]
+        if any(word in text for word in ("fundament", "balance", "margen", "margin", "roe")):
+            names.append("fundamentals")
+        if any(word in text for word in ("técnic", "tecnic", "technical", "momentum", "rsi")):
+            names.append("technicals")
+        return names or ["fundamentals", "technicals"]
 
     @staticmethod
     def _tracked_tasks(messages: list[BaseMessage]) -> dict[str, str]:

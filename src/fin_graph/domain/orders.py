@@ -49,10 +49,11 @@ def compute_allowed_actions(
     """Each ticker's possible actions and their maximum quantity; ``hold`` is always there.
 
     Buy is capped by the risk limit (``max_shares``) and by cash; sell and cover by the shares
-    held; short by the risk limit and by margin. Margin uses the net liquidation value as
-    equity, where the original fell back to cash.
+    held; short by the risk limit and by margin. A short's collateral (price x quantity x
+    ``margin_requirement``) comes out of free cash, the rule
+    :func:`~fin_graph.domain.fills.apply_fill` executes with. The original measured it against
+    cash over the requirement less the margin used, which could offer a short the fill refuses.
     """
-    equity = portfolio.equity(prices)
     allowed: dict[str, dict[OrderAction, int]] = {}
     for ticker in tickers:
         price = float(prices.get(ticker, 0.0))
@@ -69,8 +70,8 @@ def compute_allowed_actions(
             if portfolio.margin_requirement <= 0:
                 short = limit
             else:
-                available = max(0.0, equity / portfolio.margin_requirement - portfolio.margin_used)
-                short = max(0, min(limit, int(available // price)))
+                collateral = price * portfolio.margin_requirement
+                short = max(0, min(limit, int(portfolio.cash // collateral)))
             if short:
                 actions[OrderAction.SHORT] = short
         if held.short > 0:

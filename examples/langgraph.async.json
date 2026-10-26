@@ -3,8 +3,8 @@
   "dependencies": ["."],
   "graphs": {
     "supervisor": "fin_graph.work.graphs:supervisor",
-    "metrics": "fin_graph.work.graphs:metrics",
-    "logs": "fin_graph.work.graphs:logs"
+    "fundamentals": "fin_graph.work.graphs:fundamentals",
+    "technicals": "fin_graph.work.graphs:technicals"
   },
   "env": ".env"
 }

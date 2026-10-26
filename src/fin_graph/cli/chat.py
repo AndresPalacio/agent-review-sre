@@ -15,6 +15,8 @@ from langchain_core.messages import AIMessage, HumanMessage
 from langgraph.store.base import BaseStore
 from langgraph.types import Command
 
+from fin_graph.domain.analysis_report import AnalysisReport
+from fin_graph.domain.rendering.analysis import render_analysis_markdown
 from fin_graph.domain.rendering.markdown import render_markdown
 from fin_graph.domain.report import Report
 from fin_graph.integrations.context import RunContext
@@ -76,7 +78,7 @@ class ChatSession:
         context: RunContext,
         *,
         registry: IntegrationRegistry | None = None,
-        investigation: Any = None,
+        analysis: Any = None,
         user_id: str = "local",
         approval_audit: Storage | None = None,
     ) -> None:
@@ -84,7 +86,7 @@ class ChatSession:
         self.store = store
         self.context = context
         self.registry = registry
-        self.investigation = investigation
+        self.analysis = analysis
         self.user_id = user_id
         self.approval_audit = approval_audit
         self.thread_id: str | None = None
@@ -148,17 +150,19 @@ class ChatSession:
                 return "integrations unavailable"
             checks = await self.registry.verify_all(self.context)
             return "\n".join(f"{item.integration}: {item.status}" for item in checks)
-        if name == "/investigate":
-            if self.investigation is None:
-                return "investigation unavailable"
+        if name == "/analiza":
+            if self.analysis is None:
+                return "análisis no disponible"
             if not argument:
-                raise ValueError("/investigate requires alert text")
-            result = await self.investigation.ainvoke(
-                {"raw_alert": argument, "user_requested": True}, context=self.context
+                raise ValueError("/analiza necesita tickers o una pregunta: /analiza AAPL MSFT")
+            result = await self.analysis.ainvoke(
+                {"raw_request": argument, "user_requested": True}, context=self.context
             )
+            if result.get("is_noise"):
+                return "el mensaje no nombra ningún ticker"
             if not result.get("report"):
-                return "no report"
-            return render_markdown(Report.model_validate(result["report"]))
+                return "sin reporte"
+            return render_analysis_markdown(AnalysisReport.model_validate(result["report"]))
         if name == "/cost":
             return f"{self.tokens} tokens (monetary cost unavailable without provider pricing)"
         if name == "/exit":
@@ -181,12 +185,6 @@ class ChatSession:
                     raise ValueError("invalid pending action")
                 if decision["type"] == "edit":
                     args = decision["edited_action"]["args"]
-                if name == "execute_remediation":
-                    action_name = args.get("name")
-                    action_args = args.get("action_args")
-                    if not isinstance(action_name, str) or not isinstance(action_args, dict):
-                        raise ValueError("invalid remediation action")
-                    name, args = action_name, action_args
                 digest = sha256(json.dumps(args, sort_keys=True).encode()).hexdigest()
                 records.append((decision["type"], name, digest))
             for decision_type, name, digest in records:

@@ -21,6 +21,7 @@ from fin_graph.cli.chat import ChatSession, RemoteChatSession
 from fin_graph.cli.eval_tools import register_eval_tools
 from fin_graph.cli.harness import app as harness_app
 from fin_graph.cli.integrations import app as integrations_app
+from fin_graph.cli.orders import app as orders_app
 from fin_graph.cli.schedules import app as schedules_app
 from fin_graph.config.settings import PersistenceBackend, Settings
 from fin_graph.config.tracing import disable_external_tracing
@@ -29,12 +30,12 @@ from fin_graph.domain.alerts.model import AlertSource
 from fin_graph.domain.rendering.markdown import render_markdown
 from fin_graph.domain.report import Report
 from fin_graph.graphs.chat.graph import make_chat_graph
-from fin_graph.graphs.remediation.actions import default_action_catalog
-from fin_graph.harness.runtime import _services, make_investigation_graph, make_runtime
+from fin_graph.harness.runtime import _analysis_services, make_analysis_graph, make_runtime
+from fin_graph.integrations.broker.paper.runtime import open_trading_context
 from fin_graph.integrations.catalog import default_registry
 from fin_graph.integrations.context import RunContext
 from fin_graph.llm.models import ModelRole, get_model
-from fin_graph.memory.service import IncidentMemory
+from fin_graph.memory.theses import ThesisMemory
 from fin_graph.persistence.action_ledger import open_sqlite_action_ledger
 from fin_graph.persistence.checkpointer import open_checkpointer
 from fin_graph.persistence.store import open_store
@@ -48,13 +49,14 @@ app.add_typer(eval_app, name="eval")
 app.add_typer(harness_app, name="harness")
 app.add_typer(schedules_app, name="schedules")
 app.add_typer(integrations_app, name="integrations")
+app.add_typer(orders_app, name="orders")
 register_eval_tools(eval_app)
 console = Console()
 
 
 @app.callback()
 def root() -> None:
-    """Run local investigation commands."""
+    """Análisis financiero multiagente con cartera paper."""
 
 
 @app.command()
@@ -97,10 +99,19 @@ def analyze(
         float | None, typer.Option("--cash", help="Efectivo de la cartera paper.")
     ] = None,
     as_json: Annotated[bool, typer.Option("--json", help="Imprime el reporte en JSON.")] = False,
+    propose: Annotated[
+        bool,
+        typer.Option("--propose", help="Deja las órdenes propuestas pendientes de aprobación."),
+    ] = False,
 ) -> None:
-    """Analiza acciones y muestra tesis, señales, riesgo y órdenes paper propuestas."""
+    """Analiza acciones y muestra tesis, señales, riesgo y órdenes paper propuestas.
+
+    Sin ``--cash`` dimensiona contra la cartera paper actual.
+    """
     if (tickers is None) == (text is None):
         raise typer.BadParameter("Indica exactamente uno de --tickers o --text")
+    if propose and cash is not None:
+        raise typer.BadParameter("--propose usa la cartera paper real; no lo combines con --cash")
     if horizon not in {"short", "medium", "long"}:
         raise typer.BadParameter("Horizonte no reconocido", param_hint="--horizon")
     raw: str | dict[str, Any]
@@ -115,7 +126,7 @@ def analyze(
         from fin_graph.harness.runtime import make_analysis_runtime
 
         graph, context = make_analysis_runtime()
-        asyncio.run(_run_analysis(graph, context, raw, portfolio, as_json))
+        asyncio.run(_analyze(graph, context, raw, portfolio, as_json, propose))
     except (OSError, UnicodeError, ValueError) as exc:
         console.print(f"Error: {type(exc).__name__}: {exc}")
         raise typer.Exit(code=1) from None
@@ -124,13 +135,36 @@ def analyze(
         raise typer.Exit(code=1) from None
 
 
+async def _analyze(
+    graph: Any,
+    context: RunContext,
+    raw: str | dict[str, Any],
+    portfolio: dict[str, Any] | None,
+    as_json: bool,
+    propose: bool,
+) -> None:
+    """Run with the paper broker in the context; with ``propose``, queue each order for approval."""
+    from fin_graph.cli.orders import open_orders_runtime, outcome_line, submit, thread_for
+
+    async with open_orders_runtime(context=context) as orders:
+        report = await _run_analysis(graph, orders.context, raw, portfolio, as_json)
+        if not propose:
+            return
+        proposed = [section.order for section in report.sections if section.order]
+        if not proposed:
+            console.print("Ninguna orden propuesta: todas las decisiones son hold.")
+        for order in proposed:
+            result = await submit(orders, order)
+            console.print(f"{thread_for(order)}: {outcome_line(result)}", markup=False)
+
+
 async def _run_analysis(
     graph: Any,
     context: RunContext,
     raw: str | dict[str, Any],
     portfolio: dict[str, Any] | None,
     as_json: bool,
-) -> None:
+) -> Any:
     from fin_graph.domain.analysis_report import AnalysisReport
     from fin_graph.domain.rendering.analysis import render_analysis_markdown
 
@@ -164,6 +198,15 @@ async def _run_analysis(
         console.print(report.model_dump_json(indent=2), markup=False)
     else:
         console.print(render_analysis_markdown(report), markup=False)
+    return report
+
+
+@app.command()
+def portfolio(as_json: Annotated[bool, typer.Option("--json")] = False) -> None:
+    """Muestra la cartera paper: efectivo, posiciones, coste medio y P&L abierto."""
+    from fin_graph.cli.orders import show_portfolio
+
+    show_portfolio(as_json)
 
 
 @app.command()
@@ -191,7 +234,7 @@ def investigate(
 
 @app.command()
 def ask(
-    text: Annotated[str, typer.Argument(help="Pregunta para el copiloto SRE.")],
+    text: Annotated[str, typer.Argument(help="Pregunta para el copiloto financiero.")],
     sqlite_path: Annotated[
         Path | None, typer.Option("--sqlite-path", help="Archivo SQLite local de hilos.")
     ] = None,
@@ -226,7 +269,7 @@ def chat(
         str | None, typer.Option("--thread-id", help="Hilo remoto existente.")
     ] = None,
 ) -> None:
-    """Abre el REPL SRE con hilos, investigación, integraciones y aprobaciones."""
+    """Abre el chat financiero: hilos, análisis, cartera paper y aprobación de órdenes."""
     try:
         asyncio.run(_chat(sqlite_path, server, api_key, thread_id))
     except (OSError, ValueError, RuntimeError) as exc:
@@ -260,11 +303,11 @@ async def _chat(
 ) -> None:
     prompt: PromptSession[str] = PromptSession()
     async with _chat_session(sqlite_path, server, api_key, thread_id) as session:
-        console.print(f"Hilo {session.thread_id}. /new /threads /resume /investigate ")
-        console.print("/approve /integrations /cost /exit")
+        console.print(f"Hilo {session.thread_id}. /new /threads /resume /analiza ")
+        console.print("/approve /integrations /cost /exit · cartera paper, uso educativo")
         while True:
             try:
-                line = (await prompt.prompt_async("sre> ")).strip()
+                line = (await prompt.prompt_async("fin> ")).strip()
             except (EOFError, KeyboardInterrupt):
                 return
             if not line:
@@ -333,24 +376,28 @@ async def _local_session(sqlite_path: Path | None) -> AsyncIterator[ChatSession]
     from fin_graph.integrations.mcp.runtime import with_configured_mcp
 
     registry = await with_configured_mcp(default_registry())
-    context = DeliveryService.from_env().extend_run_context(registry.run_context())
+    base = DeliveryService.from_env().extend_run_context(registry.run_context())
     async with (
         open_checkpointer(settings) as saver,
         open_store(settings) as store,
         open_sqlite_action_ledger(path) as action_ledger,
+        open_trading_context(settings, base) as (_, context),
     ):
-        memory = IncidentMemory(store)
-        investigation = make_investigation_graph(
-            _services(settings), registry, memory=memory, checkpointer=False
+        memory = ThesisMemory(store)
+        analysis = make_analysis_graph(
+            _analysis_services(settings),
+            registry,
+            memory=memory,
+            checkpointer=False,  # persistence belongs to the chat checkpointer
+            settings=settings,
         )
         graph = make_chat_graph(
             get_model(ModelRole.REASONING, settings),
             registry,
             context,
             memory,
-            default_action_catalog(ledger=action_ledger),
             policy=ApprovalPolicy.from_settings(settings),
-            investigation=investigation,
+            analysis=analysis,
             checkpointer=saver,
             store=store,
             settings=settings,
@@ -360,7 +407,7 @@ async def _local_session(sqlite_path: Path | None) -> AsyncIterator[ChatSession]
             store,
             context,
             registry=registry,
-            investigation=investigation,
+            analysis=analysis,
             user_id=getpass.getuser(),
             approval_audit=action_ledger,
         )

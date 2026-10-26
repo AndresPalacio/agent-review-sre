@@ -14,7 +14,7 @@ from pydantic import BaseModel, ConfigDict
 
 class Route(StrEnum):
     DIRECT = "direct"
-    INVESTIGATE = "investigate"
+    ANALYZE = "analyze"
     CLARIFY = "clarify"
 
 
@@ -33,7 +33,7 @@ class DecisionPolicy(Protocol):
         self,
         text: str,
         *,
-        eligible: tuple[Route, ...] = (Route.DIRECT, Route.INVESTIGATE, Route.CLARIFY),
+        eligible: tuple[Route, ...] = (Route.DIRECT, Route.ANALYZE, Route.CLARIFY),
     ) -> Decision: ...
 
 
@@ -44,7 +44,7 @@ class RulesPolicy:
         self,
         text: str,
         *,
-        eligible: tuple[Route, ...] = (Route.DIRECT, Route.INVESTIGATE, Route.CLARIFY),
+        eligible: tuple[Route, ...] = (Route.DIRECT, Route.ANALYZE, Route.CLARIFY),
     ) -> Decision:
         if not eligible:
             raise ValueError("eligible must contain at least one route")
@@ -55,11 +55,11 @@ class RulesPolicy:
         ):
             route = Route.DIRECT
         elif re.search(
-            r"\b(?:investiga|investigate|investigar|incident|incidente|"
-            r"crashloopbackoff|timeout|timeouts|5\d\d)\b",
+            r"\b(?:analiza|analizar|analyze|analysis|an[aá]lisis|acci[oó]n|acciones|stock|"
+            r"ticker|valoraci[oó]n|valuation|fundamentales|fundamentals|t[eé]cnicos?|technicals?)\b",
             normalized,
         ):
-            route = Route.INVESTIGATE
+            route = Route.ANALYZE
         else:
             route = Route.CLARIFY
 
@@ -67,7 +67,7 @@ class RulesPolicy:
             # Prefer clarification, then a direct response, over launching work.
             route = next(
                 candidate
-                for candidate in (Route.CLARIFY, Route.DIRECT, Route.INVESTIGATE)
+                for candidate in (Route.CLARIFY, Route.DIRECT, Route.ANALYZE)
                 if candidate in eligible
             )
         return Decision(route=route, policy="rules")
@@ -110,7 +110,7 @@ class OpenAIDecisionPolicy:
         self,
         text: str,
         *,
-        eligible: tuple[Route, ...] = (Route.DIRECT, Route.INVESTIGATE, Route.CLARIFY),
+        eligible: tuple[Route, ...] = (Route.DIRECT, Route.ANALYZE, Route.CLARIFY),
     ) -> Decision:
         if not eligible:
             raise ValueError("eligible must contain at least one route")
@@ -118,8 +118,8 @@ class OpenAIDecisionPolicy:
         if len(eligible) == 1:
             return await self._fallback(text, eligible, "single_eligible_route")
         descriptions = {
-            Route.DIRECT: "Answer a greeting or general conceptual question without investigating.",
-            Route.INVESTIGATE: "Investigate an incident using read-only metrics and logs.",
+            Route.DIRECT: "Answer a greeting or general conceptual question without analysis.",
+            Route.ANALYZE: "Analyze a stock with read-only fundamentals and technicals children.",
             Route.CLARIFY: "Ask for missing context when the request is ambiguous or unsupported.",
         }
         try:
@@ -133,7 +133,7 @@ class OpenAIDecisionPolicy:
                         {
                             "type": "choice",
                             "name": "route",
-                            "instructions": "Select the appropriate route for this SRE request.",
+                            "instructions": "Select the appropriate route for this equity request.",
                             "choices": [
                                 {"value": route.value, "description": descriptions[route]}
                                 for route in eligible

@@ -3,10 +3,12 @@ from __future__ import annotations
 from types import SimpleNamespace
 
 import httpx
+import pytest
 from langchain_core.messages import AIMessage
 from langgraph.checkpoint.memory import InMemorySaver
 from langgraph.store.memory import InMemoryStore
 from pytest import MonkeyPatch
+from tests.cli.paper_helpers import paper_context
 from typer.testing import CliRunner
 
 from fin_graph.agents.testing.scripted_model import ScriptedChatModel, tool_call_message
@@ -16,10 +18,9 @@ from fin_graph.domain.alerts.parsing import text_alert
 from fin_graph.domain.diagnosis import unknown_diagnosis
 from fin_graph.domain.report import build_report
 from fin_graph.graphs.chat.graph import make_chat_graph
-from fin_graph.graphs.remediation.graph import ActionCatalog
 from fin_graph.integrations.context import RunContext
 from fin_graph.integrations.registry import IntegrationRegistry
-from fin_graph.memory.service import IncidentMemory
+from fin_graph.memory.theses import ThesisMemory
 from fin_graph.persistence.action_ledger import open_sqlite_action_ledger
 from fin_graph.safety.approval import ApprovalPolicy
 
@@ -28,11 +29,10 @@ async def test_local_session_new_resume_threads_and_cost_without_transcript_in_s
     store = InMemoryStore()
     registry = IntegrationRegistry([], env_file=None)
     graph = make_chat_graph(
-        ScriptedChatModel(responses=[AIMessage("Hola SRE")]),
+        ScriptedChatModel(responses=[AIMessage("Hola, ¿qué analizamos?")]),
         registry,
         RunContext(),
-        IncidentMemory(store),
-        ActionCatalog([]),
+        ThesisMemory(store),
         policy=ApprovalPolicy(environment="prod"),
         checkpointer=InMemorySaver(),
         store=store,
@@ -41,7 +41,7 @@ async def test_local_session_new_resume_threads_and_cost_without_transcript_in_s
 
     first_id = await session.start()
     turn = await session.send("hola")
-    assert turn.text == "Hola SRE"
+    assert turn.text == "Hola, ¿qué analizamos?"
     assert "0 tokens" in await session.command("/cost")
     second_id = await session.command("/new")
     assert second_id != first_id
@@ -49,35 +49,56 @@ async def test_local_session_new_resume_threads_and_cost_without_transcript_in_s
     assert await session.command(f"/resume {first_id}") == first_id
     prefs = await store.aget(("users", "tester", "prefs"), "threads")
     assert prefs is not None
-    assert "Hola SRE" not in str(prefs.value)
+    assert "analizamos" not in str(prefs.value)
 
 
 async def test_local_approval_has_durable_actor_audit(tmp_path) -> None:
     store = InMemoryStore()
-    graph = make_chat_graph(
-        ScriptedChatModel(
-            responses=[
-                tool_call_message("save_note", {"text": "recovered"}, "note-1"),
-                AIMessage("Guardada"),
-            ]
-        ),
-        IntegrationRegistry([], env_file=None),
-        RunContext(),
-        IncidentMemory(store),
-        ActionCatalog([]),
-        policy=ApprovalPolicy(environment="prod"),
-        checkpointer=InMemorySaver(),
-        store=store,
-    )
-    async with open_sqlite_action_ledger(tmp_path / "chat.sqlite") as audit:
-        session = ChatSession(graph, store, RunContext(), user_id="tester", approval_audit=audit)
+    order = {"ticker": "MSFT", "action": "buy", "quantity": 1, "reasoning": "tesis"}
+    async with (
+        open_sqlite_action_ledger(tmp_path / "chat.sqlite") as audit,
+        paper_context(tmp_path / "paper.sqlite") as (broker, context),
+    ):
+        graph = make_chat_graph(
+            ScriptedChatModel(
+                responses=[
+                    tool_call_message("propose_order", order, "order-1"),
+                    AIMessage("Orden ejecutada"),
+                ]
+            ),
+            IntegrationRegistry([], env_file=None),
+            context,
+            ThesisMemory(store),
+            policy=ApprovalPolicy(environment="prod"),
+            checkpointer=InMemorySaver(),
+            store=store,
+        )
+        session = ChatSession(graph, store, context, user_id="tester", approval_audit=audit)
         await session.start()
-        assert (await session.send("Guarda nota")).status == "awaiting_approval"
+        assert (await session.send("Compra 1 MSFT")).status == "awaiting_approval"
         await session.command("/approve approve")
         records = await audit.approvals(session.thread_id or "")
+        assert len(await broker.orders()) == 1
     assert records[0]["actor"] == "local:tester"
     assert records[0]["decision"] == "approve"
-    assert records[0]["action_name"] == "save_note"
+    assert records[0]["action_name"] == "propose_order"
+
+
+async def test_local_analysis_command_renders_the_report() -> None:
+    from tests.domain.test_analysis_report import _report
+
+    class Analysis:
+        async def ainvoke(self, value: dict, **kwargs: object) -> dict:
+            assert value["raw_request"] == "DEEP DIST"
+            return {"report": _report().model_dump(mode="json"), "is_noise": False}
+
+    session = ChatSession(None, InMemoryStore(), RunContext(), analysis=Analysis())
+
+    rendered = await session.command("/analiza DEEP DIST")
+
+    assert "Análisis DEEP" in rendered
+    with pytest.raises(ValueError):
+        await session.command("/analiza")
 
 
 def test_local_approval_request_redacts_nested_credentials() -> None:

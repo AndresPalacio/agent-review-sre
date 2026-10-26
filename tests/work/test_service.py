@@ -58,7 +58,7 @@ def service(tmp_path, engine=None):
 
 async def test_start_is_idempotent_across_gateway_restart_and_payload_conflicts(tmp_path):
     gateway, engine = service(tmp_path)
-    command = StartWork(command_id="incident-1", text="Investiga latencia de pagos")
+    command = StartWork(command_id="incident-1", text="Analiza los fundamentales de MSFT")
     first = await gateway.start(command, actor="ana")
     restarted, _ = service(tmp_path, engine)
     again = await restarted.start(command, actor="ana")
@@ -70,7 +70,7 @@ async def test_start_is_idempotent_across_gateway_restart_and_payload_conflicts(
 
 async def test_owner_and_revision_are_enforced_before_dispatch(tmp_path):
     gateway, engine = service(tmp_path)
-    first = await gateway.start(StartWork(command_id="one", text="Investiga pagos"), actor="ana")
+    first = await gateway.start(StartWork(command_id="one", text="Analiza MSFT"), actor="ana")
     with pytest.raises(PermissionError):
         await gateway.get(first.work_id, actor="otro")
     update = UpdateWork(command_id="u1", expected_revision=1, message="Revisa últimos 5 minutos")
@@ -90,7 +90,7 @@ async def test_owner_and_revision_are_enforced_before_dispatch(tmp_path):
 async def test_lost_dispatch_response_reconciles_without_resubmitting(tmp_path):
     gateway, engine = service(tmp_path)
     engine.lose_response = True
-    command = StartWork(command_id="lost", text="Investiga latencia de pagos")
+    command = StartWork(command_id="lost", text="Analiza los fundamentales de MSFT")
     with pytest.raises(WorkUnavailable, match="incierto") as exc:
         await gateway.start(command, actor="ana")
     assert "must-not-leak" not in str(exc.value)
@@ -102,7 +102,7 @@ async def test_lost_dispatch_response_reconciles_without_resubmitting(tmp_path):
 
 async def test_cancel_intent_survives_restart_and_never_accepts_late_result(tmp_path):
     gateway, engine = service(tmp_path)
-    work = await gateway.start(StartWork(command_id="c", text="Investiga pagos"), actor="ana")
+    work = await gateway.start(StartWork(command_id="c", text="Analiza MSFT"), actor="ana")
     engine.cancel_finishes = False
     command = CancelWork(command_id="cancel", expected_revision=1)
     cancelled = await gateway.cancel(work.work_id, command, actor="ana")
@@ -127,11 +127,11 @@ async def test_cancel_intent_survives_restart_and_never_accepts_late_result(tmp_
 
 async def test_completed_parent_with_running_child_is_still_running(tmp_path):
     gateway, engine = service(tmp_path)
-    work = await gateway.start(StartWork(command_id="p", text="Investiga pagos"), actor="ana")
+    work = await gateway.start(StartWork(command_id="p", text="Analiza MSFT"), actor="ana")
     engine.states[work.work_id] = {
         "status": "idle",
         "values": {"messages": [{"type": "ai", "content": "iniciado"}], "work_revision": 1},
-        "children": [{"task_id": "child", "status": "running", "agent_name": "logs"}],
+        "children": [{"task_id": "child", "status": "running", "agent_name": "technicals"}],
     }
     view = await gateway.get(work.work_id, actor="ana")
     assert view.status == "running"
@@ -140,7 +140,7 @@ async def test_completed_parent_with_running_child_is_still_running(tmp_path):
 
 async def test_pending_approval_and_stale_result_are_not_overwritten(tmp_path):
     gateway, engine = service(tmp_path)
-    work = await gateway.start(StartWork(command_id="w", text="Investiga pagos"), actor="ana")
+    work = await gateway.start(StartWork(command_id="w", text="Analiza MSFT"), actor="ana")
     engine.states[work.work_id]["status"] = "interrupted"
     with pytest.raises(WorkConflict, match="entrada"):
         await gateway.update(
@@ -168,8 +168,8 @@ async def test_cancel_completed_local_work_is_a_conflict(tmp_path):
 
 async def test_reconciling_old_command_preserves_latest_run(tmp_path):
     gateway, engine = service(tmp_path)
-    first = await gateway.start(StartWork(command_id="s", text="Investiga pagos"), actor="ana")
-    old = UpdateWork(command_id="old", expected_revision=1, message="actualiza logs")
+    first = await gateway.start(StartWork(command_id="s", text="Analiza MSFT"), actor="ana")
+    old = UpdateWork(command_id="old", expected_revision=1, message="actualiza técnicos")
     engine.lose_response = True
     with pytest.raises(WorkUnavailable):
         await gateway.update(first.work_id, old, actor="ana")
@@ -185,12 +185,10 @@ async def test_reconciling_old_command_preserves_latest_run(tmp_path):
 
 async def test_old_notification_consolidates_once_without_returning_stale_result(tmp_path):
     gateway, engine = service(tmp_path)
-    work = await gateway.start(
-        StartWork(command_id="revision", text="Investiga pagos"), actor="ana"
-    )
+    work = await gateway.start(StartWork(command_id="revision", text="Analiza MSFT"), actor="ana")
     work = await gateway.update(
         work.work_id,
-        UpdateWork(command_id="revision2", expected_revision=1, message="actualiza logs"),
+        UpdateWork(command_id="revision2", expected_revision=1, message="actualiza técnicos"),
         actor="ana",
     )
     old_snapshot = {
@@ -200,7 +198,7 @@ async def test_old_notification_consolidates_once_without_returning_stale_result
             "result_revision": 1,
             "messages": [{"type": "ai", "content": "OLD_REVISION_1_EVIDENCE"}],
         },
-        "children": [{"status": "success", "agent_name": "metrics"}],
+        "children": [{"status": "success", "agent_name": "fundamentals"}],
     }
     engine.states[work.work_id] = copy.deepcopy(old_snapshot)
     view = await gateway.get(work.work_id, actor="ana")
@@ -225,10 +223,10 @@ async def test_old_notification_consolidates_once_without_returning_stale_result
 
 async def test_each_late_notification_can_be_consolidated_before_completion_is_observed(tmp_path):
     gateway, engine = service(tmp_path)
-    work = await gateway.start(StartWork(command_id="late", text="Investiga pagos"), actor="ana")
+    work = await gateway.start(StartWork(command_id="late", text="Analiza MSFT"), actor="ana")
     work = await gateway.update(
         work.work_id,
-        UpdateWork(command_id="u", expected_revision=1, message="actualiza logs"),
+        UpdateWork(command_id="u", expected_revision=1, message="actualiza técnicos"),
         actor="ana",
     )
     for message_id in ("notification-one", "notification-two", "notification-two"):
@@ -265,7 +263,7 @@ async def test_retry_recovers_failure_before_run_submission(tmp_path):
 
     engine = RecoverableEngine()
     gateway, _ = service(tmp_path, engine)
-    command = StartWork(command_id="prepare", text="Investiga pagos")
+    command = StartWork(command_id="prepare", text="Analiza MSFT")
     with pytest.raises(WorkUnavailable):
         await gateway.start(command, actor="ana")
     view = await gateway.start(command, actor="ana")
@@ -276,7 +274,7 @@ async def test_retry_recovers_failure_before_run_submission(tmp_path):
 
 async def test_lost_child_notification_wakes_parent_once(tmp_path):
     gateway, engine = service(tmp_path)
-    work = await gateway.start(StartWork(command_id="notify", text="Investiga pagos"), actor="ana")
+    work = await gateway.start(StartWork(command_id="notify", text="Analiza MSFT"), actor="ana")
     stale = {
         "status": "idle",
         "values": {
@@ -307,10 +305,10 @@ class RejectingEngine(MemoryEngine):
 async def test_rejected_dispatch_is_reported_as_uncertain_not_running(tmp_path):
     engine = RejectingEngine()
     gateway, _ = service(tmp_path, engine)
-    command = StartWork(command_id="refused", text="Investiga pagos")
+    command = StartWork(command_id="refused", text="Analiza MSFT")
     with pytest.raises(WorkUnavailable):
         await gateway.start(command, actor="ana")
-    work_id = str(uuid.uuid5(uuid.NAMESPACE_URL, "sre-work:ana:refused"))
+    work_id = str(uuid.uuid5(uuid.NAMESPACE_URL, "fin-work:ana:refused"))
     view = await gateway.get(work_id, actor="ana")
     assert view.status == "dispatch_uncertain"
     assert view.run_id is None
@@ -330,8 +328,8 @@ async def test_uncertain_dispatch_is_reconciled_once_the_run_is_visible(tmp_path
     engine = RejectingEngine()
     gateway, _ = service(tmp_path, engine)
     with pytest.raises(WorkUnavailable):
-        await gateway.start(StartWork(command_id="late", text="Investiga pagos"), actor="ana")
-    work_id = str(uuid.uuid5(uuid.NAMESPACE_URL, "sre-work:ana:late"))
+        await gateway.start(StartWork(command_id="late", text="Analiza MSFT"), actor="ana")
+    work_id = str(uuid.uuid5(uuid.NAMESPACE_URL, "fin-work:ana:late"))
     assert (await gateway.get(work_id, actor="ana")).status == "dispatch_uncertain"
     # The original request was in fact accepted; the engine now lists it.
     engine.submissions.append((work_id, "late", "run-late", "", {}, False))
@@ -353,7 +351,7 @@ async def test_unreachable_engine_during_consolidation_reconcile_is_unavailable(
 
     engine = FlakyEngine()
     gateway, _ = service(tmp_path, engine)
-    work = await gateway.start(StartWork(command_id="cons", text="Investiga pagos"), actor="ana")
+    work = await gateway.start(StartWork(command_id="cons", text="Analiza MSFT"), actor="ana")
     engine.states[work.work_id] = {
         "status": "idle",
         "values": {"work_revision": 1, "messages": [{"type": "ai", "content": "x"}]},
@@ -384,8 +382,8 @@ async def test_slow_routing_does_not_block_other_work_and_stays_idempotent(tmp_p
 
     engine = MemoryEngine()
     gateway = WorkService(WorkStore(tmp_path / "work.sqlite"), engine, SlowPolicy())
-    other = await gateway.start(StartWork(command_id="fast", text="Investiga pagos"), actor="ana")
-    slow = StartWork(command_id="slow", text="Investiga incidente lento")
+    other = await gateway.start(StartWork(command_id="fast", text="Analiza MSFT"), actor="ana")
+    slow = StartWork(command_id="slow", text="Analiza MSFT lento")
     first = asyncio.create_task(gateway.start(slow, actor="ana"))
     second = asyncio.create_task(gateway.start(slow, actor="ana"))
     await asyncio.wait_for(entered.wait(), 1)
@@ -399,10 +397,15 @@ async def test_slow_routing_does_not_block_other_work_and_stays_idempotent(tmp_p
 
 async def test_confirmed_cancel_does_not_report_children_as_running(tmp_path):
     gateway, engine = service(tmp_path)
-    work = await gateway.start(StartWork(command_id="tree", text="Investiga pagos"), actor="ana")
+    work = await gateway.start(StartWork(command_id="tree", text="Analiza MSFT"), actor="ana")
     engine.states[work.work_id]["children"] = [
-        {"task_id": "m", "agent_name": "metrics", "status": "running", "engine_status": "busy"},
-        {"task_id": "l", "agent_name": "logs", "status": "success", "engine_status": "idle"},
+        {
+            "task_id": "m",
+            "agent_name": "fundamentals",
+            "status": "running",
+            "engine_status": "busy",
+        },
+        {"task_id": "l", "agent_name": "technicals", "status": "success", "engine_status": "idle"},
     ]
     assert (await gateway.get(work.work_id, actor="ana")).children[0]["status"] == "running"
     view = await gateway.cancel(
@@ -411,7 +414,7 @@ async def test_confirmed_cancel_does_not_report_children_as_running(tmp_path):
     assert view.status == "cancelled"
     assert [c["status"] for c in view.children] == ["cancelled", "success"]
     engine.cancel_finishes = False
-    pending = await gateway.start(StartWork(command_id="slow", text="Investiga pagos"), actor="ana")
+    pending = await gateway.start(StartWork(command_id="slow", text="Analiza MSFT"), actor="ana")
     engine.states[pending.work_id]["children"] = [{"task_id": "x", "status": "running"}]
     await gateway.get(pending.work_id, actor="ana")
     view = await gateway.cancel(

@@ -49,8 +49,13 @@ class Portfolio(BaseModel):
         return {ticker for ticker, held in self.positions.items() if held.net_shares != 0}
 
     def net_liquidation_value(self, prices: Mapping[str, float]) -> float:
-        """Cash plus longs minus shorts at ``prices``; tickers without a price are left out."""
-        total = self.cash
+        """Cash, short collateral and longs, minus shorts, at ``prices``.
+
+        ``cash`` is free cash: opening a short moves its margin into ``margin_used``
+        (:func:`fin_graph.domain.fills.apply_fill`), and that collateral is still the
+        portfolio's. Tickers without a price are left out.
+        """
+        total = self.cash + self.margin_used
         for ticker, held in self.positions.items():
             price = prices.get(ticker)
             if price is not None:

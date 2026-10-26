@@ -71,6 +71,7 @@ from fin_graph.graphs.analysis.services import AnalysisServices, SynthesisContex
 from fin_graph.graphs.analysis.state import AnalysisState, SanitizedRequestChannel, latest_findings
 from fin_graph.integrations.analytics.engine import AnalyticsEngine
 from fin_graph.integrations.base import IntegrationError
+from fin_graph.integrations.broker.paper.broker import PaperBroker
 from fin_graph.integrations.context import RunContext
 from fin_graph.integrations.market_data import MarketDataClient
 from fin_graph.memory.theses import ThesisMemory, thesis_key
@@ -138,7 +139,7 @@ def _compile_analysis_graph(
     gates = trading_limits or TradingLimits()
     default_book = portfolio or Portfolio()
 
-    async def intake(state: AnalysisState) -> dict[str, Any]:
+    async def intake(state: AnalysisState, runtime: Runtime[RunContext]) -> dict[str, Any]:
         raw = state["raw_request"]
         if not isinstance(raw, str | dict):
             raise ValueError("invalid analysis input")
@@ -201,8 +202,12 @@ def _compile_analysis_graph(
                 _emit(state, "stage", "noise")
                 return {**fresh, "is_noise": True, "errors": errors, "degraded": degraded}
         book = state.get("portfolio")
+        broker = _paper_broker(runtime)
         if book and request.portfolio is None:
             request = request.model_copy(update={"portfolio": Portfolio.model_validate(book)})
+        elif request.portfolio is None and broker is not None:
+            # A run with a paper broker sizes against the live paper book.
+            request = request.model_copy(update={"portfolio": await broker.portfolio()})
         window = AnalysisWindow(as_of=request.as_of)
         _emit(state, "stage", "intake", {"tickers": request.tickers})
         return fresh | {
@@ -560,7 +565,7 @@ def _compile_analysis_graph(
             "degraded": degraded,
         }
 
-    async def portfolio_step(state: AnalysisState) -> dict[str, Any]:
+    async def portfolio_step(state: AnalysisState, runtime: Runtime[RunContext]) -> dict[str, Any]:
         request = AnalysisRequest.model_validate(state["request"])
         book = request.portfolio or default_book
         limits_by_ticker = {
@@ -583,8 +588,10 @@ def _compile_analysis_graph(
             book,
             allow_short=gates.short_selling_enabled,
         )
+        broker = _paper_broker(runtime)
+        count_orders = orders_today or (broker.orders_today if broker is not None else None)
         try:
-            today_count = await orders_today() if orders_today is not None else 0
+            today_count = await count_orders() if count_orders is not None else 0
         except Exception:
             today_count = gates.max_daily_orders  # unknown count: fail closed
         allowed: dict[str, dict[OrderAction, int]] = {}
@@ -843,6 +850,13 @@ def _safe_tools(tools: Sequence[BaseTool]) -> list[BaseTool]:
         if (meta := read_tool_meta(tool)) is not None
         and meta.side_effect_level is SideEffectLevel.READ_ONLY
     ]
+
+
+def _paper_broker(runtime: Runtime[RunContext]) -> PaperBroker | None:
+    """The run's paper broker, when the caller put one in the context."""
+    context = runtime.context
+    found = context.clients.get("paper_broker") if isinstance(context, RunContext) else None
+    return found if isinstance(found, PaperBroker) else None
 
 
 def _run_context(runtime: Runtime[RunContext], registry: ToolSource) -> RunContext:

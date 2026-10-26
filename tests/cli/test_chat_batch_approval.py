@@ -8,113 +8,119 @@ import pytest
 from langchain_core.messages import AIMessage
 from langgraph.checkpoint.memory import InMemorySaver
 from langgraph.store.memory import InMemoryStore
+from tests.cli.paper_helpers import paper_context
 
 from fin_graph.agents.testing.scripted_model import ScriptedChatModel
 from fin_graph.cli.chat import ChatSession, RemoteChatSession
 from fin_graph.graphs.chat.graph import make_chat_graph
-from fin_graph.graphs.remediation.graph import ActionCatalog
 from fin_graph.integrations.context import RunContext
 from fin_graph.integrations.registry import IntegrationRegistry
-from fin_graph.memory.service import IncidentMemory
+from fin_graph.memory.theses import ThesisMemory
 from fin_graph.persistence.action_ledger import open_sqlite_action_ledger
 from fin_graph.safety.approval import ApprovalPolicy
 
+ORDERS = [
+    {"ticker": "MSFT", "action": "buy", "quantity": 1, "reasoning": "first"},
+    {"ticker": "AAPL", "action": "buy", "quantity": 1, "reasoning": "second"},
+]
 
-def _local_session(store: InMemoryStore, *, note_count: int = 2, **kwargs) -> ChatSession:
+
+def _local_session(
+    store: InMemoryStore, context: RunContext, *, count: int = 2, **kwargs
+) -> ChatSession:
     graph = make_chat_graph(
         ScriptedChatModel(
             responses=[
                 AIMessage(
                     "",
                     tool_calls=[
-                        {"name": "save_note", "args": {"text": "first note"}, "id": "note-1"},
-                        {"name": "save_note", "args": {"text": "second note"}, "id": "note-2"},
-                    ][:note_count],
+                        {"name": "propose_order", "args": ORDERS[0], "id": "order-1"},
+                        {"name": "propose_order", "args": ORDERS[1], "id": "order-2"},
+                    ][:count],
                 ),
                 AIMessage("Decisiones procesadas"),
             ]
         ),
         IntegrationRegistry([], env_file=None),
-        RunContext(),
-        IncidentMemory(store),
-        ActionCatalog([]),
+        context,
+        ThesisMemory(store),
         policy=ApprovalPolicy(environment="prod"),
         checkpointer=InMemorySaver(),
         store=store,
     )
-    return ChatSession(graph, store, RunContext(), user_id="tester", **kwargs)
+    return ChatSession(graph, store, context, user_id="tester", **kwargs)
+
+
+def _digest(args: dict) -> str:
+    return sha256(json.dumps(args, sort_keys=True).encode()).hexdigest()
 
 
 @pytest.mark.parametrize("choice", ["approve", "reject"])
 async def test_local_approval_decides_and_audits_every_presented_action(choice, tmp_path) -> None:
     store = InMemoryStore()
-    async with open_sqlite_action_ledger(tmp_path / "batch.sqlite") as audit:
-        session = _local_session(store, approval_audit=audit)
-        turn = await session.send("Save both notes")
+    async with (
+        open_sqlite_action_ledger(tmp_path / "batch.sqlite") as audit,
+        paper_context(tmp_path / "paper.sqlite") as (broker, context),
+    ):
+        session = _local_session(store, context, approval_audit=audit)
+        turn = await session.send("Compra MSFT y AAPL")
         assert len(turn.requests[0]["action_requests"]) == 2
 
         reply = await session.command(f"/approve {choice}")
 
         assert reply == "Decisiones procesadas"
         records = await audit.approvals(session.thread_id)
-        assert len(records) == 2
         assert [item["decision"] for item in records] == [choice, choice]
-        assert {item["args_digest"] for item in records} == {
-            sha256(b'{"text": "first note"}').hexdigest(),
-            sha256(b'{"text": "second note"}').hexdigest(),
-        }
-        notes = await store.asearch(("org", "notes"))
-        assert len(notes) == (2 if choice == "approve" else 0)
+        assert {item["args_digest"] for item in records} == {_digest(item) for item in ORDERS}
+        assert len(await broker.orders()) == (2 if choice == "approve" else 0)
         state = await session.graph.aget_state(session._config())
         assert not any(task.interrupts for task in state.tasks)
 
 
-@pytest.mark.parametrize("second_args", [{"text": "second edited note"}, {"wrong": "missing text"}])
+@pytest.mark.parametrize("second_args", [{"quantity": 2}, {"wrong": "missing order"}])
 async def test_local_batch_edit_is_refused_without_writes_audit_or_consuming_interrupt(
     second_args, tmp_path
 ) -> None:
     store = InMemoryStore()
     edited = {
         "edited_actions": [
-            {"name": "save_note", "args": {"text": "first edited note"}},
-            {"name": "save_note", "args": second_args},
+            {"name": "propose_order", "args": ORDERS[0] | {"quantity": 3}},
+            {"name": "propose_order", "args": second_args},
         ]
     }
-    async with open_sqlite_action_ledger(tmp_path / "edit-batch.sqlite") as audit:
-        session = _local_session(store, approval_audit=audit)
-        await session.send("Save both notes")
-        error = None
-        try:
+    async with (
+        open_sqlite_action_ledger(tmp_path / "edit-batch.sqlite") as audit,
+        paper_context(tmp_path / "paper.sqlite") as (broker, context),
+    ):
+        session = _local_session(store, context, approval_audit=audit)
+        await session.send("Compra MSFT y AAPL")
+        with pytest.raises(ValueError, match="only one pending action"):
             await session.command(f"/approve edit {json.dumps(edited)}")
-        except ValueError as exc:
-            error = exc
 
-        assert await store.asearch(("org", "notes")) == []
+        assert await broker.orders() == []
         assert await audit.approvals(session.thread_id) == []
         state = await session.graph.aget_state(session._config())
         assert len(state.tasks[0].interrupts[0].value["action_requests"]) == 2
-        assert error is not None and "only one pending action" in str(error)
 
         assert await session.command("/approve approve") == "Decisiones procesadas"
-        notes = await store.asearch(("org", "notes"))
-        assert {item.value["text"] for item in notes} == {"first note", "second note"}
+        assert {item.order.ticker for item in await broker.orders()} == {"MSFT", "AAPL"}
 
 
 @pytest.mark.parametrize(
     "edited",
     [
-        {"name": "save_note", "args": {"text": "ambiguous"}},
-        {"edited_actions": [{"name": "save_note", "args": {"text": "missing second"}}]},
+        {"name": "propose_order", "args": ORDERS[0]},
+        {"edited_actions": [{"name": "propose_order", "args": ORDERS[0]}]},
         {
             "edited_actions": [
-                {"name": "save_note", "args": {"text": "valid first"}},
-                {"name": "execute_remediation", "args": {}},
+                {"name": "propose_order", "args": ORDERS[0]},
+                {"name": "cancel_paper_order", "args": {}},
             ]
         },
         {
             "edited_actions": [
-                {"name": "save_note", "args": {"text": "valid first"}},
-                {"name": "save_note", "args": []},
+                {"name": "propose_order", "args": ORDERS[0]},
+                {"name": "propose_order", "args": []},
             ]
         },
     ],
@@ -123,24 +129,56 @@ async def test_invalid_local_batch_edit_keeps_all_actions_pending_without_audit(
     edited, tmp_path
 ) -> None:
     store = InMemoryStore()
-    async with open_sqlite_action_ledger(tmp_path / "invalid.sqlite") as audit:
-        session = _local_session(store, approval_audit=audit)
-        await session.send("Save both notes")
+    async with (
+        open_sqlite_action_ledger(tmp_path / "invalid.sqlite") as audit,
+        paper_context(tmp_path / "paper.sqlite") as (broker, context),
+    ):
+        session = _local_session(store, context, approval_audit=audit)
+        await session.send("Compra MSFT y AAPL")
 
         with pytest.raises(ValueError):
             await session.command(f"/approve edit {json.dumps(edited)}")
 
         assert await audit.approvals(session.thread_id) == []
-        assert await store.asearch(("org", "notes")) == []
+        assert await broker.orders() == []
         state = await session.graph.aget_state(session._config())
         assert len(state.tasks[0].interrupts[0].value["action_requests"]) == 2
+
+
+async def test_local_single_action_edit_remains_compatible_and_audits_edited_arguments(
+    tmp_path,
+) -> None:
+    store = InMemoryStore()
+    edited_args = ORDERS[0] | {"quantity": 3}
+    async with (
+        open_sqlite_action_ledger(tmp_path / "single.sqlite") as audit,
+        paper_context(tmp_path / "paper.sqlite") as (broker, context),
+    ):
+        session = _local_session(store, context, count=1, approval_audit=audit)
+        await session.send("Compra MSFT")
+        edit = {"name": "propose_order", "args": edited_args}
+
+        assert await session.command(f"/approve edit {json.dumps(edit)}") == (
+            "Decisiones procesadas"
+        )
+
+        [record] = await audit.approvals(session.thread_id)
+        assert record["decision"] == "edit" and record["args_digest"] == _digest(edited_args)
+        [order] = await broker.orders()
+        assert order.order.quantity == 3
 
 
 _REQUESTS = [
     {
         "action_requests": [
-            {"name": "save_note", "arguments": {"text": "first note"}},
-            {"name": "save_note", "arguments": {"text": "second note"}},
+            {
+                "name": "propose_order",
+                "arguments": {"ticker": "MSFT", "action": "buy", "quantity": 1},
+            },
+            {
+                "name": "propose_order",
+                "arguments": {"ticker": "AAPL", "action": "buy", "quantity": 1},
+            },
         ]
     }
 ]
@@ -163,11 +201,11 @@ async def test_remote_approval_decides_every_presented_action(choice, source) ->
         return httpx.Response(200, json={"status": "completed", "reply": "Both processed"})
 
     async with httpx.AsyncClient(
-        transport=httpx.MockTransport(respond), base_url="https://sre.example"
+        transport=httpx.MockTransport(respond), base_url="https://fin.example"
     ) as client:
         session = RemoteChatSession(client, "secret-key", thread_id="batch")
         if source == "sse":
-            assert (await session.send("Save notes")).status == "awaiting_approval"
+            assert (await session.send("Compra")).status == "awaiting_approval"
         elif source == "resume":
             await session.command("/resume batch")
 
@@ -176,8 +214,8 @@ async def test_remote_approval_decides_every_presented_action(choice, source) ->
 
 async def test_remote_batch_edit_is_refused_before_post_and_preserves_pending_batch() -> None:
     edited = [
-        {"name": "save_note", "args": {"text": "first edited note"}},
-        {"name": "save_note", "args": {"text": "second edited note"}},
+        {"name": "propose_order", "args": {"ticker": "MSFT", "action": "buy", "quantity": 2}},
+        {"name": "propose_order", "args": {"ticker": "AAPL", "action": "buy", "quantity": 2}},
     ]
 
     posted = []
@@ -189,7 +227,7 @@ async def test_remote_batch_edit_is_refused_before_post_and_preserves_pending_ba
         return httpx.Response(200, json={"status": "completed", "reply": "Both rejected"})
 
     async with httpx.AsyncClient(
-        transport=httpx.MockTransport(respond), base_url="https://sre.example"
+        transport=httpx.MockTransport(respond), base_url="https://fin.example"
     ) as client:
         session = RemoteChatSession(client, "secret-key", thread_id="batch")
         argument = json.dumps({"edited_actions": edited})
@@ -211,11 +249,11 @@ async def test_remote_batch_edit_rejects_ambiguous_single_action() -> None:
         return httpx.Response(200, json={"status": "completed", "reply": "Unexpected edit"})
 
     async with httpx.AsyncClient(
-        transport=httpx.MockTransport(respond), base_url="https://sre.example"
+        transport=httpx.MockTransport(respond), base_url="https://fin.example"
     ) as client:
         session = RemoteChatSession(client, "secret-key", thread_id="batch")
         with pytest.raises(ValueError, match="only one pending action"):
-            await session.command('/approve edit {"name":"save_note","args":{"text":"one"}}')
+            await session.command('/approve edit {"name":"propose_order","args":{"text":"one"}}')
 
     assert posted == []
 
@@ -237,37 +275,18 @@ async def test_remote_approval_uses_the_followup_batch_after_another_interrupt()
         if len(choices) == 1:
             return httpx.Response(
                 200,
-                json={"status": "interrupted", "reply": "More notes", "requests": _REQUESTS},
+                json={"status": "interrupted", "reply": "More orders", "requests": _REQUESTS},
             )
         return httpx.Response(200, json={"status": "completed", "reply": "Both rejected"})
 
     async with httpx.AsyncClient(
-        transport=httpx.MockTransport(respond), base_url="https://sre.example"
+        transport=httpx.MockTransport(respond), base_url="https://fin.example"
     ) as client:
         session = RemoteChatSession(client, "secret-key", thread_id="batch")
-        assert "second note" in await session.command("/approve approve")
+        assert "AAPL" in await session.command("/approve approve")
         assert await session.command("/approve reject") == "Both rejected"
 
     assert choices == [[{"type": "approve"}], [{"type": "reject"}, {"type": "reject"}]]
-
-
-async def test_local_single_action_edit_remains_compatible_and_audits_edited_arguments(
-    tmp_path,
-) -> None:
-    store = InMemoryStore()
-    async with open_sqlite_action_ledger(tmp_path / "single-edit.sqlite") as audit:
-        session = _local_session(store, note_count=1, approval_audit=audit)
-        await session.send("Save a note")
-
-        reply = await session.command('/approve edit {"name":"save_note","args":{"text":"edited"}}')
-
-        assert reply == "Decisiones procesadas"
-        notes = await store.asearch(("org", "notes"))
-        assert [item.value["text"] for item in notes] == ["edited"]
-        records = await audit.approvals(session.thread_id)
-        assert len(records) == 1
-        assert records[0]["decision"] == "edit"
-        assert records[0]["args_digest"] == sha256(b'{"text": "edited"}').hexdigest()
 
 
 async def test_remote_single_action_edit_remains_compatible() -> None:
@@ -282,17 +301,20 @@ async def test_remote_single_action_edit_remains_compatible() -> None:
             )
         if json.loads(request.content) != {
             "decisions": [
-                {"type": "edit", "edited_action": {"name": "save_note", "args": {"text": "edited"}}}
+                {
+                    "type": "edit",
+                    "edited_action": {"name": "propose_order", "args": {"text": "edited"}},
+                }
             ]
         }:
             return httpx.Response(422)
         return httpx.Response(200, json={"status": "completed", "reply": "Edited"})
 
     async with httpx.AsyncClient(
-        transport=httpx.MockTransport(respond), base_url="https://sre.example"
+        transport=httpx.MockTransport(respond), base_url="https://fin.example"
     ) as client:
         session = RemoteChatSession(client, "secret-key", thread_id="single")
         assert (
-            await session.command('/approve edit {"name":"save_note","args":{"text":"edited"}}')
+            await session.command('/approve edit {"name":"propose_order","args":{"text":"edited"}}')
             == "Edited"
         )

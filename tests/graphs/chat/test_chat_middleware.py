@@ -8,10 +8,10 @@ from fin_graph.agents.testing.scripted_model import ScriptedChatModel, tool_call
 from fin_graph.config.settings import Settings
 from fin_graph.domain.tools import Domain, EvidenceType, ToolMeta, attach_tool_meta
 from fin_graph.graphs.chat.graph import make_chat_graph
-from fin_graph.graphs.remediation.graph import ActionCatalog
 from fin_graph.integrations.context import RunContext
-from fin_graph.memory.service import IncidentMemory
+from fin_graph.memory.theses import ThesisMemory
 from fin_graph.safety.approval import ApprovalPolicy
+from fin_graph.safety.masking import Masker, MaskingPolicy
 
 
 class EmptyRegistry:
@@ -19,27 +19,26 @@ class EmptyRegistry:
         return []
 
 
-def _chat(model: ScriptedChatModel, settings: Settings | None = None):
+def _chat(model: ScriptedChatModel, settings: Settings | None = None, registry: object = None):
     return make_chat_graph(
         model,
-        EmptyRegistry(),
+        registry or EmptyRegistry(),
         RunContext(),
-        IncidentMemory(InMemoryStore()),
-        ActionCatalog([]),
+        ThesisMemory(InMemoryStore()),
         policy=ApprovalPolicy(environment="dev"),
         settings=settings,
     )
 
 
-async def test_chat_reconsiders_root_cause_claim_without_turn_evidence() -> None:
+async def test_chat_reconsiders_a_recommendation_without_turn_evidence() -> None:
     model = ScriptedChatModel(
         responses=[
-            AIMessage("La causa raíz fue un despliegue fallido."),
-            AIMessage("No hay evidencia todavía; revisaría el despliegue como hipótesis."),
+            AIMessage("Deberías comprar NVDA."),
+            AIMessage("Sin análisis de este turno solo es una hipótesis; podría estar cara."),
         ]
     )
 
-    result = await _chat(model).ainvoke({"messages": [HumanMessage("¿Qué pasó?")]})
+    result = await _chat(model).ainvoke({"messages": [HumanMessage("¿Compro NVDA?")]})
 
     assert "hipótesis" in result["messages"][-1].text
     assert len(model.calls) == 2
@@ -47,18 +46,16 @@ async def test_chat_reconsiders_root_cause_claim_without_turn_evidence() -> None
 
 async def test_chat_uses_configured_fallback_on_primary_model_error(monkeypatch) -> None:
     primary = ScriptedChatModel(responses=[])
-    backup = ScriptedChatModel(responses=[AIMessage("Puedo revisar la alerta.")])
+    backup = ScriptedChatModel(responses=[AIMessage("Puedo revisar tu cartera.")])
     monkeypatch.setattr(
         "langchain.agents.middleware.model_fallback.init_chat_model",
         lambda model: backup,
     )
     settings = Settings(_env_file=None, llm_fallback_models=("openai:backup",))
 
-    result = await _chat(primary, settings).ainvoke(
-        {"messages": [HumanMessage("Revisa la alerta")]}
-    )
+    result = await _chat(primary, settings).ainvoke({"messages": [HumanMessage("Hola")]})
 
-    assert result["messages"][-1].text == "Puedo revisar la alerta."
+    assert result["messages"][-1].text.startswith("Puedo revisar tu cartera.")
     assert len(backup.calls) == 1
 
 
@@ -70,58 +67,63 @@ def test_fallback_models_accept_comma_separated_environment_setting(monkeypatch)
     assert settings.llm_fallback_models == ("openai:backup", "anthropic:spare")
 
 
-async def test_specialist_masks_tool_results_and_restores_tool_arguments() -> None:
-    inspected: list[str] = []
+async def test_analyst_subagent_masks_tool_results_and_restores_tool_arguments() -> None:
+    contacted: list[str] = []
+    email = "ir@deep.example"
 
     @tool
-    def discover_node() -> str:
-        """Read the node address from the cluster."""
-        return "Node address: 10.42.7.9"
+    def compute_fundamentals(ticker: str) -> str:
+        """Score the fundamentals of a ticker."""
+        return f"{ticker}: ROE 21%"
 
     @tool
-    def inspect_node(address: str) -> str:
-        """Read the status of the given node address."""
-        inspected.append(address)
-        return f"Node {address} is healthy"
+    def investor_relations(ticker: str) -> str:
+        """Read the investor relations contact of a ticker."""
+        return f"Investor relations: {email}"
+
+    @tool
+    def request_filing(address: str) -> str:
+        """Ask the given investor relations address for the latest filing."""
+        contacted.append(address)
+        return f"Filing requested from {address}"
 
     meta = ToolMeta(
-        integration="kubernetes",
-        domains=frozenset({Domain.KUBERNETES}),
-        evidence_type=EvidenceType.TOPOLOGY,
+        integration="analytics",
+        domains=frozenset({Domain.FUNDAMENTALS}),
+        evidence_type=EvidenceType.METRICS,
     )
 
     class Registry:
         def tools(self, context: RunContext) -> list[BaseTool]:
-            return [attach_tool_meta(discover_node, meta), attach_tool_meta(inspect_node, meta)]
+            return [
+                attach_tool_meta(item, meta)
+                for item in (compute_fundamentals, investor_relations, request_filing)
+            ]
 
+    settings = Settings(
+        _env_file=None, mask_enabled=True, mask_kinds=("email",), mask_key="chat-mask-test"
+    )
+    token = Masker(MaskingPolicy.from_settings(settings)).mask(email)
+    assert token != email
     model = ScriptedChatModel(
         responses=[
-            tool_call_message("ask_kubernetes", {"task": "Inspect the node"}, "delegate"),
-            tool_call_message("discover_node", {}, "discover"),
-            tool_call_message("inspect_node", {"address": "<IP_ADDRESS_3e9fae93b2>"}, "inspect"),
-            AIMessage("Node <IP_ADDRESS_3e9fae93b2> is healthy"),
-            AIMessage("Node <IP_ADDRESS_3e9fae93b2> is healthy"),
+            tool_call_message(
+                "task",
+                {"description": "Get the DEEP filing", "subagent_type": "analyst_fundamentals"},
+                "delegate",
+            ),
+            tool_call_message("investor_relations", {"ticker": "DEEP"}, "contact"),
+            tool_call_message("request_filing", {"address": token}, "request"),
+            AIMessage(f"Filing requested from {token}"),
+            AIMessage(f"Pedí el informe a {token}."),
         ]
     )
-    settings = Settings(
-        _env_file=None,
-        mask_enabled=True,
-        mask_kinds=("ip_address",),
-        mask_key="chat-mask-test",
-    )
-    graph = make_chat_graph(
-        model,
-        Registry(),
-        RunContext(),
-        IncidentMemory(InMemoryStore()),
-        ActionCatalog([]),
-        policy=ApprovalPolicy(environment="dev"),
-        settings=settings,
+
+    result = await _chat(model, settings, Registry()).ainvoke(
+        {"messages": [HumanMessage("Pide el último informe de DEEP")]}
     )
 
-    result = await graph.ainvoke({"messages": [HumanMessage("Inspect the node")]})
-
-    assert "10.42.7.9" not in str(model.calls)
-    assert "<IP_ADDRESS_3e9fae93b2>" in str(model.calls[2])
-    assert inspected == ["10.42.7.9"]
-    assert result["messages"][-1].text == "Node 10.42.7.9 is healthy"
+    assert email not in str(model.calls)
+    assert token in str(model.calls[2])
+    assert contacted == [email]
+    assert result["messages"][-1].text == f"Pedí el informe a {email}."

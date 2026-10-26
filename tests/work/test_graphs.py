@@ -124,14 +124,17 @@ async def server(monkeypatch: pytest.MonkeyPatch):
 async def test_offline_supervisor_launches_real_async_tools_and_portable_context(server):
     ctx = context()
     result = await (await graphs.supervisor({})).ainvoke(
-        {"messages": [HumanMessage("Investiga métricas y logs service=checkout window=15m")]},
+        {"messages": [HumanMessage("Analiza fundamentales y técnicos ticker=DEMO horizon=medium")]},
         config={
             "configurable": {"thread_id": "parent"},
             "metadata": {"assistant_id": "supervisor"},
         },
         context=ctx,
     )
-    assert {task["agent_name"] for task in result["async_tasks"].values()} == {"metrics", "logs"}
+    assert {task["agent_name"] for task in result["async_tasks"].values()} == {
+        "fundamentals",
+        "technicals",
+    }
     assert len(result["async_tasks"]) == 2
     assert [launch["context"] for launch in server.launches] == [ctx, ctx]
     assert all("config" not in launch for launch in server.launches)
@@ -149,7 +152,7 @@ async def test_parallel_model_calls_cannot_exceed_two_children(server, monkeypat
                 tool_calls=[
                     {
                         "name": "start_async_task",
-                        "args": {"subagent_type": "metrics", "description": "read"},
+                        "args": {"subagent_type": "fundamentals", "description": "read"},
                         "id": f"c{i}",
                     }
                     for i in range(5)
@@ -171,9 +174,9 @@ async def test_parallel_model_calls_cannot_exceed_two_children(server, monkeypat
 @pytest.mark.parametrize(
     "ctx_changes,agent,reason",
     [
-        ({"deadline": 1}, "metrics", "deadline"),
+        ({"deadline": 1}, "fundamentals", "deadline"),
         ({}, "shell", "agent_type"),
-        (None, "metrics", "context"),
+        (None, "fundamentals", "context"),
     ],
 )
 async def test_start_gate_rejects_invalid_runtime_without_launch(
@@ -233,7 +236,7 @@ async def test_trace_redacts_credentials_without_recording_model_reasoning(serve
                     {
                         "name": "start_async_task",
                         "args": {
-                            "subagent_type": "metrics",
+                            "subagent_type": "fundamentals",
                             "description": "read token=very-private-value",
                         },
                         "id": "s",
@@ -253,24 +256,24 @@ async def test_trace_redacts_credentials_without_recording_model_reasoning(serve
     assert "REDACTED" in trace
 
 
-@pytest.mark.parametrize("role", ["metrics", "logs"])
+@pytest.mark.parametrize("role", ["fundamentals", "technicals"])
 async def test_child_returns_explicit_fixture_and_honors_latest_request(server, role):
     graph = await getattr(graphs, role)({})
     result = await graph.ainvoke(
-        {"messages": [HumanMessage("service=checkout window=5m")]}, context=context(revision=2)
+        {"messages": [HumanMessage("ticker=DEMO horizon=short")]}, context=context(revision=2)
     )
     observation = json.loads(result["messages"][-1].content)
     assert observation["synthetic"] is True
     assert observation["source"] == "synthetic_fixture"
-    assert observation["service"] == "checkout"
-    assert observation["window"] == "5m"
+    assert observation["ticker"] == "DEMO"
+    assert observation["horizon"] == "short"
     assert observation["revision"] == 2
     assert observation["kind"] == role
     later = await graph.ainvoke(
-        {"messages": [*result["messages"], HumanMessage("service=payments window=1h")]},
+        {"messages": [*result["messages"], HumanMessage("ticker=PAGO horizon=long")]},
         context=context(revision=3),
     )
-    assert json.loads(later["messages"][-1].content)["service"] == "payments"
+    assert json.loads(later["messages"][-1].content)["ticker"] == "PAGO"
 
 
 async def test_worker_denies_deepagent_builtin_write_tool(server, monkeypatch):
@@ -290,7 +293,7 @@ async def test_worker_denies_deepagent_builtin_write_tool(server, monkeypatch):
         ]
     )
     monkeypatch.setattr(graphs, "_model", lambda role: model)
-    result = await (await graphs.metrics({})).ainvoke(
+    result = await (await graphs.fundamentals({})).ainvoke(
         {"messages": [HumanMessage("go")]}, context=context()
     )
     assert not result.get("files")
@@ -299,10 +302,10 @@ async def test_worker_denies_deepagent_builtin_write_tool(server, monkeypatch):
     )
 
 
-async def test_offline_update_targets_existing_logs_and_preserves_service(server):
+async def test_offline_update_targets_existing_technicals_and_preserves_ticker(server):
     graph = await graphs.supervisor({})
     initial = await graph.ainvoke(
-        {"messages": [HumanMessage("Investiga métricas y logs service=checkout window=15m")]},
+        {"messages": [HumanMessage("Analiza fundamentales y técnicos ticker=DEMO horizon=medium")]},
         context=context(),
     )
     result = await graph.ainvoke(
@@ -310,7 +313,7 @@ async def test_offline_update_targets_existing_logs_and_preserves_service(server
             **initial,
             "messages": [
                 *initial["messages"],
-                HumanMessage("Actualiza el hijo de logs para revisar últimos 5 minutos"),
+                HumanMessage("Actualiza el hijo de técnicos para horizonte=short"),
             ],
         },
         context=context(revision=1),
@@ -318,26 +321,26 @@ async def test_offline_update_targets_existing_logs_and_preserves_service(server
     assert len(result["async_tasks"]) == 2
     assert result["work_revision"] == 1
     updated = server.launches[-1]
-    assert updated["assistant_id"] == "logs"
+    assert updated["assistant_id"] == "technicals"
     assert updated["multitask_strategy"] == "interrupt"
     assert updated["context"]["revision"] == 1
-    worker = await graphs.logs({})
+    worker = await graphs.technicals({})
     first = await worker.ainvoke(
-        {"messages": [HumanMessage("service=checkout window=15m")]}, context=context()
+        {"messages": [HumanMessage("ticker=DEMO horizon=medium")]}, context=context()
     )
     second = await worker.ainvoke(
-        {"messages": [*first["messages"], HumanMessage("Revisa últimos 5 minutos")]},
+        {"messages": [*first["messages"], HumanMessage("Revisa horizonte=short")]},
         context=context(revision=1),
     )
     observation = json.loads(second["messages"][-1].content)
-    assert observation["service"] == "checkout"
-    assert observation["window"] == "5m"
+    assert observation["ticker"] == "DEMO"
+    assert observation["horizon"] == "short"
 
 
 @pytest.mark.parametrize("cached_status", ["waiting", "running"])
 async def test_update_cannot_discard_cached_or_new_approval(server, monkeypatch, cached_status):
     initial = await (await graphs.supervisor({})).ainvoke(
-        {"messages": [HumanMessage("Investiga logs")]}, context=context()
+        {"messages": [HumanMessage("Analiza técnicos")]}, context=context()
     )
     task_id, tracked = next(iter(initial["async_tasks"].items()))
     tracked["status"] = cached_status
@@ -372,14 +375,16 @@ async def test_update_cannot_discard_cached_or_new_approval(server, monkeypatch,
 
 async def test_offline_cancel_and_status_use_tracked_tasks_after_deadline(server):
     graph = await graphs.supervisor({})
-    initial = await graph.ainvoke({"messages": [HumanMessage("Investiga logs")]}, context=context())
+    initial = await graph.ainvoke(
+        {"messages": [HumanMessage("Analiza técnicos")]}, context=context()
+    )
     task_id = next(iter(initial["async_tasks"]))
     status = await graph.ainvoke(
         {**initial, "messages": [*initial["messages"], HumanMessage("estado")]}, context=context()
     )
     assert task_id in status["messages"][-1].content
     cancelled = await graph.ainvoke(
-        {**status, "messages": [*status["messages"], HumanMessage("cancela logs")]},
+        {**status, "messages": [*status["messages"], HumanMessage("cancela técnicos")]},
         context=context(deadline=1),
     )
     assert cancelled["async_tasks"][task_id]["status"] == "cancelled"
@@ -396,7 +401,7 @@ async def test_deepagent_child_notifies_parent_with_real_native_protocol(server)
     }
     supervisor = await graphs.supervisor({})
     initial = await supervisor.ainvoke(
-        {"messages": [HumanMessage("Investiga métricas")]},
+        {"messages": [HumanMessage("Analiza fundamentales")]},
         config={
             "configurable": {"thread_id": parent_id},
             "metadata": {"assistant_id": "supervisor"},
@@ -404,8 +409,8 @@ async def test_deepagent_child_notifies_parent_with_real_native_protocol(server)
         context=context(),
     )
     task = next(iter(initial["async_tasks"].values()))
-    await (await graphs.metrics({})).ainvoke(
-        {"messages": [HumanMessage("service=checkout window=5m")]},
+    await (await graphs.fundamentals({})).ainvoke(
+        {"messages": [HumanMessage("ticker=DEMO horizon=short")]},
         config={
             "configurable": {"thread_id": task["thread_id"]},
             "metadata": {
@@ -431,7 +436,7 @@ async def test_deepagent_child_notifies_parent_with_real_native_protocol(server)
     "role,limit,tool_name,args",
     [
         ("supervisor", 20, "list_async_tasks", {}),
-        ("metrics", 6, "read_metrics_fixture", {"service": "fixture", "window": "5m"}),
+        ("fundamentals", 6, "read_fundamentals_fixture", {"ticker": "FIXT", "horizon": "short"}),
     ],
 )
 async def test_run_budget_stops_repeated_model_calls(
@@ -454,8 +459,8 @@ async def test_run_budget_stops_repeated_model_calls(
 
 async def test_child_delay_remains_cancellable(server):
     task = asyncio.create_task(
-        (await graphs.metrics({})).ainvoke(
-            {"messages": [HumanMessage("service=fixture window=5m")]},
+        (await graphs.fundamentals({})).ainvoke(
+            {"messages": [HumanMessage("ticker=FIXT horizon=short")]},
             context=context(delay_seconds=5),
         )
     )
@@ -468,13 +473,13 @@ async def test_child_delay_remains_cancellable(server):
 
 async def test_direct_mode_answers_without_spawning_or_claiming_real_inference(server):
     result = await (await graphs.supervisor({})).ainvoke(
-        {"messages": [HumanMessage("¿Qué significa p95?")]}, context=context(max_children=0)
+        {"messages": [HumanMessage("¿Qué significa P/E?")]}, context=context(max_children=0)
     )
     assert not server.launches
     assert not result.get("decision_trace")
     assert result["model_mode"] == "offline"
     assert "offline" in result["messages"][-1].content.lower()
-    assert "p95" in result["messages"][-1].content.lower()
+    assert "p/e" in result["messages"][-1].content.lower()
 
 
 @pytest.mark.parametrize(
@@ -492,7 +497,7 @@ async def test_direct_mode_answers_without_spawning_or_claiming_real_inference(s
         ),
         (
             {"actor": "local-tester", "revision": 0, "cancel_requested": True},
-            "metrics",
+            "fundamentals",
             "work_cancelled",
         ),
     ],
@@ -505,7 +510,7 @@ async def test_ledger_gate_blocks_foreign_stale_and_cancelled_work(
     ledger = WorkStore(tmp_path / "work.sqlite")
     ledger.save({"work_id": "work-fixture", **control})
     result = await (await getattr(graphs, role)({})).ainvoke(
-        {"messages": [HumanMessage("Investiga métricas")]},
+        {"messages": [HumanMessage("Analiza fundamentales")]},
         context=context(ledger_path=str(ledger.path)),
     )
     assert not server.launches
@@ -514,7 +519,7 @@ async def test_ledger_gate_blocks_foreign_stale_and_cancelled_work(
 
 async def test_ledger_failure_is_a_redacted_denial(server, tmp_path):
     result = await (await graphs.supervisor({})).ainvoke(
-        {"messages": [HumanMessage("Investiga métricas")]},
+        {"messages": [HumanMessage("Analiza fundamentales")]},
         context=context(ledger_path=str(tmp_path / "missing.sqlite")),
     )
     assert not server.launches
@@ -522,11 +527,11 @@ async def test_ledger_failure_is_a_redacted_denial(server, tmp_path):
     assert str(tmp_path) not in result["messages"][-1].content
 
 
-@pytest.mark.parametrize("role", ["supervisor", "metrics"])
+@pytest.mark.parametrize("role", ["supervisor", "fundamentals"])
 async def test_missing_ledger_path_fails_closed(server, role):
     ctx = {key: value for key, value in context().items() if key != "ledger_path"}
     result = await (await getattr(graphs, role)({})).ainvoke(
-        {"messages": [HumanMessage("service=checkout window=5m")]}, context=ctx
+        {"messages": [HumanMessage("ticker=DEMO horizon=short")]}, context=ctx
     )
     assert not server.launches
     denials = [m.content for m in result["messages"] if isinstance(m, ToolMessage)]
@@ -545,8 +550,8 @@ async def test_worker_may_read_old_revision_but_state_revision_cannot_regress(se
             "cancel_requested": False,
         }
     )
-    result = await (await graphs.metrics({})).ainvoke(
-        {"messages": [HumanMessage("service=checkout window=5m")], "work_revision": 2},
+    result = await (await graphs.fundamentals({})).ainvoke(
+        {"messages": [HumanMessage("ticker=DEMO horizon=short")], "work_revision": 2},
         context=context(revision=1, ledger_path=str(ledger.path)),
     )
     assert json.loads(result["messages"][-1].content)["synthetic"] is True
@@ -557,7 +562,7 @@ async def test_worker_may_read_old_revision_but_state_revision_cannot_regress(se
 async def test_late_final_answer_records_its_own_revision_without_advancing_work(server):
     graph = await graphs.supervisor({})
     current = await graph.ainvoke(
-        {"messages": [HumanMessage("¿Qué significa p95?")]},
+        {"messages": [HumanMessage("¿Qué significa P/E?")]},
         context=context(revision=2, max_children=0),
     )
     assert current["result_revision"] == 2
@@ -566,7 +571,7 @@ async def test_late_final_answer_records_its_own_revision_without_advancing_work
         additional_kwargs={
             "deepagents_notification": {
                 "task_id": "older-child",
-                "agent_name": "metrics",
+                "agent_name": "fundamentals",
                 "status": "success",
             }
         },
@@ -599,7 +604,7 @@ async def test_model_mode_rejects_ambiguous_provider_selection(monkeypatch):
 async def test_final_notification_answer_keeps_both_children_evidence(server):
     graph = await graphs.supervisor({})
     state = await graph.ainvoke(
-        {"messages": [HumanMessage("Investiga métricas y logs")]}, context=context()
+        {"messages": [HumanMessage("Analiza fundamentales y técnicos")]}, context=context()
     )
     for task_id, task in list(state["async_tasks"].items()):
         notice = HumanMessage(
@@ -619,8 +624,8 @@ async def test_final_notification_answer_keeps_both_children_evidence(server):
         state = await graph.ainvoke(
             {**state, "messages": [*state["messages"], notice]}, context=context()
         )
-    assert "synthetic evidence from metrics" in state["messages"][-1].content
-    assert "synthetic evidence from logs" in state["messages"][-1].content
+    assert "synthetic evidence from fundamentals" in state["messages"][-1].content
+    assert "synthetic evidence from technicals" in state["messages"][-1].content
 
 
 @pytest.mark.parametrize("consolidate", [False, True])
@@ -629,14 +634,15 @@ async def test_consolidation_uses_latest_notice_per_task_without_child_commands(
 ):
     graph = await graphs.supervisor({})
     initial = await graph.ainvoke(
-        {"messages": [HumanMessage("Investiga métricas y logs")]}, context=context(revision=1)
+        {"messages": [HumanMessage("Analiza fundamentales y técnicos")]},
+        context=context(revision=1),
     )
     tasks = {task["agent_name"]: task for task in initial["async_tasks"].values()}
     notices = []
     for role, text in [
-        ("logs", "obsolete-log-result"),
-        ("metrics", "current-metric-result"),
-        ("logs", "current-log-result"),
+        ("technicals", "obsolete-technicals-result"),
+        ("fundamentals", "current-fundamentals-result"),
+        ("technicals", "current-technicals-result"),
     ]:
         task = tasks[role]
         task["status"] = "success"
@@ -667,13 +673,13 @@ async def test_consolidation_uses_latest_notice_per_task_without_child_commands(
     assert len(result["decision_trace"]) == len(initial["decision_trace"])
     final = result["messages"][-1]
     assert not final.tool_calls
-    assert "current-log-result" in final.content
-    assert "current-metric-result" in final.content
-    assert "obsolete-log-result" not in final.content
+    assert "current-technicals-result" in final.content
+    assert "current-fundamentals-result" in final.content
+    assert "obsolete-technicals-result" not in final.content
     assert result["result_revision"] == 2
 
 
-@pytest.mark.parametrize("graph_id", ["supervisor", "metrics", "logs"])
+@pytest.mark.parametrize("graph_id", ["supervisor", "fundamentals", "technicals"])
 async def test_cli_config_resolves_executable_factories_from_repository_root(server, graph_id):
     from langgraph_cli.config import validate_config_file
 
@@ -683,7 +689,7 @@ async def test_cli_config_resolves_executable_factories_from_repository_root(ser
     graph = await factory({})
     assert graph.checkpointer is None
     result = await graph.ainvoke(
-        {"messages": [HumanMessage("service=fixture window=5m")]},
+        {"messages": [HumanMessage("ticker=FIXT horizon=short")]},
         context=context(max_children=0),
     )
     assert result["model_mode"] == "offline"
@@ -738,7 +744,7 @@ async def test_live_provider_receives_no_tools_during_internal_consolidation(ser
 @pytest.mark.parametrize(
     "tool_name,args",
     [
-        ("start_async_task", {"subagent_type": "logs", "description": "read"}),
+        ("start_async_task", {"subagent_type": "technicals", "description": "read"}),
         ("update_async_task", {"task_id": "any-child", "message": "change"}),
         ("cancel_async_task", {"task_id": "any-child"}),
         ("check_async_task", {"task_id": "any-child"}),

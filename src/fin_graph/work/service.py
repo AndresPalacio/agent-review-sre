@@ -159,7 +159,7 @@ class WorkService:
         return self._view(work)
 
     async def start(self, command: StartWork, *, actor: str) -> WorkView:
-        work_id = str(uuid.uuid5(uuid.NAMESPACE_URL, f"sre-work:{actor}:{command.command_id}"))
+        work_id = str(uuid.uuid5(uuid.NAMESPACE_URL, f"fin-work:{actor}:{command.command_id}"))
         identity = self._identity(actor, "start", work_id, command)
         async with self._lock:
             if existing := await self._existing(identity):
@@ -184,10 +184,13 @@ class WorkService:
                 "cancel_requested": False,
                 "deadline": time.time() + command.deadline_seconds,
                 "delay_seconds": command.delay_seconds,
-                "max_children": 2 if decision.route == Route.INVESTIGATE else 0,
+                "max_children": 2 if decision.route == Route.ANALYZE else 0,
             }
             if decision.route == Route.CLARIFY:
-                work.update(status="completed", result="Indica el incidente, servicio y periodo.")
+                work.update(
+                    status="completed",
+                    result="Indica el ticker y el horizonte (corto, medio o largo).",
+                )
                 identity["state"] = "local"
                 self.store.save(work, command=identity)
                 return self._view(work)

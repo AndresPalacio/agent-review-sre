@@ -17,16 +17,16 @@ from fin_graph.work.policy import Decision, OpenAIDecisionPolicy, Route, RulesPo
     [
         ("Hola", Route.DIRECT),
         ("Hello!", Route.DIRECT),
-        ("¿Qué es un SLO?", Route.DIRECT),
-        ("Explain error budgets", Route.DIRECT),
-        ("Investiga los errores de checkout", Route.INVESTIGATE),
-        ("Investigate checkout latency", Route.INVESTIGATE),
-        ("checkout responde HTTP 503", Route.INVESTIGATE),
-        ("El pod está en CrashLoopBackOff", Route.INVESTIGATE),
+        ("¿Qué es el P/E?", Route.DIRECT),
+        ("Explain free cash flow", Route.DIRECT),
+        ("Analiza las acciones de Apple", Route.ANALYZE),
+        ("Analyze MSFT valuation", Route.ANALYZE),
+        ("Revisa los fundamentales de KO", Route.ANALYZE),
+        ("¿Cómo ves los técnicos de NVDA?", Route.ANALYZE),
         ("", Route.CLARIFY),
         ("   ", Route.CLARIFY),
         ("hazlo", Route.CLARIFY),
-        ("Reinicia checkout", Route.CLARIFY),
+        ("Vende todo", Route.CLARIFY),
     ],
 )
 async def test_rules_route_without_claiming_model_inference(text: str, route: Route) -> None:
@@ -42,10 +42,10 @@ async def test_rules_route_without_claiming_model_inference(text: str, route: Ro
 @pytest.mark.parametrize(
     ("text", "eligible", "route"),
     [
-        ("Investiga checkout", (Route.DIRECT, Route.CLARIFY), Route.CLARIFY),
-        ("hola", (Route.INVESTIGATE, Route.CLARIFY), Route.CLARIFY),
-        ("hazlo", (Route.INVESTIGATE, Route.DIRECT), Route.DIRECT),
-        ("hola", (Route.INVESTIGATE,), Route.INVESTIGATE),
+        ("Analiza DEMO", (Route.DIRECT, Route.CLARIFY), Route.CLARIFY),
+        ("hola", (Route.ANALYZE, Route.CLARIFY), Route.CLARIFY),
+        ("hazlo", (Route.ANALYZE, Route.DIRECT), Route.DIRECT),
+        ("hola", (Route.ANALYZE,), Route.ANALYZE),
     ],
 )
 async def test_rules_never_choose_an_ineligible_route(
@@ -70,7 +70,7 @@ def test_decision_is_an_immutable_serializable_routing_record() -> None:
         "fallback_reason": None,
     }
     with pytest.raises(ValidationError, match="frozen"):
-        decision.route = Route.INVESTIGATE
+        decision.route = Route.ANALYZE
 
 
 def sdk_client(
@@ -103,7 +103,7 @@ def provider_response(answer: dict[str, object]) -> httpx.Response:
     )
 
 
-def choice_answer(choice: object = "investigate", confidence: object = 0.94) -> dict[str, object]:
+def choice_answer(choice: object = "analyze", confidence: object = 0.94) -> dict[str, object]:
     return {
         "type": "choice",
         "name": "route",
@@ -111,7 +111,7 @@ def choice_answer(choice: object = "investigate", confidence: object = 0.94) -> 
         "confidence": confidence,
         "probabilities": [
             {"value": "direct", "probability": 0.03},
-            {"value": "investigate", "probability": 0.94},
+            {"value": "analyze", "probability": 0.94},
             {"value": "clarify", "probability": 0.03},
         ],
     }
@@ -126,11 +126,11 @@ async def test_openai_uses_real_sdk_serialization_and_preserves_observed_confide
 
     async with sdk_client(handle) as client:
         decision = await OpenAIDecisionPolicy(client=client).decide(
-            "Investiga checkout", eligible=(Route.INVESTIGATE, Route.CLARIFY)
+            "Analiza DEMO", eligible=(Route.ANALYZE, Route.CLARIFY)
         )
 
     assert decision.model_dump(mode="json") == {
-        "route": "investigate",
+        "route": "analyze",
         "policy": "openai_decisions",
         "model": "gpt-6-luna",
         "confidence": 0.94,
@@ -141,7 +141,7 @@ async def test_openai_uses_real_sdk_serialization_and_preserves_observed_confide
     assert request.method == "POST"
     assert request.url == "https://openai.invalid/v1/decisions"
     payload = json.loads(request.content)
-    assert payload["input"] == "Investiga checkout"
+    assert payload["input"] == "Analiza DEMO"
     assert payload["model"] == "gpt-6-luna"
     assert set(payload) == {"input", "model", "questions"}
     assert len(payload["questions"]) == 1
@@ -149,7 +149,7 @@ async def test_openai_uses_real_sdk_serialization_and_preserves_observed_confide
     assert question["type"] == "choice"
     assert question["name"] == "route"
     assert question["instructions"]
-    assert [choice["value"] for choice in question["choices"]] == ["investigate", "clarify"]
+    assert [choice["value"] for choice in question["choices"]] == ["analyze", "clarify"]
     assert all(choice["description"] for choice in question["choices"])
     assert request.extensions["timeout"]["read"] == 10
 
@@ -203,7 +203,7 @@ async def test_provider_failures_use_rules_without_fabricating_model_confidence(
 async def test_ineligible_provider_choice_falls_back_to_an_eligible_route() -> None:
     async with sdk_client(lambda _: provider_response(choice_answer())) as client:
         decision = await OpenAIDecisionPolicy(client).decide(
-            "Investiga checkout", eligible=(Route.DIRECT, Route.CLARIFY)
+            "Analiza DEMO", eligible=(Route.DIRECT, Route.CLARIFY)
         )
 
     assert decision.route is Route.CLARIFY
@@ -216,7 +216,7 @@ async def test_confidence_threshold_is_configurable_and_inclusive() -> None:
         accepted = await OpenAIDecisionPolicy(client, minimum_confidence=0.8).decide("Hola")
         rejected = await OpenAIDecisionPolicy(client, minimum_confidence=0.81).decide("Hola")
 
-    assert accepted.route is Route.INVESTIGATE
+    assert accepted.route is Route.ANALYZE
     assert accepted.confidence == 0.8
     assert rejected.route is Route.DIRECT
     assert rejected.fallback_reason == "low_confidence"
@@ -237,10 +237,10 @@ async def test_single_eligible_route_needs_no_invalid_one_choice_api_call() -> N
 
     async with sdk_client(unexpected_http) as client:
         decision = await OpenAIDecisionPolicy(client).decide(
-            "Hola", eligible=(Route.INVESTIGATE, Route.INVESTIGATE)
+            "Hola", eligible=(Route.ANALYZE, Route.ANALYZE)
         )
 
-    assert decision.route is Route.INVESTIGATE
+    assert decision.route is Route.ANALYZE
     assert decision.policy == "rules"
     assert decision.model is None
     assert decision.confidence is None
@@ -256,7 +256,7 @@ async def test_http_timeout_uses_eligible_fallback_without_leaking_exception_con
 
     async with sdk_client(handle) as client:
         decision = await OpenAIDecisionPolicy(client).decide(
-            "Investiga checkout", eligible=(Route.DIRECT, Route.CLARIFY)
+            "Analiza DEMO", eligible=(Route.DIRECT, Route.CLARIFY)
         )
 
     assert len(requests) == 1

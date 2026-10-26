@@ -32,7 +32,7 @@ def create_app(service: WorkService, *, actor: str = "local-demo") -> FastAPI:
         async with server.session_manager.run():
             yield
 
-    app = FastAPI(title="SRE Work local pilot", lifespan=lifespan)
+    app = FastAPI(title="fin-graph Work local pilot", lifespan=lifespan)
 
     @app.exception_handler(WorkConflict)
     @app.exception_handler(WorkUnavailable)

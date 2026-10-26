@@ -8,17 +8,15 @@ import httpx
 from langchain_core.messages import AIMessage
 from langgraph.checkpoint.memory import InMemorySaver
 from langgraph.store.memory import InMemoryStore
-from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import create_async_engine
 
 from fin_graph.agents.testing.scripted_model import ScriptedChatModel, tool_call_message
 from fin_graph.graphs.chat.graph import make_chat_graph
 from fin_graph.graphs.investigation.graph import make_investigation_graph
 from fin_graph.graphs.investigation.services import UnavailableServices
-from fin_graph.graphs.remediation.graph import ActionCatalog, ActionSpec
 from fin_graph.integrations.context import RunContext
 from fin_graph.integrations.registry import IntegrationRegistry
-from fin_graph.memory.service import IncidentMemory
+from fin_graph.memory.theses import ThesisMemory
 from fin_graph.safety.approval import ApprovalPolicy
 from fin_graph.server.app import create_app
 from fin_graph.server.manager import RunManager
@@ -41,8 +39,7 @@ async def test_chat_sse_requires_operator_and_keeps_thread(tmp_path: Path) -> No
         ScriptedChatModel(responses=[AIMessage("Hola, ¿qué falla?"), AIMessage("Entendido.")]),
         registry,
         RunContext(),
-        IncidentMemory(InMemoryStore()),
-        ActionCatalog([]),
+        ThesisMemory(InMemoryStore()),
         policy=ApprovalPolicy(environment="prod"),
         checkpointer=InMemorySaver(),
     )
@@ -72,21 +69,6 @@ async def test_chat_sse_requires_operator_and_keeps_thread(tmp_path: Path) -> No
 
 
 async def test_chat_approval_requires_approver_and_rejects_without_writing(tmp_path: Path) -> None:
-    class Args(BaseModel):
-        replicas: int
-
-    writes: list[int] = []
-
-    async def prepare(args: Args, context: RunContext) -> dict[str, int]:
-        return {"replicas": args.replicas}
-
-    async def execute(args: Args, key: str, context: RunContext) -> dict[str, int]:
-        writes.append(args.replicas)
-        return {"replicas": args.replicas}
-
-    async def verify(args: Args, context: RunContext) -> bool:
-        return True
-
     engine = create_async_engine(f"sqlite+aiosqlite:///{tmp_path / 'approve.sqlite'}")
     async with engine.begin() as connection:
         await connection.run_sync(Base.metadata.create_all)
@@ -102,11 +84,8 @@ async def test_chat_approval_requires_approver_and_rejects_without_writing(tmp_p
         ScriptedChatModel(
             responses=[
                 tool_call_message(
-                    "execute_remediation",
-                    {
-                        "name": "scale",
-                        "action_args": {"replicas": 2},
-                    },
+                    "propose_order",
+                    {"ticker": "MSFT", "action": "buy", "quantity": 2, "reasoning": "tesis"},
                     "c1",
                 ),
                 AIMessage("Rechazo registrado."),
@@ -114,8 +93,7 @@ async def test_chat_approval_requires_approver_and_rejects_without_writing(tmp_p
         ),
         registry,
         RunContext(),
-        IncidentMemory(InMemoryStore()),
-        ActionCatalog([ActionSpec("scale", Args, prepare, execute, verify)]),
+        ThesisMemory(InMemoryStore()),
         policy=ApprovalPolicy(environment="prod"),
         checkpointer=InMemorySaver(),
     )
@@ -147,7 +125,7 @@ async def test_chat_approval_requires_approver_and_rejects_without_writing(tmp_p
         assert pending_state.status_code == 200
         assert pending_state.json()["status"] == "awaiting_approval"
         assert pending_state.json()["requests"][0]["action_requests"][0]["name"] == (
-            "execute_remediation"
+            "propose_order"
         )
         assert (
             await client.post(
@@ -184,15 +162,19 @@ async def test_chat_approval_requires_approver_and_rejects_without_writing(tmp_p
             "/v1/chat/threads/t2", headers={"x-api-key": "operator-key"}
         )
         assert completed_state.json()["status"] == "completed"
-        assert writes == []
         approvals = await storage.approvals("t2")
         assert len(approvals) == 1
         assert approvals[0]["kind"] == "chat"
         assert approvals[0]["decision"] == "reject"
-        assert approvals[0]["action_name"] == "scale"
+        assert approvals[0]["action_name"] == "propose_order"
         assert (
             approvals[0]["args_digest"]
-            == hashlib.sha256(json.dumps({"replicas": 2}, sort_keys=True).encode()).hexdigest()
+            == hashlib.sha256(
+                json.dumps(
+                    {"ticker": "MSFT", "action": "buy", "quantity": 2, "reasoning": "tesis"},
+                    sort_keys=True,
+                ).encode()
+            ).hexdigest()
         )
         assert approvals[0]["actor"] == hashlib.sha256(b"approver-key").hexdigest()
         assert (

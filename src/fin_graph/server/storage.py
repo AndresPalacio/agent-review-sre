@@ -123,6 +123,32 @@ class ApprovalDecisionRow(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
 
 
+class PaperAccountRow(Base):
+    """A paper portfolio; ``version`` makes every fill a compare-and-swap."""
+
+    __tablename__ = "paper_accounts"
+
+    account_id: Mapped[str] = mapped_column(String(64), primary_key=True)
+    portfolio: Mapped[dict[str, Any]] = mapped_column(JSON)
+    version: Mapped[int] = mapped_column(Integer)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+
+
+class PaperOrderRow(Base):
+    """One approved paper order, keyed by its idempotent ``client_order_id``."""
+
+    __tablename__ = "paper_orders"
+
+    client_order_id: Mapped[str] = mapped_column(String(128), primary_key=True)
+    account_id: Mapped[str] = mapped_column(String(64), index=True)
+    ticker: Mapped[str] = mapped_column(String(16), index=True)
+    status: Mapped[str] = mapped_column(String(20), index=True)
+    session_date: Mapped[str] = mapped_column(String(10), index=True)
+    execution: Mapped[dict[str, Any]] = mapped_column(JSON)
+    submitted_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+
+
 class ScheduleRow(Base):
     __tablename__ = "schedules"
 

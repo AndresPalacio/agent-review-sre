@@ -95,7 +95,7 @@ async def test_http_lifecycle_uses_configured_actor_and_shared_contracts(
     async with http_gateway(service) as client:
         started = await client.post(
             "/work",
-            json={"command_id": "start", "text": "Investiga checkout"},
+            json={"command_id": "start", "text": "Analiza DEMO"},
             headers={"X-Actor": "mallory", "Origin": "https://untrusted.invalid"},
         )
         assert started.status_code == 200
@@ -103,11 +103,11 @@ async def test_http_lifecycle_uses_configured_actor_and_shared_contracts(
         assert service.store.get(work["work_id"])["actor"] == "ana"
         assert "access-control-allow-origin" not in started.headers
         assert work["revision"] == 1
-        assert work["decision"]["route"] == "investigate"
+        assert work["decision"]["route"] == "analyze"
 
         updated = await client.post(
             f"/work/{work['work_id']}/update",
-            json={"command_id": "update", "expected_revision": 1, "message": "Revisa logs"},
+            json={"command_id": "update", "expected_revision": 1, "message": "Revisa técnicos"},
         )
         assert updated.status_code == 200
         assert updated.json()["revision"] == 2
@@ -129,26 +129,24 @@ async def test_http_translates_conflict_permission_and_unavailable_errors(
     gateway: tuple[WorkService, ControlledEngine],
 ) -> None:
     service, engine = gateway
-    other = await service.start(
-        StartWork(command_id="foreign", text="Investiga pagos"), actor="bob"
-    )
+    other = await service.start(StartWork(command_id="foreign", text="Analiza MSFT"), actor="bob")
     async with http_gateway(service) as client:
         denied = await client.get(f"/work/{other.work_id}", headers={"X-Actor": "bob"})
         assert denied.status_code == 403
         assert (await client.get("/work/missing")).status_code == 403
 
         work = (
-            await client.post("/work", json={"command_id": "own", "text": "Investiga checkout"})
+            await client.post("/work", json={"command_id": "own", "text": "Analiza DEMO"})
         ).json()
         stale = await client.post(
             f"/work/{work['work_id']}/update",
-            json={"command_id": "stale", "expected_revision": 2, "message": "Revisa logs"},
+            json={"command_id": "stale", "expected_revision": 2, "message": "Revisa técnicos"},
         )
         assert stale.status_code == 409
 
         engine.unavailable = True
         unavailable = await client.post(
-            "/work", json={"command_id": "unavailable", "text": "Investiga checkout"}
+            "/work", json={"command_id": "unavailable", "text": "Analiza DEMO"}
         )
         assert unavailable.status_code == 503
         assert "provider-secret" not in unavailable.text
@@ -209,7 +207,7 @@ async def test_mcp_lists_and_calls_all_tools_against_the_same_http_service(
         for tool in tools:
             assert "actor" not in tool.inputSchema["properties"]
 
-        command = {"command_id": "shared-start", "text": "Investiga checkout"}
+        command = {"command_id": "shared-start", "text": "Analiza DEMO"}
         started = (await client.post("/work", json=command)).json()
         duplicate = tool_view(await session.call_tool("work_start", {"command": command}))
         assert duplicate["work_id"] == started["work_id"]
@@ -217,7 +215,11 @@ async def test_mcp_lists_and_calls_all_tools_against_the_same_http_service(
 
         work_id = started["work_id"]
         assert tool_view(await session.call_tool("work_get", {"work_id": work_id})) == duplicate
-        update = {"command_id": "shared-update", "expected_revision": 1, "message": "Revisa logs"}
+        update = {
+            "command_id": "shared-update",
+            "expected_revision": 1,
+            "message": "Revisa técnicos",
+        }
         updated = tool_view(
             await session.call_tool("work_update", {"work_id": work_id, "command": update})
         )
@@ -243,9 +245,7 @@ async def test_mcp_enforces_actor_revision_and_contract_errors(
     gateway: tuple[WorkService, ControlledEngine],
 ) -> None:
     service, engine = gateway
-    foreign = await service.start(
-        StartWork(command_id="foreign", text="Investiga pagos"), actor="bob"
-    )
+    foreign = await service.start(StartWork(command_id="foreign", text="Analiza MSFT"), actor="bob")
     async with http_gateway(service) as client, mcp_session(client) as session:
         forbidden = await session.call_tool(
             "work_get", {"work_id": foreign.work_id, "actor": "bob"}
@@ -261,7 +261,7 @@ async def test_mcp_enforces_actor_revision_and_contract_errors(
 
         started = tool_view(
             await session.call_tool(
-                "work_start", {"command": {"command_id": "own", "text": "Investiga checkout"}}
+                "work_start", {"command": {"command_id": "own", "text": "Analiza DEMO"}}
             )
         )
         stale = await session.call_tool(
@@ -271,7 +271,7 @@ async def test_mcp_enforces_actor_revision_and_contract_errors(
                 "command": {
                     "command_id": "stale",
                     "expected_revision": 2,
-                    "message": "Revisa logs",
+                    "message": "Revisa técnicos",
                 },
             },
         )
@@ -281,7 +281,7 @@ async def test_mcp_enforces_actor_revision_and_contract_errors(
 
         engine.unavailable = True
         unavailable = await session.call_tool(
-            "work_start", {"command": {"command_id": "unavailable", "text": "Investiga checkout"}}
+            "work_start", {"command": {"command_id": "unavailable", "text": "Analiza DEMO"}}
         )
         assert unavailable.isError
         assert "503" in unavailable.model_dump_json()

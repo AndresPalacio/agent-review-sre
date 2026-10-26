@@ -30,7 +30,7 @@ from fin_graph.graphs.investigation.graph import make_investigation_graph
 from fin_graph.graphs.remediation.graph import ActionCatalog, ActionSpec, make_remediation_graph
 from fin_graph.integrations.context import RunContext
 from fin_graph.integrations.registry import IntegrationRegistry
-from fin_graph.memory.service import IncidentMemory
+from fin_graph.memory.theses import ThesisMemory
 from fin_graph.safety.approval import ApprovalPolicy
 from fin_graph.server.app import create_app
 from fin_graph.server.config import ServerConfig
@@ -111,8 +111,7 @@ async def _build_fixture_app(engine: AsyncEngine, ui_dir: Path) -> FastAPI:
         ),
         backend.registry,
         backend.context,
-        IncidentMemory(store),
-        catalog,
+        ThesisMemory(store),
         policy=policy,
         checkpointer=InMemorySaver(),
         store=store,

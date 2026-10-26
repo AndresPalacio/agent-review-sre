@@ -23,6 +23,8 @@ class Domain(StrEnum):
     SENTIMENT = "sentiment"
     BUFFETT = "buffett"
     GRAHAM = "graham"
+    #: The paper portfolio and its orders: no analyst owns these tools.
+    PORTFOLIO = "portfolio"
     KUBERNETES = "kubernetes"
     METRICS = "metrics"
     LOGS = "logs"
@@ -60,6 +62,7 @@ class EvidenceType(StrEnum):
     INSIDER = "insider"
     VALUATION_MODEL = "valuation_model"
     INDICATORS = "indicators"
+    POSITIONS = "positions"
     LOGS = "logs"
     METRICS = "metrics"
     TRACES = "traces"

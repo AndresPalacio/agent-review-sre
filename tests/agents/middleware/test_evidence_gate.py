@@ -3,102 +3,120 @@ from __future__ import annotations
 from langchain_core.messages import AIMessage, HumanMessage, ToolMessage
 
 from fin_graph.agents.factory import make_agent
+from fin_graph.agents.middleware.disclaimer import DISCLAIMER, DisclaimerMiddleware
 from fin_graph.agents.middleware.evidence_gate import EvidenceGateMiddleware
 from fin_graph.agents.testing.scripted_model import ScriptedChatModel
 
 
-def _agent(*responses: str) -> tuple[object, ScriptedChatModel]:
+def _agent(*responses: str, disclaimer: bool = False) -> tuple[object, ScriptedChatModel]:
     model = ScriptedChatModel(responses=[AIMessage(text) for text in responses])
-    return make_agent(name="chat", model=model, middleware=[EvidenceGateMiddleware()]), model
+    middleware = [EvidenceGateMiddleware(), *([DisclaimerMiddleware()] if disclaimer else [])]
+    return make_agent(name="chat", model=model, middleware=middleware), model
 
 
-def test_unsupported_root_cause_gets_one_nudge_before_answer() -> None:
+def test_an_unsupported_recommendation_gets_one_nudge_before_answer() -> None:
     agent, model = _agent(
-        "La causa raíz fue un límite de memoria bajo.",
-        "No tengo evidencia de este turno; el límite de memoria es una hipótesis.",
+        "Te recomiendo comprar AAPL.",
+        "Sin análisis de este turno solo puedo plantearlo como hipótesis: podría estar barata.",
     )
 
-    result = agent.invoke({"messages": [HumanMessage("¿Cuál fue la causa?")]})
+    result = agent.invoke({"messages": [HumanMessage("¿Compro Apple?")]})
 
-    assert result["messages"][-1].text.startswith("No tengo evidencia")
+    assert "hipótesis" in result["messages"][-1].text
     assert len(model.calls) == 2
     assert "evidencia" in str(model.calls[1][-1].content).lower()
-    assert "La causa raíz" in str(model.calls[1][-2].content)
+    assert "recomiendo comprar" in str(model.calls[1][-2].content)
 
 
-async def test_async_gate_uses_current_turn_specialist_evidence() -> None:
-    agent, model = _agent("La causa raíz fue un límite de memoria bajo.")
+async def test_this_turns_analysis_supports_the_recommendation() -> None:
+    agent, model = _agent("Según el análisis verificado, deberías comprar MSFT.")
     result = await agent.ainvoke(
         {
             "messages": [
-                HumanMessage("Analiza este incidente"),
+                HumanMessage("Analiza MSFT"),
                 ToolMessage(
-                    content="El pod terminó OOMKilled al alcanzar el límite de 512Mi",
-                    tool_call_id="e1",
-                    name="ask_kubernetes",
+                    content='{"MSFT": {"stance": "bullish", "verified": true}}',
+                    tool_call_id="a1",
+                    name="analyze",
                 ),
             ]
         }
     )
 
-    assert result["messages"][-1].text == "La causa raíz fue un límite de memoria bajo."
+    assert result["messages"][-1].text.startswith("Según el análisis")
     assert len(model.calls) == 1
 
 
-async def test_previous_turn_evidence_does_not_justify_current_turn_cause() -> None:
+async def test_previous_turn_evidence_does_not_support_a_new_ticker() -> None:
     agent, model = _agent(
-        "Root cause was a failed deployment.",
-        "I cannot establish that cause from this turn's evidence.",
+        "You should buy TSLA.",
+        "I have no analysis of TSLA in this turn; it is only a hypothesis.",
     )
     result = await agent.ainvoke(
         {
             "messages": [
-                HumanMessage("Analyze incident A"),
-                ToolMessage(content="rollout failed", tool_call_id="e1", name="investigate"),
-                AIMessage("Incident A is understood."),
-                HumanMessage("What caused incident B?"),
+                HumanMessage("Analyze NVDA"),
+                ToolMessage(content="scores", tool_call_id="e1", name="compute_valuation"),
+                AIMessage("NVDA looks expensive."),
+                HumanMessage("And TSLA?"),
             ]
         }
     )
 
-    assert "cannot establish" in result["messages"][-1].text
+    assert "hypothesis" in result["messages"][-1].text
     assert len(model.calls) == 2
 
 
-def test_runbook_guidance_is_not_incident_evidence() -> None:
+def test_playbooks_are_guidance_not_evidence() -> None:
     agent, model = _agent(
-        "La causa raíz es una fuga de memoria.",
-        "El runbook solo sugiere comprobar la memoria; falta evidencia.",
+        "Es una buena compra: cumple el checklist de valor.",
+        "El playbook solo da una lista de comprobación; falta el análisis.",
     )
     result = agent.invoke(
         {
             "messages": [
-                HumanMessage("Diagnostica"),
-                ToolMessage(content="Revisa memoria", tool_call_id="r1", name="load_runbook"),
+                HumanMessage("¿Es value?"),
+                ToolMessage(content="checklist", tool_call_id="p1", name="load_playbook"),
             ]
         }
     )
 
-    assert "falta evidencia" in result["messages"][-1].text
+    assert "falta el análisis" in result["messages"][-1].text
     assert len(model.calls) == 2
 
 
-def test_hypothesis_without_causal_certainty_is_not_retried() -> None:
-    agent, model = _agent("La fuga de memoria podría ser una hipótesis; faltan datos.")
-
-    result = agent.invoke({"messages": [HumanMessage("¿Cuál es la causa?")]})
-
-    assert "podría" in result["messages"][-1].text
-    assert len(model.calls) == 1
-
-
-def test_causado_por_claim_without_evidence_gets_nudge() -> None:
+def test_a_price_target_is_refused_even_with_evidence() -> None:
     agent, model = _agent(
-        "El incidente fue causado por una consulta lenta.",
-        "Una consulta lenta es una hipótesis aún sin comprobar.",
+        "El precio objetivo es 250 USD.",
+        "No doy precios objetivo; el análisis muestra un margen de seguridad del 20%.",
+    )
+    result = agent.invoke(
+        {
+            "messages": [
+                HumanMessage("¿Hasta dónde sube?"),
+                ToolMessage(content="scores", tool_call_id="a1", name="analyze"),
+            ]
+        }
     )
 
-    result = agent.invoke({"messages": [HumanMessage("¿Qué pasó?")]})
-
-    assert "hipótesis" in result["messages"][-1].text
+    assert "No doy precios objetivo" in result["messages"][-1].text
     assert len(model.calls) == 2
+
+
+def test_a_conditional_hypothesis_is_not_retried() -> None:
+    agent, model = _agent("Si se confirma el margen, podría ser una compra; es una hipótesis.")
+
+    result = agent.invoke({"messages": [HumanMessage("¿Qué opinas de KO?")]})
+
+    assert len(model.calls) == 1 and "hipótesis" in result["messages"][-1].text
+
+
+def test_answers_about_trading_carry_the_disclaimer_once() -> None:
+    agent, _ = _agent("Tu posición en AAPL es de 10 acciones.", disclaimer=True)
+    plain, _ = _agent("Hola, ¿en qué te ayudo?", disclaimer=True)
+
+    answer = agent.invoke({"messages": [HumanMessage("¿Qué tengo?")]})["messages"]
+    greeting = plain.invoke({"messages": [HumanMessage("hola")]})["messages"]
+
+    assert answer[-1].text.count(DISCLAIMER) == 1 and len(answer) == 2
+    assert DISCLAIMER not in greeting[-1].text

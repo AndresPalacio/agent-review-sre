@@ -41,7 +41,11 @@ async def test_snapshot_discovers_child_created_before_parent_checkpoint_and_can
             return httpx.Response(
                 200,
                 json=[
-                    {"thread_id": "child", "status": "busy", "metadata": {"subagent_name": "logs"}}
+                    {
+                        "thread_id": "child",
+                        "status": "busy",
+                        "metadata": {"subagent_name": "technicals"},
+                    }
                 ],
             )
         if path.endswith("/state"):

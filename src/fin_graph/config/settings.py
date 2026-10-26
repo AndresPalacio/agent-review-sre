@@ -70,6 +70,13 @@ class Settings(BaseSettings):
     trading_short_selling_enabled: bool = False
     trading_allowed_actions: Annotated[tuple[str, ...], NoDecode] = ()
     trading_kill_switch: bool = False
+    # The paper broker. An empty path keeps the ledger in the user data folder.
+    paper_ledger_path: str = ""
+    paper_account_id: str = Field(default="paper", min_length=1, max_length=64)
+    #: Reject a fill when the quote moved this much from the approved price (0.05 = 5%).
+    paper_max_price_drift: float = Field(default=0.05, gt=0, le=1)
+    #: Basis points a market order pays over (or receives under) the quote.
+    paper_slippage_bps: float = Field(default=5.0, ge=0, le=500)
 
     @field_validator("base_currency")
     @classmethod

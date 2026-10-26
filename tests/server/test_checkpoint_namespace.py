@@ -13,13 +13,15 @@ from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import create_async_engine
 
 from fin_graph.agents.testing.scripted_model import ScriptedChatModel, tool_call_message
+from fin_graph.graphs.analysis.services import UnavailableAnalysisServices
 from fin_graph.graphs.chat.graph import make_chat_graph
 from fin_graph.graphs.investigation.graph import make_investigation_graph
 from fin_graph.graphs.investigation.services import UnavailableServices
 from fin_graph.graphs.remediation.graph import ActionCatalog, ActionSpec, make_remediation_graph
+from fin_graph.harness.runtime import make_analysis_graph
 from fin_graph.integrations.context import RunContext
 from fin_graph.integrations.registry import IntegrationRegistry
-from fin_graph.memory.service import IncidentMemory
+from fin_graph.memory.theses import ThesisMemory
 from fin_graph.safety.approval import ApprovalPolicy
 from fin_graph.server.app import _retention_cycle, create_app
 from fin_graph.server.manager import RunManager
@@ -57,8 +59,7 @@ async def test_shared_saver_keeps_same_thread_id_separate_for_all_graphs(
         ScriptedChatModel(responses=[AIMessage("Chat response")]),
         registry,
         RunContext(),
-        IncidentMemory(InMemoryStore()),
-        ActionCatalog([]),
+        ThesisMemory(InMemoryStore()),
         policy=policy,
         checkpointer=saver,
     )
@@ -124,15 +125,15 @@ async def test_shared_saver_keeps_same_thread_id_separate_for_all_graphs(
     await engine.dispose()
 
 
-async def test_chat_investigate_tool_does_not_replace_the_persisted_investigation() -> None:
+async def test_chat_analyze_tool_does_not_replace_the_persisted_investigation() -> None:
     registry = IntegrationRegistry([], env_file=None)
     saver = InMemorySaver()
     services = UnavailableServices()
     investigation = make_investigation_graph(services, registry, checkpointer=saver)
-    chat_investigation = make_investigation_graph(
-        services,
+    chat_analysis = make_analysis_graph(
+        UnavailableAnalysisServices(),
         registry,
-        checkpointer=False,  # type: ignore[arg-type]
+        checkpointer=False,
     )
     thread_id = "same-id"
     root_config = {"configurable": {"thread_id": thread_id}}
@@ -146,20 +147,19 @@ async def test_chat_investigate_tool_does_not_replace_the_persisted_investigatio
     chat = make_chat_graph(
         ScriptedChatModel(
             responses=[
-                tool_call_message("investigate", {"alert": "Memory pressure"}, "call-1"),
-                AIMessage("Investigation complete"),
+                tool_call_message("analyze", {"tickers": "MSFT"}, "call-1"),
+                AIMessage("Analysis complete"),
             ]
         ),
         registry,
         RunContext(),
-        IncidentMemory(InMemoryStore()),
-        ActionCatalog([]),
+        ThesisMemory(InMemoryStore()),
         policy=ApprovalPolicy(environment="prod"),
-        investigation=chat_investigation,
+        analysis=chat_analysis,
         checkpointer=saver,
     )
     await chat.ainvoke(
-        {"messages": [HumanMessage("Investigate memory pressure")]},
+        {"messages": [HumanMessage("Analyze MSFT")]},
         chat_config,
         context=RunContext(),
     )

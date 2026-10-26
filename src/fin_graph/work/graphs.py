@@ -1,4 +1,8 @@
-"""Opt-in Agent Server graphs for a bounded, synthetic async SRE pilot."""
+"""Opt-in Agent Server graphs for a bounded, synthetic async equity-analysis pilot.
+
+A supervisor starts at most two children, a fundamentals analyst and a technicals
+analyst, that read SYNTHETIC fixtures for a ticker and horizon. Nothing here reads
+market data or touches the paper portfolio."""
 
 from __future__ import annotations
 
@@ -32,7 +36,7 @@ from fin_graph.llm.models import build_chat_model, parse_model_spec
 from fin_graph.safety.secrets import redact_value
 from fin_graph.work.testing import OfflinePilotModel
 
-Role = Literal["supervisor", "metrics", "logs"]
+Role = Literal["supervisor", "fundamentals", "technicals"]
 ToolResult = ToolMessage | Command[Any]
 _ASYNC_TOOLS = frozenset(
     {
@@ -208,7 +212,7 @@ class PilotGuard(AgentMiddleware[PilotState, PilotContext]):
             return "deadline_exceeded"
         tasks = request.state.get("async_tasks") or {}
         if name == "start_async_task":
-            if args.get("subagent_type") not in {"metrics", "logs"}:
+            if args.get("subagent_type") not in {"fundamentals", "technicals"}:
                 return "agent_type_not_allowed"
             configured_limit = ctx.get("max_children", 2)
             if not isinstance(configured_limit, int) or configured_limit < 0:
@@ -224,15 +228,15 @@ class PilotGuard(AgentMiddleware[PilotState, PilotContext]):
                 if call["id"] == request.tool_call["id"]:
                     break
                 if call["name"] == "start_async_task" and call["args"].get("subagent_type") in {
-                    "metrics",
-                    "logs",
+                    "fundamentals",
+                    "technicals",
                 }:
                     prior_starts += 1
             if len(tasks) + prior_starts >= limit:
                 return "child_limit_exceeded"
         if name in {"update_async_task", "cancel_async_task", "check_async_task"}:
             task = tasks.get(str(args.get("task_id", "")).strip())
-            if not task or task.get("agent_name") not in {"metrics", "logs"}:
+            if not task or task.get("agent_name") not in {"fundamentals", "technicals"}:
                 return "unregistered_child"
             if name == "update_async_task" and task.get("status") == "waiting":
                 return "waiting_for_approval"
@@ -276,10 +280,10 @@ class PilotGuard(AgentMiddleware[PilotState, PilotContext]):
         return await handler(request)
 
 
-def _fixture_tool(role: Literal["metrics", "logs"]) -> BaseTool:
+def _fixture_tool(role: Literal["fundamentals", "technicals"]) -> BaseTool:
     @tool(f"read_{role}_fixture")
-    async def read_fixture(service: str, window: str, runtime: ToolRuntime[PilotContext]) -> str:
-        """Read explicitly synthetic demo observations; never queries infrastructure."""
+    async def read_fixture(ticker: str, horizon: str, runtime: ToolRuntime[PilotContext]) -> str:
+        """Read explicitly synthetic demo scores for a ticker; never queries market data."""
         ctx = runtime.context
         delay = float(ctx.get("delay_seconds", 0.2))
         if not math.isfinite(delay) or delay < 0 or delay > 60:
@@ -287,17 +291,22 @@ def _fixture_tool(role: Literal["metrics", "logs"]) -> BaseTool:
         async with asyncio.timeout(max(0, ctx["deadline"] - time.time())):
             await asyncio.sleep(delay)
         values = (
-            {"p95_latency_ms": 820, "error_rate": 0.08}
-            if role == "metrics"
-            else {"events": ["synthetic upstream timeout", "synthetic connection pool exhausted"]}
+            {"roe": 0.21, "operating_margin": 0.18, "debt_to_equity": 0.4, "revenue_growth": 0.09}
+            if role == "fundamentals"
+            else {
+                "rsi_14": 71,
+                "price_vs_sma_200": 1.12,
+                "volatility_30d": 0.27,
+                "momentum_3m": 0.15,
+            }
         )
         return json.dumps(
             {
                 "synthetic": True,
                 "source": "synthetic_fixture",
                 "kind": role,
-                "service": service,
-                "window": window,
+                "ticker": ticker.upper(),
+                "horizon": horizon,
                 "revision": ctx["revision"],
                 "observations": values,
             }
@@ -309,15 +318,17 @@ def _fixture_tool(role: Literal["metrics", "logs"]) -> BaseTool:
 def _supervisor() -> CompiledStateGraph[Any, Any, Any, Any]:
     model = _model("supervisor")
     return make_agent(
-        name="async-sre-supervisor",
+        name="async-fin-supervisor",
         model=model,
         context_schema=PilotContext,
         system_prompt=(
-            "Coordinate a bounded read-only SRE investigation with metrics and logs children. "
+            "Coordinate a bounded read-only equity analysis with fundamentals and technicals "
+            "children. "
             "All observations are SYNTHETIC FIXTURES, including with a real provider model. "
             "Start at most two children. Return task IDs promptly. Use tracked IDs for updates and "
             "cancellation. Never override a pending human approval. Report synthetic notifications "
-            "evidence. Follow new user instructions and preserve their service and time window."
+            "evidence. Follow new user instructions and preserve their ticker and horizon. "
+            "Never recommend a trade: this pilot only gathers synthetic analyst scores."
         ),
         middleware=[
             PilotGuard(
@@ -328,14 +339,14 @@ def _supervisor() -> CompiledStateGraph[Any, Any, Any, Any]:
             AsyncSubAgentMiddleware(
                 async_subagents=[
                     {
-                        "name": "metrics",
-                        "graph_id": "metrics",
-                        "description": "Read synthetic metric fixtures.",
+                        "name": "fundamentals",
+                        "graph_id": "fundamentals",
+                        "description": "Read synthetic fundamentals scores.",
                     },
                     {
-                        "name": "logs",
-                        "graph_id": "logs",
-                        "description": "Read synthetic log fixtures.",
+                        "name": "technicals",
+                        "graph_id": "technicals",
+                        "description": "Read synthetic technical indicators.",
                     },
                 ]
             ),
@@ -343,7 +354,7 @@ def _supervisor() -> CompiledStateGraph[Any, Any, Any, Any]:
     )
 
 
-def _child(role: Literal["metrics", "logs"]) -> CompiledStateGraph[Any, Any, Any, Any]:
+def _child(role: Literal["fundamentals", "technicals"]) -> CompiledStateGraph[Any, Any, Any, Any]:
     model = _model(role)
     middleware: list[AgentMiddleware[Any, Any, Any]] = [
         PilotGuard(
@@ -355,9 +366,9 @@ def _child(role: Literal["metrics", "logs"]) -> CompiledStateGraph[Any, Any, Any
         model=model,
         tools=[_fixture_tool(role)],
         context_schema=PilotContext,
-        name=f"async-sre-{role}",
+        name=f"async-fin-{role}",
         system_prompt=(
-            f"Read the {role} fixture for the requested service and time window. Return its JSON. "
+            f"Read the {role} fixture for the requested ticker and horizon. Return its JSON. "
             "These are SYNTHETIC observations, never production evidence. Use only your fixture "
             "tool. Filesystem, shell, planning and delegation tools are forbidden."
         ),
@@ -370,11 +381,11 @@ async def supervisor(config: RunnableConfig) -> CompiledStateGraph[Any, Any, Any
     return await asyncio.to_thread(_supervisor)
 
 
-async def metrics(config: RunnableConfig) -> CompiledStateGraph[Any, Any, Any, Any]:
-    """Build the metrics child with native Deep Agents parent notification."""
-    return await asyncio.to_thread(_child, "metrics")
+async def fundamentals(config: RunnableConfig) -> CompiledStateGraph[Any, Any, Any, Any]:
+    """Build the fundamentals child with native Deep Agents parent notification."""
+    return await asyncio.to_thread(_child, "fundamentals")
 
 
-async def logs(config: RunnableConfig) -> CompiledStateGraph[Any, Any, Any, Any]:
-    """Build the logs child with native Deep Agents parent notification."""
-    return await asyncio.to_thread(_child, "logs")
+async def technicals(config: RunnableConfig) -> CompiledStateGraph[Any, Any, Any, Any]:
+    """Build the technicals child with native Deep Agents parent notification."""
+    return await asyncio.to_thread(_child, "technicals")
