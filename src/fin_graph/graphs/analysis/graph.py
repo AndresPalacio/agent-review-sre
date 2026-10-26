@@ -88,6 +88,13 @@ STANCE_ACTIONS: dict[Signal, frozenset[OrderAction]] = {
     Signal.BEARISH: frozenset({OrderAction.SELL, OrderAction.SHORT}),
     Signal.NEUTRAL: frozenset(),
 }
+#: Model steps whose failure the graph absorbs with a deterministic fallback.
+FALLBACK_STEPS = ("intake extraction", "planner", "synthesizer", "judge", "portfolio manager")
+
+
+def is_fallback_error(error: str) -> bool:
+    """Whether ``error`` is a model step that fell back, rather than a broken execution."""
+    return error.startswith(tuple(f"{step} failed" for step in FALLBACK_STEPS))
 
 
 class ToolSource(Protocol):

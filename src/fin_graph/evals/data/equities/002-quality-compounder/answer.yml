@@ -1,0 +1,21 @@
+tickers:
+  MOAT:
+    expected_signal: bullish
+    thesis_category: quality_compounder
+    equivalent_categories:
+    - deep_value
+    - garp
+    forbidden_categories:
+    - balance_sheet_risk
+    - deteriorating_fundamentals
+optimal_trajectory:
+- compute_fundamentals
+- compute_valuation
+- compute_technicals
+- compute_sentiment
+- compute_buffett
+- compute_graham
+required_queries:
+- compute_valuation
+- compute_fundamentals
+max_waves: 2

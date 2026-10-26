@@ -1,4 +1,8 @@
-"""Official Deep Agents proposer, with only train data in its workspace."""
+"""Official Deep Agents proposer, with only train data in its workspace.
+
+The outer agent is upstream's (its system prompt, workspace and file backend); fin-graph only
+builds the model, so a local ``ollama:`` proposer gets a context window that fits the task.
+"""
 
 from __future__ import annotations
 
@@ -8,21 +12,32 @@ import os
 import subprocess
 import sys
 from pathlib import Path
+from typing import Any
 
 from better_harness.agent import (
+    DEFAULT_SYSTEM_PROMPT,
     ProposerWorkspace,
     build_proposer_workspace,
-    invoke_deepagents_proposer,
 )
 from better_harness.core import Proposal, RunLayout, SplitResult, Variant
 from better_harness.patching import build_variant
 
-from fin_graph.evals.scenarios import load_scenario
-from fin_graph.evals.trajectory import contract_for
+from fin_graph.config.settings import Settings
+from fin_graph.evals.market.scenarios import load_equity_case
+from fin_graph.evals.market.trajectory import contract_for
 from fin_graph.harness.configuration import HarnessConfig, load_config
 from fin_graph.harness.runner import write_json
 from fin_graph.harness.surfaces import validate_values
+from fin_graph.llm.models import build_chat_model, parse_model_spec
 from fin_graph.safety.secrets import redact_secrets
+
+#: Room for the system prompt, task file and the surface files a proposer reads and rewrites.
+PROPOSER_NUM_CTX = 16384
+PROPOSER_NUM_PREDICT = 4096
+_START = (
+    "Read /task.md first. Then inspect the current surface files, visible history, and failing "
+    "train cases, edit only /current, and finish by updating /proposal.md."
+)
 
 
 def prepare_workspace(
@@ -40,14 +55,13 @@ def prepare_workspace(
         iteration=iteration,
     )
     for case in config.dataset.select("train"):
-        scenario = load_scenario(*case.scenario.split("/", 1))
+        scenario = load_equity_case(case.scenario)
         write_json(
             workspace.root / "train_data" / f"{case.scenario.replace('/', '--')}.json",
             {
                 "scenario": scenario.key,
-                "alert": scenario.alert,
+                "request": scenario.request(),
                 "metadata": scenario.metadata,
-                "evidence": scenario.evidence,
                 "reference": scenario.answer.model_dump(mode="json"),
                 "execution_contract": contract_for(scenario).model_dump(mode="json"),
             },
@@ -55,22 +69,61 @@ def prepare_workspace(
     task = workspace.root / "task.md"
     with task.open("a", encoding="utf-8") as handle:
         handle.write(
-            "\nThe /train_data directory contains train observations and independent references.\n"
-            "Use general investigation rules, never memorize scenario ids or reference answers.\n"
-            "Edit only the nine files listed in surface_manifest.json. "
-            "The production runtime consumes all of them. Tools prepare_tools(task, tools) "
-            "may select/order tools and change descriptions via model_copy, but must preserve "
-            "adapter functions, schemas and metadata. planning.refine_plan(plan, alert, available) "
-            "runs before fixed graph constraints. skills.md is loaded into specialist prompts. "
-            "registration.build_middleware(task) installs additional AgentMiddleware instances "
-            "from middleware.py alongside the fixed safety stack. "
-            "Safety, graph limits, schemas, adapters, corpus and graders are NOT editable.\n"
-            "A pass requires correct category, required keywords/sources/queries, "
-            "valid citations, execution contracts and measured budgets. Inspect train traces "
-            "for actual delegation, arguments, call order and errors. Code is tested in fresh "
-            "Python processes; preserve interfaces and avoid side effects.\n"
+            "\nThe /train_data directory holds the train requests, their metadata, independent "
+            "reference answers and execution contracts.\n"
+            "Write general analysis rules; never memorize scenario ids, tickers or answers.\n"
+            "Edit only the eleven files listed in surface_manifest.json. With a small local "
+            "model the graph runs in tool_plan mode: the analysts' compute tools, the stance "
+            "and the category are deterministic, and the model writes the analyst summaries "
+            "(analyst.txt), the Spanish thesis narrative (narrative.txt), the claim judge "
+            "(judge.txt) and the portfolio choice (portfolio.txt). tools.py "
+            "prepare_tools(task, tools) may order tools and change descriptions via "
+            "model_copy, but must keep every tool, its function, schema and metadata. "
+            "plan.txt, synthesis.txt, skills.md, planning.py refine_plan(plan, request, "
+            "available), middleware.py and registration.py build_middleware(task) run only in "
+            "react mode with larger models. Safety, trading limits, graph limits, schemas, the "
+            "quant analysts, market data, corpus and graders are NOT editable.\n"
+            "A pass needs, per ticker, the expected stance and category, no forbidden "
+            "category, every required keyword in the thesis text (alternatives separated by "
+            "'|'), a verified thesis, and the expected action when the reference names one; "
+            "per run, valid citations, the execution contract and the latency and token "
+            "budgets. Verification drops a claim whose numbers are not in the evidence it "
+            "cites. Code is tested in fresh Python processes; preserve interfaces and avoid "
+            "side effects.\n"
         )
     return workspace
+
+
+def run_outer_agent(config: HarnessConfig, workspace: ProposerWorkspace) -> str | None:
+    """Upstream's outer Deep Agent on ``workspace``, with a model built by fin-graph."""
+    import deepagents.graph
+    from deepagents.backends import FilesystemBackend
+    from langchain_core.messages import HumanMessage
+
+    experiment = config.experiment
+    spec = parse_model_spec(experiment.better_agent_model)
+    settings = Settings(
+        _env_file=None,
+        llm_provider=spec.provider,
+        llm_num_ctx=PROPOSER_NUM_CTX,
+        llm_num_predict=PROPOSER_NUM_PREDICT,
+    )
+    system = DEFAULT_SYSTEM_PROMPT
+    if experiment.better_agent_system_prompt:
+        system = experiment.better_agent_system_prompt.strip() + "\n\n" + system
+    agent = deepagents.graph.create_deep_agent(
+        model=build_chat_model(spec, settings, temperature=0),
+        system_prompt=system,
+        backend=FilesystemBackend(root_dir=str(workspace.root), virtual_mode=True),
+    )
+    result: dict[str, Any] = agent.invoke(
+        {"messages": [HumanMessage(content=_START)]},
+        config={"recursion_limit": experiment.better_agent_max_turns},
+    )
+    for message in reversed(result.get("messages", [])):
+        if getattr(message, "type", None) == "ai":
+            return redact_secrets(str(message.content))[:24000]
+    return None
 
 
 def propose_in_process(
@@ -81,7 +134,7 @@ def propose_in_process(
     iteration: int,
 ) -> tuple[Proposal, Variant]:
     workspace = prepare_workspace(config, current, train, layout, iteration)
-    message = invoke_deepagents_proposer(experiment=config.experiment, workspace=workspace)
+    message = run_outer_agent(config, workspace)
     values = {}
     for name, path in workspace.surface_files.items():
         if path.is_symlink() or not path.resolve().is_relative_to(workspace.current_dir.resolve()):

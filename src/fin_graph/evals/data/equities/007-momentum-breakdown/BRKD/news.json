@@ -1,0 +1,52 @@
+{
+ "news": [
+  {
+   "title": "BRKD beats estimates and raises guidance",
+   "source": "Synthetic Wire",
+   "date": "2024-06-27T14:00:00Z",
+   "url": "https://news.example/brkd/0"
+  },
+  {
+   "title": "BRKD shares surge on record quarter",
+   "source": "Synthetic Wire",
+   "date": "2024-06-24T14:00:00Z",
+   "url": "https://news.example/brkd/1"
+  },
+  {
+   "title": "BRKD misses estimates, cuts guidance",
+   "source": "Synthetic Wire",
+   "date": "2024-06-21T14:00:00Z",
+   "url": "https://news.example/brkd/2"
+  },
+  {
+   "title": "BRKD shares plunge after downgrade",
+   "source": "Synthetic Wire",
+   "date": "2024-06-18T14:00:00Z",
+   "url": "https://news.example/brkd/3"
+  },
+  {
+   "title": "BRKD to present at industry conference",
+   "source": "Synthetic Wire",
+   "date": "2024-06-15T14:00:00Z",
+   "url": "https://news.example/brkd/4"
+  },
+  {
+   "title": "BRKD schedules annual shareholder meeting",
+   "source": "Synthetic Wire",
+   "date": "2024-06-12T14:00:00Z",
+   "url": "https://news.example/brkd/5"
+  },
+  {
+   "title": "What to watch in BRKD this week",
+   "source": "Synthetic Wire",
+   "date": "2024-06-09T14:00:00Z",
+   "url": "https://news.example/brkd/6"
+  },
+  {
+   "title": "BRKD names new board member",
+   "source": "Synthetic Wire",
+   "date": "2024-06-06T14:00:00Z",
+   "url": "https://news.example/brkd/7"
+  }
+ ]
+}

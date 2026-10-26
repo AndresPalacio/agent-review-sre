@@ -1,4 +1,4 @@
-"""Fail-closed RCA criteria and paired candidate acceptance."""
+"""Fail-closed analysis criteria and paired candidate acceptance."""
 
 from __future__ import annotations
 
@@ -7,13 +7,37 @@ from collections.abc import Mapping
 from typing import Any
 
 
+def _ticker_reasons(ticker: Mapping[str, Any]) -> list[str]:
+    reasons = []
+    if ticker.get("signal_match") is not True:
+        reasons.append("signal")
+    if ticker.get("category_match") is not True:
+        reasons.append("category")
+    if ticker.get("forbidden_category") is not False:
+        reasons.append("forbidden_category")
+    found, total = ticker.get("keywords_found"), ticker.get("keywords_total")
+    if not isinstance(total, int) or total < 0 or found != total:
+        reasons.append("required_keywords")
+    if ticker.get("verified") is not True:
+        reasons.append("unverified_thesis")
+    if ticker.get("action_match") is False:
+        reasons.append("action")
+    return reasons
+
+
 def assess_record(
     record: Mapping[str, Any],
     *,
     max_latency: float | None = None,
     max_tokens: int | None = None,
-    min_judge_score: float | None = None,
 ) -> list[str]:
+    """Every criterion one run misses; an empty list is a pass.
+
+    Per ticker: stance, category, no forbidden category, the required keywords, a verified
+    thesis and (when the scenario names one) the expected action. Per run: a complete graph
+    that delivered nothing, the execution contract, valid citations, the required queries and
+    the latency and token budgets.
+    """
     reasons: list[str] = []
     if record.get("status") != "completed" or record.get("graph_errors"):
         reasons.append("execution_incomplete")
@@ -25,35 +49,19 @@ def assess_record(
     score = record.get("score")
     if not isinstance(score, dict):
         return [*reasons, "missing_score"]
-    if score.get("category_match") is not True:
-        reasons.append("category")
-    if score.get("forbidden_category") is not False or score.get("forbidden_keywords_found") != []:
-        reasons.append("forbidden_claim")
-    for metric in (
-        "required_keywords",
-        "ruling_out_keywords",
-        "required_sources",
-        "required_queries",
-    ):
-        found, total = score.get(f"{metric}_found"), score.get(f"{metric}_total")
-        if not isinstance(total, int) or total < 0 or found != total:
-            reasons.append(metric)
-    if not score.get("used_sources"):
+    tickers = score.get("tickers")
+    if not isinstance(tickers, list) or not tickers:
+        reasons.append("missing_tickers")
+    else:
+        reasons.extend(dict.fromkeys(r for item in tickers for r in _ticker_reasons(item)))
+    found, total = score.get("required_queries_found"), score.get("required_queries_total")
+    if not isinstance(total, int) or total < 0 or found != total:
+        reasons.append("required_queries")
+    if not score.get("trajectory_covered"):
         reasons.append("no_observations")
     citations = score.get("citations_total", 0)
     if not isinstance(citations, int) or citations < 1 or score.get("citations_valid") != citations:
         reasons.append("citations")
-    if score.get("llm_judge_status") not in {"not_run", "completed"}:
-        reasons.append("judge_incomplete")
-    if min_judge_score is not None:
-        value = score.get("llm_judge_score")
-        if (
-            score.get("llm_judge_status") != "completed"
-            or not isinstance(value, (int, float))
-            or not math.isfinite(value)
-            or value < min_judge_score
-        ):
-            reasons.append("reference_judge")
     if max_latency is not None:
         latency = score.get("latency_seconds")
         if (

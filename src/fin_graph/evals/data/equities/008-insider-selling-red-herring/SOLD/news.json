@@ -1,0 +1,46 @@
+{
+ "news": [
+  {
+   "title": "SOLD beats estimates and raises guidance",
+   "source": "Synthetic Wire",
+   "date": "2024-06-27T14:00:00Z",
+   "url": "https://news.example/sold/0"
+  },
+  {
+   "title": "SOLD shares surge on record quarter",
+   "source": "Synthetic Wire",
+   "date": "2024-06-24T14:00:00Z",
+   "url": "https://news.example/sold/1"
+  },
+  {
+   "title": "SOLD misses estimates, cuts guidance",
+   "source": "Synthetic Wire",
+   "date": "2024-06-21T14:00:00Z",
+   "url": "https://news.example/sold/2"
+  },
+  {
+   "title": "SOLD to present at industry conference",
+   "source": "Synthetic Wire",
+   "date": "2024-06-18T14:00:00Z",
+   "url": "https://news.example/sold/3"
+  },
+  {
+   "title": "SOLD schedules annual shareholder meeting",
+   "source": "Synthetic Wire",
+   "date": "2024-06-15T14:00:00Z",
+   "url": "https://news.example/sold/4"
+  },
+  {
+   "title": "What to watch in SOLD this week",
+   "source": "Synthetic Wire",
+   "date": "2024-06-12T14:00:00Z",
+   "url": "https://news.example/sold/5"
+  },
+  {
+   "title": "SOLD names new board member",
+   "source": "Synthetic Wire",
+   "date": "2024-06-09T14:00:00Z",
+   "url": "https://news.example/sold/6"
+  }
+ ]
+}

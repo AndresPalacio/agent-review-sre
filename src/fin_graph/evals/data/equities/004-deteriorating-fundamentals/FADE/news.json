@@ -1,0 +1,52 @@
+{
+ "news": [
+  {
+   "title": "FADE beats estimates and raises guidance",
+   "source": "Synthetic Wire",
+   "date": "2024-06-27T14:00:00Z",
+   "url": "https://news.example/fade/0"
+  },
+  {
+   "title": "FADE shares surge on record quarter",
+   "source": "Synthetic Wire",
+   "date": "2024-06-24T14:00:00Z",
+   "url": "https://news.example/fade/1"
+  },
+  {
+   "title": "FADE misses estimates, cuts guidance",
+   "source": "Synthetic Wire",
+   "date": "2024-06-21T14:00:00Z",
+   "url": "https://news.example/fade/2"
+  },
+  {
+   "title": "FADE shares plunge after downgrade",
+   "source": "Synthetic Wire",
+   "date": "2024-06-18T14:00:00Z",
+   "url": "https://news.example/fade/3"
+  },
+  {
+   "title": "FADE to present at industry conference",
+   "source": "Synthetic Wire",
+   "date": "2024-06-15T14:00:00Z",
+   "url": "https://news.example/fade/4"
+  },
+  {
+   "title": "FADE schedules annual shareholder meeting",
+   "source": "Synthetic Wire",
+   "date": "2024-06-12T14:00:00Z",
+   "url": "https://news.example/fade/5"
+  },
+  {
+   "title": "What to watch in FADE this week",
+   "source": "Synthetic Wire",
+   "date": "2024-06-09T14:00:00Z",
+   "url": "https://news.example/fade/6"
+  },
+  {
+   "title": "FADE names new board member",
+   "source": "Synthetic Wire",
+   "date": "2024-06-06T14:00:00Z",
+   "url": "https://news.example/fade/7"
+  }
+ ]
+}

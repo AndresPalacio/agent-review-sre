@@ -1,222 +1,102 @@
 {
-  "version": 1,
-  "dataset_fingerprint": "f94edcb45f77f4e00905ab1138ec2e371f0290f2f1c60022bff96f7768af9a43",
+  "version": 2,
+  "dataset_fingerprint": "6e68d8c011efdcf9f11bc68cbd6c163633df780c98c895c8828e80622ffe3632",
   "cases": [
     {
-      "scenario": "eks/000-healthy",
+      "scenario": "equities/000-no-edge",
       "split": "train",
-      "stratum": "eks",
-      "family": "eks-healthy"
+      "stratum": "market",
+      "family": "base-fair"
     },
     {
-      "scenario": "eks/001-oomkilled-crashloop",
+      "scenario": "equities/001-deep-value",
       "split": "train",
-      "stratum": "eks",
-      "family": "eks-resources"
+      "stratum": "fundamental",
+      "family": "value-gap"
     },
     {
-      "scenario": "eks/002-image-pull-backoff",
+      "scenario": "equities/002-quality-compounder",
       "split": "holdout",
-      "stratum": "eks",
-      "family": "eks-image"
+      "stratum": "fundamental",
+      "family": "compounder"
     },
     {
-      "scenario": "eks/003-pending-insufficient-resources",
+      "scenario": "equities/003-overvalued",
       "split": "train",
-      "stratum": "eks",
-      "family": "eks-resources"
+      "stratum": "fundamental",
+      "family": "value-gap"
     },
     {
-      "scenario": "eks/004-liveness-probe-killing",
-      "split": "holdout",
-      "stratum": "eks",
-      "family": "eks-probe"
-    },
-    {
-      "scenario": "eks/005-resource-quota-exceeded",
+      "scenario": "equities/004-deteriorating-fundamentals",
       "split": "train",
-      "stratum": "eks",
-      "family": "eks-resources"
+      "stratum": "fundamental",
+      "family": "fading"
     },
     {
-      "scenario": "eks/006-dns-resolution-failure",
+      "scenario": "equities/005-balance-sheet-risk",
       "split": "holdout",
-      "stratum": "eks",
-      "family": "eks-dns"
+      "stratum": "fundamental",
+      "family": "distress"
     },
     {
-      "scenario": "eks/007-node-not-ready",
+      "scenario": "equities/006-momentum",
+      "split": "train",
+      "stratum": "market",
+      "family": "trend-up"
+    },
+    {
+      "scenario": "equities/007-momentum-breakdown",
+      "split": "holdout",
+      "stratum": "market",
+      "family": "trend-down"
+    },
+    {
+      "scenario": "equities/008-insider-selling-red-herring",
       "split": "scorecard",
-      "stratum": "eks",
-      "family": "eks-node"
+      "stratum": "fundamental",
+      "family": "insider-sales"
     },
     {
-      "scenario": "eks/008-deployment-rollout-stuck",
+      "scenario": "equities/009-negative-sentiment",
+      "split": "train",
+      "stratum": "market",
+      "family": "bad-news"
+    },
+    {
+      "scenario": "equities/010-missing-data",
+      "split": "train",
+      "stratum": "market",
+      "family": "missing"
+    },
+    {
+      "scenario": "equities/011-garp",
       "split": "scorecard",
-      "stratum": "eks",
-      "family": "eks-rollout"
+      "stratum": "fundamental",
+      "family": "growth"
     },
     {
-      "scenario": "eks/009-noisy-healthy-restart-recovered",
+      "scenario": "equities/012-two-tickers",
       "split": "train",
-      "stratum": "eks",
-      "family": "eks-healthy"
+      "stratum": "fundamental",
+      "family": "value-gap"
     },
     {
-      "scenario": "eks/010-red-herring-old-rollout",
+      "scenario": "equities/013-aapl-2024-03",
       "split": "train",
-      "stratum": "eks",
-      "family": "eks-healthy"
+      "stratum": "market",
+      "family": "seed-aapl"
     },
     {
-      "scenario": "eks/011-recovered-rollout",
-      "split": "train",
-      "stratum": "eks",
-      "family": "eks-healthy"
-    },
-    {
-      "scenario": "eks/012-pending-recovered",
-      "split": "train",
-      "stratum": "eks",
-      "family": "eks-healthy"
-    },
-    {
-      "scenario": "eks/013-spurious-alert-storm",
-      "split": "train",
-      "stratum": "eks",
-      "family": "eks-healthy"
-    },
-    {
-      "scenario": "rds_postgres/000-healthy",
-      "split": "train",
-      "stratum": "rds",
-      "family": "rds-healthy"
-    },
-    {
-      "scenario": "rds_postgres/001-replication-lag",
-      "split": "train",
-      "stratum": "rds",
-      "family": "rds-replication"
-    },
-    {
-      "scenario": "rds_postgres/002-connection-exhaustion",
+      "scenario": "equities/014-msft-2024-03",
       "split": "holdout",
-      "stratum": "rds",
-      "family": "rds-connections"
+      "stratum": "market",
+      "family": "seed-msft"
     },
     {
-      "scenario": "rds_postgres/003-storage-full",
-      "split": "train",
-      "stratum": "rds",
-      "family": "rds-storage"
-    },
-    {
-      "scenario": "rds_postgres/004-cpu-saturation-bad-query",
+      "scenario": "equities/015-tsla-2024-03",
       "split": "scorecard",
-      "stratum": "rds",
-      "family": "rds-query"
-    },
-    {
-      "scenario": "rds_postgres/005-failover",
-      "split": "holdout",
-      "stratum": "rds",
-      "family": "rds-failover"
-    },
-    {
-      "scenario": "rds_postgres/006-replication-lag-cpu-redherring",
-      "split": "train",
-      "stratum": "rds",
-      "family": "rds-replication"
-    },
-    {
-      "scenario": "rds_postgres/007-connection-pressure-noisy-healthy",
-      "split": "train",
-      "stratum": "rds",
-      "family": "rds-healthy"
-    },
-    {
-      "scenario": "rds_postgres/008-storage-full-missing-metric",
-      "split": "train",
-      "stratum": "rds",
-      "family": "rds-storage"
-    },
-    {
-      "scenario": "rds_postgres/009-dual-fault-connection-cpu",
-      "split": "holdout",
-      "stratum": "rds",
-      "family": "rds-connections"
-    },
-    {
-      "scenario": "rds_postgres/010-replication-lag-missing-metric",
-      "split": "train",
-      "stratum": "rds",
-      "family": "rds-replication"
-    },
-    {
-      "scenario": "rds_postgres/011-cpu-storage-compositional",
-      "split": "scorecard",
-      "stratum": "rds",
-      "family": "rds-composite"
-    },
-    {
-      "scenario": "rds_postgres/012-replication-lag-misleading-events",
-      "split": "train",
-      "stratum": "rds",
-      "family": "rds-replication"
-    },
-    {
-      "scenario": "rds_postgres/013-storage-recovery-false-alert",
-      "split": "train",
-      "stratum": "rds",
-      "family": "rds-healthy"
-    },
-    {
-      "scenario": "rds_postgres/014-checkpoint-storm-cpu-saturation",
-      "split": "scorecard",
-      "stratum": "rds",
-      "family": "rds-checkpoint"
-    },
-    {
-      "scenario": "rds_postgres/015-mysql-ec2-load-attribution",
-      "split": "holdout",
-      "stratum": "rds",
-      "family": "rds-app-load"
-    },
-    {
-      "scenario": "rds_postgres/016-hpa-retry-connection-storm",
-      "split": "holdout",
-      "stratum": "rds",
-      "family": "rds-connections"
-    },
-    {
-      "scenario": "rds_postgres/017-rollout-query-regression",
-      "split": "scorecard",
-      "stratum": "rds",
-      "family": "rds-query"
-    },
-    {
-      "scenario": "rds_postgres/018-cron-fanout-replica-lag",
-      "split": "train",
-      "stratum": "rds",
-      "family": "rds-replication"
-    },
-    {
-      "scenario": "rds_postgres/019-failover-dns-stale-endpoint",
-      "split": "holdout",
-      "stratum": "rds",
-      "family": "rds-failover"
-    },
-    {
-      "scenario": "rds_postgres/020-cni-loss-db-timeout-storm",
-      "split": "scorecard",
-      "stratum": "rds",
-      "family": "rds-cni"
-    },
-    {
-      "scenario": "rds_upstream/001-request-burst-ec2-app-tier",
-      "split": "holdout",
-      "stratum": "rds",
-      "family": "rds-app-load"
+      "stratum": "market",
+      "family": "seed-tsla"
     }
   ]
 }

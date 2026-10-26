@@ -21,9 +21,9 @@ from better_harness.core import (
 )
 from better_harness.patching import build_baseline_variant
 
-from fin_graph.evals.runner import _chat_model
-from fin_graph.evals.scenarios import load_suite
-from fin_graph.evals.trajectory import contract_for
+from fin_graph.evals.market.runner import services_for
+from fin_graph.evals.market.scenarios import load_equity_suite
+from fin_graph.evals.market.trajectory import contract_for
 from fin_graph.harness.artifacts import save_source_baseline
 from fin_graph.harness.configuration import HarnessConfig, load_config
 from fin_graph.harness.dataset import SPLITS, Split
@@ -31,6 +31,7 @@ from fin_graph.harness.proposer import propose_candidate
 from fin_graph.harness.quality import acceptance_decision
 from fin_graph.harness.runner import SplitEvaluation, evaluate_split, write_json
 from fin_graph.harness.surfaces import validate_values
+from fin_graph.llm.models import missing_credentials, parse_model_spec
 from fin_graph.safety.secrets import redact_secrets
 
 Proposer = Callable[[HarnessConfig, Variant, SplitResult, RunLayout, int], tuple[Proposal, Variant]]
@@ -50,7 +51,7 @@ def provenance(config: HarnessConfig) -> dict[str, Any]:
         "dataset_fingerprint": config.dataset.dataset_fingerprint,
         "split_fingerprint": config.dataset.fingerprint,
         "contract_fingerprints": {
-            case.key: contract_for(case).fingerprint for case in load_suite("all")
+            case.key: contract_for(case).fingerprint for case in load_equity_suite("all")
         },
         "options": config.options.model_dump(),
         "versions": {
@@ -66,18 +67,24 @@ def provenance(config: HarnessConfig) -> dict[str, Any]:
     }
 
 
+def _require_credentials(model: str) -> None:
+    missing = missing_credentials(parse_model_spec(model).provider)
+    if missing:
+        raise RuntimeError(f"{missing} is not configured")
+
+
 def persist_summary(layout: RunLayout, summary: dict[str, Any]) -> None:
     write_json(layout.root / "summary.json", summary)
     lines = [
-        "# SRE better-harness",
+        "# fin-graph better-harness",
         "",
         f"Status: **{summary['status']}**. Mode: **{summary['kind']}**.",
         f"Quality eligible: **{summary['quality_eligible']}**. "
         f"Promotable: **{summary['promotable']}**.",
         "",
-        "Scripted runs check wiring only; no RCA quality was measured."
+        "Scripted runs check wiring only; no analysis quality was measured."
         if summary["kind"] == "wiring"
-        else "RCA passes require every repetition to meet the fixed criteria. "
+        else "Analysis passes require every repetition to meet the fixed criteria. "
         "No automatic deployment.",
         "",
         "| Split | Baseline | Final |",
@@ -143,7 +150,7 @@ async def run_experiment(
     summary: dict[str, Any] = {
         "version": 1,
         "status": "running",
-        "kind": "wiring" if scripted else "rca",
+        "kind": "wiring" if scripted else "analysis",
         "model": experiment.model,
         "proposer_model": experiment.better_agent_model,
         "max_iterations": limit,
@@ -157,11 +164,9 @@ async def run_experiment(
     persist_summary(layout, summary)
     if not scripted:
         try:
-            _chat_model(experiment.model)
-            if config.options.judge_model:
-                _chat_model(config.options.judge_model)
+            services_for(experiment.model)
             if limit and proposer is None:
-                _chat_model(experiment.better_agent_model)
+                _require_credentials(experiment.better_agent_model)
         except Exception as exc:
             summary.update(status="blocked", error=redact_secrets(f"{type(exc).__name__}: {exc}"))
             persist_summary(layout, summary)

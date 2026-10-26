@@ -1,0 +1,10 @@
+scenario_id: 003-overvalued
+description: Average business priced far above every intrinsic value estimate.
+tickers:
+- HYPE
+as_of: '2024-06-28'
+horizon: medium
+question: ''
+scenario_difficulty: 1
+adversarial_signals: []
+synthetic: true

@@ -12,18 +12,8 @@ from fin_graph.harness.quality import assess_record
         ({"tokens": 101}, "token_budget"),
         ({"latency_seconds": 11}, "latency_budget"),
         ({"latency_seconds": float("nan")}, "latency_budget"),
-        ({"llm_judge_score": 0.6, "llm_judge_status": "completed"}, "reference_judge"),
-        ({"llm_judge_score": 1.0, "llm_judge_status": "failed"}, "reference_judge"),
     ],
 )
-def test_configured_budgets_and_reference_judge_are_hard_gates(score, reason):
-    record = {
-        "score": {
-            "tokens": 50,
-            "latency_seconds": 5,
-            "llm_judge_score": 0.9,
-            "llm_judge_status": "completed",
-            **score,
-        }
-    }
-    assert reason in assess_record(record, max_tokens=100, max_latency=10, min_judge_score=0.8)
+def test_configured_budgets_are_hard_gates(score, reason):
+    record = {"score": {"tokens": 50, "latency_seconds": 5, **score}}
+    assert reason in assess_record(record, max_tokens=100, max_latency=10)

@@ -1,0 +1,13 @@
+scenario_id: 014-msft-2024-03
+description: Recorded MSFT data for 2024-03-01..08 from ai-hedge-fund's API fixtures; one week of prices and no statements.
+tickers:
+- MSFT
+as_of: '2024-03-08'
+horizon: medium
+question: ''
+scenario_difficulty: 2
+adversarial_signals:
+- short_price_history
+- missing_statements
+synthetic: false
+source: https://github.com/virattt/ai-hedge-fund (MIT), tests/fixtures/api

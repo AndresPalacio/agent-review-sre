@@ -1,0 +1,52 @@
+{
+ "news": [
+  {
+   "title": "DEEP beats estimates and raises guidance",
+   "source": "Synthetic Wire",
+   "date": "2024-06-27T14:00:00Z",
+   "url": "https://news.example/deep/0"
+  },
+  {
+   "title": "DEEP shares surge on record quarter",
+   "source": "Synthetic Wire",
+   "date": "2024-06-24T14:00:00Z",
+   "url": "https://news.example/deep/1"
+  },
+  {
+   "title": "DEEP misses estimates, cuts guidance",
+   "source": "Synthetic Wire",
+   "date": "2024-06-21T14:00:00Z",
+   "url": "https://news.example/deep/2"
+  },
+  {
+   "title": "DEEP shares plunge after downgrade",
+   "source": "Synthetic Wire",
+   "date": "2024-06-18T14:00:00Z",
+   "url": "https://news.example/deep/3"
+  },
+  {
+   "title": "DEEP to present at industry conference",
+   "source": "Synthetic Wire",
+   "date": "2024-06-15T14:00:00Z",
+   "url": "https://news.example/deep/4"
+  },
+  {
+   "title": "DEEP schedules annual shareholder meeting",
+   "source": "Synthetic Wire",
+   "date": "2024-06-12T14:00:00Z",
+   "url": "https://news.example/deep/5"
+  },
+  {
+   "title": "What to watch in DEEP this week",
+   "source": "Synthetic Wire",
+   "date": "2024-06-09T14:00:00Z",
+   "url": "https://news.example/deep/6"
+  },
+  {
+   "title": "DEEP names new board member",
+   "source": "Synthetic Wire",
+   "date": "2024-06-06T14:00:00Z",
+   "url": "https://news.example/deep/7"
+  }
+ ]
+}

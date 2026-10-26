@@ -43,7 +43,7 @@ from fin_graph.safety.approval import ApprovalPolicy
 app = typer.Typer(
     help="Análisis financiero multiagente (paper trading, uso educativo).", no_args_is_help=True
 )
-eval_app = typer.Typer(help="Evaluación reproducible del grafo RCA.", no_args_is_help=True)
+eval_app = typer.Typer(help="Evaluación reproducible del grafo de análisis.", no_args_is_help=True)
 app.add_typer(eval_app, name="eval")
 app.add_typer(harness_app, name="harness")
 app.add_typer(schedules_app, name="schedules")
@@ -409,21 +409,36 @@ def main() -> None:
 
 @eval_app.command("run")
 def eval_run(
-    suite: Annotated[str, typer.Option("--suite", help="smoke, eks, rds o all.")] = "smoke",
+    suite: Annotated[
+        str,
+        typer.Option(
+            "--suite",
+            help="smoke, all o un escenario de acciones; sre:smoke|eks|rds|all para el SRE.",
+        ),
+    ] = "smoke",
     model: Annotated[str, typer.Option("--model", help="scripted o provider:model.")] = "scripted",
     judge_model: Annotated[
-        str | None, typer.Option("--judge-model", help="Juez opcional provider:model.")
+        str | None, typer.Option("--judge-model", help="Juez opcional provider:model (SRE).")
     ] = None,
     repeat: Annotated[int, typer.Option("--repeat", help="Repeticiones por escenario.")] = 1,
     output_dir: Annotated[
         Path, typer.Option("--output-dir", help="Directorio de resultados.")
     ] = Path(".eval-results"),
 ) -> None:
-    """Ejecuta escenarios históricos contra fixtures locales de solo lectura."""
-    from fin_graph.evals.runner import run_suite
-
+    """Ejecuta los escenarios de acciones (o los SRE con sre:) contra fixtures locales."""
     try:
-        result = asyncio.run(run_suite(suite, model, repeat, output_dir, judge_model=judge_model))
+        if suite.startswith("sre:"):
+            from fin_graph.evals.runner import run_suite
+
+            result = asyncio.run(
+                run_suite(
+                    suite.removeprefix("sre:"), model, repeat, output_dir, judge_model=judge_model
+                )
+            )
+        else:
+            from fin_graph.evals.market.runner import run_equity_suite
+
+            result = asyncio.run(run_equity_suite(suite, model, repeat, output_dir))
     except (OSError, ValueError) as exc:
         console.print(f"Error: {type(exc).__name__}: {exc}")
         raise typer.Exit(code=2) from None
@@ -431,6 +446,13 @@ def eval_run(
         status: sum(run["status"] == status for run in result["runs"])
         for status in ("completed", "failed", "blocked")
     }
-    console.print(f"Evaluación {suite}: {counts}; resultados en {output_dir}")
+    summary = result.get("summary")
+    detail = (
+        f"; aprobados {summary['passed']}/{summary['runs']}, señal {summary['signal_accuracy']}, "
+        f"categoría {summary['category_accuracy']}"
+        if summary
+        else ""
+    )
+    console.print(f"Evaluación {suite}: {counts}{detail}; resultados en {output_dir}")
     if counts["failed"] or counts["blocked"]:
         raise typer.Exit(code=1)

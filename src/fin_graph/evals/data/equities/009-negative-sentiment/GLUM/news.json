@@ -1,0 +1,64 @@
+{
+ "news": [
+  {
+   "title": "GLUM misses estimates, cuts guidance",
+   "source": "Synthetic Wire",
+   "date": "2024-06-27T14:00:00Z",
+   "url": "https://news.example/glum/0"
+  },
+  {
+   "title": "GLUM shares plunge after downgrade",
+   "source": "Synthetic Wire",
+   "date": "2024-06-24T14:00:00Z",
+   "url": "https://news.example/glum/1"
+  },
+  {
+   "title": "GLUM faces lawsuit and SEC probe",
+   "source": "Synthetic Wire",
+   "date": "2024-06-21T14:00:00Z",
+   "url": "https://news.example/glum/2"
+  },
+  {
+   "title": "GLUM warns of weak demand, announces layoffs",
+   "source": "Synthetic Wire",
+   "date": "2024-06-18T14:00:00Z",
+   "url": "https://news.example/glum/3"
+  },
+  {
+   "title": "GLUM misses estimates, cuts guidance",
+   "source": "Synthetic Wire",
+   "date": "2024-06-15T14:00:00Z",
+   "url": "https://news.example/glum/4"
+  },
+  {
+   "title": "GLUM shares plunge after downgrade",
+   "source": "Synthetic Wire",
+   "date": "2024-06-12T14:00:00Z",
+   "url": "https://news.example/glum/5"
+  },
+  {
+   "title": "GLUM faces lawsuit and SEC probe",
+   "source": "Synthetic Wire",
+   "date": "2024-06-09T14:00:00Z",
+   "url": "https://news.example/glum/6"
+  },
+  {
+   "title": "GLUM warns of weak demand, announces layoffs",
+   "source": "Synthetic Wire",
+   "date": "2024-06-06T14:00:00Z",
+   "url": "https://news.example/glum/7"
+  },
+  {
+   "title": "GLUM misses estimates, cuts guidance",
+   "source": "Synthetic Wire",
+   "date": "2024-06-03T14:00:00Z",
+   "url": "https://news.example/glum/8"
+  },
+  {
+   "title": "GLUM to present at industry conference",
+   "source": "Synthetic Wire",
+   "date": "2024-05-31T14:00:00Z",
+   "url": "https://news.example/glum/9"
+  }
+ ]
+}

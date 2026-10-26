@@ -1,0 +1,52 @@
+{
+ "news": [
+  {
+   "title": "DEBT beats estimates and raises guidance",
+   "source": "Synthetic Wire",
+   "date": "2024-06-27T14:00:00Z",
+   "url": "https://news.example/debt/0"
+  },
+  {
+   "title": "DEBT shares surge on record quarter",
+   "source": "Synthetic Wire",
+   "date": "2024-06-24T14:00:00Z",
+   "url": "https://news.example/debt/1"
+  },
+  {
+   "title": "DEBT misses estimates, cuts guidance",
+   "source": "Synthetic Wire",
+   "date": "2024-06-21T14:00:00Z",
+   "url": "https://news.example/debt/2"
+  },
+  {
+   "title": "DEBT shares plunge after downgrade",
+   "source": "Synthetic Wire",
+   "date": "2024-06-18T14:00:00Z",
+   "url": "https://news.example/debt/3"
+  },
+  {
+   "title": "DEBT to present at industry conference",
+   "source": "Synthetic Wire",
+   "date": "2024-06-15T14:00:00Z",
+   "url": "https://news.example/debt/4"
+  },
+  {
+   "title": "DEBT schedules annual shareholder meeting",
+   "source": "Synthetic Wire",
+   "date": "2024-06-12T14:00:00Z",
+   "url": "https://news.example/debt/5"
+  },
+  {
+   "title": "What to watch in DEBT this week",
+   "source": "Synthetic Wire",
+   "date": "2024-06-09T14:00:00Z",
+   "url": "https://news.example/debt/6"
+  },
+  {
+   "title": "DEBT names new board member",
+   "source": "Synthetic Wire",
+   "date": "2024-06-06T14:00:00Z",
+   "url": "https://news.example/debt/7"
+  }
+ ]
+}

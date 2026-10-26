@@ -17,7 +17,7 @@ def test_upstream_pytest_runner_executes_exactly_one_explicit_case(tmp_path, mon
     from fin_graph.harness.configuration import load_config
 
     root = Path(__file__).resolve().parents[2]
-    experiment = load_config(root / "harness/sre.toml", model="scripted").experiment
+    experiment = load_config(root / "harness/fin.toml", model="scripted").experiment
     experiment = replace(experiment, cases=experiment.cases[:1])
     result = PytestRunner().run_split(
         experiment=experiment,
@@ -38,6 +38,6 @@ def test_upstream_inventory_collects_the_frozen_corpus():
     from fin_graph.harness.configuration import load_config
 
     root = Path(__file__).resolve().parents[2]
-    config = load_config(root / "harness/sre.toml", model="scripted")
+    config = load_config(root / "harness/fin.toml", model="scripted")
     inventory = PytestRunner().collect_inventory(config.experiment)
     assert set(inventory) == {case.nodeid for case in config.dataset.cases}

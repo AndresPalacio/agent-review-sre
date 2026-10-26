@@ -1,0 +1,10 @@
+scenario_id: 000-no-edge
+description: 'Fairly priced, average business: nothing to act on.'
+tickers:
+- FAIR
+as_of: '2024-06-28'
+horizon: medium
+question: ''
+scenario_difficulty: 1
+adversarial_signals: []
+synthetic: true

@@ -1,0 +1,11 @@
+scenario_id: 005-balance-sheet-risk
+description: Liabilities near total assets, losses and weak liquidity.
+tickers:
+- DEBT
+as_of: '2024-06-28'
+horizon: medium
+question: ''
+scenario_difficulty: 1
+adversarial_signals:
+- low_price_to_sales
+synthetic: true

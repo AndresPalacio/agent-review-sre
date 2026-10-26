@@ -115,7 +115,7 @@ def test_cli_runtime_is_machine_readable_and_needs_no_optimizer(monkeypatch):
     monkeypatch.setattr(builtins, "__import__", guarded)
     result = CliRunner().invoke(app, ["harness", "runtime"])
     assert result.exit_code == 0, result.output
-    assert json.loads(result.output)["mode"] == "incident"
+    assert json.loads(result.output)["mode"] == "analysis"
 
 
 def test_cli_default_investigation_uses_harness_variant_pin(monkeypatch):

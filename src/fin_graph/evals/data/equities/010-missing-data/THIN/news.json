@@ -1,0 +1,52 @@
+{
+ "news": [
+  {
+   "title": "THIN beats estimates and raises guidance",
+   "source": "Synthetic Wire",
+   "date": "2024-06-27T14:00:00Z",
+   "url": "https://news.example/thin/0"
+  },
+  {
+   "title": "THIN shares surge on record quarter",
+   "source": "Synthetic Wire",
+   "date": "2024-06-24T14:00:00Z",
+   "url": "https://news.example/thin/1"
+  },
+  {
+   "title": "THIN misses estimates, cuts guidance",
+   "source": "Synthetic Wire",
+   "date": "2024-06-21T14:00:00Z",
+   "url": "https://news.example/thin/2"
+  },
+  {
+   "title": "THIN shares plunge after downgrade",
+   "source": "Synthetic Wire",
+   "date": "2024-06-18T14:00:00Z",
+   "url": "https://news.example/thin/3"
+  },
+  {
+   "title": "THIN to present at industry conference",
+   "source": "Synthetic Wire",
+   "date": "2024-06-15T14:00:00Z",
+   "url": "https://news.example/thin/4"
+  },
+  {
+   "title": "THIN schedules annual shareholder meeting",
+   "source": "Synthetic Wire",
+   "date": "2024-06-12T14:00:00Z",
+   "url": "https://news.example/thin/5"
+  },
+  {
+   "title": "What to watch in THIN this week",
+   "source": "Synthetic Wire",
+   "date": "2024-06-09T14:00:00Z",
+   "url": "https://news.example/thin/6"
+  },
+  {
+   "title": "THIN names new board member",
+   "source": "Synthetic Wire",
+   "date": "2024-06-06T14:00:00Z",
+   "url": "https://news.example/thin/7"
+  }
+ ]
+}

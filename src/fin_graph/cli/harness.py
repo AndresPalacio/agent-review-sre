@@ -15,18 +15,19 @@ from rich.console import Console
 from fin_graph.safety.secrets import redact_secrets
 
 app = typer.Typer(
-    help="Inspect the active RCA harness or optimize it with frozen evals.", no_args_is_help=True
+    help="Inspect the active analysis harness or optimize it with frozen equity evals.",
+    no_args_is_help=True,
 )
 console = Console()
 
 
 @app.command("runtime")
 def runtime_info() -> None:
-    """Show the installed variant and effective incident budgets without an LLM call."""
-    from fin_graph.harness.profile import resolve_profile
+    """Show the installed variant and effective analysis budgets without an LLM call."""
+    from fin_graph.harness.profile import resolve_analysis_profile
 
     try:
-        console.print(json.dumps(resolve_profile().metadata()), markup=False)
+        console.print(json.dumps(resolve_analysis_profile().metadata()), markup=False)
     except (OSError, ValueError) as exc:
         _error(exc)
 
@@ -42,7 +43,7 @@ def _error(exc: Exception) -> None:
 
 
 @app.command()
-def validate(config: Annotated[Path, typer.Argument()] = Path("harness/sre.toml")) -> None:
+def validate(config: Annotated[Path, typer.Argument()] = Path("harness/fin.toml")) -> None:
     """Check upstream configuration, corpus identity, splits and editable surfaces."""
     try:
         from fin_graph.harness.configuration import load_config
@@ -70,7 +71,7 @@ def validate(config: Annotated[Path, typer.Argument()] = Path("harness/sre.toml"
 
 @app.command()
 def run(
-    config: Annotated[Path, typer.Argument()] = Path("harness/sre.toml"),
+    config: Annotated[Path, typer.Argument()] = Path("harness/fin.toml"),
     output_dir: Annotated[Path | None, typer.Option("--output-dir")] = None,
     model: Annotated[str | None, typer.Option("--model")] = None,
     proposer_model: Annotated[str | None, typer.Option("--proposer-model")] = None,
@@ -120,16 +121,16 @@ def run(
 
 @app.command()
 def smoke(
-    config: Annotated[Path, typer.Argument()] = Path("harness/sre.toml"),
+    config: Annotated[Path, typer.Argument()] = Path("harness/fin.toml"),
     output_dir: Annotated[Path | None, typer.Option("--output-dir")] = None,
 ) -> None:
-    """Exercise all 36 cases with local fixtures; no model quality is measured."""
+    """Exercise all 16 equity cases with local fixtures; no model quality is measured."""
     run(config, output_dir, "scripted", None, 0, 1)
 
 
 @app.command("inspect")
 def inspect_command(directory: Annotated[Path, typer.Argument()]) -> None:
-    """Show SRE qualification, split metrics, failures and provenance."""
+    """Show qualification, split metrics, failures and provenance of a run."""
     try:
         from fin_graph.harness.artifacts import inspect_run
 
@@ -154,12 +155,12 @@ def export_command(
 
 @app.command("contract")
 def contract_command(scenario: Annotated[str, typer.Argument()]) -> None:
-    """Show the fixed tool, argument, agent and ordering requirements of a case."""
+    """Show the fixed tool, argument, agent and ordering requirements of an equity case."""
     try:
-        from fin_graph.evals.scenarios import load_scenario
-        from fin_graph.evals.trajectory import contract_for
+        from fin_graph.evals.market.scenarios import load_equity_case
+        from fin_graph.evals.market.trajectory import contract_for
 
-        value = contract_for(load_scenario(*scenario.split("/", 1)))
+        value = contract_for(load_equity_case(scenario))
         console.print(value.model_dump_json(indent=2), markup=False)
     except (ImportError, OSError, ValueError, KeyError, TypeError) as exc:
         _error(exc)

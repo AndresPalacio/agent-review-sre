@@ -8,7 +8,7 @@ import pytest
 pytest.importorskip("better_harness")
 
 ROOT = Path(__file__).resolve().parents[2]
-CONFIG = ROOT / "harness" / "sre.toml"
+CONFIG = ROOT / "harness" / "fin.toml"
 
 
 def test_config_is_upstream_compatible_and_limits_surfaces():
@@ -18,12 +18,14 @@ def test_config_is_upstream_compatible_and_limits_surfaces():
 
     config = load_config(CONFIG, model="scripted")
     upstream = load_experiment(CONFIG)
-    assert len(upstream.cases) == 36
+    assert len(upstream.cases) == 16
     assert set(config.experiment.surfaces) == {
         "plan",
-        "specialist",
+        "analyst",
         "synthesis",
+        "narrative",
         "judge",
+        "portfolio",
         "tools",
         "skills",
         "planning",
@@ -31,6 +33,8 @@ def test_config_is_upstream_compatible_and_limits_surfaces():
         "middleware_registration",
     }
     assert config.experiment.workspace_root == ROOT
+    # Everything runs locally: the evaluated model and the proposer.
+    assert upstream.model == upstream.better_agent_model == "ollama:llama3.2:3b"
 
 
 async def test_smoke_runs_all_splits_without_proposer_and_never_claims_quality(tmp_path):
@@ -43,9 +47,9 @@ async def test_smoke_runs_all_splits_without_proposer_and_never_claims_quality(t
     assert result["promotable"] is False
     assert result["baseline"] == result["final"]
     assert {s: r["total"] for s, r in result["baseline"].items()} == {
-        "train": 19,
-        "holdout": 10,
-        "scorecard": 7,
+        "train": 9,
+        "holdout": 4,
+        "scorecard": 3,
     }
     assert all(r["passed"] == r["total"] for r in result["baseline"].values())
     assert (tmp_path / "smoke" / "report.md").is_file()
@@ -88,13 +92,24 @@ async def test_train_workspace_contains_no_private_case_data(tmp_path):
     train = await evaluate_split(config, baseline, "train", layout)
     workspace = prepare_workspace(config, baseline, train.result, layout, 1)
     files = list((workspace.root / "train_data").glob("*.json"))
-    assert len(files) == 19
+    assert len(files) == 9
     all_text = "\n".join(
         path.read_text(encoding="utf-8") for path in workspace.root.rglob("*") if path.is_file()
     )
-    assert "001-oomkilled-crashloop" in all_text
+    assert "001-deep-value" in all_text and "tool_plan" in all_text
     for private in (*config.dataset.select("holdout"), *config.dataset.select("scorecard")):
         assert private.scenario not in all_text
+
+
+def test_config_rejects_a_baseline_that_is_not_production(tmp_path):
+    from fin_graph.harness.configuration import load_config, validate_config
+
+    config = load_config(CONFIG, model="scripted")
+    surfaces = dict(config.experiment.surfaces)
+    surfaces["narrative"] = replace(surfaces["narrative"], base_value="Write anything.")
+    modified = replace(config, experiment=replace(config.experiment, surfaces=surfaces))
+    with pytest.raises(ValueError, match="production"):
+        validate_config(modified)
 
 
 def test_config_rejects_editable_evaluator_or_unsafe_surface_path(tmp_path):
@@ -119,6 +134,6 @@ def test_cli_exposes_validation_and_offline_smoke():
 
     result = CliRunner().invoke(app, ["harness", "validate", str(CONFIG)])
     assert result.exit_code == 0, result.output
-    assert "36" in result.output
+    assert '"cases": 16' in result.output
     result = CliRunner().invoke(app, ["harness", "--help"])
     assert "smoke" in result.output and "run" in result.output

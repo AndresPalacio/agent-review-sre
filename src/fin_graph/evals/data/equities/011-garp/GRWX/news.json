@@ -1,0 +1,52 @@
+{
+ "news": [
+  {
+   "title": "GRWX beats estimates and raises guidance",
+   "source": "Synthetic Wire",
+   "date": "2024-06-27T14:00:00Z",
+   "url": "https://news.example/grwx/0"
+  },
+  {
+   "title": "GRWX shares surge on record quarter",
+   "source": "Synthetic Wire",
+   "date": "2024-06-24T14:00:00Z",
+   "url": "https://news.example/grwx/1"
+  },
+  {
+   "title": "GRWX misses estimates, cuts guidance",
+   "source": "Synthetic Wire",
+   "date": "2024-06-21T14:00:00Z",
+   "url": "https://news.example/grwx/2"
+  },
+  {
+   "title": "GRWX shares plunge after downgrade",
+   "source": "Synthetic Wire",
+   "date": "2024-06-18T14:00:00Z",
+   "url": "https://news.example/grwx/3"
+  },
+  {
+   "title": "GRWX to present at industry conference",
+   "source": "Synthetic Wire",
+   "date": "2024-06-15T14:00:00Z",
+   "url": "https://news.example/grwx/4"
+  },
+  {
+   "title": "GRWX schedules annual shareholder meeting",
+   "source": "Synthetic Wire",
+   "date": "2024-06-12T14:00:00Z",
+   "url": "https://news.example/grwx/5"
+  },
+  {
+   "title": "What to watch in GRWX this week",
+   "source": "Synthetic Wire",
+   "date": "2024-06-09T14:00:00Z",
+   "url": "https://news.example/grwx/6"
+  },
+  {
+   "title": "GRWX names new board member",
+   "source": "Synthetic Wire",
+   "date": "2024-06-06T14:00:00Z",
+   "url": "https://news.example/grwx/7"
+  }
+ ]
+}

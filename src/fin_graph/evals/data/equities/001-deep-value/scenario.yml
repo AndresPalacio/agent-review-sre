@@ -1,0 +1,10 @@
+scenario_id: 001-deep-value
+description: 'Net-net: current assets minus all liabilities exceed the market cap.'
+tickers:
+- DEEP
+as_of: '2024-06-28'
+horizon: medium
+question: ''
+scenario_difficulty: 1
+adversarial_signals: []
+synthetic: true

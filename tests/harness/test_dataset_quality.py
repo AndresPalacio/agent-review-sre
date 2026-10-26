@@ -9,16 +9,20 @@ def test_manifest_covers_corpus_and_keeps_related_cases_together():
     from fin_graph.harness.dataset import load_manifest
 
     manifest = load_manifest()
-    assert len(manifest.cases) == 36
+    assert len(manifest.cases) == 16
     assert {split: len(manifest.select(split)) for split in ("train", "holdout", "scorecard")} == {
-        "train": 19,
-        "holdout": 10,
-        "scorecard": 7,
+        "train": 9,
+        "holdout": 4,
+        "scorecard": 3,
     }
     by_id = {case.scenario: case for case in manifest.cases}
-    assert (
-        by_id["rds_postgres/015-mysql-ec2-load-attribution"].split
-        == by_id["rds_upstream/001-request-burst-ec2-app-tier"].split
+    # The two-ticker case reuses the deep-value and overvalued companies.
+    assert {
+        by_id[f"equities/{key}"].split
+        for key in ("001-deep-value", "003-overvalued", "012-two-tickers")
+    } == {"train"}
+    assert by_id["equities/001-deep-value"].nodeid == (
+        "evals/harness/train/test_analysis.py::test_analysis[equities/001-deep-value]"
     )
 
 
@@ -26,10 +30,19 @@ def test_manifest_rejects_leakage_duplicates_and_stale_corpus():
     from fin_graph.harness.dataset import load_manifest, validate_manifest
 
     manifest = load_manifest()
-    for change, message in (("split", "family"), ("duplicate", "unique"), ("hash", "fingerprint")):
+    changes = (
+        ("family", "family"),
+        ("company", "identical company data"),
+        ("duplicate", "unique"),
+        ("hash", "fingerprint"),
+    )
+    for change, message in changes:
         value = manifest.model_dump()
-        if change == "split":
-            value["cases"][0]["split"] = "holdout"
+        cases = {case["scenario"]: case for case in value["cases"]}
+        if change == "family":
+            cases["equities/001-deep-value"]["split"] = "holdout"
+        elif change == "company":
+            cases["equities/012-two-tickers"] |= {"split": "holdout", "family": "renamed"}
         elif change == "duplicate":
             value["cases"][1]["scenario"] = value["cases"][0]["scenario"]
         else:
@@ -40,52 +53,68 @@ def test_manifest_rejects_leakage_duplicates_and_stale_corpus():
 
 def good_record():
     return {
-        "scenario": "eks/example",
+        "scenario": "equities/example",
         "attempt": 1,
         "status": "completed",
         "deliveries": [],
         "graph_errors": [],
         "trajectory": {"passed": True, "failures": []},
         "score": {
-            "category_match": True,
-            "forbidden_category": False,
-            "required_keywords_found": 1,
-            "required_keywords_total": 1,
-            "ruling_out_keywords_found": 0,
-            "ruling_out_keywords_total": 0,
-            "forbidden_keywords_found": [],
-            "required_sources_found": 1,
-            "required_sources_total": 1,
+            "tickers": [
+                {
+                    "ticker": "DEEP",
+                    "signal_match": True,
+                    "category_match": True,
+                    "forbidden_category": False,
+                    "keywords_found": 1,
+                    "keywords_total": 1,
+                    "verified": True,
+                    "action_match": None,
+                }
+            ],
             "citations_valid": 1,
             "citations_total": 1,
             "required_queries_found": 1,
             "required_queries_total": 1,
-            "llm_judge_status": "not_run",
-            "used_sources": ["eks_pods"],
+            "trajectory_covered": 6,
         },
     }
 
 
 @pytest.mark.parametrize(
-    "field,value",
+    "field,value,reason",
     [
-        ("category_match", False),
-        ("forbidden_category", True),
-        ("required_keywords_found", 0),
-        ("required_sources_found", 0),
-        ("citations_valid", 0),
-        ("citations_total", 0),
-        ("forbidden_keywords_found", ["invented"]),
-        ("required_queries_found", 0),
-        ("used_sources", []),
-        ("llm_judge_status", "failed"),
+        ("signal_match", False, "signal"),
+        ("category_match", False, "category"),
+        ("forbidden_category", True, "forbidden_category"),
+        ("keywords_found", 0, "required_keywords"),
+        ("verified", False, "unverified_thesis"),
+        ("action_match", False, "action"),
     ],
 )
-def test_quality_gate_rejects_wrong_or_unsupported_diagnoses(field, value):
+def test_quality_gate_rejects_wrong_or_unsupported_theses(field, value, reason):
     from fin_graph.harness.quality import assess_record
 
     record = good_record()
     assert assess_record(record) == []
+    record["score"]["tickers"][0][field] = value
+    assert assess_record(record) == [reason]
+
+
+@pytest.mark.parametrize(
+    "field,value",
+    [
+        ("citations_valid", 0),
+        ("citations_total", 0),
+        ("required_queries_found", 0),
+        ("trajectory_covered", 0),
+        ("tickers", []),
+    ],
+)
+def test_quality_gate_rejects_unsupported_runs(field, value):
+    from fin_graph.harness.quality import assess_record
+
+    record = good_record()
     record["score"][field] = value
     assert assess_record(record)
 
@@ -97,7 +126,8 @@ def test_quality_gate_rejects_failed_execution_and_external_effects():
         {"status": "blocked"},
         {"deliveries": ["sent"]},
         {"score": None},
-        {"graph_errors": ["timeout"]},
+        {"graph_errors": ["fundamentals analyst failed: TimeoutError"]},
+        {"trajectory": {"passed": False}},
     ):
         assert assess_record(good_record() | patch)
 

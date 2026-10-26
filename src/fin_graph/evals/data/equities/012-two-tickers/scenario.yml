@@ -1,0 +1,12 @@
+scenario_id: 012-two-tickers
+description: 'One request, one cheap and one expensive stock: theses must not bleed
+  into each other.'
+tickers:
+- DEEP
+- HYPE
+as_of: '2024-06-28'
+horizon: medium
+question: ''
+scenario_difficulty: 2
+adversarial_signals: []
+synthetic: true

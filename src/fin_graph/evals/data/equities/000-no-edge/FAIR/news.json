@@ -1,0 +1,52 @@
+{
+ "news": [
+  {
+   "title": "FAIR beats estimates and raises guidance",
+   "source": "Synthetic Wire",
+   "date": "2024-06-27T14:00:00Z",
+   "url": "https://news.example/fair/0"
+  },
+  {
+   "title": "FAIR shares surge on record quarter",
+   "source": "Synthetic Wire",
+   "date": "2024-06-24T14:00:00Z",
+   "url": "https://news.example/fair/1"
+  },
+  {
+   "title": "FAIR misses estimates, cuts guidance",
+   "source": "Synthetic Wire",
+   "date": "2024-06-21T14:00:00Z",
+   "url": "https://news.example/fair/2"
+  },
+  {
+   "title": "FAIR shares plunge after downgrade",
+   "source": "Synthetic Wire",
+   "date": "2024-06-18T14:00:00Z",
+   "url": "https://news.example/fair/3"
+  },
+  {
+   "title": "FAIR to present at industry conference",
+   "source": "Synthetic Wire",
+   "date": "2024-06-15T14:00:00Z",
+   "url": "https://news.example/fair/4"
+  },
+  {
+   "title": "FAIR schedules annual shareholder meeting",
+   "source": "Synthetic Wire",
+   "date": "2024-06-12T14:00:00Z",
+   "url": "https://news.example/fair/5"
+  },
+  {
+   "title": "What to watch in FAIR this week",
+   "source": "Synthetic Wire",
+   "date": "2024-06-09T14:00:00Z",
+   "url": "https://news.example/fair/6"
+  },
+  {
+   "title": "FAIR names new board member",
+   "source": "Synthetic Wire",
+   "date": "2024-06-06T14:00:00Z",
+   "url": "https://news.example/fair/7"
+  }
+ ]
+}

@@ -8,7 +8,7 @@ import pytest
 
 pytest.importorskip("better_harness")
 
-CONFIG = Path(__file__).resolve().parents[2] / "harness" / "sre.toml"
+CONFIG = Path(__file__).resolve().parents[2] / "harness" / "fin.toml"
 
 
 @pytest.mark.parametrize(
@@ -64,14 +64,12 @@ async def test_loop_keeps_train_gain_but_rejects_paired_holdout_regression(
             label=f"iter-{iteration:03d}",
             values=current.values
             if private_regression == "noop"
-            else current.values | {"plan": current.values["plan"] + " Check chronology."},
+            else current.values | {"plan": current.values["plan"] + " Check the valuation gap."},
         )
-        return Proposal(
-            ("plan",), str(tmp_path), "General chronological reasoning", "done"
-        ), variant
+        return Proposal(("plan",), str(tmp_path), "General valuation reasoning", "done"), variant
 
     monkeypatch.setattr(loop, "evaluate_split", evaluate)
-    monkeypatch.setattr(loop, "_chat_model", lambda name: None)
+    monkeypatch.setattr(loop, "services_for", lambda name: None)
     result = await loop.run_experiment(
         CONFIG, tmp_path / "run", model="offline:controlled", proposer=propose, max_iterations=1
     )
@@ -119,11 +117,11 @@ async def test_official_proposer_adapter_reads_only_allowed_text_edits(tmp_path,
                 {
                     "file_path": "/current/plan.txt",
                     "old_string": baseline.values["plan"],
-                    "new_string": "Check timing before attributing causality.",
+                    "new_string": "Compare the price with the intrinsic value first.",
                 },
                 "edit-plan",
             ),
-            AIMessage(content="Applied general chronological reasoning."),
+            AIMessage(content="Applied general valuation reasoning."),
         ]
     )
     real_factory = deepagents.graph.create_deep_agent
@@ -134,7 +132,7 @@ async def test_official_proposer_adapter_reads_only_allowed_text_edits(tmp_path,
     monkeypatch.setattr(deepagents.graph, "create_deep_agent", offline_factory)
     proposal, candidate = outer.propose_in_process(config, baseline, train.result, layout, 1)
     assert proposal.changed_surfaces == ("plan",)
-    assert candidate.values["plan"] == "Check timing before attributing causality."
+    assert candidate.values["plan"] == "Compare the price with the intrinsic value first."
     assert current_values() == original
 
 
@@ -155,17 +153,15 @@ async def test_proposer_rejects_a_surface_symlink_outside_workspace(tmp_path, mo
     probe.unlink()
     config = load_config(CONFIG)
     baseline = build_baseline_variant(config.experiment)
-    train = SplitResult(
-        "train", "baseline", config.experiment.model, 0, 19, 0, 0, str(tmp_path), ()
-    )
+    train = SplitResult("train", "baseline", config.experiment.model, 0, 9, 0, 0, str(tmp_path), ())
 
-    def escaped_response(*, experiment, workspace):
+    def escaped_response(config, workspace):
         path = workspace.surface_files["plan"]
         path.unlink()
         path.symlink_to(target)
         return "done"
 
-    monkeypatch.setattr(outer, "invoke_deepagents_proposer", escaped_response)
+    monkeypatch.setattr(outer, "run_outer_agent", escaped_response)
     with pytest.raises(ValueError, match="escaped"):
         outer.propose_in_process(config, baseline, train, RunLayout(tmp_path / "run"), 1)
     assert target.read_text(encoding="utf-8") == "must not be used"
@@ -183,12 +179,10 @@ def test_proposer_enforces_timeout_without_materializing_candidate(tmp_path, mon
     config = load_config(CONFIG)
     layout = RunLayout(tmp_path)
     baseline = build_baseline_variant(config.experiment)
-    train = SplitResult(
-        "train", "baseline", config.experiment.model, 0, 19, 0, 0, str(tmp_path), ()
-    )
+    train = SplitResult("train", "baseline", config.experiment.model, 0, 9, 0, 0, str(tmp_path), ())
 
     def timed_out(command, **kwargs):
-        assert kwargs["timeout"] == 300
+        assert kwargs["timeout"] == config.options.proposer_timeout == 1800
         raise subprocess.TimeoutExpired(command, kwargs["timeout"])
 
     monkeypatch.setattr("fin_graph.harness.proposer.subprocess.run", timed_out)

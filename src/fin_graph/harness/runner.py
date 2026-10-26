@@ -24,6 +24,26 @@ def write_json(path: Path, value: Any) -> None:
     )
 
 
+_FEEDBACK = (
+    "ticker",
+    "expected_signal",
+    "signal",
+    "expected_category",
+    "category",
+    "keywords_found",
+    "keywords_total",
+    "verified",
+    "expected_action",
+    "action",
+)
+
+
+def per_case_failures(records: list[dict[str, Any]]) -> list[str]:
+    return sorted(
+        {failure for r in records for failure in (r.get("trajectory") or {}).get("failures", [])}
+    )
+
+
 @dataclass(frozen=True)
 class SplitEvaluation:
     result: SplitResult
@@ -85,9 +105,6 @@ async def evaluate_split(
                     record,
                     max_latency=config.options.max_case_latency,
                     max_tokens=config.options.max_case_tokens if not scripted else None,
-                    min_judge_score=config.options.min_judge_score
-                    if config.options.judge_model and not scripted
-                    else None,
                 )
             }
         )
@@ -99,13 +116,7 @@ async def evaluate_split(
             "quality_passed": executed and not scripted and not reasons,
             "attempts": len(records),
             "failures": reasons,
-            "trajectory_failures": sorted(
-                {
-                    failure
-                    for r in records
-                    for failure in r.get("trajectory", {}).get("failures", [])
-                }
-            ),
+            "trajectory_failures": per_case_failures(records),
             "tool_calls": sum(r.get("trajectory", {}).get("tool_calls", 0) for r in records),
             "agent_calls": sum(r.get("trajectory", {}).get("agent_calls", 0) for r in records),
             "latency_seconds": latency,
@@ -127,9 +138,15 @@ async def evaluate_split(
                     {
                         "criteria": reasons,
                         "execution": [r.get("error", r.get("graph_errors")) for r in records],
-                        "scores": scores,
-                        "trajectory": [r.get("trajectory") for r in records],
-                    }
+                        # Expected against observed per ticker: small enough for a 3B proposer.
+                        "tickers": [
+                            {key: ticker.get(key) for key in _FEEDBACK}
+                            for score in scores
+                            for ticker in score.get("tickers", [])
+                        ],
+                        "trajectory_failures": per_case_failures(records),
+                    },
+                    ensure_ascii=False,
                 ),
                 artifacts_dir=str(output),
             )
@@ -151,7 +168,7 @@ async def evaluate_split(
         "total": result.total,
         "complete": complete,
         "quality_eligible": complete and not scripted,
-        "kind": "wiring" if scripted else "rca",
+        "kind": "wiring" if scripted else "analysis",
         "repeat": config.options.repeat,
         "dataset_fingerprint": config.dataset.dataset_fingerprint,
         "split_fingerprint": config.dataset.fingerprint,

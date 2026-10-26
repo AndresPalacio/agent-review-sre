@@ -1,0 +1,52 @@
+{
+ "news": [
+  {
+   "title": "MOAT beats estimates and raises guidance",
+   "source": "Synthetic Wire",
+   "date": "2024-06-27T14:00:00Z",
+   "url": "https://news.example/moat/0"
+  },
+  {
+   "title": "MOAT shares surge on record quarter",
+   "source": "Synthetic Wire",
+   "date": "2024-06-24T14:00:00Z",
+   "url": "https://news.example/moat/1"
+  },
+  {
+   "title": "MOAT misses estimates, cuts guidance",
+   "source": "Synthetic Wire",
+   "date": "2024-06-21T14:00:00Z",
+   "url": "https://news.example/moat/2"
+  },
+  {
+   "title": "MOAT shares plunge after downgrade",
+   "source": "Synthetic Wire",
+   "date": "2024-06-18T14:00:00Z",
+   "url": "https://news.example/moat/3"
+  },
+  {
+   "title": "MOAT to present at industry conference",
+   "source": "Synthetic Wire",
+   "date": "2024-06-15T14:00:00Z",
+   "url": "https://news.example/moat/4"
+  },
+  {
+   "title": "MOAT schedules annual shareholder meeting",
+   "source": "Synthetic Wire",
+   "date": "2024-06-12T14:00:00Z",
+   "url": "https://news.example/moat/5"
+  },
+  {
+   "title": "What to watch in MOAT this week",
+   "source": "Synthetic Wire",
+   "date": "2024-06-09T14:00:00Z",
+   "url": "https://news.example/moat/6"
+  },
+  {
+   "title": "MOAT names new board member",
+   "source": "Synthetic Wire",
+   "date": "2024-06-06T14:00:00Z",
+   "url": "https://news.example/moat/7"
+  }
+ ]
+}

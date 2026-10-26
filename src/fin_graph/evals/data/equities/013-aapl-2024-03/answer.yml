@@ -1,0 +1,21 @@
+tickers:
+  AAPL:
+    expected_signal: neutral
+    thesis_category: no_edge
+    equivalent_categories:
+    - mixed_signals
+    - unknown
+    forbidden_categories:
+    - deep_value
+    - quality_compounder
+    - garp
+optimal_trajectory:
+- compute_fundamentals
+- compute_valuation
+- compute_technicals
+- compute_sentiment
+- compute_buffett
+- compute_graham
+required_queries:
+- compute_fundamentals
+max_waves: 2

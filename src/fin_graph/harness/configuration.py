@@ -1,4 +1,4 @@
-"""Validate the upstream experiment against the narrower SRE contract."""
+"""Validate the upstream experiment against the narrower fin-graph analysis contract."""
 
 from __future__ import annotations
 
@@ -10,19 +10,25 @@ from better_harness.core import Experiment, load_experiment
 from pydantic import BaseModel, ConfigDict, Field
 
 from fin_graph.harness.dataset import DatasetManifest, load_manifest
-from fin_graph.harness.surfaces import FILE_SURFACES, PROMPT_MODULE, SURFACES, validate_values
+from fin_graph.harness.surfaces import (
+    FILE_SURFACES,
+    PROMPT_MODULE,
+    SURFACES,
+    current_values,
+    validate_values,
+)
 
 
 class EvalOptions(BaseModel):
+    """``[fin]`` budgets; the defaults fit a 3B local model, which needs minutes per case."""
+
     model_config = ConfigDict(extra="forbid", frozen=True, allow_inf_nan=False)
-    repeat: int = Field(default=3, ge=1, le=20)
-    case_timeout: float = Field(default=180, gt=0, le=1800)
-    proposer_timeout: float = Field(default=300, gt=0, le=1800)
-    split_timeout: float = Field(default=3600, gt=0, le=14400)
-    max_case_tokens: int = Field(default=100000, ge=1, le=2000000)
-    max_case_latency: float = Field(default=180, gt=0, le=1800)
-    judge_model: str | None = None
-    min_judge_score: float = Field(default=0.8, ge=0, le=1)
+    repeat: int = Field(default=1, ge=1, le=20)
+    case_timeout: float = Field(default=900, gt=0, le=3600)
+    proposer_timeout: float = Field(default=1800, gt=0, le=7200)
+    split_timeout: float = Field(default=7200, gt=0, le=28800)
+    max_case_tokens: int = Field(default=200000, ge=1, le=2000000)
+    max_case_latency: float = Field(default=600, gt=0, le=3600)
 
 
 @dataclass(frozen=True)
@@ -36,10 +42,15 @@ def validate_config(config: HarnessConfig) -> None:
     experiment = config.experiment
     if experiment.better_agent_deepagents_root is not None:
         raise ValueError("use the installed Deep Agents package for bounded proposer execution")
-    validate_values({name: s.base_value for name, s in experiment.surfaces.items()}, complete=True)
+    baseline = {name: s.base_value for name, s in experiment.surfaces.items()}
+    validate_values(baseline, complete=True)
+    production = current_values()
     for name, surface in experiment.surfaces.items():
         if name in SURFACES:
             expected = ("module_attr", f"{PROMPT_MODULE}:{SURFACES[name]}", f"{name}.txt")
+            # Upstream strips values; the baseline must be what production runs.
+            if surface.base_value != production[name].strip():
+                raise ValueError(f"baseline prompt differs from production: {name}")
         else:
             expected = ("workspace_file", FILE_SURFACES[name], Path(FILE_SURFACES[name]).name)
         if (surface.kind, surface.target, surface.filename) != expected:
@@ -53,16 +64,12 @@ def validate_config(config: HarnessConfig) -> None:
     ):
         raise ValueError("iteration or proposer turn limit outside supported range")
     if experiment.runner != "pytest":
-        raise ValueError("SRE adapter requires a pytest-compatible experiment")
+        raise ValueError("the fin-graph adapter requires a pytest-compatible experiment")
     if Path(experiment.runner_config["project_root"]) != experiment.workspace_root:
         raise ValueError("project_root must equal workspace_root")
     if not (experiment.workspace_root / "pyproject.toml").is_file():
-        raise ValueError("workspace must be an fin-graph source checkout")
-    for model in (experiment.model, experiment.better_agent_model, config.options.judge_model):
-        if model is None:
-            continue
-        if model == "scripted" and config.options.judge_model == model:
-            raise ValueError("reference judge requires a real model")
+        raise ValueError("workspace must be a fin-graph source checkout")
+    for model in (experiment.model, experiment.better_agent_model):
         if model != "scripted" and (":" not in model or not all(model.split(":", 1))):
             raise ValueError("models must use provider:model syntax")
 
@@ -75,7 +82,7 @@ def load_config(
     repeat: int | None = None,
 ) -> HarnessConfig:
     raw = tomllib.loads(path.read_text(encoding="utf-8"))
-    options = dict(raw.get("sre", {}))
+    options = dict(raw.get("fin", {}))
     if repeat is not None:
         options["repeat"] = repeat
     experiment = load_experiment(path, model_override=model)

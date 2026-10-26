@@ -1,0 +1,22 @@
+tickers:
+  THIN:
+    expected_signal: neutral
+    thesis_category: no_edge
+    equivalent_categories:
+    - unknown
+    - momentum
+    forbidden_categories:
+    - deep_value
+    - overvalued
+    - quality_compounder
+optimal_trajectory:
+- compute_fundamentals
+- compute_valuation
+- compute_technicals
+- compute_sentiment
+- compute_buffett
+- compute_graham
+required_queries:
+- compute_valuation
+- compute_fundamentals
+max_waves: 2

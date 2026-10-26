@@ -14,7 +14,7 @@ from better_harness.core import RunLayout, Variant
 
 from fin_graph.harness.surfaces import FILE_SURFACES, SURFACES, validate_values
 
-PROMPTS_FILE = "src/fin_graph/graphs/investigation/prompts.py"
+PROMPTS_FILE = "src/fin_graph/graphs/analysis/prompts.py"
 
 
 def save_source_baseline(workspace: Path, directory: Path) -> None:

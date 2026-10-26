@@ -180,7 +180,16 @@ async def test_one_graph_failure_does_not_abort_other_scenarios(tmp_path, monkey
 def test_eval_cli_run_smoke(tmp_path) -> None:
     command = CliRunner().invoke(
         app,
-        ["eval", "run", "--suite", "smoke", "--model", "scripted", "--output-dir", str(tmp_path)],
+        [
+            "eval",
+            "run",
+            "--suite",
+            "sre:smoke",
+            "--model",
+            "scripted",
+            "--output-dir",
+            str(tmp_path),
+        ],
     )
     assert command.exit_code == 0, command.output
     assert json.loads((tmp_path / "results.json").read_text(encoding="utf-8"))["suite"] == "smoke"

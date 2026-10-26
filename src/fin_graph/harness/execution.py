@@ -16,7 +16,7 @@ from typing import Any
 from better_harness.core import Variant
 
 from fin_graph.harness.configuration import HarnessConfig
-from fin_graph.harness.profile import resolve_profile
+from fin_graph.harness.profile import resolve_analysis_profile
 from fin_graph.harness.surfaces import FILE_SURFACES, SURFACES, validate_values
 from fin_graph.safety.secrets import redact_secrets
 
@@ -34,18 +34,15 @@ def execute_variant(
                 "model": config.experiment.model,
                 "repeat": config.options.repeat,
                 "case_timeout": config.options.case_timeout,
-                "judge_model": config.options.judge_model
-                if config.experiment.model != "scripted"
-                else None,
                 "scenarios": scenarios,
                 "output": str(output),
                 "prompts": {name: variant.values[name] for name in SURFACES},
-                "runtime_limits": asdict(resolve_profile(verify_variant_pin=False).limits),
+                "runtime_limits": asdict(resolve_analysis_profile(verify_variant_pin=False).limits),
             }
         ),
         encoding="utf-8",
     )
-    with TemporaryDirectory(prefix="sre-harness-") as temporary:
+    with TemporaryDirectory(prefix="fin-harness-") as temporary:
         root = Path(temporary)
         shutil.copytree(
             config.experiment.workspace_root / "src/fin_graph",

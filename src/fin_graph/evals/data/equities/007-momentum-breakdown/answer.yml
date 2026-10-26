@@ -1,0 +1,18 @@
+tickers:
+  BRKD:
+    expected_signal: bearish
+    thesis_category: momentum
+    equivalent_categories:
+    - deteriorating_fundamentals
+    - negative_sentiment
+    forbidden_categories:
+    - deep_value
+optimal_trajectory:
+- compute_fundamentals
+- compute_valuation
+- compute_technicals
+- compute_sentiment
+required_queries:
+- compute_valuation
+- compute_fundamentals
+max_waves: 2

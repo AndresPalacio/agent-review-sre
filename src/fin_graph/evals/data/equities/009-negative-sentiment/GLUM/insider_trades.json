@@ -1,0 +1,76 @@
+{
+ "insider_trades": [
+  {
+   "filing_date": "2024-06-21",
+   "transaction_date": "2024-06-21",
+   "name": "Insider 1",
+   "title": "Officer",
+   "transaction_shares": -25000,
+   "transaction_price_per_share": 8.0,
+   "transaction_value": 200000.0
+  },
+  {
+   "filing_date": "2024-06-10",
+   "transaction_date": "2024-06-10",
+   "name": "Insider 2",
+   "title": "Director",
+   "transaction_shares": -25000,
+   "transaction_price_per_share": 8.0,
+   "transaction_value": 200000.0
+  },
+  {
+   "filing_date": "2024-05-30",
+   "transaction_date": "2024-05-30",
+   "name": "Insider 3",
+   "title": "Officer",
+   "transaction_shares": -25000,
+   "transaction_price_per_share": 8.0,
+   "transaction_value": 200000.0
+  },
+  {
+   "filing_date": "2024-05-19",
+   "transaction_date": "2024-05-19",
+   "name": "Insider 4",
+   "title": "Director",
+   "transaction_shares": -25000,
+   "transaction_price_per_share": 8.0,
+   "transaction_value": 200000.0
+  },
+  {
+   "filing_date": "2024-05-08",
+   "transaction_date": "2024-05-08",
+   "name": "Insider 5",
+   "title": "Officer",
+   "transaction_shares": -25000,
+   "transaction_price_per_share": 8.0,
+   "transaction_value": 200000.0
+  },
+  {
+   "filing_date": "2024-04-27",
+   "transaction_date": "2024-04-27",
+   "name": "Insider 6",
+   "title": "Director",
+   "transaction_shares": -25000,
+   "transaction_price_per_share": 8.0,
+   "transaction_value": 200000.0
+  },
+  {
+   "filing_date": "2024-04-16",
+   "transaction_date": "2024-04-16",
+   "name": "Insider 7",
+   "title": "Officer",
+   "transaction_shares": -25000,
+   "transaction_price_per_share": 8.0,
+   "transaction_value": 200000.0
+  },
+  {
+   "filing_date": "2024-04-05",
+   "transaction_date": "2024-04-05",
+   "name": "Insider 8",
+   "title": "Director",
+   "transaction_shares": -25000,
+   "transaction_price_per_share": 8.0,
+   "transaction_value": 200000.0
+  }
+ ]
+}

@@ -1,0 +1,12 @@
+scenario_id: 008-insider-selling-red-herring
+description: 'Deep value despite heavy insider selling: the sales must not flip the
+  thesis.'
+tickers:
+- SOLD
+as_of: '2024-06-28'
+horizon: medium
+question: ''
+scenario_difficulty: 2
+adversarial_signals:
+- insider_selling
+synthetic: true

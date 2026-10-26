@@ -1,0 +1,10 @@
+scenario_id: 004-deteriorating-fundamentals
+description: Shrinking revenue and margins year after year.
+tickers:
+- FADE
+as_of: '2024-06-28'
+horizon: medium
+question: ''
+scenario_difficulty: 1
+adversarial_signals: []
+synthetic: true

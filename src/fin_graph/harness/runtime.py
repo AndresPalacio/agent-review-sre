@@ -171,10 +171,11 @@ def make_analysis_graph(
     orders_today: Callable[[], Awaitable[int]] | None = None,
     trace: ExecutionTrace | None = None,
     settings: Settings | None = None,
+    verify_variant_pin: bool = True,
 ) -> CompiledStateGraph[Any, Any, Any, Any]:
     """The analysis graph wrapped in the harness: traced model steps and pinned budgets."""
     active = settings or Settings()
-    profile = resolve_analysis_profile(limits=limits)
+    profile = resolve_analysis_profile(limits=limits, verify_variant_pin=verify_variant_pin)
     assert isinstance(profile.limits, AnalysisLimits)
     return _compile_analysis_graph(
         observe_analysis_services(services),

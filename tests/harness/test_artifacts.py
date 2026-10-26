@@ -15,7 +15,7 @@ def make_run(tmp_path):
     from fin_graph.harness.artifacts import save_source_baseline
     from fin_graph.harness.configuration import load_config
 
-    config = load_config(Path(__file__).resolve().parents[2] / "harness/sre.toml", model="scripted")
+    config = load_config(Path(__file__).resolve().parents[2] / "harness/fin.toml", model="scripted")
     layout = RunLayout(tmp_path / "run")
     layout.root.mkdir()
     save_source_baseline(config.experiment.workspace_root, layout.root)
@@ -24,7 +24,7 @@ def make_run(tmp_path):
         experiment=config.experiment,
         label="iter-001",
         values=baseline.values
-        | {"skills": "Inspect evidence chronology.\n", "plan": "Check chronology."},
+        | {"skills": "Compare the price with the Graham Number.\n", "plan": "Check the gap."},
     )
     baseline.save(layout.variant_path(baseline.key))
     candidate.save(layout.variant_path(candidate.key))
@@ -43,15 +43,17 @@ def test_export_contains_reviewable_files_diff_and_qualification(tmp_path):
     result = export_variant(run, destination)
     assert result["promotable"] is False
     assert (
-        destination / "src/fin_graph/graphs/investigation/strategy/skills.md"
-    ).read_text() == "Inspect evidence chronology.\n"
-    assert "+Inspect evidence chronology." in (destination / "changes.diff").read_text()
-    assert (destination / "src/fin_graph/graphs/investigation/prompts.py").is_file()
+        destination / "src/fin_graph/graphs/analysis/strategy/skills.md"
+    ).read_text() == "Compare the price with the Graham Number.\n"
+    diff = (destination / "changes.diff").read_text()
+    assert "+Compare the price with the Graham Number." in diff
+    prompts = (destination / "src/fin_graph/graphs/analysis/prompts.py").read_text()
+    assert "PLAN_PROMPT = 'Check the gap.'" in prompts and "EXTRACT_PROMPT = (" in prompts
     import hashlib
 
     for relative, digest in result["files"].items():
         assert hashlib.sha256((destination / relative).read_bytes()).hexdigest() == digest
-    tools = "src/fin_graph/graphs/investigation/strategy/tools.py"
+    tools = "src/fin_graph/graphs/analysis/strategy/tools.py"
     assert (destination / tools).read_bytes() == (run / "source-baseline" / tools).read_bytes()
     with pytest.raises(FileExistsError):
         export_variant(run, destination)
@@ -94,6 +96,7 @@ def test_cli_exposes_contracts_inspection_and_export():
     cli = CliRunner()
     help_text = cli.invoke(app, ["harness", "--help"]).output
     assert "inspect" in help_text and "export" in help_text and "contract" in help_text
-    result = cli.invoke(app, ["harness", "contract", "eks/002-image-pull-backoff"])
+    result = cli.invoke(app, ["harness", "contract", "equities/012-two-tickers"])
     assert result.exit_code == 0, result.output
-    assert "specialist_kubernetes" in result.output and "k8s_list_events" in result.output
+    assert "analyst_valuation" in result.output and "compute_valuation" in result.output
+    assert cli.invoke(app, ["harness", "contract", "eks/002-image-pull-backoff"]).exit_code == 2

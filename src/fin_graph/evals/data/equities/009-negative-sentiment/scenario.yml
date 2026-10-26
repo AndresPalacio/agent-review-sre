@@ -1,0 +1,10 @@
+scenario_id: 009-negative-sentiment
+description: Average fundamentals, a stream of negative headlines and insider sales.
+tickers:
+- GLUM
+as_of: '2024-06-28'
+horizon: medium
+question: ''
+scenario_difficulty: 1
+adversarial_signals: []
+synthetic: true

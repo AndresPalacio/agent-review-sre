@@ -1,0 +1,11 @@
+scenario_id: 010-missing-data
+description: 'No statements and no ratios: the analysis must say so, not guess.'
+tickers:
+- THIN
+as_of: '2024-06-28'
+horizon: medium
+question: ''
+scenario_difficulty: 2
+adversarial_signals:
+- missing_fundamentals
+synthetic: true

@@ -3,37 +3,45 @@ from __future__ import annotations
 import asyncio
 from uuid import uuid4
 
-from fin_graph.evals.runner import run_suite
-from fin_graph.evals.scenarios import load_suite
+from fin_graph.evals.market.runner import run_equity_suite
+from fin_graph.evals.market.scenarios import load_equity_suite
 
 
 async def test_scripted_run_records_actual_delegation_tools_and_parentage(tmp_path):
-    result = await run_suite("one", "scripted", 1, tmp_path, scenarios=load_suite("smoke")[:1])
+    result = await run_equity_suite(
+        "one", "scripted", 1, tmp_path, scenarios=load_equity_suite("smoke")[:1]
+    )
     trace = result["runs"][0]["trace"]
     assert [event["elapsed"] for event in trace] == sorted(event["elapsed"] for event in trace)
     agents = [event for event in trace if event["kind"] == "agent_start"]
     assert {event["name"] for event in agents} >= {
         "planner",
-        "specialist_kubernetes",
+        "analyst_fundamentals",
         "synthesizer",
     }
     tool = next(event for event in trace if event["kind"] == "tool_start")
-    assert tool["name"] == "k8s_list_pods"
-    assert tool["args"]["namespace"]
-    assert tool["parent"] in {a["call_id"] for a in agents if a["name"] == "specialist_kubernetes"}
+    assert tool["name"].startswith("compute_")
+    assert tool["args"]["ticker"] == "DEEP"
+    owner = next(agent for agent in agents if agent["call_id"] == tool["parent"])
+    assert owner["name"].startswith("analyst_")
     assert any(e["kind"] == "tool_end" and e["call_id"] == tool["call_id"] for e in trace)
-    assert (tmp_path / "traces" / "eks--000-healthy--1.json").is_file()
+    assert (tmp_path / "traces" / "equities--001-deep-value--1.json").is_file()
 
 
 async def test_failed_run_keeps_partial_trace(tmp_path, monkeypatch):
-    import fin_graph.evals.runner as runner
+    from fin_graph.graphs.analysis.services import UnavailableAnalysisServices
 
     async def slow(*args, **kwargs):
         await asyncio.sleep(10)
 
-    monkeypatch.setattr(runner.ScriptedServices, "plan", slow)
-    result = await run_suite(
-        "one", "scripted", 1, tmp_path, scenarios=load_suite("smoke")[:1], case_timeout=0.1
+    monkeypatch.setattr(UnavailableAnalysisServices, "plan", slow)
+    result = await run_equity_suite(
+        "one",
+        "scripted",
+        1,
+        tmp_path,
+        scenarios=load_equity_suite("smoke")[:1],
+        case_timeout=0.1,
     )
     record = result["runs"][0]
     assert record["status"] == "failed"
@@ -41,7 +49,7 @@ async def test_failed_run_keeps_partial_trace(tmp_path, monkeypatch):
 
 
 async def test_concurrent_scopes_are_not_mixed_and_secrets_are_redacted():
-    from fin_graph.evals.trace import ExecutionTrace
+    from fin_graph.harness.trace import ExecutionTrace
 
     trace = ExecutionTrace()
 
@@ -56,17 +64,20 @@ async def test_concurrent_scopes_are_not_mixed_and_secrets_are_redacted():
 
         await trace.agent(name, action)
 
-    await asyncio.gather(run("specialist_cloud"), run("specialist_metrics"))
+    await asyncio.gather(run("analyst_valuation"), run("analyst_fundamentals"))
     starts = {e["call_id"]: e["name"] for e in trace.events if e["kind"] == "agent_start"}
     tools = [e for e in trace.events if e["kind"] == "tool_start"]
-    assert {starts[e["parent"]] for e in tools} == {"specialist_cloud", "specialist_metrics"}
+    assert {starts[e["parent"]] for e in tools} == {
+        "analyst_valuation",
+        "analyst_fundamentals",
+    }
     assert "secret-value" not in str(trace.events)
 
 
 def test_tool_error_message_counts_as_failed_execution():
     from langchain_core.messages import ToolMessage
 
-    from fin_graph.evals.trace import ExecutionTrace
+    from fin_graph.harness.trace import ExecutionTrace
 
     trace = ExecutionTrace()
     call_id = uuid4()
@@ -77,8 +88,8 @@ def test_tool_error_message_counts_as_failed_execution():
     assert trace.events[-1]["status"] == "error"
 
 
-def test_observed_services_only_wrap_investigation_methods():
-    from fin_graph.harness.trace import observe_services
+def test_observed_services_only_wrap_analysis_methods():
+    from fin_graph.harness.trace import observe_analysis_services
 
     class Services:
         models = ("worker", "fixture")
@@ -86,7 +97,7 @@ def test_observed_services_only_wrap_investigation_methods():
         async def plan(self, *args):
             return "plan"
 
-    observed = observe_services(Services())  # type: ignore[arg-type]
+    observed = observe_analysis_services(Services())
     assert observed.models == ("worker", "fixture")  # type: ignore[attr-defined]
-    assert not hasattr(observed, "synthesize_with_context")
+    assert not hasattr(observed, "decide")
     assert asyncio.iscoroutinefunction(observed.plan)

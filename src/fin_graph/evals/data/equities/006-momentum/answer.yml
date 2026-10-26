@@ -1,0 +1,18 @@
+tickers:
+  RUNR:
+    expected_signal: bullish
+    thesis_category: momentum
+    equivalent_categories:
+    - garp
+    forbidden_categories:
+    - balance_sheet_risk
+    - negative_sentiment
+optimal_trajectory:
+- compute_fundamentals
+- compute_valuation
+- compute_technicals
+- compute_sentiment
+required_queries:
+- compute_valuation
+- compute_fundamentals
+max_waves: 2

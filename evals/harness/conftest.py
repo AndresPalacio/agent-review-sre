@@ -8,8 +8,8 @@ from pathlib import Path
 
 import pytest
 
-from fin_graph.evals.runner import run_suite
-from fin_graph.evals.scenarios import load_scenario
+from fin_graph.evals.market.runner import run_equity_suite
+from fin_graph.evals.market.scenarios import load_equity_case
 from fin_graph.harness.configuration import load_config
 from fin_graph.harness.quality import assess_record
 
@@ -24,7 +24,7 @@ def pytest_runtest_makereport(item, call):
 
 
 @pytest.fixture
-def evaluate_rca(request, tmp_path):
+def evaluate_analysis(request, tmp_path):
     async def evaluate(key: str):
         model = request.config.getoption("--harness-model")
         options = load_config(
@@ -33,20 +33,21 @@ def evaluate_rca(request, tmp_path):
             repeat=request.config.getoption("--harness-repeat"),
         ).options
         repeat = 1 if model == "scripted" else options.repeat
-        result = await run_suite(
+        result = await run_equity_suite(
             "harness-case",
             model,
             repeat,
             tmp_path,
-            scenarios=[load_scenario(*key.split("/", 1))],
+            scenarios=[load_equity_case(key)],
             case_timeout=options.case_timeout,
-            judge_model=options.judge_model if model != "scripted" else None,
         )
         destination = request.config.getoption("--evals-report-file")
         if destination:
             path = Path(destination)
             await asyncio.to_thread(path.parent.mkdir, parents=True, exist_ok=True)
-            await asyncio.to_thread(path.write_text, json.dumps(result, indent=2), encoding="utf-8")
+            await asyncio.to_thread(
+                path.write_text, json.dumps(result, indent=2, default=str), encoding="utf-8"
+            )
         assert all(
             r["status"] == "completed" and not r.get("graph_errors") for r in result["runs"]
         ), result
@@ -56,7 +57,6 @@ def evaluate_rca(request, tmp_path):
                     record,
                     max_latency=options.max_case_latency,
                     max_tokens=options.max_case_tokens,
-                    min_judge_score=options.min_judge_score if options.judge_model else None,
                 )
                 for record in result["runs"]
             ]
