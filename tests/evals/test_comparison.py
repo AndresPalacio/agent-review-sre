@@ -2,7 +2,7 @@ import copy
 
 import pytest
 
-from sre_graph.evals.comparison import compare_results
+from fin_graph.evals.comparison import compare_results
 
 
 def result():

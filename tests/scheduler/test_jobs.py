@@ -5,8 +5,8 @@ from typing import Any
 
 import pytest
 
-from sre_graph.integrations.context import RunContext
-from sre_graph.scheduler.jobs import HealthJobs
+from fin_graph.integrations.context import RunContext
+from fin_graph.scheduler.jobs import HealthJobs
 
 
 class Probe:

@@ -5,10 +5,10 @@ from typing import Any
 
 from typer.testing import CliRunner
 
-from sre_graph.domain.alerts.parsing import text_alert
-from sre_graph.domain.diagnosis import unknown_diagnosis
-from sre_graph.domain.report import build_report
-from sre_graph.integrations.context import RunContext
+from fin_graph.domain.alerts.parsing import text_alert
+from fin_graph.domain.diagnosis import unknown_diagnosis
+from fin_graph.domain.report import build_report
+from fin_graph.integrations.context import RunContext
 
 
 class FakeGraph:
@@ -24,7 +24,7 @@ class FakeGraph:
 
 
 def test_cli_investigate_text_streams_progress_and_renders_report(monkeypatch: Any) -> None:
-    from sre_graph.cli import main
+    from fin_graph.cli import main
 
     graph = FakeGraph()
     monkeypatch.setattr(main, "make_runtime", lambda: (graph, RunContext()))
@@ -37,7 +37,7 @@ def test_cli_investigate_text_streams_progress_and_renders_report(monkeypatch: A
 
 
 def test_cli_file_and_text_flags_are_exclusive(tmp_path: Path, monkeypatch: Any) -> None:
-    from sre_graph.cli import main
+    from fin_graph.cli import main
 
     graph = FakeGraph()
     monkeypatch.setattr(main, "make_runtime", lambda: (graph, RunContext()))

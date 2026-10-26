@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import pytest
 
-from sre_graph.domain.taxonomy import (
+from fin_graph.domain.taxonomy import (
     CATEGORIES,
     CATEGORY_NAMES,
     HEALTHY,

@@ -4,7 +4,7 @@ from typing import Any
 
 import pytest
 
-from sre_graph.scheduler.delivery import UncertainDelivery, send_digest_text
+from fin_graph.scheduler.delivery import UncertainDelivery, send_digest_text
 
 
 class Client:

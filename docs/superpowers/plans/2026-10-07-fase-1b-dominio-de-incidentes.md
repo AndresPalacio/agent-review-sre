@@ -23,7 +23,7 @@
 
 **Tech Stack:** lo de las Fases 0 y 1a (Python 3.12, uv, pydantic 2.13, pytest 9, ruff 0.16, mypy 2.4 `strict`, import-linter 2.15). Sin dependencias nuevas.
 
-**Spec:** `docs/specs/2026-10-07-sre-graph-design.md`
+**Spec:** `docs/specs/2026-10-07-fin-graph-design.md`
 
 > **Alcance:** es el plan 1b de la Fase 1. El 1a (seguridad, marco de integraciones, Kubernetes) ya está en `main`. El 1c (observabilidad) y el 1d (nube, errores, cambios, entrega, MCP) vienen después. Los nodos del grafo que usan este dominio llegan en la Fase 2.
 >
@@ -35,13 +35,13 @@
 
 - **Lenguaje y versiones:** Python 3.12 (`requires-python = ">=3.12,<3.13"`) y versiones fijadas en `uv.lock`. Este plan no agrega dependencias.
 - **Sin opensre:** cero dependencia (ni import ni paquete); lo portado se reescribe y se atribuye en `NOTICE`.
-- **Capas:** todo el código nuevo vive en `sre_graph.domain` (`graphs → agents → integrations → safety → domain → llm | persistence → config`, contrato de import-linter). `domain` no importa `safety`, `integrations` ni nada más alto.
+- **Capas:** todo el código nuevo vive en `fin_graph.domain` (`graphs → agents → integrations → safety → domain → llm | persistence → config`, contrato de import-linter). `domain` no importa `safety`, `integrations` ni nada más alto.
 - **Estado serializable:** los modelos se guardan en el estado del grafo con `model_dump(mode="json")` y se reconstruyen con `model_validate`. Los timestamps son UTC con zona horaria.
 - **Secretos:** el dominio no redacta, porque está por debajo de `safety`. Quien lo usa (intake en la Fase 2, entrega en 1d) redacta antes de guardar o enviar.
 - **Gate de calidad** al cerrar cada tarea: `uv run ruff check . && uv run ruff format --check . && uv run mypy && uv run lint-imports && uv run pytest`.
 - **Idioma:** prosa de documentos en español; código, identificadores y docstrings en inglés.
 - **Repo:**
-  - `C:\Users\USUARIO\Desktop\devops-telemetri\sre-graph`, rama de trabajo `fase-1b` creada desde `main`.
+  - `C:\Users\USUARIO\Desktop\devops-telemetri\fin-graph`, rama de trabajo `fase-1b` creada desde `main`.
   - Todo local: sin remoto y sin push.
 - **Commits:** cada commit termina con el trailer `Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>`.
 
@@ -100,19 +100,19 @@ Cada decisión dice qué cuesta si resulta equivocada.
 
 | Archivo | Responsabilidad |
 |---|---|
-| `src/sre_graph/domain/alerts/model.py` | `AlertSource`, `Severity`, `AlertStatus`, `AlertParseError`, `NormalizedAlert` y helpers de texto, severidad, estado, tiempo, identidad y fingerprint |
-| `src/sre_graph/domain/alerts/sources.py` | Un parser por fuente |
-| `src/sre_graph/domain/alerts/parsing.py` | `detect_source`, `parse_alert`, `text_alert`, `PARSERS` |
-| `src/sre_graph/domain/alerts/noise.py` | `is_trivial_message`, `AlertExtraction`, `alert_from_extraction` |
-| `src/sre_graph/domain/window.py` | `IncidentWindow`, `resolve_window` |
-| `src/sre_graph/domain/taxonomy.py` | `CategoryGroup`, `RootCauseCategory`, `CATEGORIES`, `normalize_category`, `render_taxonomy`, `category_text_mismatch` |
-| `src/sre_graph/domain/evidence.py` | `EvidenceItem`, `evidence_id`, `merge_evidence` |
-| `src/sre_graph/domain/investigation.py` | `Hypothesis`, `SpecialistTask`, `InvestigationPlan`, `Verdict`, `SpecialistFinding`, `constrain_plan`, `fallback_plan` |
-| `src/sre_graph/domain/diagnosis.py` | `Diagnosis` (incident-command), `diagnosis_schema`, `unknown_diagnosis` |
-| `src/sre_graph/domain/verification.py` | `check_claim`, `missing_sections`, `is_clearly_healthy`, `verify_diagnosis` |
-| `src/sre_graph/domain/remediation.py`, `remediation_templates.py` | `RemediationAction`, `order_actions`, `template_steps`, `TEMPLATES` |
-| `src/sre_graph/domain/report.py` | `Report`, `ReportClaim`, `build_report` |
-| `src/sre_graph/domain/rendering/` | `render_markdown`, `render_slack`, `render_telegram`, `render_pagerduty_note` |
+| `src/fin_graph/domain/alerts/model.py` | `AlertSource`, `Severity`, `AlertStatus`, `AlertParseError`, `NormalizedAlert` y helpers de texto, severidad, estado, tiempo, identidad y fingerprint |
+| `src/fin_graph/domain/alerts/sources.py` | Un parser por fuente |
+| `src/fin_graph/domain/alerts/parsing.py` | `detect_source`, `parse_alert`, `text_alert`, `PARSERS` |
+| `src/fin_graph/domain/alerts/noise.py` | `is_trivial_message`, `AlertExtraction`, `alert_from_extraction` |
+| `src/fin_graph/domain/window.py` | `IncidentWindow`, `resolve_window` |
+| `src/fin_graph/domain/taxonomy.py` | `CategoryGroup`, `RootCauseCategory`, `CATEGORIES`, `normalize_category`, `render_taxonomy`, `category_text_mismatch` |
+| `src/fin_graph/domain/evidence.py` | `EvidenceItem`, `evidence_id`, `merge_evidence` |
+| `src/fin_graph/domain/investigation.py` | `Hypothesis`, `SpecialistTask`, `InvestigationPlan`, `Verdict`, `SpecialistFinding`, `constrain_plan`, `fallback_plan` |
+| `src/fin_graph/domain/diagnosis.py` | `Diagnosis` (incident-command), `diagnosis_schema`, `unknown_diagnosis` |
+| `src/fin_graph/domain/verification.py` | `check_claim`, `missing_sections`, `is_clearly_healthy`, `verify_diagnosis` |
+| `src/fin_graph/domain/remediation.py`, `remediation_templates.py` | `RemediationAction`, `order_actions`, `template_steps`, `TEMPLATES` |
+| `src/fin_graph/domain/report.py` | `Report`, `ReportClaim`, `build_report` |
+| `src/fin_graph/domain/rendering/` | `render_markdown`, `render_slack`, `render_telegram`, `render_pagerduty_note` |
 | `tests/domain/**` | Un archivo de test por módulo; `tests/domain/conftest.py` trae el incidente de ejemplo (alerta, evidencia, diagnóstico) |
 
 ---
@@ -122,7 +122,7 @@ Cada decisión dice qué cuesta si resulta equivocada.
 Todas las tareas cierran con el mismo gate. En Git Bash cada comando se escribe completo, porque las variables exportadas no sobreviven entre llamadas del agente:
 
 ```bash
-uv run ruff check . && uv run ruff format --check . && uv run mypy && uv run lint-imports && SRE_GRAPH_TEST_DATABASE_URL="postgresql://sre_graph:sre_graph@localhost:5433/sre_graph?connect_timeout=5" SRE_GRAPH_REQUIRE_POSTGRES=1 uv run pytest
+uv run ruff check . && uv run ruff format --check . && uv run mypy && uv run lint-imports && FIN_GRAPH_TEST_DATABASE_URL="postgresql://fin_graph:fin_graph@localhost:5433/fin_graph?connect_timeout=5" FIN_GRAPH_REQUIRE_POSTGRES=1 uv run pytest
 ```
 
 ---
@@ -138,7 +138,7 @@ uv run ruff check . && uv run ruff format --check . && uv run mypy && uv run lin
 - fingerprints estables para deduplicar.
 
 **Files:**
-- Create: `src/sre_graph/domain/alerts/__init__.py`, `src/sre_graph/domain/alerts/model.py`
+- Create: `src/fin_graph/domain/alerts/__init__.py`, `src/fin_graph/domain/alerts/model.py`
 - Test: `tests/domain/alerts/test_model.py`
 
 **Interfaces:**
@@ -166,20 +166,20 @@ uv run ruff check . && uv run ruff format --check . && uv run mypy && uv run lin
 - [ ] **Step 1: Rama y línea base**
 
 ```bash
-cd /c/Users/USUARIO/Desktop/devops-telemetri/sre-graph
+cd /c/Users/USUARIO/Desktop/devops-telemetri/fin-graph
 git status --short
 git checkout -b fase-1b
 git add docs/superpowers/plans/2026-10-07-fase-1b-dominio-de-incidentes.md
 git commit -m "docs: add phase 1b implementation plan" -m "Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
 docker compose up -d --wait
 uv sync --locked
-SRE_GRAPH_TEST_DATABASE_URL="postgresql://sre_graph:sre_graph@localhost:5433/sre_graph?connect_timeout=5" uv run pytest
+FIN_GRAPH_TEST_DATABASE_URL="postgresql://fin_graph:fin_graph@localhost:5433/fin_graph?connect_timeout=5" uv run pytest
 ```
 
 Expected:
 - `git status --short` muestra `?? docs/superpowers/plans/2026-10-07-fase-1b-dominio-de-incidentes.md`; si el repo se abrió en un IDE de JetBrains, también `?? .idea/`, que no se agrega.
 - Aparece `Switched to a new branch 'fase-1b'` y el commit del plan.
-- `sre-graph-postgres-1` queda `Healthy`.
+- `fin-graph-postgres-1` queda `Healthy`.
 - pytest termina con `240 passed`.
 
 - [ ] **Step 2: Test que falla**
@@ -193,7 +193,7 @@ from datetime import UTC, datetime
 
 import pytest
 
-from sre_graph.domain.alerts.model import (
+from fin_graph.domain.alerts.model import (
     AlertSource,
     AlertStatus,
     Severity,
@@ -302,17 +302,17 @@ def test_fingerprints_are_stable_and_source_specific() -> None:
 
 Run: `uv run pytest tests/domain/alerts/test_model.py -v`
 
-Expected: `1 error` durante la colección, con `ModuleNotFoundError: No module named 'sre_graph.domain.alerts'`.
+Expected: `1 error` durante la colección, con `ModuleNotFoundError: No module named 'fin_graph.domain.alerts'`.
 
 - [ ] **Step 4: Implementación**
 
-`src/sre_graph/domain/alerts/__init__.py`:
+`src/fin_graph/domain/alerts/__init__.py`:
 
 ```python
 """Alerts from every source in one shape, and the gate that tells chat from alerts."""
 ```
 
-`src/sre_graph/domain/alerts/model.py`:
+`src/fin_graph/domain/alerts/model.py`:
 
 ```python
 """The normalized alert every intake path produces, whatever system fired it."""
@@ -565,7 +565,7 @@ Expected: `30 passed`.
 - [ ] **Step 6: Gate**
 
 ```bash
-uv run ruff check . && uv run ruff format --check . && uv run mypy && uv run lint-imports && SRE_GRAPH_TEST_DATABASE_URL="postgresql://sre_graph:sre_graph@localhost:5433/sre_graph?connect_timeout=5" SRE_GRAPH_REQUIRE_POSTGRES=1 uv run pytest
+uv run ruff check . && uv run ruff format --check . && uv run mypy && uv run lint-imports && FIN_GRAPH_TEST_DATABASE_URL="postgresql://fin_graph:fin_graph@localhost:5433/fin_graph?connect_timeout=5" FIN_GRAPH_REQUIRE_POSTGRES=1 uv run pytest
 ```
 
 Expected: todo en verde y `270 passed`.
@@ -573,7 +573,7 @@ Expected: todo en verde y `270 passed`.
 - [ ] **Step 7: Commit**
 
 ```bash
-git add src/sre_graph/domain/alerts tests/domain/alerts/test_model.py
+git add src/fin_graph/domain/alerts tests/domain/alerts/test_model.py
 git commit -m "feat(domain): normalized alert model with severity, status, time and identity helpers" -m "Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
 ```
 
@@ -584,7 +584,7 @@ git commit -m "feat(domain): normalized alert model with severity, status, time 
 Un parser determinista por fuente. Cada uno lee los campos reales del webhook de esa fuente y devuelve un `NormalizedAlert`, o lanza `AlertParseError` si el payload no tiene su forma. El genérico entiende además la forma canónica de opensre que usan los escenarios de evaluación.
 
 **Files:**
-- Create: `src/sre_graph/domain/alerts/sources.py`
+- Create: `src/fin_graph/domain/alerts/sources.py`
 - Test: `tests/domain/alerts/test_sources.py`
 
 **Interfaces:**
@@ -612,8 +612,8 @@ from typing import Any
 
 import pytest
 
-from sre_graph.domain.alerts.model import AlertParseError, AlertSource, AlertStatus, Severity
-from sre_graph.domain.alerts.sources import (
+from fin_graph.domain.alerts.model import AlertParseError, AlertSource, AlertStatus, Severity
+from fin_graph.domain.alerts.sources import (
     parse_alertmanager,
     parse_cloudwatch,
     parse_datadog,
@@ -632,7 +632,7 @@ def _alertmanager(status: str = "firing") -> dict[str, Any]:
         "version": "4",
         "groupKey": '{}:{alertname="KubePodCrashLooping"}',
         "status": status,
-        "receiver": "sre-graph",
+        "receiver": "fin-graph",
         "groupLabels": {"alertname": "KubePodCrashLooping"},
         "commonLabels": {
             "alertname": "KubePodCrashLooping",
@@ -703,7 +703,7 @@ def test_an_alertmanager_payload_without_alerts_is_rejected() -> None:
 
 def test_a_grafana_webhook_strips_the_status_prefix_and_links_the_panel() -> None:
     payload = {
-        "receiver": "sre-graph",
+        "receiver": "fin-graph",
         "status": "firing",
         "orgId": 1,
         "title": "[FIRING:1] HighLatency (checkout)",
@@ -1035,11 +1035,11 @@ def test_a_cloudwatch_alarm_delivered_by_eventbridge_is_read() -> None:
 
 Run: `uv run pytest tests/domain/alerts/test_sources.py -v`
 
-Expected: `1 error` durante la colección, con `ModuleNotFoundError: No module named 'sre_graph.domain.alerts.sources'`.
+Expected: `1 error` durante la colección, con `ModuleNotFoundError: No module named 'fin_graph.domain.alerts.sources'`.
 
 - [ ] **Step 3: Implementación**
 
-`src/sre_graph/domain/alerts/sources.py`:
+`src/fin_graph/domain/alerts/sources.py`:
 
 ```python
 """One deterministic parser per alert source; each returns a NormalizedAlert or raises."""
@@ -1051,7 +1051,7 @@ import re
 from collections.abc import Mapping
 from typing import Any
 
-from sre_graph.domain.alerts.model import (
+from fin_graph.domain.alerts.model import (
     AlertParseError,
     AlertSource,
     AlertStatus,
@@ -1496,7 +1496,7 @@ Expected: `20 passed`.
 - [ ] **Step 5: Gate**
 
 ```bash
-uv run ruff check . && uv run ruff format --check . && uv run mypy && uv run lint-imports && SRE_GRAPH_TEST_DATABASE_URL="postgresql://sre_graph:sre_graph@localhost:5433/sre_graph?connect_timeout=5" SRE_GRAPH_REQUIRE_POSTGRES=1 uv run pytest
+uv run ruff check . && uv run ruff format --check . && uv run mypy && uv run lint-imports && FIN_GRAPH_TEST_DATABASE_URL="postgresql://fin_graph:fin_graph@localhost:5433/fin_graph?connect_timeout=5" FIN_GRAPH_REQUIRE_POSTGRES=1 uv run pytest
 ```
 
 Expected: todo en verde y `290 passed`.
@@ -1504,7 +1504,7 @@ Expected: todo en verde y `290 passed`.
 - [ ] **Step 6: Commit**
 
 ```bash
-git add src/sre_graph/domain/alerts/sources.py tests/domain/alerts/test_sources.py
+git add src/fin_graph/domain/alerts/sources.py tests/domain/alerts/test_sources.py
 git commit -m "feat(domain): deterministic alert parsers for eight sources" -m "Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
 ```
 
@@ -1520,7 +1520,7 @@ git commit -m "feat(domain): deterministic alert parsers for eight sources" -m "
 La compuerta descarta lo trivial (vacío, emoji, acuses y saludos de una palabra). Todo lo demás lo decide el modelo del intake de la Fase 2 con `AlertExtraction`.
 
 **Files:**
-- Create: `src/sre_graph/domain/alerts/parsing.py`, `src/sre_graph/domain/alerts/noise.py`
+- Create: `src/fin_graph/domain/alerts/parsing.py`, `src/fin_graph/domain/alerts/noise.py`
 - Test: `tests/domain/alerts/test_parsing.py`, `tests/domain/alerts/test_noise.py`
 
 **Interfaces:**
@@ -1548,8 +1548,8 @@ from typing import Any
 
 import pytest
 
-from sre_graph.domain.alerts.model import AlertParseError, AlertSource
-from sre_graph.domain.alerts.parsing import detect_source, parse_alert, text_alert
+from fin_graph.domain.alerts.model import AlertParseError, AlertSource
+from fin_graph.domain.alerts.parsing import detect_source, parse_alert, text_alert
 
 
 @pytest.mark.parametrize(
@@ -1632,8 +1632,8 @@ from __future__ import annotations
 
 import pytest
 
-from sre_graph.domain.alerts.model import AlertSource, Severity
-from sre_graph.domain.alerts.noise import AlertExtraction, alert_from_extraction, is_trivial_message
+from fin_graph.domain.alerts.model import AlertSource, Severity
+from fin_graph.domain.alerts.noise import AlertExtraction, alert_from_extraction, is_trivial_message
 
 
 @pytest.mark.parametrize(
@@ -1686,11 +1686,11 @@ def test_an_extraction_without_a_name_is_titled_by_the_message() -> None:
 
 Run: `uv run pytest tests/domain/alerts/test_parsing.py tests/domain/alerts/test_noise.py -v`
 
-Expected: `2 errors` durante la colección, con `No module named 'sre_graph.domain.alerts.parsing'` y `No module named 'sre_graph.domain.alerts.noise'`.
+Expected: `2 errors` durante la colección, con `No module named 'fin_graph.domain.alerts.parsing'` y `No module named 'fin_graph.domain.alerts.noise'`.
 
 - [ ] **Step 3: Implementación**
 
-`src/sre_graph/domain/alerts/parsing.py`:
+`src/fin_graph/domain/alerts/parsing.py`:
 
 ```python
 """Turn any alert payload into a NormalizedAlert: detect the source, then parse it."""
@@ -1701,14 +1701,14 @@ import json
 from collections.abc import Callable, Mapping
 from typing import Any
 
-from sre_graph.domain.alerts.model import (
+from fin_graph.domain.alerts.model import (
     AlertParseError,
     AlertSource,
     NormalizedAlert,
     clean_text,
     fingerprint,
 )
-from sre_graph.domain.alerts.sources import (
+from fin_graph.domain.alerts.sources import (
     parse_alertmanager,
     parse_cloudwatch,
     parse_datadog,
@@ -1822,7 +1822,7 @@ def _json_object(text: str) -> dict[str, Any] | None:
     return decoded if isinstance(decoded, dict) else None
 ```
 
-`src/sre_graph/domain/alerts/noise.py`:
+`src/fin_graph/domain/alerts/noise.py`:
 
 ```python
 """Separate chat from alerts: a deterministic gate, then the schema the intake model fills."""
@@ -1834,7 +1834,7 @@ from datetime import datetime
 
 from pydantic import BaseModel, Field
 
-from sre_graph.domain.alerts.model import (
+from fin_graph.domain.alerts.model import (
     AlertSource,
     NormalizedAlert,
     Severity,
@@ -1917,7 +1917,7 @@ Expected: `33 passed`.
 - [ ] **Step 5: Gate**
 
 ```bash
-uv run ruff check . && uv run ruff format --check . && uv run mypy && uv run lint-imports && SRE_GRAPH_TEST_DATABASE_URL="postgresql://sre_graph:sre_graph@localhost:5433/sre_graph?connect_timeout=5" SRE_GRAPH_REQUIRE_POSTGRES=1 uv run pytest
+uv run ruff check . && uv run ruff format --check . && uv run mypy && uv run lint-imports && FIN_GRAPH_TEST_DATABASE_URL="postgresql://fin_graph:fin_graph@localhost:5433/fin_graph?connect_timeout=5" FIN_GRAPH_REQUIRE_POSTGRES=1 uv run pytest
 ```
 
 Expected: todo en verde y `323 passed`.
@@ -1925,7 +1925,7 @@ Expected: todo en verde y `323 passed`.
 - [ ] **Step 6: Commit**
 
 ```bash
-git add src/sre_graph/domain/alerts/parsing.py src/sre_graph/domain/alerts/noise.py tests/domain/alerts/test_parsing.py tests/domain/alerts/test_noise.py
+git add src/fin_graph/domain/alerts/parsing.py src/fin_graph/domain/alerts/noise.py tests/domain/alerts/test_parsing.py tests/domain/alerts/test_noise.py
 git commit -m "feat(domain): source detection, alert parsing entry point and the noise gate" -m "Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
 ```
 
@@ -1936,7 +1936,7 @@ git commit -m "feat(domain): source detection, alert parsing entry point and the
 Todas las consultas con tiempo comparten una ventana semiabierta `[since, until)` en UTC. Termina 10 minutos después de que empezó la alerta (nunca después de ahora) y mira 2 horas hacia atrás. Si la evidencia vuelve vacía, la Fase 2 la expande ×2 sin mover el fin, con un máximo de 7 días.
 
 **Files:**
-- Create: `src/sre_graph/domain/window.py`
+- Create: `src/fin_graph/domain/window.py`
 - Test: `tests/domain/test_window.py`
 
 **Interfaces:**
@@ -1958,7 +1958,7 @@ from datetime import UTC, datetime, timedelta, timezone
 
 import pytest
 
-from sre_graph.domain.window import (
+from fin_graph.domain.window import (
     DEFAULT_LOOKBACK,
     MAX_LOOKBACK,
     IncidentWindow,
@@ -2059,11 +2059,11 @@ def test_the_window_round_trips_through_json() -> None:
 
 Run: `uv run pytest tests/domain/test_window.py -v`
 
-Expected: `1 error` durante la colección, con `ModuleNotFoundError: No module named 'sre_graph.domain.window'`.
+Expected: `1 error` durante la colección, con `ModuleNotFoundError: No module named 'fin_graph.domain.window'`.
 
 - [ ] **Step 3: Implementación**
 
-`src/sre_graph/domain/window.py`:
+`src/fin_graph/domain/window.py`:
 
 ```python
 """The incident time window every time-aware query shares."""
@@ -2168,7 +2168,7 @@ Expected: `13 passed`.
 - [ ] **Step 5: Gate**
 
 ```bash
-uv run ruff check . && uv run ruff format --check . && uv run mypy && uv run lint-imports && SRE_GRAPH_TEST_DATABASE_URL="postgresql://sre_graph:sre_graph@localhost:5433/sre_graph?connect_timeout=5" SRE_GRAPH_REQUIRE_POSTGRES=1 uv run pytest
+uv run ruff check . && uv run ruff format --check . && uv run mypy && uv run lint-imports && FIN_GRAPH_TEST_DATABASE_URL="postgresql://fin_graph:fin_graph@localhost:5433/fin_graph?connect_timeout=5" FIN_GRAPH_REQUIRE_POSTGRES=1 uv run pytest
 ```
 
 Expected: todo en verde y `336 passed`.
@@ -2176,7 +2176,7 @@ Expected: todo en verde y `336 passed`.
 - [ ] **Step 6: Commit**
 
 ```bash
-git add src/sre_graph/domain/window.py tests/domain/test_window.py
+git add src/fin_graph/domain/window.py tests/domain/test_window.py
 git commit -m "feat(domain): incident window with alert anchoring and bounded expansion" -m "Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
 ```
 
@@ -2190,7 +2190,7 @@ Las 96 categorías generales de opensre, en 10 grupos, con nombres idénticos a 
 - **Chequeo de coherencia:** detecta cuando el texto de la causa raíz habla de otro grupo.
 
 **Files:**
-- Create: `src/sre_graph/domain/taxonomy.py`
+- Create: `src/fin_graph/domain/taxonomy.py`
 - Test: `tests/domain/test_taxonomy.py`
 
 **Interfaces:**
@@ -2214,7 +2214,7 @@ from __future__ import annotations
 
 import pytest
 
-from sre_graph.domain.taxonomy import (
+from fin_graph.domain.taxonomy import (
     CATEGORIES,
     CATEGORY_NAMES,
     HEALTHY,
@@ -2301,11 +2301,11 @@ def test_text_that_agrees_or_is_inconclusive_is_not_flagged(text: str, name: str
 
 Run: `uv run pytest tests/domain/test_taxonomy.py -v`
 
-Expected: `1 error` durante la colección, con `ModuleNotFoundError: No module named 'sre_graph.domain.taxonomy'`.
+Expected: `1 error` durante la colección, con `ModuleNotFoundError: No module named 'fin_graph.domain.taxonomy'`.
 
 - [ ] **Step 3: Implementación**
 
-`src/sre_graph/domain/taxonomy.py`. La tabla `CATEGORIES` reproduce, entrada por entrada, las categorías de scope general de `ce77b4a0b^:core/domain/types/root_cause_categories.py` de opensre:
+`src/fin_graph/domain/taxonomy.py`. La tabla `CATEGORIES` reproduce, entrada por entrada, las categorías de scope general de `ce77b4a0b^:core/domain/types/root_cause_categories.py` de opensre:
 
 ```python
 """Root-cause categories: the one taxonomy the diagnosis, the report and the evals share.
@@ -2819,7 +2819,7 @@ Expected: `17 passed`.
 - [ ] **Step 5: Gate**
 
 ```bash
-uv run ruff check . && uv run ruff format --check . && uv run mypy && uv run lint-imports && SRE_GRAPH_TEST_DATABASE_URL="postgresql://sre_graph:sre_graph@localhost:5433/sre_graph?connect_timeout=5" SRE_GRAPH_REQUIRE_POSTGRES=1 uv run pytest
+uv run ruff check . && uv run ruff format --check . && uv run mypy && uv run lint-imports && FIN_GRAPH_TEST_DATABASE_URL="postgresql://fin_graph:fin_graph@localhost:5433/fin_graph?connect_timeout=5" FIN_GRAPH_REQUIRE_POSTGRES=1 uv run pytest
 ```
 
 Expected: todo en verde y `353 passed`.
@@ -2827,7 +2827,7 @@ Expected: todo en verde y `353 passed`.
 - [ ] **Step 6: Commit**
 
 ```bash
-git add src/sre_graph/domain/taxonomy.py tests/domain/test_taxonomy.py
+git add src/fin_graph/domain/taxonomy.py tests/domain/test_taxonomy.py
 git commit -m "feat(domain): root-cause taxonomy with normalization and text alignment check" -m "Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
 ```
 
@@ -2847,7 +2847,7 @@ git commit -m "feat(domain): root-cause taxonomy with normalization and text ali
 **Hallazgos.** Los especialistas devuelven `SpecialistFinding`; si fallan, `degraded_finding`, para que la investigación siga.
 
 **Files:**
-- Create: `src/sre_graph/domain/evidence.py`, `src/sre_graph/domain/investigation.py`
+- Create: `src/fin_graph/domain/evidence.py`, `src/fin_graph/domain/investigation.py`
 - Test: `tests/domain/test_evidence.py`, `tests/domain/test_investigation.py`
 
 **Interfaces:**
@@ -2874,8 +2874,8 @@ from __future__ import annotations
 
 from datetime import UTC, datetime
 
-from sre_graph.domain.evidence import EvidenceItem, evidence_id, merge_evidence
-from sre_graph.domain.tools import Domain, EvidenceType
+from fin_graph.domain.evidence import EvidenceItem, evidence_id, merge_evidence
+from fin_graph.domain.tools import Domain, EvidenceType
 
 
 def test_the_same_call_gets_the_same_id_whatever_the_argument_order() -> None:
@@ -2935,8 +2935,8 @@ from typing import Any
 import pytest
 from pydantic import ValidationError
 
-from sre_graph.domain.alerts.model import AlertSource, NormalizedAlert
-from sre_graph.domain.investigation import (
+from fin_graph.domain.alerts.model import AlertSource, NormalizedAlert
+from fin_graph.domain.investigation import (
     Hypothesis,
     InvestigationPlan,
     SpecialistFinding,
@@ -2945,7 +2945,7 @@ from sre_graph.domain.investigation import (
     degraded_finding,
     fallback_plan,
 )
-from sre_graph.domain.tools import Domain
+from fin_graph.domain.tools import Domain
 
 ALL_DOMAINS = set(Domain)
 
@@ -3043,11 +3043,11 @@ def test_finding_confidence_must_be_between_zero_and_one() -> None:
 
 Run: `uv run pytest tests/domain/test_evidence.py tests/domain/test_investigation.py -v`
 
-Expected: `2 errors` durante la colección, con `No module named 'sre_graph.domain.evidence'` y `No module named 'sre_graph.domain.investigation'`.
+Expected: `2 errors` durante la colección, con `No module named 'fin_graph.domain.evidence'` y `No module named 'fin_graph.domain.investigation'`.
 
 - [ ] **Step 3: Implementación**
 
-`src/sre_graph/domain/evidence.py`:
+`src/fin_graph/domain/evidence.py`:
 
 ```python
 """Evidence: what a tool call returned, under an id that claims can cite."""
@@ -3062,7 +3062,7 @@ from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from sre_graph.domain.tools import Domain, EvidenceType
+from fin_graph.domain.tools import Domain, EvidenceType
 
 
 class EvidenceItem(BaseModel):
@@ -3112,7 +3112,7 @@ def merge_evidence(
     return list(merged.values())
 ```
 
-`src/sre_graph/domain/investigation.py`:
+`src/fin_graph/domain/investigation.py`:
 
 ```python
 """The investigation plan (hypotheses and specialist tasks) and what specialists report back."""
@@ -3124,8 +3124,8 @@ from enum import StrEnum
 
 from pydantic import BaseModel, Field
 
-from sre_graph.domain.alerts.model import AlertSource, NormalizedAlert
-from sre_graph.domain.tools import Domain
+from fin_graph.domain.alerts.model import AlertSource, NormalizedAlert
+from fin_graph.domain.tools import Domain
 
 MAX_HYPOTHESES = 4
 
@@ -3288,7 +3288,7 @@ Expected: `13 passed`.
 - [ ] **Step 5: Gate**
 
 ```bash
-uv run ruff check . && uv run ruff format --check . && uv run mypy && uv run lint-imports && SRE_GRAPH_TEST_DATABASE_URL="postgresql://sre_graph:sre_graph@localhost:5433/sre_graph?connect_timeout=5" SRE_GRAPH_REQUIRE_POSTGRES=1 uv run pytest
+uv run ruff check . && uv run ruff format --check . && uv run mypy && uv run lint-imports && FIN_GRAPH_TEST_DATABASE_URL="postgresql://fin_graph:fin_graph@localhost:5433/fin_graph?connect_timeout=5" FIN_GRAPH_REQUIRE_POSTGRES=1 uv run pytest
 ```
 
 Expected: todo en verde y `366 passed`.
@@ -3296,7 +3296,7 @@ Expected: todo en verde y `366 passed`.
 - [ ] **Step 6: Commit**
 
 ```bash
-git add src/sre_graph/domain/evidence.py src/sre_graph/domain/investigation.py tests/domain/test_evidence.py tests/domain/test_investigation.py
+git add src/fin_graph/domain/evidence.py src/fin_graph/domain/investigation.py tests/domain/test_evidence.py tests/domain/test_investigation.py
 git commit -m "feat(domain): evidence ids and the investigation plan with deterministic fallback" -m "Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
 ```
 
@@ -3319,7 +3319,7 @@ git commit -m "feat(domain): evidence ids and the investigation plan with determ
 Con eso calcula el score. `is_clearly_healthy` es la regla "healthy" de opensre.
 
 **Files:**
-- Create: `src/sre_graph/domain/diagnosis.py`, `src/sre_graph/domain/verification.py`
+- Create: `src/fin_graph/domain/diagnosis.py`, `src/fin_graph/domain/verification.py`
 - Test: `tests/domain/conftest.py`, `tests/domain/test_diagnosis.py`, `tests/domain/test_verification.py`
 
 **Interfaces:**
@@ -3357,11 +3357,11 @@ from datetime import UTC, datetime
 
 import pytest
 
-from sre_graph.domain.alerts.model import AlertSource, NormalizedAlert, Severity
-from sre_graph.domain.diagnosis import Claim, Diagnosis, HypothesisOutcome, IncidentStatus
-from sre_graph.domain.evidence import EvidenceItem
-from sre_graph.domain.investigation import Verdict
-from sre_graph.domain.tools import Domain, EvidenceType
+from fin_graph.domain.alerts.model import AlertSource, NormalizedAlert, Severity
+from fin_graph.domain.diagnosis import Claim, Diagnosis, HypothesisOutcome, IncidentStatus
+from fin_graph.domain.evidence import EvidenceItem
+from fin_graph.domain.investigation import Verdict
+from fin_graph.domain.tools import Domain, EvidenceType
 
 COLLECTED = datetime(2026, 10, 7, 10, 6, tzinfo=UTC)
 
@@ -3446,9 +3446,9 @@ from __future__ import annotations
 import pytest
 from pydantic import ValidationError
 
-from sre_graph.domain.alerts.model import NormalizedAlert
-from sre_graph.domain.diagnosis import Diagnosis, diagnosis_schema, unknown_diagnosis
-from sre_graph.domain.taxonomy import UNKNOWN
+from fin_graph.domain.alerts.model import NormalizedAlert
+from fin_graph.domain.diagnosis import Diagnosis, diagnosis_schema, unknown_diagnosis
+from fin_graph.domain.taxonomy import UNKNOWN
 
 
 def test_the_schema_closes_the_category_to_the_allowed_names_plus_unknown(
@@ -3504,10 +3504,10 @@ Crea `tests/domain/test_verification.py`:
 ```python
 from __future__ import annotations
 
-from sre_graph.domain.alerts.model import AlertStatus, NormalizedAlert, Severity
-from sre_graph.domain.diagnosis import Claim, Diagnosis
-from sre_graph.domain.evidence import EvidenceItem
-from sre_graph.domain.verification import (
+from fin_graph.domain.alerts.model import AlertStatus, NormalizedAlert, Severity
+from fin_graph.domain.diagnosis import Claim, Diagnosis
+from fin_graph.domain.evidence import EvidenceItem
+from fin_graph.domain.verification import (
     ClaimStatus,
     check_claim,
     is_clearly_healthy,
@@ -3664,11 +3664,11 @@ def test_signal_words_match_whole_words_only(pod_evidence: list[EvidenceItem]) -
 
 Run: `uv run pytest tests/domain/test_diagnosis.py tests/domain/test_verification.py -v`
 
-Expected: `ImportError while loading conftest` en `tests/domain/conftest.py`, con `ModuleNotFoundError: No module named 'sre_graph.domain.diagnosis'`. Mientras falte la implementación, el conftest impide colectar cualquier test bajo `tests/domain/`.
+Expected: `ImportError while loading conftest` en `tests/domain/conftest.py`, con `ModuleNotFoundError: No module named 'fin_graph.domain.diagnosis'`. Mientras falte la implementación, el conftest impide colectar cualquier test bajo `tests/domain/`.
 
 - [ ] **Step 3: Implementación**
 
-`src/sre_graph/domain/diagnosis.py`:
+`src/fin_graph/domain/diagnosis.py`:
 
 ```python
 """The diagnosis in incident-command form: triage, status, hypotheses, verdict and cited claims."""
@@ -3680,9 +3680,9 @@ from typing import Any, Literal, cast
 
 from pydantic import BaseModel, Field, create_model
 
-from sre_graph.domain.alerts.model import NormalizedAlert
-from sre_graph.domain.investigation import Verdict
-from sre_graph.domain.taxonomy import CATEGORY_NAMES, UNKNOWN, render_taxonomy
+from fin_graph.domain.alerts.model import NormalizedAlert
+from fin_graph.domain.investigation import Verdict
+from fin_graph.domain.taxonomy import CATEGORY_NAMES, UNKNOWN, render_taxonomy
 
 
 class IncidentStatus(BaseModel):
@@ -3776,7 +3776,7 @@ def unknown_diagnosis(alert: NormalizedAlert, reason: str) -> Diagnosis:
     )
 ```
 
-`src/sre_graph/domain/verification.py`:
+`src/fin_graph/domain/verification.py`:
 
 ```python
 """Deterministic checks on a diagnosis before anyone acts on it."""
@@ -3789,11 +3789,11 @@ from enum import StrEnum
 
 from pydantic import BaseModel
 
-from sre_graph.domain.alerts.model import AlertStatus, NormalizedAlert, Severity
-from sre_graph.domain.diagnosis import Claim, Diagnosis
-from sre_graph.domain.evidence import EvidenceItem
-from sre_graph.domain.taxonomy import HEALTHY, UNKNOWN, category_text_mismatch
-from sre_graph.domain.tools import EvidenceType
+from fin_graph.domain.alerts.model import AlertStatus, NormalizedAlert, Severity
+from fin_graph.domain.diagnosis import Claim, Diagnosis
+from fin_graph.domain.evidence import EvidenceItem
+from fin_graph.domain.taxonomy import HEALTHY, UNKNOWN, category_text_mismatch
+from fin_graph.domain.tools import EvidenceType
 
 #: Score a diagnosis needs, with every section filled and no unsupported claim, to pass.
 PASS_SCORE = 0.5
@@ -3959,7 +3959,7 @@ Expected: `18 passed`.
 - [ ] **Step 5: Gate**
 
 ```bash
-uv run ruff check . && uv run ruff format --check . && uv run mypy && uv run lint-imports && SRE_GRAPH_TEST_DATABASE_URL="postgresql://sre_graph:sre_graph@localhost:5433/sre_graph?connect_timeout=5" SRE_GRAPH_REQUIRE_POSTGRES=1 uv run pytest
+uv run ruff check . && uv run ruff format --check . && uv run mypy && uv run lint-imports && FIN_GRAPH_TEST_DATABASE_URL="postgresql://fin_graph:fin_graph@localhost:5433/fin_graph?connect_timeout=5" FIN_GRAPH_REQUIRE_POSTGRES=1 uv run pytest
 ```
 
 Expected: todo en verde y `384 passed`.
@@ -3967,7 +3967,7 @@ Expected: todo en verde y `384 passed`.
 - [ ] **Step 6: Commit**
 
 ```bash
-git add src/sre_graph/domain/diagnosis.py src/sre_graph/domain/verification.py tests/domain/conftest.py tests/domain/test_diagnosis.py tests/domain/test_verification.py
+git add src/fin_graph/domain/diagnosis.py src/fin_graph/domain/verification.py tests/domain/conftest.py tests/domain/test_diagnosis.py tests/domain/test_verification.py
 git commit -m "feat(domain): incident-command diagnosis and deterministic verification" -m "Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
 ```
 
@@ -3982,7 +3982,7 @@ git commit -m "feat(domain): incident-command diagnosis and deterministic verifi
 `order_actions` pone primero la más chica, reversible y de menor riesgo. `template_steps` da los pasos por defecto de cada categoría, sacados de las 69 plantillas de opensre, y omite los que dependen de una integración ausente.
 
 **Files:**
-- Create: `src/sre_graph/domain/remediation_templates.py`, `src/sre_graph/domain/remediation.py`
+- Create: `src/fin_graph/domain/remediation_templates.py`, `src/fin_graph/domain/remediation.py`
 - Test: `tests/domain/test_remediation.py`
 
 **Interfaces:**
@@ -4003,15 +4003,15 @@ Crea `tests/domain/test_remediation.py`:
 ```python
 from __future__ import annotations
 
-from sre_graph.domain.remediation import (
+from fin_graph.domain.remediation import (
     BlastRadius,
     RemediationAction,
     Risk,
     order_actions,
     template_steps,
 )
-from sre_graph.domain.remediation_templates import TEMPLATES
-from sre_graph.domain.taxonomy import CATEGORY_NAMES
+from fin_graph.domain.remediation_templates import TEMPLATES
+from fin_graph.domain.taxonomy import CATEGORY_NAMES
 
 
 def test_the_smallest_reversible_lowest_risk_action_comes_first() -> None:
@@ -4060,11 +4060,11 @@ def test_a_category_without_a_template_uses_the_unknown_one() -> None:
 
 Run: `uv run pytest tests/domain/test_remediation.py -v`
 
-Expected: `1 error` durante la colección, con `ModuleNotFoundError: No module named 'sre_graph.domain.remediation'`.
+Expected: `1 error` durante la colección, con `ModuleNotFoundError: No module named 'fin_graph.domain.remediation'`.
 
 - [ ] **Step 3: Implementación**
 
-`src/sre_graph/domain/remediation_templates.py` reproduce `_TEMPLATES` de `57a5cbe0c^:app/nodes/root_cause_diagnosis/remediation_templates.py` de opensre. Las etiquetas se traducen así: `grafana → grafana`, `datadog → datadog`, `eks → kubernetes`.
+`src/fin_graph/domain/remediation_templates.py` reproduce `_TEMPLATES` de `57a5cbe0c^:app/nodes/root_cause_diagnosis/remediation_templates.py` de opensre. Las etiquetas se traducen así: `grafana → grafana`, `datadog → datadog`, `eks → kubernetes`.
 
 ```python
 """Default remediation steps per root-cause category, ported from OpenSRE.
@@ -4442,7 +4442,7 @@ TEMPLATES: dict[str, tuple[tuple[str, str | None], ...]] = {
 }
 ```
 
-`src/sre_graph/domain/remediation.py`:
+`src/fin_graph/domain/remediation.py`:
 
 ```python
 """Proposed remediation actions, ordered so the safest, smallest fix comes first."""
@@ -4455,9 +4455,9 @@ from typing import Any
 
 from pydantic import BaseModel, Field
 
-from sre_graph.domain.remediation_templates import TEMPLATES
-from sre_graph.domain.taxonomy import UNKNOWN
-from sre_graph.domain.tools import SideEffectLevel
+from fin_graph.domain.remediation_templates import TEMPLATES
+from fin_graph.domain.taxonomy import UNKNOWN
+from fin_graph.domain.tools import SideEffectLevel
 
 
 class Risk(StrEnum):
@@ -4527,7 +4527,7 @@ Expected: `4 passed`.
 - [ ] **Step 5: Gate**
 
 ```bash
-uv run ruff check . && uv run ruff format --check . && uv run mypy && uv run lint-imports && SRE_GRAPH_TEST_DATABASE_URL="postgresql://sre_graph:sre_graph@localhost:5433/sre_graph?connect_timeout=5" SRE_GRAPH_REQUIRE_POSTGRES=1 uv run pytest
+uv run ruff check . && uv run ruff format --check . && uv run mypy && uv run lint-imports && FIN_GRAPH_TEST_DATABASE_URL="postgresql://fin_graph:fin_graph@localhost:5433/fin_graph?connect_timeout=5" FIN_GRAPH_REQUIRE_POSTGRES=1 uv run pytest
 ```
 
 Expected: todo en verde y `388 passed`.
@@ -4535,7 +4535,7 @@ Expected: todo en verde y `388 passed`.
 - [ ] **Step 6: Commit**
 
 ```bash
-git add src/sre_graph/domain/remediation_templates.py src/sre_graph/domain/remediation.py tests/domain/test_remediation.py
+git add src/fin_graph/domain/remediation_templates.py src/fin_graph/domain/remediation.py tests/domain/test_remediation.py
 git commit -m "feat(domain): remediation actions, ordering and default steps per category" -m "Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
 ```
 
@@ -4550,7 +4550,7 @@ git commit -m "feat(domain): remediation actions, ordering and default steps per
 - **PagerDuty:** nota corta en texto plano.
 
 **Files:**
-- Create: `src/sre_graph/domain/report.py`, y bajo `src/sre_graph/domain/rendering/`: `__init__.py`, `common.py`, `markdown.py`, `slack.py`, `telegram.py`, `pagerduty.py`
+- Create: `src/fin_graph/domain/report.py`, y bajo `src/fin_graph/domain/rendering/`: `__init__.py`, `common.py`, `markdown.py`, `slack.py`, `telegram.py`, `pagerduty.py`
 - Test: `tests/domain/test_report.py`, `tests/domain/test_rendering.py`
 
 **Interfaces:**
@@ -4578,12 +4578,12 @@ Crea `tests/domain/test_report.py`:
 ```python
 from __future__ import annotations
 
-from sre_graph.domain.alerts.model import NormalizedAlert
-from sre_graph.domain.diagnosis import Claim, Diagnosis
-from sre_graph.domain.evidence import EvidenceItem
-from sre_graph.domain.remediation import BlastRadius, RemediationAction
-from sre_graph.domain.report import build_report
-from sre_graph.domain.verification import ClaimStatus, verify_diagnosis
+from fin_graph.domain.alerts.model import NormalizedAlert
+from fin_graph.domain.diagnosis import Claim, Diagnosis
+from fin_graph.domain.evidence import EvidenceItem
+from fin_graph.domain.remediation import BlastRadius, RemediationAction
+from fin_graph.domain.report import build_report
+from fin_graph.domain.verification import ClaimStatus, verify_diagnosis
 
 
 def test_cited_evidence_is_labelled_in_order_of_first_citation(
@@ -4653,16 +4653,16 @@ from __future__ import annotations
 
 import pytest
 
-from sre_graph.domain.alerts.model import NormalizedAlert
-from sre_graph.domain.diagnosis import Claim, Diagnosis
-from sre_graph.domain.evidence import EvidenceItem
-from sre_graph.domain.remediation import BlastRadius, RemediationAction, Risk
-from sre_graph.domain.rendering.markdown import render_markdown
-from sre_graph.domain.rendering.pagerduty import NOTE_LIMIT, render_pagerduty_note
-from sre_graph.domain.rendering.slack import HEADER_LIMIT, SECTION_LIMIT, render_slack
-from sre_graph.domain.rendering.telegram import MESSAGE_LIMIT, render_telegram
-from sre_graph.domain.report import Report, ReportClaim, build_report
-from sre_graph.domain.verification import verify_diagnosis
+from fin_graph.domain.alerts.model import NormalizedAlert
+from fin_graph.domain.diagnosis import Claim, Diagnosis
+from fin_graph.domain.evidence import EvidenceItem
+from fin_graph.domain.remediation import BlastRadius, RemediationAction, Risk
+from fin_graph.domain.rendering.markdown import render_markdown
+from fin_graph.domain.rendering.pagerduty import NOTE_LIMIT, render_pagerduty_note
+from fin_graph.domain.rendering.slack import HEADER_LIMIT, SECTION_LIMIT, render_slack
+from fin_graph.domain.rendering.telegram import MESSAGE_LIMIT, render_telegram
+from fin_graph.domain.report import Report, ReportClaim, build_report
+from fin_graph.domain.verification import verify_diagnosis
 
 
 @pytest.fixture
@@ -4702,7 +4702,7 @@ def test_markdown_has_every_section_with_citations_and_flags(report: Report) -> 
     assert "- A deploy broke it. (unverified: cites no evidence)" in text
     assert "1. Raise the checkout memory limit to 512Mi — low risk, workload, reversible" in text
     assert "- E1 · kubernetes/k8s_list_pods: 1 of 3 pods restarting" in text
-    assert text.rstrip().endswith("Generated by sre-graph in 42s")
+    assert text.rstrip().endswith("Generated by fin-graph in 42s")
 
 
 def test_markdown_falls_back_to_the_diagnosis_steps_without_actions(
@@ -4760,7 +4760,7 @@ def test_a_telegram_message_over_the_limit_drops_whole_sections(report: Report) 
 def test_the_pagerduty_note_is_short_plain_text(report: Report) -> None:
     note = render_pagerduty_note(report)
 
-    assert note.startswith("sre-graph RCA: KubePodCrashLooping — checkout")
+    assert note.startswith("fin-graph RCA: KubePodCrashLooping — checkout")
     assert "Key evidence:" in note
     assert note.count("\n- ") <= 6
     assert "<" not in note
@@ -4771,11 +4771,11 @@ def test_the_pagerduty_note_is_short_plain_text(report: Report) -> None:
 
 Run: `uv run pytest tests/domain/test_report.py tests/domain/test_rendering.py -v`
 
-Expected: `2 errors` durante la colección, con `No module named 'sre_graph.domain.report'` y `No module named 'sre_graph.domain.rendering'`.
+Expected: `2 errors` durante la colección, con `No module named 'fin_graph.domain.report'` y `No module named 'fin_graph.domain.rendering'`.
 
 - [ ] **Step 3: Implementación**
 
-`src/sre_graph/domain/report.py`:
+`src/fin_graph/domain/report.py`:
 
 ```python
 """The RCA report: everything a renderer needs, with evidence labelled E1, E2… as cited."""
@@ -4786,11 +4786,11 @@ from collections.abc import Iterable
 
 from pydantic import BaseModel, Field
 
-from sre_graph.domain.alerts.model import NormalizedAlert
-from sre_graph.domain.diagnosis import Diagnosis
-from sre_graph.domain.evidence import EvidenceItem
-from sre_graph.domain.remediation import RemediationAction, order_actions
-from sre_graph.domain.verification import ClaimStatus, VerificationReport
+from fin_graph.domain.alerts.model import NormalizedAlert
+from fin_graph.domain.diagnosis import Diagnosis
+from fin_graph.domain.evidence import EvidenceItem
+from fin_graph.domain.remediation import RemediationAction, order_actions
+from fin_graph.domain.verification import ClaimStatus, VerificationReport
 
 
 class ReportClaim(BaseModel):
@@ -4865,22 +4865,22 @@ def build_report(
     )
 ```
 
-`src/sre_graph/domain/rendering/__init__.py`:
+`src/fin_graph/domain/rendering/__init__.py`:
 
 ```python
 """Render a Report for each channel: Markdown, Slack Block Kit, Telegram HTML, PagerDuty."""
 ```
 
-`src/sre_graph/domain/rendering/common.py`:
+`src/fin_graph/domain/rendering/common.py`:
 
 ```python
 """Pieces every renderer shares: headline facts, claim lines, action lines."""
 
 from __future__ import annotations
 
-from sre_graph.domain.remediation import RemediationAction
-from sre_graph.domain.report import Report, ReportClaim
-from sre_graph.domain.verification import ClaimStatus
+from fin_graph.domain.remediation import RemediationAction
+from fin_graph.domain.report import Report, ReportClaim
+from fin_graph.domain.verification import ClaimStatus
 
 
 def headline(report: Report) -> str:
@@ -4951,18 +4951,18 @@ def evidence_lines(report: Report) -> list[str]:
 def footer(report: Report) -> str:
     """Who generated the report and how long the investigation took."""
     if report.duration_seconds is None:
-        return "Generated by sre-graph"
-    return f"Generated by sre-graph in {report.duration_seconds:.0f}s"
+        return "Generated by fin-graph"
+    return f"Generated by fin-graph in {report.duration_seconds:.0f}s"
 ```
 
-`src/sre_graph/domain/rendering/markdown.py`:
+`src/fin_graph/domain/rendering/markdown.py`:
 
 ```python
 """The full report as Markdown, for the CLI, the web UI and stored reports."""
 
 from __future__ import annotations
 
-from sre_graph.domain.rendering.common import (
+from fin_graph.domain.rendering.common import (
     claim_text,
     evidence_lines,
     footer,
@@ -4971,7 +4971,7 @@ from sre_graph.domain.rendering.common import (
     status_line,
     verdict_line,
 )
-from sre_graph.domain.report import Report
+from fin_graph.domain.report import Report
 
 
 def render_markdown(report: Report) -> str:
@@ -5010,7 +5010,7 @@ def render_markdown(report: Report) -> str:
     return "\n".join(lines) + "\n"
 ```
 
-`src/sre_graph/domain/rendering/slack.py`:
+`src/fin_graph/domain/rendering/slack.py`:
 
 ```python
 """The report as a Slack message: Block Kit blocks plus a plain-text fallback."""
@@ -5019,7 +5019,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from sre_graph.domain.rendering.common import (
+from fin_graph.domain.rendering.common import (
     claim_text,
     evidence_lines,
     footer,
@@ -5028,7 +5028,7 @@ from sre_graph.domain.rendering.common import (
     status_line,
     verdict_line,
 )
-from sre_graph.domain.report import Report
+from fin_graph.domain.report import Report
 
 #: Slack limits: header text 150 characters, section text 3000.
 HEADER_LIMIT = 150
@@ -5089,7 +5089,7 @@ def _cut(text: str, limit: int) -> str:
     return text if len(text) <= limit else text[: limit - 1] + "…"
 ```
 
-`src/sre_graph/domain/rendering/telegram.py`:
+`src/fin_graph/domain/rendering/telegram.py`:
 
 ```python
 """The report as one Telegram message in HTML parse mode."""
@@ -5098,7 +5098,7 @@ from __future__ import annotations
 
 from html import escape
 
-from sre_graph.domain.rendering.common import (
+from fin_graph.domain.rendering.common import (
     claim_text,
     footer,
     headline,
@@ -5106,7 +5106,7 @@ from sre_graph.domain.rendering.common import (
     status_line,
     verdict_line,
 )
-from sre_graph.domain.report import Report
+from fin_graph.domain.report import Report
 
 #: Telegram's limit for one message.
 MESSAGE_LIMIT = 4096
@@ -5145,15 +5145,15 @@ def _bullets(heading: str, items: list[str]) -> str:
     return f"<b>{heading}</b>\n" + "\n".join(f"• {escape(item)}" for item in items)
 ```
 
-`src/sre_graph/domain/rendering/pagerduty.py`:
+`src/fin_graph/domain/rendering/pagerduty.py`:
 
 ```python
 """The report as a short plain-text PagerDuty incident note."""
 
 from __future__ import annotations
 
-from sre_graph.domain.rendering.common import claim_text, remediation_lines, verdict_line
-from sre_graph.domain.report import Report
+from fin_graph.domain.rendering.common import claim_text, remediation_lines, verdict_line
+from fin_graph.domain.report import Report
 
 NOTE_LIMIT = 4000
 _TOP = 3
@@ -5162,7 +5162,7 @@ _TOP = 3
 def render_pagerduty_note(report: Report) -> str:
     """Root cause, verdict, the top three claims and the top three actions, in plain text."""
     lines = [
-        f"sre-graph RCA: {report.title}",
+        f"fin-graph RCA: {report.title}",
         "",
         report.diagnosis.root_cause,
         verdict_line(report),
@@ -5185,7 +5185,7 @@ Expected: `10 passed`.
 - [ ] **Step 5: Gate**
 
 ```bash
-uv run ruff check . && uv run ruff format --check . && uv run mypy && uv run lint-imports && SRE_GRAPH_TEST_DATABASE_URL="postgresql://sre_graph:sre_graph@localhost:5433/sre_graph?connect_timeout=5" SRE_GRAPH_REQUIRE_POSTGRES=1 uv run pytest
+uv run ruff check . && uv run ruff format --check . && uv run mypy && uv run lint-imports && FIN_GRAPH_TEST_DATABASE_URL="postgresql://fin_graph:fin_graph@localhost:5433/fin_graph?connect_timeout=5" FIN_GRAPH_REQUIRE_POSTGRES=1 uv run pytest
 ```
 
 Expected: todo en verde y `398 passed`.
@@ -5193,7 +5193,7 @@ Expected: todo en verde y `398 passed`.
 - [ ] **Step 6: Commit**
 
 ```bash
-git add src/sre_graph/domain/report.py src/sre_graph/domain/rendering tests/domain/test_report.py tests/domain/test_rendering.py
+git add src/fin_graph/domain/report.py src/fin_graph/domain/rendering tests/domain/test_report.py tests/domain/test_rendering.py
 git commit -m "feat(domain): RCA report with Markdown, Slack, Telegram and PagerDuty renderers" -m "Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
 ```
 
@@ -5204,7 +5204,7 @@ git commit -m "feat(domain): RCA report with Markdown, Slack, Telegram and Pager
 1. Corre el gate completo:
 
    ```bash
-   uv run ruff check . && uv run ruff format --check . && uv run mypy && uv run lint-imports && SRE_GRAPH_TEST_DATABASE_URL="postgresql://sre_graph:sre_graph@localhost:5433/sre_graph?connect_timeout=5" SRE_GRAPH_REQUIRE_POSTGRES=1 uv run pytest
+   uv run ruff check . && uv run ruff format --check . && uv run mypy && uv run lint-imports && FIN_GRAPH_TEST_DATABASE_URL="postgresql://fin_graph:fin_graph@localhost:5433/fin_graph?connect_timeout=5" FIN_GRAPH_REQUIRE_POSTGRES=1 uv run pytest
    ```
 
    Expected: `398 passed`. Sin la URL de Postgres: `396 passed, 2 skipped`.

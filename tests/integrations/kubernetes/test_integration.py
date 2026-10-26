@@ -5,11 +5,17 @@ from typing import Any
 
 import pytest
 
-from sre_graph.integrations.base import IntegrationError, VerifyResult, VerifyStatus
-from sre_graph.integrations.catalog import default_registry
-from sre_graph.integrations.kubernetes.client import KubernetesClient
-from sre_graph.integrations.kubernetes.integration import KubernetesIntegration
-from sre_graph.integrations.kubernetes.settings import KubernetesSettings
+from fin_graph.integrations.base import IntegrationError, VerifyResult, VerifyStatus
+from fin_graph.integrations.catalog import default_registry
+from fin_graph.integrations.kubernetes.client import KubernetesClient
+from fin_graph.integrations.kubernetes.integration import KubernetesIntegration
+from fin_graph.integrations.kubernetes.settings import KubernetesSettings
+
+
+@pytest.fixture(autouse=True)
+def _observability_only(monkeypatch: pytest.MonkeyPatch) -> None:
+    """These tests cover the SRE catalog; switch off the market data that is on by default."""
+    monkeypatch.setenv("YAHOO_ENABLED", "false")
 
 
 def test_settings_default_to_disabled() -> None:
@@ -104,6 +110,10 @@ def test_the_default_registry_offers_kubernetes_tools_once_enabled(
     tools = registry.tools(registry.run_context())
 
     assert registry.ids == (
+        "yahoo",
+        "financial_datasets",
+        "market_fixtures",
+        "analytics",
         "kubernetes",
         "prometheus",
         "alertmanager",

@@ -12,9 +12,9 @@ from mcp import ClientSession
 from mcp.client.streamable_http import streamable_http_client
 from mcp.types import CallToolResult
 
-from sre_graph.work.contracts import StartWork
-from sre_graph.work.service import WorkService
-from sre_graph.work.store import WorkStore
+from fin_graph.work.contracts import StartWork
+from fin_graph.work.service import WorkService
+from fin_graph.work.store import WorkStore
 
 
 class ControlledEngine:
@@ -74,7 +74,7 @@ def gateway(tmp_path: Path) -> tuple[WorkService, ControlledEngine]:
 async def http_gateway(
     service: WorkService, *, actor: str = "ana"
 ) -> AsyncIterator[httpx.AsyncClient]:
-    from sre_graph.work.api import create_app
+    from fin_graph.work.api import create_app
 
     app = create_app(service, actor=actor)
     async with (

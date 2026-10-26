@@ -19,8 +19,8 @@ The JSON measures accepted/rejected requests, execution concurrency, burst laten
 SSE verification consumes completed durable events and reconnects with Last-Event-ID. ASGITransport buffers complete responses; these checks do not claim live network streaming throughput, slow-reader behavior or cross-replica LISTEN/NOTIFY correctness. The separate real Postgres suite covers distributed coordination:
 
 ```powershell
-$env:SRE_GRAPH_TEST_DATABASE_URL='<local Postgres URL>'
-$env:SRE_GRAPH_REQUIRE_POSTGRES='1'
+$env:FIN_GRAPH_TEST_DATABASE_URL='<local Postgres URL>'
+$env:FIN_GRAPH_REQUIRE_POSTGRES='1'
 uv run pytest tests/server/test_distributed_runtime.py tests/server/test_postgres.py
 ```
 

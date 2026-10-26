@@ -7,10 +7,10 @@ from typing import Any, TypedDict
 from langgraph.graph import END, START, StateGraph
 from sqlalchemy.ext.asyncio import create_async_engine
 
-from sre_graph.config.settings import PersistenceBackend, Settings
-from sre_graph.persistence.checkpointer import open_checkpointer
-from sre_graph.server.manager import RunManager
-from sre_graph.server.storage import Base, Storage
+from fin_graph.config.settings import PersistenceBackend, Settings
+from fin_graph.persistence.checkpointer import open_checkpointer
+from fin_graph.server.manager import RunManager
+from fin_graph.server.storage import Base, Storage
 
 
 class State(TypedDict, total=False):

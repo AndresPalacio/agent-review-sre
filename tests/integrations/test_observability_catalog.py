@@ -2,8 +2,15 @@ from __future__ import annotations
 
 import pytest
 
-from sre_graph.integrations.base import VerifyStatus
-from sre_graph.integrations.catalog import default_registry
+from fin_graph.integrations.base import VerifyStatus
+from fin_graph.integrations.catalog import default_registry
+
+
+@pytest.fixture(autouse=True)
+def _observability_only(monkeypatch: pytest.MonkeyPatch) -> None:
+    """These tests cover the SRE catalog; switch off the market data that is on by default."""
+    monkeypatch.setenv("YAHOO_ENABLED", "false")
+
 
 IDS = (
     "kubernetes",
@@ -38,7 +45,7 @@ def test_observability_catalog_is_explicit_and_off_by_default() -> None:
     registry = default_registry(env_file=None)
     context = registry.run_context()
 
-    assert registry.ids == IDS
+    assert registry.ids == ("yahoo", "financial_datasets", "market_fixtures", "analytics", *IDS)
     assert context.clients == {}
     assert registry.tools(context) == []
 

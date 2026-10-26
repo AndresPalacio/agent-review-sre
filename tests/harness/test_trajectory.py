@@ -30,7 +30,7 @@ def example():
 
 
 def contract():
-    from sre_graph.evals.trajectory import TrajectoryContract
+    from fin_graph.evals.trajectory import TrajectoryContract
 
     return TrajectoryContract.model_validate(
         {
@@ -52,7 +52,7 @@ def contract():
 
 
 def test_observed_trace_satisfies_agent_tool_arguments_and_dependency():
-    from sre_graph.evals.trajectory import grade_trajectory
+    from fin_graph.evals.trajectory import grade_trajectory
 
     assert grade_trajectory(contract(), example())["passed"]
 
@@ -71,7 +71,7 @@ def test_observed_trace_satisfies_agent_tool_arguments_and_dependency():
     ],
 )
 def test_trace_mutations_fail_closed(change, expected):
-    from sre_graph.evals.trajectory import grade_trajectory
+    from fin_graph.evals.trajectory import grade_trajectory
 
     events = copy.deepcopy(example())
     if change == "missing_agent":
@@ -98,8 +98,8 @@ def test_trace_mutations_fail_closed(change, expected):
 
 
 def test_every_case_has_a_contract_with_agents_and_tools():
-    from sre_graph.evals.scenarios import load_suite
-    from sre_graph.evals.trajectory import contract_for
+    from fin_graph.evals.scenarios import load_suite
+    from fin_graph.evals.trajectory import contract_for
 
     for scenario in load_suite("all"):
         value = contract_for(scenario)
@@ -109,7 +109,7 @@ def test_every_case_has_a_contract_with_agents_and_tools():
 
 
 def test_missing_trace_and_exhausted_budget_are_failures():
-    from sre_graph.evals.trajectory import grade_trajectory
+    from fin_graph.evals.trajectory import grade_trajectory
 
     assert not grade_trajectory(contract(), [])["passed"]
     limited = contract().model_copy(update={"max_tool_calls": 1})
@@ -117,10 +117,10 @@ def test_missing_trace_and_exhausted_budget_are_failures():
 
 
 def test_window_expansion_is_checked_against_the_actual_delegation():
-    from sre_graph.domain.alerts.parsing import parse_alert
-    from sre_graph.domain.window import resolve_window
-    from sre_graph.evals.scenarios import load_scenario
-    from sre_graph.evals.trajectory import contract_for, grade_trajectory
+    from fin_graph.domain.alerts.parsing import parse_alert
+    from fin_graph.domain.window import resolve_window
+    from fin_graph.evals.scenarios import load_scenario
+    from fin_graph.evals.trajectory import contract_for, grade_trajectory
 
     scenario = load_scenario("rds_postgres", "001-replication-lag")
     window = resolve_window(

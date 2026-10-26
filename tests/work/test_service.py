@@ -5,15 +5,15 @@ import uuid
 
 import pytest
 
-from sre_graph.work.contracts import (
+from fin_graph.work.contracts import (
     CancelWork,
     StartWork,
     UpdateWork,
     WorkConflict,
     WorkUnavailable,
 )
-from sre_graph.work.service import WorkService
-from sre_graph.work.store import WorkStore
+from fin_graph.work.service import WorkService
+from fin_graph.work.store import WorkStore
 
 
 class MemoryEngine:
@@ -370,7 +370,7 @@ async def test_unreachable_engine_during_consolidation_reconcile_is_unavailable(
 async def test_slow_routing_does_not_block_other_work_and_stays_idempotent(tmp_path):
     import asyncio
 
-    from sre_graph.work.policy import RulesPolicy
+    from fin_graph.work.policy import RulesPolicy
 
     release = asyncio.Event()
     entered = asyncio.Event()

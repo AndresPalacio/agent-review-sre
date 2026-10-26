@@ -6,7 +6,7 @@ from pathlib import Path
 import pytest
 from pydantic import ValidationError
 
-from sre_graph.config.settings import PersistenceBackend, Settings
+from fin_graph.config.settings import PersistenceBackend, Settings
 
 
 def test_defaults_without_environment() -> None:
@@ -70,7 +70,7 @@ def test_blank_variables_fall_back_to_defaults(monkeypatch: pytest.MonkeyPatch) 
     settings = Settings(_env_file=None)
 
     assert settings.llm_provider == "anthropic"
-    assert settings.sqlite_path == "sre-graph.sqlite"
+    assert settings.sqlite_path == "fin-graph.sqlite"
 
 
 def test_provider_and_environment_names_are_normalized(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -109,3 +109,24 @@ def test_embedding_provider_is_optional_and_normalized(monkeypatch: pytest.Monke
     assert Settings(_env_file=None).embeddings_provider is None
     monkeypatch.setenv("EMBEDDINGS_PROVIDER", "  OPENAI ")
     assert Settings(_env_file=None).embeddings_provider == "openai"
+
+
+def test_finance_settings_defaults_and_validation(monkeypatch: pytest.MonkeyPatch) -> None:
+    defaults = Settings(_env_file=None)
+
+    assert defaults.base_currency == "USD" and defaults.initial_cash == 100_000
+    assert defaults.market_data_provider == "yahoo" and defaults.fin_analyst_mode == "auto"
+    assert defaults.trading_short_selling_enabled is False and defaults.trading_kill_switch is False
+
+    monkeypatch.setenv("BASE_CURRENCY", "cop")
+    monkeypatch.setenv("TRADING_ALLOWED_ACTIONS", "buy, sell")
+    monkeypatch.setenv("FIN_ANALYST_MODE", "tool_plan")
+    configured = Settings(_env_file=None)
+
+    assert configured.base_currency == "COP"
+    assert configured.trading_allowed_actions == ("buy", "sell")
+    assert configured.fin_analyst_mode == "tool_plan"
+    with pytest.raises(ValueError):
+        Settings(_env_file=None, base_currency="dollars")
+    with pytest.raises(ValueError):
+        Settings(_env_file=None, margin_requirement=1.5)

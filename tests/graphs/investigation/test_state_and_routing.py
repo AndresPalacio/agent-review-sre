@@ -5,15 +5,16 @@ from typing import Any
 
 from langchain_core.tools import tool
 
-from sre_graph.domain.tools import (
+from fin_graph.domain.tools import (
+    ANALYST_DOMAINS,
     Domain,
     EvidenceType,
     SideEffectLevel,
     ToolMeta,
     attach_tool_meta,
 )
-from sre_graph.graphs.investigation.specialists import SPECIALISTS, read_tools
-from sre_graph.graphs.investigation.state import merge_findings
+from fin_graph.graphs.investigation.specialists import SPECIALISTS, read_tools
+from fin_graph.graphs.investigation.state import merge_findings
 
 
 @tool
@@ -37,7 +38,8 @@ def candidate(name: str, domain: Domain, effect: SideEffectLevel) -> Any:
 
 
 def test_all_seven_specialists_exist_and_only_read_tools_route() -> None:
-    assert set(SPECIALISTS) == set(Domain)
+    # The financial analyst domains belong to the analysis graph, not to incident review.
+    assert set(SPECIALISTS) == set(Domain) - set(ANALYST_DOMAINS)
     tools = [
         candidate("metric", Domain.METRICS, SideEffectLevel.READ_ONLY),
         candidate("delete", Domain.METRICS, SideEffectLevel.MUTATING),

@@ -3,11 +3,11 @@ from __future__ import annotations
 import httpx
 import pytest
 
-from sre_graph.domain.tools import Domain, SideEffectLevel, read_tool_meta
-from sre_graph.integrations.base import IntegrationError, VerifyStatus
-from sre_graph.integrations.github.client import GitHubClient
-from sre_graph.integrations.github.integration import GitHubIntegration
-from sre_graph.integrations.github.settings import GitHubSettings
+from fin_graph.domain.tools import Domain, SideEffectLevel, read_tool_meta
+from fin_graph.integrations.base import IntegrationError, VerifyStatus
+from fin_graph.integrations.github.client import GitHubClient
+from fin_graph.integrations.github.integration import GitHubIntegration
+from fin_graph.integrations.github.settings import GitHubSettings
 
 
 def test_github_requires_repository_and_token_when_enabled() -> None:

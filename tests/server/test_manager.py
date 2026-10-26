@@ -9,8 +9,8 @@ from typing import Any
 from sqlalchemy import update
 from sqlalchemy.ext.asyncio import create_async_engine
 
-from sre_graph.server.manager import RunManager
-from sre_graph.server.storage import Base, RunRow, Storage
+from fin_graph.server.manager import RunManager
+from fin_graph.server.storage import Base, RunRow, Storage
 
 
 class ScriptedGraph:

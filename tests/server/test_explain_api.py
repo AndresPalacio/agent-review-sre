@@ -7,9 +7,9 @@ from typing import Any
 import httpx
 from sqlalchemy.ext.asyncio import create_async_engine
 
-from sre_graph.server.app import create_app
-from sre_graph.server.manager import RunManager
-from sre_graph.server.storage import Base, Storage
+from fin_graph.server.app import create_app
+from fin_graph.server.manager import RunManager
+from fin_graph.server.storage import Base, Storage
 
 
 class SnapshotGraph:

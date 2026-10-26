@@ -6,11 +6,11 @@ from datetime import UTC, datetime
 
 import pytest
 
-from sre_graph.domain.alerts.model import AlertSource, NormalizedAlert, Severity
-from sre_graph.domain.diagnosis import Claim, Diagnosis, HypothesisOutcome, IncidentStatus
-from sre_graph.domain.evidence import EvidenceItem
-from sre_graph.domain.investigation import Verdict
-from sre_graph.domain.tools import Domain, EvidenceType
+from fin_graph.domain.alerts.model import AlertSource, NormalizedAlert, Severity
+from fin_graph.domain.diagnosis import Claim, Diagnosis, HypothesisOutcome, IncidentStatus
+from fin_graph.domain.evidence import EvidenceItem
+from fin_graph.domain.investigation import Verdict
+from fin_graph.domain.tools import Domain, EvidenceType
 
 COLLECTED = datetime(2026, 10, 7, 10, 6, tzinfo=UTC)
 

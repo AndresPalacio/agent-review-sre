@@ -2,9 +2,9 @@ from __future__ import annotations
 
 from langchain_core.messages import AIMessage, HumanMessage, ToolMessage
 
-from sre_graph.agents.factory import make_agent
-from sre_graph.agents.middleware.evidence_gate import EvidenceGateMiddleware
-from sre_graph.agents.testing.scripted_model import ScriptedChatModel
+from fin_graph.agents.factory import make_agent
+from fin_graph.agents.middleware.evidence_gate import EvidenceGateMiddleware
+from fin_graph.agents.testing.scripted_model import ScriptedChatModel
 
 
 def _agent(*responses: str) -> tuple[object, ScriptedChatModel]:

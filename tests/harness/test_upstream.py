@@ -14,7 +14,7 @@ def test_upstream_pytest_runner_executes_exactly_one_explicit_case(tmp_path, mon
     from better_harness.patching import build_baseline_variant
     from better_harness.runners import PytestRunner
 
-    from sre_graph.harness.configuration import load_config
+    from fin_graph.harness.configuration import load_config
 
     root = Path(__file__).resolve().parents[2]
     experiment = load_config(root / "harness/sre.toml", model="scripted").experiment
@@ -35,7 +35,7 @@ def test_upstream_pytest_runner_executes_exactly_one_explicit_case(tmp_path, mon
 def test_upstream_inventory_collects_the_frozen_corpus():
     from better_harness.runners import PytestRunner
 
-    from sre_graph.harness.configuration import load_config
+    from fin_graph.harness.configuration import load_config
 
     root = Path(__file__).resolve().parents[2]
     config = load_config(root / "harness/sre.toml", model="scripted")

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import pytest
 
-from sre_graph.harness.quality import assess_record
+from fin_graph.harness.quality import assess_record
 
 
 @pytest.mark.parametrize(

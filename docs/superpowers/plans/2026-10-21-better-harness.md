@@ -30,7 +30,7 @@ proposer y artefactos oficiales con un runner SRE y aceptación conservadora.
 
 ### 1. Corpus y criterios de calidad
 - [x] Escribir y ejecutar regresiones para splits, huellas, duplicados y criterios.
-- [x] Implementar `sre_graph.harness.dataset` y `sre_graph.harness.quality`.
+- [x] Implementar `fin_graph.harness.dataset` y `fin_graph.harness.quality`.
 - [x] Versionar `harness/dataset.json`; verificar cobertura de los 36 casos.
 
 ### 2. Superficies y evaluación

@@ -13,8 +13,8 @@ from typing import Any
 import pytest
 from langgraph.types import Command
 
-from sre_graph.integrations.context import RunContext
-from sre_graph.scheduler.expiry import expire_pending_approvals
+from fin_graph.integrations.context import RunContext
+from fin_graph.scheduler.expiry import expire_pending_approvals
 
 NOW = datetime(2026, 10, 8, 12, tzinfo=UTC)
 

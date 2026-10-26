@@ -5,8 +5,8 @@ import pytest
 from sqlalchemy.ext.asyncio import create_async_engine
 from tests.server.test_manager import ScriptedGraph
 
-from sre_graph.server.manager import RunManager, RunOverloaded
-from sre_graph.server.storage import Base, Storage
+from fin_graph.server.manager import RunManager, RunOverloaded
+from fin_graph.server.storage import Base, Storage
 
 
 async def test_pending_admission_does_not_accept_extra_rows(tmp_path: Path):
@@ -31,8 +31,8 @@ async def test_pending_admission_does_not_accept_extra_rows(tmp_path: Path):
 async def test_http_overload_precedes_webhook_claim(tmp_path: Path):
     import httpx
 
-    from sre_graph.server.app import create_app
-    from sre_graph.server.security import WebhookVerifier
+    from fin_graph.server.app import create_app
+    from fin_graph.server.security import WebhookVerifier
 
     engine = create_async_engine(f"sqlite+aiosqlite:///{tmp_path / 'webhook.sqlite'}")
     async with engine.begin() as connection:
@@ -70,7 +70,7 @@ async def test_burst_and_recovery_overload_release_capacity(tmp_path: Path):
 
     from sqlalchemy import update
 
-    from sre_graph.server.storage import RunRow
+    from fin_graph.server.storage import RunRow
 
     engine = create_async_engine(f"sqlite+aiosqlite:///{tmp_path / 'burst.sqlite'}")
     async with engine.begin() as conn:

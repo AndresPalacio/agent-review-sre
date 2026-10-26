@@ -6,12 +6,12 @@ from langgraph.checkpoint.memory import InMemorySaver
 from langgraph.types import Command
 from pydantic import ValidationError
 
-from sre_graph.graphs.remediation.actions import default_action_catalog
-from sre_graph.graphs.remediation.graph import make_remediation_graph
-from sre_graph.graphs.remediation.vendor_actions import SilenceArgs
-from sre_graph.integrations.context import RunContext
-from sre_graph.integrations.sentry.client import SentryClient
-from sre_graph.safety.approval import ApprovalPolicy
+from fin_graph.graphs.remediation.actions import default_action_catalog
+from fin_graph.graphs.remediation.graph import make_remediation_graph
+from fin_graph.graphs.remediation.vendor_actions import SilenceArgs
+from fin_graph.integrations.context import RunContext
+from fin_graph.integrations.sentry.client import SentryClient
+from fin_graph.safety.approval import ApprovalPolicy
 
 
 async def test_sentry_action_reads_before_interrupt_and_verifies_after_approval() -> None:

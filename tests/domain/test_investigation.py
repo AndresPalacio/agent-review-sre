@@ -5,8 +5,8 @@ from typing import Any
 import pytest
 from pydantic import ValidationError
 
-from sre_graph.domain.alerts.model import AlertSource, NormalizedAlert
-from sre_graph.domain.investigation import (
+from fin_graph.domain.alerts.model import AlertSource, NormalizedAlert
+from fin_graph.domain.investigation import (
     Hypothesis,
     InvestigationPlan,
     SpecialistFinding,
@@ -15,7 +15,7 @@ from sre_graph.domain.investigation import (
     degraded_finding,
     fallback_plan,
 )
-from sre_graph.domain.tools import Domain
+from fin_graph.domain.tools import Domain
 
 ALL_DOMAINS = set(Domain)
 

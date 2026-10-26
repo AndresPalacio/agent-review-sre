@@ -3,9 +3,9 @@ from __future__ import annotations
 import pytest
 from pydantic import ValidationError
 
-from sre_graph.domain.alerts.model import NormalizedAlert
-from sre_graph.domain.diagnosis import Diagnosis, diagnosis_schema, unknown_diagnosis
-from sre_graph.domain.taxonomy import UNKNOWN
+from fin_graph.domain.alerts.model import NormalizedAlert
+from fin_graph.domain.diagnosis import Diagnosis, diagnosis_schema, unknown_diagnosis
+from fin_graph.domain.taxonomy import UNKNOWN
 
 
 def test_the_schema_closes_the_category_to_the_allowed_names_plus_unknown(

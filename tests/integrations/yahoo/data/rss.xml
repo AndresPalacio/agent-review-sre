@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0">
+  <channel>
+    <title>Yahoo! Finance: AAPL News</title>
+    <link>http://finance.yahoo.com/q/h?s=AAPL</link>
+    <item>
+      <title>Apple releases new product line</title>
+      <link>https://finance.yahoo.com/news/apple-new-product</link>
+      <pubDate>Mon, 15 Jan 2024 12:00:00 +0000</pubDate>
+      <description>Apple announced a new product.</description>
+    </item>
+    <item>
+      <title>Apple beats earnings expectations</title>
+      <link>https://finance.yahoo.com/news/apple-earnings</link>
+      <pubDate>Wed, 10 Jan 2024 09:30:00 +0000</pubDate>
+      <description>Strong quarter for Apple.</description>
+    </item>
+    <item>
+      <title>Very old Apple story</title>
+      <link>https://finance.yahoo.com/news/apple-old</link>
+      <pubDate>Mon, 01 May 2023 12:00:00 +0000</pubDate>
+      <description>Old story.</description>
+    </item>
+  </channel>
+</rss>

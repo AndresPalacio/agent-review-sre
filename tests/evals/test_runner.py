@@ -7,15 +7,15 @@ from langchain_core.messages import HumanMessage, ToolMessage
 from pydantic import Field
 from typer.testing import CliRunner
 
-from sre_graph.agents.testing.scripted_model import ScriptedChatModel, tool_call_message
-from sre_graph.cli.main import app
-from sre_graph.domain.alerts.parsing import parse_alert
-from sre_graph.domain.investigation import SpecialistTask
-from sre_graph.domain.tools import Domain
-from sre_graph.domain.window import resolve_window
-from sre_graph.evals.fixtures import FixtureBackend
-from sre_graph.evals.runner import run_suite
-from sre_graph.evals.scenarios import load_scenario
+from fin_graph.agents.testing.scripted_model import ScriptedChatModel, tool_call_message
+from fin_graph.cli.main import app
+from fin_graph.domain.alerts.parsing import parse_alert
+from fin_graph.domain.investigation import SpecialistTask
+from fin_graph.domain.tools import Domain
+from fin_graph.domain.window import resolve_window
+from fin_graph.evals.fixtures import FixtureBackend
+from fin_graph.evals.runner import run_suite
+from fin_graph.evals.scenarios import load_scenario
 
 
 class WindowReadingModel(ScriptedChatModel):
@@ -85,8 +85,8 @@ async def test_non_scripted_evaluation_delivers_historical_samples_to_the_model(
 ) -> None:
     scenario = load_scenario("rds_postgres", "001-replication-lag")
     model = WindowReadingModel(responses=[])
-    monkeypatch.setattr("sre_graph.evals.runner.load_suite", lambda suite: [scenario])
-    monkeypatch.setattr("sre_graph.evals.runner._chat_model", lambda name: model)
+    monkeypatch.setattr("fin_graph.evals.runner.load_suite", lambda suite: [scenario])
+    monkeypatch.setattr("fin_graph.evals.runner._chat_model", lambda name: model)
 
     result = await run_suite("rds", "offline:window-reader", 1, tmp_path)
 
@@ -113,7 +113,7 @@ async def test_non_scripted_evaluation_delivers_historical_samples_to_the_model(
 
 
 async def test_scripted_fixture_reader_uses_the_graph_window() -> None:
-    from sre_graph.evals.runner import ScriptedServices
+    from fin_graph.evals.runner import ScriptedServices
 
     scenario = load_scenario("rds_postgres", "001-replication-lag")
     backend = FixtureBackend(scenario)
@@ -163,7 +163,7 @@ async def test_judge_model_needs_credentials_and_scripted_mode_rejects_it(
 
 
 async def test_one_graph_failure_does_not_abort_other_scenarios(tmp_path, monkeypatch) -> None:
-    from sre_graph.evals.runner import ScriptedServices
+    from fin_graph.evals.runner import ScriptedServices
 
     original = ScriptedServices.investigate
 
@@ -197,7 +197,7 @@ async def test_scripted_all_is_wiring_only_and_covers_every_case(tmp_path):
 def test_dataset_fingerprint_detects_corpus_change_with_same_identity():
     from dataclasses import replace
 
-    from sre_graph.evals.runner import dataset_fingerprint
+    from fin_graph.evals.runner import dataset_fingerprint
 
     scenario = load_scenario("eks", "001-oomkilled-crashloop")
     changed = replace(scenario, alert={**scenario.alert, "extra_observation": "changed"})

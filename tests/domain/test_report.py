@@ -1,11 +1,12 @@
 from __future__ import annotations
 
-from sre_graph.domain.alerts.model import NormalizedAlert
-from sre_graph.domain.diagnosis import Claim, Diagnosis
-from sre_graph.domain.evidence import EvidenceItem
-from sre_graph.domain.remediation import BlastRadius, RemediationAction
-from sre_graph.domain.report import build_report
-from sre_graph.domain.verification import ClaimStatus, verify_diagnosis
+from fin_graph.domain.alerts.model import NormalizedAlert
+from fin_graph.domain.claims import ClaimStatus
+from fin_graph.domain.diagnosis import Claim, Diagnosis
+from fin_graph.domain.evidence import EvidenceItem
+from fin_graph.domain.remediation import BlastRadius, RemediationAction
+from fin_graph.domain.report import build_report
+from fin_graph.domain.verification import verify_diagnosis
 
 
 def test_cited_evidence_is_labelled_in_order_of_first_citation(

@@ -4,12 +4,12 @@ import json
 
 import httpx
 
-from sre_graph.delivery.client import PagerDutyClient
-from sre_graph.integrations.alertmanager.client import AlertmanagerClient
-from sre_graph.integrations.datadog.client import DatadogClient
-from sre_graph.integrations.github.client import GitHubClient
-from sre_graph.integrations.grafana.client import GrafanaClient
-from sre_graph.integrations.sentry.client import SentryClient
+from fin_graph.delivery.client import PagerDutyClient
+from fin_graph.integrations.alertmanager.client import AlertmanagerClient
+from fin_graph.integrations.datadog.client import DatadogClient
+from fin_graph.integrations.github.client import GitHubClient
+from fin_graph.integrations.grafana.client import GrafanaClient
+from fin_graph.integrations.sentry.client import SentryClient
 
 
 async def test_vendor_mutations_use_expected_endpoints_offline() -> None:

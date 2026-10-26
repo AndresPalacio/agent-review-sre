@@ -3,7 +3,7 @@ import json
 import httpx
 from langgraph_sdk.client import LangGraphClient
 
-from sre_graph.work.engine import AgentServerEngine
+from fin_graph.work.engine import AgentServerEngine
 
 
 async def test_dispatch_uses_context_metadata_and_enqueue_and_recovers_by_command():

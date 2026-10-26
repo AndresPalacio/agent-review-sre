@@ -12,10 +12,10 @@ from langgraph.graph import END, START, MessagesState, StateGraph
 from langgraph.prebuilt import ToolNode
 from tests.integrations.test_wave2 import settings
 
-from sre_graph.integrations.base import IntegrationError
-from sre_graph.integrations.context import RunContext
-from sre_graph.integrations.wave2 import wave2_integrations
-from sre_graph.integrations.wave2.client import Wave2Client, sanitize
+from fin_graph.integrations.base import IntegrationError
+from fin_graph.integrations.context import RunContext
+from fin_graph.integrations.wave2 import wave2_integrations
+from fin_graph.integrations.wave2.client import Wave2Client, sanitize
 
 
 @pytest.mark.parametrize(

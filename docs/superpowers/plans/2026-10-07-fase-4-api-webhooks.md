@@ -1,6 +1,6 @@
 # Fase 4 — API FastAPI y webhooks
 
-Diseño rector: `docs/specs/2026-10-07-sre-graph-design.md`, sección API y fila 4.
+Diseño rector: `docs/specs/2026-10-07-fin-graph-design.md`, sección API y fila 4.
 Rama de implementación: `fase-4`, creada desde `main` tras integrar fase 3. Se usa
 una rama normal; se conserva el worktree preexistente y los archivos ajenos.
 

@@ -4,7 +4,7 @@ from datetime import UTC, datetime
 
 import pytest
 
-from sre_graph.domain.alerts.model import (
+from fin_graph.domain.alerts.model import (
     AlertSource,
     AlertStatus,
     Severity,

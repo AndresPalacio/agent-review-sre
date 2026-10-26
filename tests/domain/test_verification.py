@@ -1,10 +1,10 @@
 from __future__ import annotations
 
-from sre_graph.domain.alerts.model import AlertStatus, NormalizedAlert, Severity
-from sre_graph.domain.diagnosis import Claim, Diagnosis
-from sre_graph.domain.evidence import EvidenceItem
-from sre_graph.domain.verification import (
-    ClaimStatus,
+from fin_graph.domain.alerts.model import AlertStatus, NormalizedAlert, Severity
+from fin_graph.domain.claims import ClaimStatus
+from fin_graph.domain.diagnosis import Claim, Diagnosis
+from fin_graph.domain.evidence import EvidenceItem
+from fin_graph.domain.verification import (
     check_claim,
     is_clearly_healthy,
     missing_sections,

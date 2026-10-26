@@ -9,7 +9,7 @@ import pytest
 from openai import AsyncOpenAI
 from pydantic import ValidationError
 
-from sre_graph.work.policy import Decision, OpenAIDecisionPolicy, Route, RulesPolicy
+from fin_graph.work.policy import Decision, OpenAIDecisionPolicy, Route, RulesPolicy
 
 
 @pytest.mark.parametrize(

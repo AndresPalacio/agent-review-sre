@@ -3,7 +3,7 @@ from __future__ import annotations
 import pytest
 from pydantic import SecretStr
 
-from sre_graph.server.config import ServerConfig
+from fin_graph.server.config import ServerConfig
 
 
 def test_server_requires_postgres_and_explicit_cors() -> None:

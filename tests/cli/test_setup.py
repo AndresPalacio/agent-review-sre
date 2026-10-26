@@ -1,8 +1,8 @@
 import pytest
 from typer.testing import CliRunner
 
-from sre_graph.cli.main import app
-from sre_graph.integrations.setup import update_env
+from fin_graph.cli.main import app
+from fin_graph.integrations.setup import update_env
 
 
 def test_atomic_setup_preserves_and_hides(tmp_path):
@@ -125,7 +125,7 @@ def test_cli_env_reference_secret(tmp_path, monkeypatch):
 
 
 def test_wave2_setup_fields(tmp_path):
-    from sre_graph.integrations.setup import settings_models
+    from fin_graph.integrations.setup import settings_models
 
     assert "gitlab" in settings_models()
     update_env(
@@ -166,7 +166,7 @@ def test_multiline_secret_roundtrip(tmp_path):
 
 
 def test_cli_setup_verify_failure_leaves_old_file(tmp_path, monkeypatch):
-    import sre_graph.cli.integrations as commands
+    import fin_graph.cli.integrations as commands
 
     async def failed_verify(*_):
         return False
@@ -206,3 +206,16 @@ def test_replacing_multiline_binding_does_not_activate_continuations(tmp_path):
     assert "OTHER" not in values
     assert values["UNRELATED"] == "preserve"
     assert "# keep" in path.read_text()
+
+
+def test_market_data_providers_can_be_set_up(tmp_path):
+    env = tmp_path / "env"
+
+    update_env("yahoo", {"enabled": False, "report_lag_days": 60}, env)
+    update_env("financial_datasets", {"enabled": True, "api_key": "fd-key"}, env)
+
+    text = env.read_text(encoding="utf-8")
+    assert "YAHOO_ENABLED=false" in text and "YAHOO_REPORT_LAG_DAYS=60" in text
+    assert 'FINANCIAL_DATASETS_API_KEY="fd-key"' in text
+    with pytest.raises(ValueError):
+        update_env("financial_datasets", {"enabled": True, "api_key": ""}, tmp_path / "other")

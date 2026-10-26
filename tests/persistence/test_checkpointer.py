@@ -8,8 +8,8 @@ import pytest
 from langgraph.checkpoint.memory import InMemorySaver
 from langgraph.graph import END, START, StateGraph
 
-from sre_graph.config.settings import PersistenceBackend, Settings
-from sre_graph.persistence.checkpointer import open_checkpointer
+from fin_graph.config.settings import PersistenceBackend, Settings
+from fin_graph.persistence.checkpointer import open_checkpointer
 
 
 class CounterState(TypedDict, total=False):

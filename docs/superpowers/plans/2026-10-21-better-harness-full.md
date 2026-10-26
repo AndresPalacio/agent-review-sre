@@ -54,7 +54,7 @@ Do not claim provider-backed quality from scripted or mocked tests.
 - [x] 8. **Revisión final de arquitectura con referencia a Rovo.**
   Solicitada por el usuario el 2026-10-22. Ejecutar después de finalizar la tarea 7
   y sus verificaciones, como última tarea de este plan.
-  - Revisar `docs/arquitecture-review/sre-graph-arquitectura-multiagente.pdf` y contrastar
+  - Revisar `docs/arquitecture-review/fin-graph-arquitectura-multiagente.pdf` y contrastar
     sus propuestas con el código actual, incluido el runtime común del harness.
   - Consultar documentación oficial vigente de Atlassian Rovo y distinguir las
     capacidades documentadas de las inferencias sobre su arquitectura interna.

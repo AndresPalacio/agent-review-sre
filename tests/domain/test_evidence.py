@@ -2,8 +2,8 @@ from __future__ import annotations
 
 from datetime import UTC, datetime
 
-from sre_graph.domain.evidence import EvidenceItem, evidence_id, merge_evidence
-from sre_graph.domain.tools import Domain, EvidenceType
+from fin_graph.domain.evidence import EvidenceItem, evidence_id, merge_evidence
+from fin_graph.domain.tools import Domain, EvidenceType
 
 
 def test_the_same_call_gets_the_same_id_whatever_the_argument_order() -> None:

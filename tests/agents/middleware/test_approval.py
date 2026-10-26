@@ -8,11 +8,11 @@ from langgraph.checkpoint.memory import InMemorySaver
 from langgraph.graph.state import CompiledStateGraph
 from langgraph.types import Command
 
-from sre_graph.agents.factory import make_agent
-from sre_graph.agents.middleware.approval import approval_middleware
-from sre_graph.agents.testing.scripted_model import ScriptedChatModel, tool_call_message
-from sre_graph.domain.tools import Domain, EvidenceType, SideEffectLevel, ToolMeta, attach_tool_meta
-from sre_graph.safety.approval import ApprovalPolicy
+from fin_graph.agents.factory import make_agent
+from fin_graph.agents.middleware.approval import approval_middleware
+from fin_graph.agents.testing.scripted_model import ScriptedChatModel, tool_call_message
+from fin_graph.domain.tools import Domain, EvidenceType, SideEffectLevel, ToolMeta, attach_tool_meta
+from fin_graph.safety.approval import ApprovalPolicy
 
 CONFIG: Any = {"configurable": {"thread_id": "t1"}}
 UNDO_API = tool_call_message("k8s_rollout_undo", {"deployment": "api"}, "c1")

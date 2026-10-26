@@ -7,11 +7,11 @@ import pytest
 from kubernetes.client.exceptions import ApiException
 from pydantic import ValidationError
 
-from sre_graph.graphs.remediation import actions as action_module
-from sre_graph.graphs.remediation.actions import default_action_catalog
-from sre_graph.integrations.base import IntegrationError
-from sre_graph.integrations.context import RunContext
-from sre_graph.integrations.kubernetes.client import KubernetesClient
+from fin_graph.graphs.remediation import actions as action_module
+from fin_graph.graphs.remediation.actions import default_action_catalog
+from fin_graph.integrations.base import IntegrationError
+from fin_graph.integrations.context import RunContext
+from fin_graph.integrations.kubernetes.client import KubernetesClient
 
 
 class FakeApps:

@@ -10,7 +10,7 @@ import pytest
 from sqlalchemy import event, update
 from sqlalchemy.ext.asyncio import create_async_engine
 
-from sre_graph.server.storage import Base, RunRow, Storage
+from fin_graph.server.storage import Base, RunRow, Storage
 
 
 async def test_action_claim_fails_closed_after_uncertain_outcome() -> None:

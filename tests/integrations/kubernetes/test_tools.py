@@ -9,13 +9,13 @@ from kubernetes.config.config_exception import ConfigException
 from langchain_core.messages import AIMessage, HumanMessage, ToolMessage
 from langgraph.checkpoint.memory import InMemorySaver
 
-from sre_graph.agents.factory import make_agent
-from sre_graph.agents.middleware.guardrails import GuardrailsMiddleware
-from sre_graph.agents.testing.scripted_model import ScriptedChatModel, tool_call_message
-from sre_graph.domain.tools import Domain, SideEffectLevel, read_tool_meta
-from sre_graph.integrations.context import RunContext
-from sre_graph.integrations.kubernetes.client import KubernetesClient
-from sre_graph.integrations.kubernetes.tools import TOOLS
+from fin_graph.agents.factory import make_agent
+from fin_graph.agents.middleware.guardrails import GuardrailsMiddleware
+from fin_graph.agents.testing.scripted_model import ScriptedChatModel, tool_call_message
+from fin_graph.domain.tools import Domain, SideEffectLevel, read_tool_meta
+from fin_graph.integrations.context import RunContext
+from fin_graph.integrations.kubernetes.client import KubernetesClient
+from fin_graph.integrations.kubernetes.tools import TOOLS
 
 CRASHING_POD = "checkout-7d9f8b6c5-x2x9z"
 PODS = "/api/v1/namespaces/payments/pods"

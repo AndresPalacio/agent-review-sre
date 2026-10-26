@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/sre-graph.iml" filepath="$PROJECT_DIR$/.idea/sre-graph.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/fin-graph.iml" filepath="$PROJECT_DIR$/.idea/fin-graph.iml" />
     </modules>
   </component>
 </project>

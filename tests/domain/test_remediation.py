@@ -1,14 +1,14 @@
 from __future__ import annotations
 
-from sre_graph.domain.remediation import (
+from fin_graph.domain.remediation import (
     BlastRadius,
     RemediationAction,
     Risk,
     order_actions,
     template_steps,
 )
-from sre_graph.domain.remediation_templates import TEMPLATES
-from sre_graph.domain.taxonomy import CATEGORY_NAMES
+from fin_graph.domain.remediation_templates import TEMPLATES
+from fin_graph.domain.taxonomy import CATEGORY_NAMES
 
 
 def test_the_smallest_reversible_lowest_risk_action_comes_first() -> None:

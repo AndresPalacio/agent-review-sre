@@ -11,10 +11,10 @@ from langchain_core.tools import BaseTool, tool
 from langgraph.graph.state import CompiledStateGraph
 from pydantic import BaseModel
 
-from sre_graph.agents.factory import make_agent
-from sre_graph.agents.middleware.masking import MaskingMiddleware
-from sre_graph.agents.testing.scripted_model import ScriptedChatModel, tool_call_message
-from sre_graph.safety.masking import Masker, MaskingPolicy
+from fin_graph.agents.factory import make_agent
+from fin_graph.agents.middleware.masking import MaskingMiddleware
+from fin_graph.agents.testing.scripted_model import ScriptedChatModel, tool_call_message
+from fin_graph.safety.masking import Masker, MaskingPolicy
 
 POD = "checkout-7d9f8b6c5-x2x9z"
 POLICY = MaskingPolicy(enabled=True)

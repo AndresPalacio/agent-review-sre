@@ -2,20 +2,20 @@
 
 from __future__ import annotations
 
-from sre_graph.agents.testing.scripted_model import ScriptedChatModel, tool_call_message
-from sre_graph.domain.evidence import evidence_id
-from sre_graph.evals.scenarios import load_scenario
-from sre_graph.graphs.investigation.services import LangChainServices
-from sre_graph.llm.models import ModelRole
+from fin_graph.agents.testing.scripted_model import ScriptedChatModel, tool_call_message
+from fin_graph.domain.evidence import evidence_id
+from fin_graph.evals.scenarios import load_scenario
+from fin_graph.graphs.investigation.services import LangChainServices
+from fin_graph.llm.models import ModelRole
 
 
 async def test_real_agent_tools_middleware_skill_and_grader_work_together(tmp_path, monkeypatch):
     from langchain.agents.middleware import AgentMiddleware
 
-    import sre_graph.evals.runner as runner
-    from sre_graph.graphs.investigation.extensions import investigation_skill
-    from sre_graph.graphs.investigation.strategy import registration
-    from sre_graph.harness.quality import assess_record
+    import fin_graph.evals.runner as runner
+    from fin_graph.graphs.investigation.extensions import investigation_skill
+    from fin_graph.graphs.investigation.strategy import registration
+    from fin_graph.harness.quality import assess_record
 
     calls = []
 

@@ -10,11 +10,11 @@ from sqlalchemy import text
 from sqlalchemy.ext.asyncio import create_async_engine
 from tests.server.test_manager import ScriptedGraph
 
-from sre_graph.scheduler.service import PgAdvisoryLease, SchedulerService
-from sre_graph.server.events import EventListener
-from sre_graph.server.manager import RunManager
-from sre_graph.server.migrate import upgrade
-from sre_graph.server.storage import Storage
+from fin_graph.scheduler.service import PgAdvisoryLease, SchedulerService
+from fin_graph.server.events import EventListener
+from fin_graph.server.manager import RunManager
+from fin_graph.server.migrate import upgrade
+from fin_graph.server.storage import Storage
 
 
 @pytest.mark.postgres
@@ -130,7 +130,7 @@ async def test_notifications_wait_for_commit_and_rollback_is_silent(postgres_url
             transaction = await conn.begin()
             await conn.execute(
                 text("SELECT pg_notify(:channel,:thread)"),
-                {"channel": "sre_graph_events", "thread": thread},
+                {"channel": "fin_graph_events", "thread": thread},
             )
             await asyncio.sleep(0.05)
             assert not signal.is_set()
@@ -140,7 +140,7 @@ async def test_notifications_wait_for_commit_and_rollback_is_silent(postgres_url
             transaction = await conn.begin()
             await conn.execute(
                 text("SELECT pg_notify(:channel,:thread)"),
-                {"channel": "sre_graph_events", "thread": thread},
+                {"channel": "fin_graph_events", "thread": thread},
             )
             assert not signal.is_set()
             await transaction.commit()

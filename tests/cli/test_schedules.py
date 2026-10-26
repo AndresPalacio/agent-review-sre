@@ -5,7 +5,7 @@ import json
 import httpx
 from typer.testing import CliRunner
 
-from sre_graph.cli.main import app
+from fin_graph.cli.main import app
 
 
 def test_schedule_cli_crud_and_run(monkeypatch, tmp_path) -> None:
@@ -31,7 +31,7 @@ def test_schedule_cli_crud_and_run(monkeypatch, tmp_path) -> None:
     def client_factory(*args, **kwargs):
         return original(*args, transport=httpx.MockTransport(handler), **kwargs)
 
-    monkeypatch.setattr("sre_graph.cli.schedules.httpx.AsyncClient", client_factory)
+    monkeypatch.setattr("fin_graph.cli.schedules.httpx.AsyncClient", client_factory)
     source = tmp_path / "schedule.json"
     source.write_text(json.dumps({"id": "cpu", "enabled": True, "definition": {"kind": "digest"}}))
     runner = CliRunner()
@@ -70,7 +70,7 @@ def test_schedule_cli_rejects_insecure_remote_and_reports_http_failure(monkeypat
 
     original = httpx.AsyncClient
     monkeypatch.setattr(
-        "sre_graph.cli.schedules.httpx.AsyncClient",
+        "fin_graph.cli.schedules.httpx.AsyncClient",
         lambda *args, **kwargs: original(*args, transport=httpx.MockTransport(handler), **kwargs),
     )
     result = runner.invoke(

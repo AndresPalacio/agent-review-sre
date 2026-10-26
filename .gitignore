@@ -20,5 +20,5 @@ web/node_modules/
 web/test-results/
 web/playwright-report/
 web/coverage/
-src/sre_graph/server/static/
+src/fin_graph/server/static/
 /i/

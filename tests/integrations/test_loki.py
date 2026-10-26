@@ -3,11 +3,11 @@ from __future__ import annotations
 import httpx
 import pytest
 
-from sre_graph.domain.tools import Domain, read_tool_meta
-from sre_graph.integrations.base import IntegrationError, VerifyStatus
-from sre_graph.integrations.loki.client import LokiClient
-from sre_graph.integrations.loki.integration import LokiIntegration
-from sre_graph.integrations.loki.settings import LokiSettings
+from fin_graph.domain.tools import Domain, read_tool_meta
+from fin_graph.integrations.base import IntegrationError, VerifyStatus
+from fin_graph.integrations.loki.client import LokiClient
+from fin_graph.integrations.loki.integration import LokiIntegration
+from fin_graph.integrations.loki.settings import LokiSettings
 
 
 def test_loki_is_disabled_until_configured() -> None:

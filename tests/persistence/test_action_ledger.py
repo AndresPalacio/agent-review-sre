@@ -3,7 +3,7 @@ from __future__ import annotations
 import asyncio
 from pathlib import Path
 
-from sre_graph.persistence.action_ledger import open_sqlite_action_ledger
+from fin_graph.persistence.action_ledger import open_sqlite_action_ledger
 
 
 async def test_local_action_claim_is_atomic_across_two_process_connections(tmp_path: Path) -> None:

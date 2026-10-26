@@ -11,18 +11,18 @@ from langgraph.store.memory import InMemoryStore
 from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import create_async_engine
 
-from sre_graph.agents.testing.scripted_model import ScriptedChatModel, tool_call_message
-from sre_graph.graphs.chat.graph import make_chat_graph
-from sre_graph.graphs.investigation.graph import make_investigation_graph
-from sre_graph.graphs.investigation.services import UnavailableServices
-from sre_graph.graphs.remediation.graph import ActionCatalog, ActionSpec
-from sre_graph.integrations.context import RunContext
-from sre_graph.integrations.registry import IntegrationRegistry
-from sre_graph.memory.service import IncidentMemory
-from sre_graph.safety.approval import ApprovalPolicy
-from sre_graph.server.app import create_app
-from sre_graph.server.manager import RunManager
-from sre_graph.server.storage import Base, Storage
+from fin_graph.agents.testing.scripted_model import ScriptedChatModel, tool_call_message
+from fin_graph.graphs.chat.graph import make_chat_graph
+from fin_graph.graphs.investigation.graph import make_investigation_graph
+from fin_graph.graphs.investigation.services import UnavailableServices
+from fin_graph.graphs.remediation.graph import ActionCatalog, ActionSpec
+from fin_graph.integrations.context import RunContext
+from fin_graph.integrations.registry import IntegrationRegistry
+from fin_graph.memory.service import IncidentMemory
+from fin_graph.safety.approval import ApprovalPolicy
+from fin_graph.server.app import create_app
+from fin_graph.server.manager import RunManager
+from fin_graph.server.storage import Base, Storage
 
 
 async def test_chat_sse_requires_operator_and_keeps_thread(tmp_path: Path) -> None:

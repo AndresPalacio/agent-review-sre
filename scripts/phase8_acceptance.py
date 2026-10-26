@@ -19,15 +19,15 @@ import httpx
 from langgraph.checkpoint.memory import InMemorySaver
 from sqlalchemy.ext.asyncio import create_async_engine
 
-from sre_graph.graphs.investigation.graph import make_investigation_graph
-from sre_graph.graphs.investigation.services import UnavailableServices
-from sre_graph.integrations.context import RunContext
-from sre_graph.integrations.registry import IntegrationRegistry
-from sre_graph.server.app import create_app
-from sre_graph.server.config import ServerConfig
-from sre_graph.server.manager import RunManager
-from sre_graph.server.security import WebhookVerifier
-from sre_graph.server.storage import Base, Storage
+from fin_graph.graphs.investigation.graph import make_investigation_graph
+from fin_graph.graphs.investigation.services import UnavailableServices
+from fin_graph.integrations.context import RunContext
+from fin_graph.integrations.registry import IntegrationRegistry
+from fin_graph.server.app import create_app
+from fin_graph.server.config import ServerConfig
+from fin_graph.server.manager import RunManager
+from fin_graph.server.security import WebhookVerifier
+from fin_graph.server.storage import Base, Storage
 
 
 class MeasuredGraph:
@@ -74,7 +74,7 @@ async def load_check(*, burst: int = 32, pending: int = 8, concurrent: int = 2) 
         raise ValueError("require 1 <= concurrent <= pending < burst <= 512")
     started = time.perf_counter()
     criteria: dict[str, bool] = {}
-    with tempfile.TemporaryDirectory(prefix="sre-graph-acceptance-") as temporary:
+    with tempfile.TemporaryDirectory(prefix="fin-graph-acceptance-") as temporary:
         engine = create_async_engine(f"sqlite+aiosqlite:///{Path(temporary) / 'runs.sqlite'}")
         try:
             async with engine.begin() as connection:

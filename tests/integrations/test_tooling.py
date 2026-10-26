@@ -6,12 +6,12 @@ from langchain.tools import ToolRuntime
 from langchain_core.messages import AIMessage, HumanMessage, ToolMessage
 from langgraph.graph.state import CompiledStateGraph
 
-from sre_graph.agents.factory import make_agent
-from sre_graph.agents.testing.scripted_model import ScriptedChatModel, tool_call_message
-from sre_graph.domain.tools import Domain, EvidenceType, ToolMeta, read_tool_meta
-from sre_graph.integrations.base import IntegrationError
-from sre_graph.integrations.context import RunContext, require_client
-from sre_graph.integrations.tooling import integration_tool
+from fin_graph.agents.factory import make_agent
+from fin_graph.agents.testing.scripted_model import ScriptedChatModel, tool_call_message
+from fin_graph.domain.tools import Domain, EvidenceType, ToolMeta, read_tool_meta
+from fin_graph.integrations.base import IntegrationError
+from fin_graph.integrations.context import RunContext, require_client
+from fin_graph.integrations.tooling import integration_tool
 
 META = ToolMeta(
     integration="pager",

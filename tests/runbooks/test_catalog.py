@@ -2,8 +2,8 @@ from __future__ import annotations
 
 import pytest
 
-from sre_graph.runbooks.catalog import load_runbook, select_runbooks
-from sre_graph.skills.catalog import load_skill
+from fin_graph.runbooks.catalog import load_runbook, select_runbooks
+from fin_graph.skills.catalog import load_skill
 
 
 def test_runbook_requires_exact_trusted_id() -> None:

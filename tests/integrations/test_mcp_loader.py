@@ -9,10 +9,10 @@ from typing import Any
 import pytest
 from langchain_core.tools import BaseTool, tool
 
-from sre_graph.domain.tools import Domain, SideEffectLevel, read_tool_meta
-from sre_graph.integrations.base import VerifyStatus
-from sre_graph.integrations.mcp.config import McpConfigError, load_mcp_config
-from sre_graph.integrations.mcp.loader import load_mcp_tools, verify_mcp
+from fin_graph.domain.tools import Domain, SideEffectLevel, read_tool_meta
+from fin_graph.integrations.base import VerifyStatus
+from fin_graph.integrations.mcp.config import McpConfigError, load_mcp_config
+from fin_graph.integrations.mcp.loader import load_mcp_tools, verify_mcp
 
 
 @tool

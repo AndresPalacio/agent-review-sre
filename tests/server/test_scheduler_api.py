@@ -6,14 +6,14 @@ import httpx
 from langgraph.checkpoint.memory import InMemorySaver
 from sqlalchemy.ext.asyncio import create_async_engine
 
-from sre_graph.graphs.investigation.graph import make_investigation_graph
-from sre_graph.graphs.investigation.services import UnavailableServices
-from sre_graph.integrations.context import RunContext
-from sre_graph.integrations.registry import IntegrationRegistry
-from sre_graph.server.app import create_app
-from sre_graph.server.config import ServerConfig
-from sre_graph.server.manager import RunManager
-from sre_graph.server.storage import Base, Storage
+from fin_graph.graphs.investigation.graph import make_investigation_graph
+from fin_graph.graphs.investigation.services import UnavailableServices
+from fin_graph.integrations.context import RunContext
+from fin_graph.integrations.registry import IntegrationRegistry
+from fin_graph.server.app import create_app
+from fin_graph.server.config import ServerConfig
+from fin_graph.server.manager import RunManager
+from fin_graph.server.storage import Base, Storage
 
 
 class SchedulerStub:

@@ -15,7 +15,7 @@ y el paquete oficial better-harness fijado a
 |---|---|
 | `uv run --extra harness pytest -q` | **1074 passed, 18 skipped**, 57,29 s |
 | `uv run --extra harness pytest evals/harness --harness-model scripted -q` | **36 passed** |
-| `sre-graph harness smoke` | **19/19 train, 10/10 holdout, 7/7 scorecard** |
+| `fin-graph harness smoke` | **19/19 train, 10/10 holdout, 7/7 scorecard** |
 | Ruff lint y format | Correctos; 383 archivos con formato verificado |
 | mypy | Correcto; 248 módulos |
 | import-linter | Contrato conservado |
@@ -29,7 +29,7 @@ y el paquete oficial better-harness fijado a
 
 Smoke queda guardado en `.harness-runs/final-20261021/`. El reporte confirma
 `kind=wiring`, `quality_eligible=false` y `promotable=false`. Los 18 skips
-corresponden a Postgres, porque `SRE_GRAPH_TEST_DATABASE_URL` no está configurada.
+corresponden a Postgres, porque `FIN_GRAPH_TEST_DATABASE_URL` no está configurada.
 CI tiene un servicio Postgres y se añadió un job específico del harness para
 Linux/Windows con artefactos; no se afirma haber ejecutado CI remoto.
 

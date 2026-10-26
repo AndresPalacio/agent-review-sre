@@ -5,11 +5,11 @@ import json
 import httpx
 import pytest
 
-from sre_graph.domain.tools import Domain, SideEffectLevel, read_tool_meta
-from sre_graph.integrations.base import IntegrationError, VerifyStatus
-from sre_graph.integrations.newrelic.client import NewRelicClient
-from sre_graph.integrations.newrelic.integration import NewRelicIntegration
-from sre_graph.integrations.newrelic.settings import NewRelicSettings
+from fin_graph.domain.tools import Domain, SideEffectLevel, read_tool_meta
+from fin_graph.integrations.base import IntegrationError, VerifyStatus
+from fin_graph.integrations.newrelic.client import NewRelicClient
+from fin_graph.integrations.newrelic.integration import NewRelicIntegration
+from fin_graph.integrations.newrelic.settings import NewRelicSettings
 
 
 def test_newrelic_is_disabled_and_requires_a_user_key_and_account() -> None:

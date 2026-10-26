@@ -3,8 +3,8 @@ from __future__ import annotations
 import httpx
 import pytest
 
-from sre_graph.integrations.base import IntegrationError
-from sre_graph.integrations.http import HttpJsonClient, prometheus_data, require_window
+from fin_graph.integrations.base import IntegrationError
+from fin_graph.integrations.http import HttpJsonClient, prometheus_data, require_window
 
 
 async def test_json_request_encodes_params_and_headers() -> None:

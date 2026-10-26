@@ -15,9 +15,9 @@ import pytest
 from langchain_core.messages import AIMessage, HumanMessage, ToolMessage
 from langgraph_sdk.client import LangGraphClient
 
-from sre_graph.agents.testing.scripted_model import ScriptedChatModel
-from sre_graph.work import graphs
-from sre_graph.work.store import WorkStore
+from fin_graph.agents.testing.scripted_model import ScriptedChatModel
+from fin_graph.work import graphs
+from fin_graph.work.store import WorkStore
 
 _LEDGER: WorkStore | None = None
 
@@ -117,7 +117,7 @@ async def server(monkeypatch: pytest.MonkeyPatch):
         client = LangGraphClient(http)
         monkeypatch.setattr(upstream, "get_client", lambda **_: client)
         monkeypatch.setattr(graphs, "get_client", lambda **_: client)
-        monkeypatch.setenv("SRE_ASYNC_MODEL", "offline")
+        monkeypatch.setenv("FIN_ASYNC_MODEL", "offline")
         yield boundary
 
 
@@ -500,7 +500,7 @@ async def test_direct_mode_answers_without_spawning_or_claiming_real_inference(s
 async def test_ledger_gate_blocks_foreign_stale_and_cancelled_work(
     server, tmp_path, control, role, reason
 ):
-    from sre_graph.work.store import WorkStore
+    from fin_graph.work.store import WorkStore
 
     ledger = WorkStore(tmp_path / "work.sqlite")
     ledger.save({"work_id": "work-fixture", **control})
@@ -534,7 +534,7 @@ async def test_missing_ledger_path_fails_closed(server, role):
 
 
 async def test_worker_may_read_old_revision_but_state_revision_cannot_regress(server, tmp_path):
-    from sre_graph.work.store import WorkStore
+    from fin_graph.work.store import WorkStore
 
     ledger = WorkStore(tmp_path / "work.sqlite")
     ledger.save(
@@ -583,7 +583,7 @@ async def test_late_final_answer_records_its_own_revision_without_advancing_work
 def test_live_selection_builds_real_provider_model_without_network(monkeypatch):
     from langchain_openai import ChatOpenAI
 
-    monkeypatch.setenv("SRE_ASYNC_MODEL", "openai:pilot-model")
+    monkeypatch.setenv("FIN_ASYNC_MODEL", "openai:pilot-model")
     monkeypatch.setenv("OPENAI_API_KEY", "fixture-not-a-real-key")
     model = graphs._model("supervisor")
     assert isinstance(model, ChatOpenAI)
@@ -591,7 +591,7 @@ def test_live_selection_builds_real_provider_model_without_network(monkeypatch):
 
 
 async def test_model_mode_rejects_ambiguous_provider_selection(monkeypatch):
-    monkeypatch.setenv("SRE_ASYNC_MODEL", "unknown-model")
+    monkeypatch.setenv("FIN_ASYNC_MODEL", "unknown-model")
     with pytest.raises(ValueError, match="provider:model"):
         await graphs.supervisor({})
 

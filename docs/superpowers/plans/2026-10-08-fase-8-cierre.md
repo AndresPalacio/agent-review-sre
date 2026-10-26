@@ -28,7 +28,7 @@
 
 Owner architecture agent: server/app.py, config.py, manager.py, storage.py, new server/events.py, scheduler/service.py and corresponding tests.
 
-- [x] Commit-scoped `pg_notify('sre_graph_events', thread_id)` in Storage.add_event with SQL parameter binding; SQLite unchanged. Listener uses one dedicated psycopg connection, coalescing local subscriptions, reconnect, start/stop lifecycle. SSE subscribe-before-read; durable replay, timeout fallback, no per-client listener connections.
+- [x] Commit-scoped `pg_notify('fin_graph_events', thread_id)` in Storage.add_event with SQL parameter binding; SQLite unchanged. Listener uses one dedicated psycopg connection, coalescing local subscriptions, reconnect, start/stop lifecycle. SSE subscribe-before-read; durable replay, timeout fallback, no per-client listener connections.
 - [x] Scheduler election supervisor retries standby every configurable few seconds, validates lease before dispatch, stops old leadership on loss, safely recreates scheduler where needed. Public stop stops election too. Real Postgres two-instance takeover test.
 - [x] Serialize RunManager.resume check/create via distributed lock. Add finite pending limit default128 and typed overload (HTTP429+Retry-After) before acceptance; cleanup on scheduling failure and lock lifecycle. Tests concurrent resumes, burst overflow, capacity recovery, cancellation.
 - [x] Keep existing API contracts and phase7 UI compatibility. Root supplies `install_http_guards(app, max_requests=128, max_streams=64, max_body_bytes=1048576)` in server/http_guards.py; call after app construction. Root supplies `await with_configured_mcp(registry)` from integrations/mcp/runtime.py; call for production registry before compiling graphs, not injected fixtures.

@@ -208,7 +208,7 @@ export function App() {
               <span>03 / Aprobar</span>
             </div>
           </div>
-          <small>CONSOLA DE OPERACIONES · SRE GRAPH</small>
+          <small>CONSOLA DE OPERACIONES · FIN GRAPH</small>
         </div>
         <section className="login-form">
           <div className="eyebrow">ACCESO A LA CONSOLA</div>
@@ -330,7 +330,7 @@ export function App() {
           )}
         </main>
         <footer>
-          SRE GRAPH{" "}
+          FIN GRAPH{" "}
           <span>Investigaciones de lectura · Acciones bajo aprobación</span>
         </footer>
       </div>
@@ -1006,7 +1006,7 @@ function Chat({ session }: { session: Session }) {
             {thread?.messages?.length ? (
               thread.messages.map((m, i) => (
                 <article key={i} className={`bubble ${m.role}`}>
-                  <small>{m.role === "user" ? "Tú" : "SRE Graph"}</small>
+                  <small>{m.role === "user" ? "Tú" : "Fin Graph"}</small>
                   <p className="prewrap">{m.text}</p>
                 </article>
               ))

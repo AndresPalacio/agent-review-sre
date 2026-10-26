@@ -6,10 +6,10 @@ from typing import Any
 
 from langchain_core.messages import AIMessage, HumanMessage, ToolMessage
 
-from sre_graph.agents.factory import make_agent
-from sre_graph.agents.testing.scripted_model import ScriptedChatModel, tool_call_message
-from sre_graph.evals.fixtures import SOURCE_TO_TOOL, FixtureBackend
-from sre_graph.evals.scenarios import load_scenario, load_suite
+from fin_graph.agents.factory import make_agent
+from fin_graph.agents.testing.scripted_model import ScriptedChatModel, tool_call_message
+from fin_graph.evals.fixtures import SOURCE_TO_TOOL, FixtureBackend
+from fin_graph.evals.scenarios import load_scenario, load_suite
 
 
 async def _call(backend: FixtureBackend, name: str, args: dict[str, Any]) -> ToolMessage:

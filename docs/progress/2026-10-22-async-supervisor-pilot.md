@@ -12,7 +12,7 @@ Plan: [implementación](../superpowers/plans/2026-10-22-async-supervisor-pilot.m
 
 [Guía ejecutable, panel y breakpoints](../arquitecture-review/2026-10-22-piloto-async-ejecutable.md).
 
-- Paquete `sre_graph.work`: política, contratos, ledger, servicio, adaptador Agent Server, supervisor e hijos, HTTP y MCP.
+- Paquete `fin_graph.work`: política, contratos, ledger, servicio, adaptador Agent Server, supervisor e hijos, HTTP y MCP.
 - Extra `agents` y lock actualizado; conserva los cambios de dependencias del harness que ya existían.
 - `examples/demo_supervisor_async.py`: panel y escenarios lifecycle/cancel; `examples/demo_mcp_async.py`: cliente MCP real.
 - `examples/async_pilot.html`: estado real, traza de herramientas, actualización, cancelación y reconexión.
@@ -26,9 +26,9 @@ Entorno: Windows, Python 3.12; Deep Agents 0.7.29, LangGraph SDK 0.4.6, OpenAI S
 | Comprobación | Resultado observado |
 |---|---|
 | `python -m pytest tests/work -q` | **122 passed**, 4.69 s |
-| `python -m pytest -q` | **1247 passed, 18 skipped**, 90.07 s; omisiones por `SRE_GRAPH_TEST_DATABASE_URL` ausente |
+| `python -m pytest -q` | **1247 passed, 18 skipped**, 90.07 s; omisiones por `FIN_GRAPH_TEST_DATABASE_URL` ausente |
 | Ruff check y format de paquete, tests y dos ejemplos nuevos | Sin errores; 17 archivos formateados |
-| MyPy de `src/sre_graph/work` y ambos ejemplos | Sin errores, 12 archivos |
+| MyPy de `src/fin_graph/work` y ambos ejemplos | Sin errores, 12 archivos |
 | `uv lock --check` | 166 paquetes resueltos; lock coherente |
 | Agent Server real, lifecycle | Dos hijos, actualización de logs a `5m`, mismos thread IDs, reconexión de servicio y resultado de revisión 2 |
 | Recuperación de notificación/contexto antiguo | El lifecycle final ejecutó una consolidación registrada en ledger y terminó `completed`, revisión 2 |
@@ -61,7 +61,7 @@ La consulta de aprobación pendiente y el `interrupt` posterior de Deep Agents n
 
 ## Revisión 2026-10-22
 
-Una revisión posterior de `sre_graph.work` reprodujo dos defectos con un script
+Una revisión posterior de `fin_graph.work` reprodujo dos defectos con un script
 externo. Se añadieron pruebas que primero fallaron y después pasaron:
 
 1. Un `submit` rechazado antes de que el servidor aceptara el run dejaba el trabajo

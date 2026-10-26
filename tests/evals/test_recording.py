@@ -1,6 +1,6 @@
 import pytest
 
-from sre_graph.evals.recording import StrictReplay, load_recording, record_scenario
+from fin_graph.evals.recording import StrictReplay, load_recording, record_scenario
 
 
 def snapshot():
@@ -65,7 +65,7 @@ def test_requires_actual_args_results_review(tmp_path):
 
 @pytest.mark.asyncio
 async def test_replay_graph_results_are_explicitly_ineligible(tmp_path):
-    from sre_graph.evals.recording import replay_graph
+    from fin_graph.evals.recording import replay_graph
 
     path = tmp_path / "graph-recording"
     record_scenario(snapshot(), {"root_cause_category": "unknown"}, path, reviewer="operator")
@@ -109,9 +109,9 @@ async def test_replay_name_cannot_be_overridden_in_arguments(tmp_path):
 
 @pytest.mark.asyncio
 async def test_graph_replay_preserves_normalized_alert_and_exact_initial_window(tmp_path):
-    from sre_graph.domain.investigation import InvestigationPlan
-    from sre_graph.evals.recording import replay_graph
-    from sre_graph.graphs.investigation.services import UnavailableServices
+    from fin_graph.domain.investigation import InvestigationPlan
+    from fin_graph.evals.recording import replay_graph
+    from fin_graph.graphs.investigation.services import UnavailableServices
 
     data = snapshot()
     data["alert"].update(

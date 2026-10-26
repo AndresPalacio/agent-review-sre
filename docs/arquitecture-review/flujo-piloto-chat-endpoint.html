@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>SRE Graph · Así funciona el piloto</title>
+    <title>Fin Graph · Así funciona el piloto</title>
     <style>
       :root {
         color-scheme: light;
@@ -910,7 +910,7 @@
   <body>
     <div class="shell">
       <nav class="topbar" aria-label="Enlaces de la guía">
-        <div class="brand"><b>SG</b> SRE GRAPH / RECORRIDO</div>
+        <div class="brand"><b>SG</b> FIN GRAPH / RECORRIDO</div>
         <div class="toplinks">
           <a href="2026-10-22-piloto-async-ejecutable.md">Guía técnica</a
           ><a href="http://127.0.0.1:8012" target="_blank" rel="noopener"
@@ -1465,17 +1465,17 @@
         work: {
           title: "WorkService: el contrato del trabajo",
           text: "Controla actor, command_id, revisiones, consulta, actualización y cancelación. Conserva comandos en SQLite y utiliza el SDK para enviar ejecuciones al Agent Server. No contiene un segundo scheduler.",
-          code: "src/sre_graph/work/service.py → start / update / cancel / _refresh",
+          code: "src/fin_graph/work/service.py → start / update / cancel / _refresh",
         },
         router: {
           title: "Primera decisión: qué clase de petición es",
           text: "RulesPolicy decide direct, investigate o clarify. OpenAIDecisionPolicy permite usar Decisions en esa misma posición. Una confianza baja, error o rechazo provoca fallback a reglas; 0.7 es un umbral de piloto sin calibrar.",
-          code: "src/sre_graph/work/policy.py → decide(text, eligible=...)",
+          code: "src/fin_graph/work/policy.py → decide(text, eligible=...)",
         },
         supervisor: {
           title: "Aquí el agente elige su siguiente acción",
           text: "El modelo recibe los mensajes y las herramientas disponibles y emite tool_calls. Puedes ver los nombres y argumentos en PilotGuard.after_model. Offline reproduce decisiones de prueba; provider:model habilita inferencia real.",
-          code: "src/sre_graph/work/graphs.py → supervisor / PilotGuard.after_model",
+          code: "src/fin_graph/work/graphs.py → supervisor / PilotGuard.after_model",
         },
         guard: {
           title: "Una propuesta del modelo debe pasar controles",

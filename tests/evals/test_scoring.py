@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from sre_graph.evals.scenarios import load_scenario
-from sre_graph.evals.scoring import JudgeVerdict, judge_against_reference, score_scenario
+from fin_graph.evals.scenarios import load_scenario
+from fin_graph.evals.scoring import JudgeVerdict, judge_against_reference, score_scenario
 
 
 def _state(category: str = "resource_exhaustion") -> dict:

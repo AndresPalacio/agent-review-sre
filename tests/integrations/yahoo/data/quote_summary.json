@@ -1,0 +1,149 @@
+{
+  "quoteSummary": {
+    "result": [
+      {
+        "price": {
+          "currency": "USD",
+          "marketCap": {"raw": 3000000000000, "fmt": "3T"}
+        },
+        "summaryDetail": {
+          "trailingPE": {"raw": 30.5, "fmt": "30.50"},
+          "priceToSalesTrailing12Months": {"raw": 7.8, "fmt": "7.80"},
+          "payoutRatio": {"raw": 0.15, "fmt": "15.00%"},
+          "marketCap": {"raw": 3000000000000, "fmt": "3T"}
+        },
+        "defaultKeyStatistics": {
+          "enterpriseValue": {"raw": 3100000000000, "fmt": "3.1T"},
+          "priceToBook": {"raw": 45.0, "fmt": "45.00"},
+          "enterpriseToEbitda": {"raw": 22.0, "fmt": "22.00"},
+          "enterpriseToRevenue": {"raw": 7.5, "fmt": "7.50"},
+          "pegRatio": {"raw": 2.5, "fmt": "2.50"},
+          "trailingEps": {"raw": 6.1, "fmt": "6.10"},
+          "bookValue": {"raw": 4.0, "fmt": "4.00"},
+          "sharesOutstanding": {"raw": 15000000000, "fmt": "15B"}
+        },
+        "financialData": {
+          "financialCurrency": "USD",
+          "freeCashflow": {"raw": 100000000000, "fmt": "100B"},
+          "grossMargins": {"raw": 0.44, "fmt": "44.00%"},
+          "operatingMargins": {"raw": 0.3, "fmt": "30.00%"},
+          "profitMargins": {"raw": 0.25, "fmt": "25.00%"},
+          "returnOnEquity": {"raw": 1.5, "fmt": "150.00%"},
+          "returnOnAssets": {"raw": 0.2, "fmt": "20.00%"},
+          "currentRatio": {"raw": 1.1, "fmt": "1.10"},
+          "quickRatio": {"raw": 0.9, "fmt": "0.90"},
+          "debtToEquity": {"raw": 150.0, "fmt": "150.00"},
+          "revenueGrowth": {"raw": 0.05, "fmt": "5.00%"},
+          "earningsGrowth": {"raw": 0.08, "fmt": "8.00%"}
+        },
+        "incomeStatementHistory": {
+          "incomeStatementHistory": [
+            {
+              "endDate": {"raw": 1696032000, "fmt": "2023-09-30"},
+              "totalRevenue": {"raw": 383000000000},
+              "netIncome": {"raw": 97000000000},
+              "grossProfit": {"raw": 169000000000},
+              "operatingIncome": {"raw": 114000000000},
+              "ebit": {"raw": 114000000000},
+              "interestExpense": {"raw": -3800000000},
+              "researchDevelopment": {"raw": 29900000000},
+              "totalOperatingExpenses": {"raw": 269000000000},
+              "costOfRevenue": {"raw": 214000000000}
+            },
+            {
+              "endDate": {"raw": 1663977600, "fmt": "2022-09-24"},
+              "totalRevenue": {"raw": 394000000000},
+              "netIncome": {"raw": 99800000000},
+              "grossProfit": {"raw": 170800000000},
+              "operatingIncome": {"raw": 119400000000},
+              "ebit": {"raw": 119400000000},
+              "interestExpense": {"raw": -2900000000},
+              "researchDevelopment": {"raw": 26300000000},
+              "totalOperatingExpenses": {"raw": 274600000000},
+              "costOfRevenue": {"raw": 223200000000}
+            }
+          ]
+        },
+        "balanceSheetHistory": {
+          "balanceSheetStatements": [
+            {
+              "endDate": {"raw": 1696032000, "fmt": "2023-09-30"},
+              "totalAssets": {"raw": 352600000000},
+              "totalLiab": {"raw": 290400000000},
+              "totalCurrentAssets": {"raw": 143600000000},
+              "totalCurrentLiabilities": {"raw": 145300000000},
+              "totalStockholderEquity": {"raw": 62100000000},
+              "shortLongTermDebt": {"raw": 15800000000},
+              "longTermDebt": {"raw": 95300000000},
+              "cash": {"raw": 30000000000},
+              "goodWill": {"raw": 0},
+              "intangibleAssets": {"raw": 0}
+            },
+            {
+              "endDate": {"raw": 1663977600, "fmt": "2022-09-24"},
+              "totalAssets": {"raw": 352800000000},
+              "totalLiab": {"raw": 302100000000},
+              "totalCurrentAssets": {"raw": 135400000000},
+              "totalCurrentLiabilities": {"raw": 154000000000},
+              "totalStockholderEquity": {"raw": 50700000000},
+              "shortLongTermDebt": {"raw": 11100000000},
+              "longTermDebt": {"raw": 98900000000},
+              "cash": {"raw": 23600000000}
+            }
+          ]
+        },
+        "cashflowStatementHistory": {
+          "cashflowStatements": [
+            {
+              "endDate": {"raw": 1696032000, "fmt": "2023-09-30"},
+              "totalCashFromOperatingActivities": {"raw": 110500000000},
+              "capitalExpenditures": {"raw": -10900000000},
+              "depreciation": {"raw": 11500000000},
+              "dividendsPaid": {"raw": -15000000000},
+              "repurchaseOfStock": {"raw": -77500000000},
+              "issuanceOfStock": {"raw": 1000000000}
+            },
+            {
+              "endDate": {"raw": 1663977600, "fmt": "2022-09-24"},
+              "totalCashFromOperatingActivities": {"raw": 122200000000},
+              "capitalExpenditures": {"raw": -10700000000},
+              "depreciation": {"raw": 11100000000},
+              "dividendsPaid": {"raw": -14800000000},
+              "repurchaseOfStock": {"raw": -89400000000},
+              "issuanceOfStock": {"raw": 0}
+            }
+          ]
+        },
+        "insiderTransactions": {
+          "transactions": [
+            {
+              "filerName": "COOK TIMOTHY D",
+              "filerRelation": "Chief Executive Officer",
+              "transactionText": "Sale at price 170.00 per share.",
+              "startDate": {"raw": 1705276800, "fmt": "2024-01-15"},
+              "shares": {"raw": 50000},
+              "value": {"raw": 8500000}
+            },
+            {
+              "filerName": "DOE JANE",
+              "filerRelation": "Director",
+              "transactionText": "Purchase at price 168.00 per share.",
+              "startDate": {"raw": 1704844800, "fmt": "2024-01-10"},
+              "shares": {"raw": 1000},
+              "value": {"raw": 168000}
+            },
+            {
+              "filerName": "OLD TRADE",
+              "filerRelation": "Officer",
+              "transactionText": "Sale at price 150.00 per share.",
+              "startDate": {"raw": 1685577600, "fmt": "2023-06-01"},
+              "shares": {"raw": 2000},
+              "value": {"raw": 300000}
+            }
+          ]
+        }
+      }
+    ],
+    "error": null
+  }
+}

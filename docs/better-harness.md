@@ -1,4 +1,4 @@
-# Better-harness de producción para sre-graph
+# Better-harness de producción para fin-graph
 
 Esta integración utiliza el [better-harness oficial de LangChain](https://github.com/langchain-ai/deepagents/tree/be75459c444b53d21d633ef2ab997a01d0739c71/examples/better-harness),
 fijado en `uv.lock`. El Deep Agent externo propone cambios al harness del agente
@@ -11,15 +11,15 @@ contratos de ejecución y protección emparejada de holdout.
 
 CLI (`investigate`, `ask`, `chat`), API/UI, webhooks, gateways, escalamiento de health
 checks y Studio construyen las investigaciones mediante
-[`harness/runtime.py`](../src/sre_graph/harness/runtime.py). Las evals y los replays
+[`harness/runtime.py`](../src/fin_graph/harness/runtime.py). Las evals y los replays
 usan la misma fábrica. Los imports anteriores de `graphs.investigation` se conservan
 como compatibilidad y delegan al harness.
 
 ```powershell
 uv sync --locked
-uv run sre-graph harness runtime
-uv run sre-graph investigate --text 'Investiga los errores del servicio checkout'
-uv run sre-graph serve
+uv run fin-graph harness runtime
+uv run fin-graph investigate --text 'Investiga los errores del servicio checkout'
+uv run fin-graph serve
 ```
 
 El runtime de incidentes forma parte de la instalación básica. No inicia campañas
@@ -30,11 +30,11 @@ La configuración se resuelve en `harness/profile.py`, desde el entorno o `.env`
 
 | Variable | Default | Rango |
 |---|---:|---|
-| `SRE_HARNESS_MAX_WAVES` | 3 | 1–3 |
-| `SRE_HARNESS_MAX_TASKS_PER_WAVE` | 5 | 1–5 |
-| `SRE_HARNESS_MAX_TOTAL_TASKS` | 15 | 1–15 |
-| `SRE_HARNESS_DEADLINE_SECONDS` | 180 | 1–1800 |
-| `SRE_HARNESS_EXPECTED_VARIANT` | sin pin | Huella `sha256:…` del código instalado |
+| `FIN_HARNESS_MAX_WAVES` | 3 | 1–3 |
+| `FIN_HARNESS_MAX_TASKS_PER_WAVE` | 5 | 1–5 |
+| `FIN_HARNESS_MAX_TOTAL_TASKS` | 15 | 1–15 |
+| `FIN_HARNESS_DEADLINE_SECONDS` | 180 | 1–1800 |
+| `FIN_HARNESS_EXPECTED_VARIANT` | sin pin | Huella `sha256:…` del código instalado |
 
 La variante activa es la huella de las nueve superficies instaladas. `harness runtime`
 muestra esa huella y los límites efectivos sin contactar al LLM. El pin opcional hace
@@ -70,9 +70,9 @@ permanecen en las evals; un incidente real no tiene una respuesta de referencia.
 
 ```powershell
 uv sync --locked --extra harness
-uv run --extra harness sre-graph harness validate
+uv run --extra harness fin-graph harness validate
 uv run --extra harness better-harness validate harness/sre.toml
-uv run --extra harness sre-graph harness smoke --output-dir .harness-runs/smoke
+uv run --extra harness fin-graph harness smoke --output-dir .harness-runs/smoke
 ```
 
 Smoke recorre 36 escenarios con clientes de infraestructura simulados y respuestas
@@ -99,7 +99,7 @@ Son archivos o atributos consumidos por el runtime real:
 | `middleware_registration` | workspace_file | Registro de ese middleware por tarea |
 
 El código editable vive en
-[`graphs/investigation/strategy/`](../src/sre_graph/graphs/investigation/strategy/).
+[`graphs/investigation/strategy/`](../src/fin_graph/graphs/investigation/strategy/).
 `prepare_tools(task, tools)` puede devolver una selección o copias con otras
 `description`; debe conservar nombres, funciones, schemas y metadatos del adaptador.
 `refine_plan(plan, alert, available)` puede modificar hipótesis/tareas; las restricciones
@@ -118,12 +118,12 @@ las fallidas: identificador, especialista padre, argumentos redactados, secuenci
 tiempo relativo y estado. Las ramas paralelas mantienen identidades separadas. Una
 mención en texto o una tarea planeada no demuestra una invocación ejecutada.
 
-Los contratos están en [`evals/trajectory.py`](../src/sre_graph/evals/trajectory.py).
+Los contratos están en [`evals/trajectory.py`](../src/fin_graph/evals/trajectory.py).
 Se construyen a partir de la referencia congelada y los metadatos de tools, sin recibir
 instrucciones del optimizador. Para inspeccionar uno:
 
 ```powershell
-uv run --extra harness sre-graph harness contract eks/002-image-pull-backoff
+uv run --extra harness fin-graph harness contract eks/002-image-pull-backoff
 ```
 
 Un caso real aprueba sólo cuando **cada repetición** cumple:
@@ -154,7 +154,7 @@ del adaptador: no equivalen a demostrar que toda consulta semánticamente posibl
 
 ## Train, holdout y scorecard
 
-[`dataset.json`](../src/sre_graph/harness/dataset.json) congela las familias:
+[`dataset.json`](../src/fin_graph/harness/dataset.json) congela las familias:
 
 | Split | Casos | Visibilidad y uso |
 |---|---:|---|
@@ -179,10 +179,10 @@ de modelos del ejemplo pueden cambiarse. La falta de credenciales genera estado
 
 ```powershell
 # Baseline, con tres repeticiones
-uv run --env-file .env --extra harness sre-graph harness run --max-iterations 0 --repeat 3 --output-dir .harness-runs/baseline
+uv run --env-file .env --extra harness fin-graph harness run --max-iterations 0 --repeat 3 --output-dir .harness-runs/baseline
 
 # Optimización: modelos configurables, también pueden ser del mismo proveedor
-uv run --env-file .env --extra harness sre-graph harness run --model openai:gpt-4.1-mini --proposer-model anthropic:claude-sonnet-4-6 --max-iterations 3 --repeat 3 --output-dir .harness-runs/optimization
+uv run --env-file .env --extra harness fin-graph harness run --model openai:gpt-4.1-mini --proposer-model anthropic:claude-sonnet-4-6 --max-iterations 3 --repeat 3 --output-dir .harness-runs/optimization
 ```
 
 El ciclo guarda procedencia, mide baseline, prepara el workspace oficial, recibe una
@@ -211,7 +211,7 @@ agente SRE excluyen proposer y juez externo; no son un límite monetario global.
 inventan precios. Con los defaults, tres candidatos y scorecard final pueden alcanzar
 390 ejecuciones del agente, además del optimizador y del juez opcional.
 
-Cada split se evalúa en una copia temporal de `src/sre_graph` con un intérprete nuevo.
+Cada split se evalúa en una copia temporal de `src/fin_graph` con un intérprete nuevo.
 Los cambios de archivos no se aplican al checkout activo. Un fallo de importación,
 código inválido o timeout no puede contarse como aprobado. Los procesos de evaluación
 se terminan al vencer su deadline y se conservan logs/artefactos.
@@ -225,9 +225,9 @@ permanecen desactivadas en estas evals; las trazas locales son la fuente de verd
 ## Inspeccionar, exportar y adoptar
 
 ```powershell
-uv run --extra harness sre-graph harness inspect .harness-runs/optimization
+uv run --extra harness fin-graph harness inspect .harness-runs/optimization
 uv run --extra harness better-harness inspect .harness-runs/optimization
-uv run --extra harness sre-graph harness export .harness-runs/optimization --output-dir .harness-runs/review
+uv run --extra harness fin-graph harness export .harness-runs/optimization --output-dir .harness-runs/review
 ```
 
 `export` crea los archivos de las superficies y `prompts.py`, `changes.diff` y un
@@ -269,7 +269,7 @@ oficial ejecuta los mismos graders y presupuesto configurado, normalizando JUnit
 Windows. Puedes usar `--harness-config` con otra configuración. El CLI nativo
 `better-harness run` mantiene la aceptación original por suma train+holdout y aplica
 sus propias sustituciones temporales de archivos: para copias aisladas, deadlines y
-protección emparejada usa `sre-graph harness run`.
+protección emparejada usa `fin-graph harness run`.
 
 Harbor es un runner alternativo de upstream para benchmarks distintos; no aporta un
 backend a estas evals RCA basadas en pytest. No se instaló como dependencia adicional.

@@ -5,10 +5,10 @@ import asyncio
 import pytest
 from langgraph.checkpoint.memory import InMemorySaver
 
-from sre_graph.evals.fixtures import FixtureBackend
-from sre_graph.evals.runner import ScriptedServices
-from sre_graph.evals.scenarios import load_suite
-from sre_graph.graphs.investigation.graph import make_investigation_graph
+from fin_graph.evals.fixtures import FixtureBackend
+from fin_graph.evals.runner import ScriptedServices
+from fin_graph.evals.scenarios import load_suite
+from fin_graph.graphs.investigation.graph import make_investigation_graph
 
 
 def fixture_graph(*, checkpointer=None):
@@ -58,11 +58,11 @@ async def test_checkpoint_timestamps_reconstruct_parallel_specialist_interleavin
 
     from tests.graphs.investigation.test_graph import FakeServices, ToolSource
 
-    from sre_graph.domain.tools import Domain
-    from sre_graph.graphs.investigation.graph import InvestigationLimits
-    from sre_graph.harness.runtime import make_investigation_graph
-    from sre_graph.harness.trace import ExecutionTrace
-    from sre_graph.integrations.context import RunContext
+    from fin_graph.domain.tools import Domain
+    from fin_graph.graphs.investigation.graph import InvestigationLimits
+    from fin_graph.harness.runtime import make_investigation_graph
+    from fin_graph.harness.trace import ExecutionTrace
+    from fin_graph.integrations.context import RunContext
 
     metrics_started, logs_finished = asyncio.Event(), asyncio.Event()
 
@@ -118,7 +118,7 @@ async def test_checkpoint_timestamps_reconstruct_parallel_specialist_interleavin
 
 
 async def test_environment_budget_is_used_by_compatibility_factory(monkeypatch):
-    monkeypatch.setenv("SRE_HARNESS_MAX_WAVES", "1")
+    monkeypatch.setenv("FIN_HARNESS_MAX_WAVES", "1")
     graph, context, alert = fixture_graph()
     result = await graph.ainvoke({"raw_alert": alert}, context=context)
     assert result["wave"] == 1
@@ -126,7 +126,7 @@ async def test_environment_budget_is_used_by_compatibility_factory(monkeypatch):
 
 
 def test_expected_variant_mismatch_fails_before_execution(monkeypatch):
-    monkeypatch.setenv("SRE_HARNESS_EXPECTED_VARIANT", "sha256:" + "0" * 64)
+    monkeypatch.setenv("FIN_HARNESS_EXPECTED_VARIANT", "sha256:" + "0" * 64)
     with pytest.raises(ValueError, match="variant"):
         fixture_graph()
 
@@ -170,12 +170,12 @@ async def test_resume_retains_trace_and_rejects_changed_profile(monkeypatch):
         {"raw_alert": alert}, context=context, config=config, interrupt_after=["plan"]
     )
     initial = list(paused["harness_trace"])
-    monkeypatch.setenv("SRE_HARNESS_MAX_WAVES", "1")
+    monkeypatch.setenv("FIN_HARNESS_MAX_WAVES", "1")
     changed, _, _ = fixture_graph(checkpointer=saver)
     with pytest.raises(ValueError, match=r"profile differs.*fields: limits") as exc:
         await changed.ainvoke(None, context=context, config=config)
     assert str(exc.value).count("sha256:") == 2
-    monkeypatch.delenv("SRE_HARNESS_MAX_WAVES")
+    monkeypatch.delenv("FIN_HARNESS_MAX_WAVES")
     restarted, _, _ = fixture_graph(checkpointer=saver)
     finished = await restarted.ainvoke(None, context=context, config=config)
     assert finished["report"]
@@ -183,7 +183,7 @@ async def test_resume_retains_trace_and_rejects_changed_profile(monkeypatch):
 
 
 async def test_resume_checkpoint_from_before_harness_migration():
-    from sre_graph.graphs.investigation.graph import _compile_investigation_graph
+    from fin_graph.graphs.investigation.graph import _compile_investigation_graph
 
     scenario = load_suite("smoke")[0]
     backend = FixtureBackend(scenario)
@@ -210,8 +210,8 @@ async def test_resume_checkpoint_from_before_harness_migration():
 async def test_manager_persists_partial_trace_without_tool_arguments(tmp_path, monkeypatch):
     from sqlalchemy.ext.asyncio import create_async_engine
 
-    from sre_graph.server.manager import RunManager
-    from sre_graph.server.storage import Base, Storage
+    from fin_graph.server.manager import RunManager
+    from fin_graph.server.storage import Base, Storage
 
     started = asyncio.Event()
 

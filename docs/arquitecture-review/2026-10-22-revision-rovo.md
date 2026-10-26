@@ -1,4 +1,4 @@
-# Evolución de sre-graph hacia una arquitectura inspirada en Rovo
+# Evolución de fin-graph hacia una arquitectura inspirada en Rovo
 
 Revisión del 22 de octubre de 2026, realizada después de cerrar la tarea 7 del
 [plan del harness](../superpowers/plans/2026-10-21-better-harness-full.md).
@@ -26,7 +26,7 @@ offline. La distancia hacia el objetivo está en el modelo de trabajo persistent
 el contexto conectado y la continuidad entre ejecuciones. Añadir más especialistas
 por sí solo no cubre esas necesidades.
 
-El [PDF de referencia](sre-graph-arquitectura-multiagente.pdf), v2.0, contiene 28 páginas.
+El [PDF de referencia](fin-graph-arquitectura-multiagente.pdf), v2.0, contiene 28 páginas.
 Se extrajo su texto completo y se inspeccionaron visualmente los diagramas de las
 páginas 4, 7 y 20. El propio documento aclara que no inspeccionó el repositorio.
 Esta revisión contrasta sus propuestas con el checkout actual y fuentes oficiales.
@@ -35,7 +35,7 @@ Esta revisión contrasta sus propuestas con el checkout actual y fuentes oficial
 
 Hay tres etapas documentadas, que no deben combinarse como si fueran un diseño estático:
 
-| Referencia oficial | Capacidad documentada | Aplicación propuesta a sre-graph |
+| Referencia oficial | Capacidad documentada | Aplicación propuesta a fin-graph |
 |---|---|---|
 | [Orquestación híbrida, 1 dic 2025](https://www.atlassian.com/blog/blog/atlassian-engineering/how-rovo-embraces-multi-agent-orchestration) | Especialistas por dominio y herramientas directas para consultas sencillas; explica dificultades de planificar todo el DAG al inicio. | Conservar especialización útil y permitir una ruta breve para consultas de estado. |
 | [Long Horizon, 17 jun 2026](https://www.atlassian.com/blog/how-we-build/rovo-long-horizon-reasoning-engine) | Un bucle principal con contexto coherente, herramientas disponibles bajo demanda, recuperación de resultados compactados e hijos para investigaciones independientes. | Evitar que cada consulta atraviese un especialista fijo; permitir recuperar evidencia original y comparar un worker transversal con el actual. |
@@ -55,18 +55,18 @@ El tablero propio debe representar el estado aceptado por el backend.
 
 | Área del PDF | Qué existe y dónde comprobarlo | Brecha concreta |
 |---|---|---|
-| Runtime común, pp. 19–20 | [harness/runtime.py](../../src/sre_graph/harness/runtime.py), [profile.py](../../src/sre_graph/harness/profile.py), [observation.py](../../src/sre_graph/harness/observation.py). Fábrica común, límites, huella y trazas. | La huella cubre nueve superficies; no identifica por sí sola modelo, grafo, esquema de estado, contratos y permisos como una release completa. |
-| Contratos de trabajo, pp. 5–7 | [SpecialistTask e InvestigationPlan](../../src/sre_graph/domain/investigation.py) y [contratos de trayectoria de eval](../../src/sre_graph/evals/trajectory.py). | No hay TaskSpec persistida con revisión, criterios de aceptación, dependencias y capacidades concedidas. Los contratos de eval no son contratos de negocio en producción. |
-| Motor durable, pp. 13–15 | [RunManager](../../src/sre_graph/server/manager.py), [Storage](../../src/sre_graph/server/storage.py), [scheduler](../../src/sre_graph/scheduler/service.py). Runs, eventos, heartbeat, locks Postgres y reconciliación ya existen. | El dispatch usa tareas asyncio en el proceso. No hay protocolo general de outbox/inbox, intentos con fencing y espera durable de hijos. Los locks actuales no equivalen a ese protocolo. |
-| Hijos interactivos, p. 12 | [agents/subagents.py](../../src/sre_graph/agents/subagents.py) espera `ainvoke`; [grafo RCA](../../src/sre_graph/graphs/investigation/graph.py) distribuye especialistas con `Send`. | Paralelismo dentro del grafo, sin handle de hijo persistente, instrucciones posteriores ni notificación durable al padre. La investigación anidada del chat desactiva expresamente el saver heredado. |
-| Contexto conectado, p. 11 | [IncidentMemory](../../src/sre_graph/memory/service.py), [EvidenceItem](../../src/sre_graph/domain/evidence.py), runbooks y resultados estructurados. | Memoria resumida y referencias no equivalen a un grafo de servicios/repos/despliegues ni a manifiestos recuperables con ACL y frescura. La clave de evidencia depende de tool/argumentos, no del contenido de cada observación. |
-| Catálogo y MCP, p. 10 | [IntegrationRegistry](../../src/sre_graph/integrations/registry.py), [cliente MCP](../../src/sre_graph/integrations/mcp/runtime.py), [selección de tools](../../src/sre_graph/graphs/investigation/extensions.py). | Consumir servidores MCP no expone nuestro WorkService por MCP. Falta la fachada `work_*` y descubrimiento de schemas bajo demanda. |
-| Efectos externos, p. 16 | [ActionCatalog y remediación](../../src/sre_graph/graphs/remediation/graph.py), ledger de acciones y [entrega](../../src/sre_graph/delivery/service.py). | Ya hay aprobación, argumentos validados e idempotencia; el resultado incierto exige reconciliación manual. Ampliar identidad por revisión y reconciliación específica por proveedor. |
+| Runtime común, pp. 19–20 | [harness/runtime.py](../../src/fin_graph/harness/runtime.py), [profile.py](../../src/fin_graph/harness/profile.py), [observation.py](../../src/fin_graph/harness/observation.py). Fábrica común, límites, huella y trazas. | La huella cubre nueve superficies; no identifica por sí sola modelo, grafo, esquema de estado, contratos y permisos como una release completa. |
+| Contratos de trabajo, pp. 5–7 | [SpecialistTask e InvestigationPlan](../../src/fin_graph/domain/investigation.py) y [contratos de trayectoria de eval](../../src/fin_graph/evals/trajectory.py). | No hay TaskSpec persistida con revisión, criterios de aceptación, dependencias y capacidades concedidas. Los contratos de eval no son contratos de negocio en producción. |
+| Motor durable, pp. 13–15 | [RunManager](../../src/fin_graph/server/manager.py), [Storage](../../src/fin_graph/server/storage.py), [scheduler](../../src/fin_graph/scheduler/service.py). Runs, eventos, heartbeat, locks Postgres y reconciliación ya existen. | El dispatch usa tareas asyncio en el proceso. No hay protocolo general de outbox/inbox, intentos con fencing y espera durable de hijos. Los locks actuales no equivalen a ese protocolo. |
+| Hijos interactivos, p. 12 | [agents/subagents.py](../../src/fin_graph/agents/subagents.py) espera `ainvoke`; [grafo RCA](../../src/fin_graph/graphs/investigation/graph.py) distribuye especialistas con `Send`. | Paralelismo dentro del grafo, sin handle de hijo persistente, instrucciones posteriores ni notificación durable al padre. La investigación anidada del chat desactiva expresamente el saver heredado. |
+| Contexto conectado, p. 11 | [IncidentMemory](../../src/fin_graph/memory/service.py), [EvidenceItem](../../src/fin_graph/domain/evidence.py), runbooks y resultados estructurados. | Memoria resumida y referencias no equivalen a un grafo de servicios/repos/despliegues ni a manifiestos recuperables con ACL y frescura. La clave de evidencia depende de tool/argumentos, no del contenido de cada observación. |
+| Catálogo y MCP, p. 10 | [IntegrationRegistry](../../src/fin_graph/integrations/registry.py), [cliente MCP](../../src/fin_graph/integrations/mcp/runtime.py), [selección de tools](../../src/fin_graph/graphs/investigation/extensions.py). | Consumir servidores MCP no expone nuestro WorkService por MCP. Falta la fachada `work_*` y descubrimiento de schemas bajo demanda. |
+| Efectos externos, p. 16 | [ActionCatalog y remediación](../../src/fin_graph/graphs/remediation/graph.py), ledger de acciones y [entrega](../../src/fin_graph/delivery/service.py). | Ya hay aprobación, argumentos validados e idempotencia; el resultado incierto exige reconciliación manual. Ampliar identidad por revisión y reconciliación específica por proveedor. |
 | Presupuesto, p. 18 | Límites del grafo, middleware y admisión local del manager; evaluación de coste/latencia. | Falta reserva atómica de un presupuesto raíz compartido por hijos, reintentos y herramientas, con conciliación del consumo. |
-| Mejora, pp. 20–23 | [experiment.py](../../src/sre_graph/harness/experiment.py), train/holdout/scorecard, allowlist y exportación revisable. | No hay registro de releases con rollout/rollback operativo. El scorecard reutilizado entre campañas no debe presentarse como test final permanentemente sellado. |
+| Mejora, pp. 20–23 | [experiment.py](../../src/fin_graph/harness/experiment.py), train/holdout/scorecard, allowlist y exportación revisable. | No hay registro de releases con rollout/rollback operativo. El scorecard reutilizado entre campañas no debe presentarse como test final permanentemente sellado. |
 
 La API actual distingue roles y conserva controles de aprobación. Aun así,
-[RunContext](../../src/sre_graph/integrations/context.py) no tiene tenant/scopes y
+[RunContext](../../src/fin_graph/integrations/context.py) no tiene tenant/scopes y
 la memoria usa namespaces fijos de organización. Antes de compartir el servicio
 entre organizaciones o ámbitos de lectura diferentes, hacen falta autorización
 por recurso y aislamiento de memoria, caché, artefactos y resultados. Es un requisito
@@ -93,7 +93,7 @@ Atlassian documenta el acceso de agentes en nombre del usuario conforme a sus pe
    grafo, estado, modelos, tools, contexto, contratos y evaluación. La política de
    reanudación debe rechazar una mezcla incompatible o migrarla explícitamente.
 6. **Convertir el aislamiento propuesto en un gate verificable.**
-   [execution.py](../../src/sre_graph/harness/execution.py) copia código y hereda el
+   [execution.py](../../src/fin_graph/harness/execution.py) copia código y hereda el
    entorno del proceso; esto no aísla credenciales productivas ni Python hostil.
    Antes de code mode o candidatos de terceros, usar un entorno mínimo de eval,
    credenciales separadas, restricciones de red y un sandbox real. Preservar los

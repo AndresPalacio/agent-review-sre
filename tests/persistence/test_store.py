@@ -8,9 +8,9 @@ from typing import Any
 
 import pytest
 
-from sre_graph.config.settings import PersistenceBackend, Settings
-from sre_graph.persistence.checkpointer import open_checkpointer
-from sre_graph.persistence.store import open_store
+from fin_graph.config.settings import PersistenceBackend, Settings
+from fin_graph.persistence.checkpointer import open_checkpointer
+from fin_graph.persistence.store import open_store
 
 
 async def _put_then_reopen_and_get(settings: Settings) -> object:
@@ -37,7 +37,7 @@ async def test_postgres_embeddings_are_opt_in_without_network(
 ) -> None:
     from langgraph.store.postgres.aio import AsyncPostgresStore
 
-    from sre_graph.persistence import store as store_module
+    from fin_graph.persistence import store as store_module
 
     seen: dict[str, Any] = {}
 

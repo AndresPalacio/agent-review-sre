@@ -9,19 +9,19 @@ from langgraph.store.memory import InMemoryStore
 from pytest import MonkeyPatch
 from typer.testing import CliRunner
 
-from sre_graph.agents.testing.scripted_model import ScriptedChatModel, tool_call_message
-from sre_graph.cli.chat import ChatSession, RemoteChatSession
-from sre_graph.cli.main import app
-from sre_graph.domain.alerts.parsing import text_alert
-from sre_graph.domain.diagnosis import unknown_diagnosis
-from sre_graph.domain.report import build_report
-from sre_graph.graphs.chat.graph import make_chat_graph
-from sre_graph.graphs.remediation.graph import ActionCatalog
-from sre_graph.integrations.context import RunContext
-from sre_graph.integrations.registry import IntegrationRegistry
-from sre_graph.memory.service import IncidentMemory
-from sre_graph.persistence.action_ledger import open_sqlite_action_ledger
-from sre_graph.safety.approval import ApprovalPolicy
+from fin_graph.agents.testing.scripted_model import ScriptedChatModel, tool_call_message
+from fin_graph.cli.chat import ChatSession, RemoteChatSession
+from fin_graph.cli.main import app
+from fin_graph.domain.alerts.parsing import text_alert
+from fin_graph.domain.diagnosis import unknown_diagnosis
+from fin_graph.domain.report import build_report
+from fin_graph.graphs.chat.graph import make_chat_graph
+from fin_graph.graphs.remediation.graph import ActionCatalog
+from fin_graph.integrations.context import RunContext
+from fin_graph.integrations.registry import IntegrationRegistry
+from fin_graph.memory.service import IncidentMemory
+from fin_graph.persistence.action_ledger import open_sqlite_action_ledger
+from fin_graph.safety.approval import ApprovalPolicy
 
 
 async def test_local_session_new_resume_threads_and_cost_without_transcript_in_store() -> None:
@@ -322,11 +322,11 @@ def test_ask_remote_uses_env_api_key_and_existing_thread(monkeypatch: MonkeyPatc
     def mock_client(*args: object, **kwargs: object) -> httpx.AsyncClient:
         return real_client(*args, **kwargs, transport=httpx.MockTransport(respond))
 
-    monkeypatch.setattr("sre_graph.cli.main.httpx.AsyncClient", mock_client)
+    monkeypatch.setattr("fin_graph.cli.main.httpx.AsyncClient", mock_client)
     result = CliRunner().invoke(
         app,
         ["ask", "hola", "--server", "https://sre.example", "--thread-id", "saved-thread"],
-        env={"SRE_GRAPH_API_KEY": "secret-key"},
+        env={"FIN_GRAPH_API_KEY": "secret-key"},
     )
     assert result.exit_code == 0, result.output
     assert "Respuesta remota" in result.output

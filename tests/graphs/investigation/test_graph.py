@@ -11,26 +11,26 @@ from langchain_core.tools import BaseTool, tool
 from langgraph.checkpoint.memory import InMemorySaver
 from langgraph.store.memory import InMemoryStore
 
-from sre_graph.domain.alerts.model import NormalizedAlert
-from sre_graph.domain.alerts.noise import AlertExtraction
-from sre_graph.domain.diagnosis import Claim, Diagnosis, HypothesisOutcome, IncidentStatus
-from sre_graph.domain.evidence import EvidenceItem
-from sre_graph.domain.investigation import (
+from fin_graph.domain.alerts.model import NormalizedAlert
+from fin_graph.domain.alerts.noise import AlertExtraction
+from fin_graph.domain.diagnosis import Claim, Diagnosis, HypothesisOutcome, IncidentStatus
+from fin_graph.domain.evidence import EvidenceItem
+from fin_graph.domain.investigation import (
     Hypothesis,
     InvestigationPlan,
     SpecialistFinding,
     SpecialistTask,
     Verdict,
 )
-from sre_graph.domain.rendering.markdown import render_markdown
-from sre_graph.domain.report import Report
-from sre_graph.domain.tools import Domain, EvidenceType, ToolMeta, attach_tool_meta
-from sre_graph.domain.window import IncidentWindow
-from sre_graph.graphs.investigation.graph import InvestigationLimits, make_investigation_graph
-from sre_graph.graphs.investigation.services import ClaimJudgment
-from sre_graph.integrations.catalog import default_registry
-from sre_graph.integrations.context import RunContext
-from sre_graph.memory.service import IncidentMemory
+from fin_graph.domain.rendering.markdown import render_markdown
+from fin_graph.domain.report import Report
+from fin_graph.domain.tools import Domain, EvidenceType, ToolMeta, attach_tool_meta
+from fin_graph.domain.window import IncidentWindow
+from fin_graph.graphs.investigation.graph import InvestigationLimits, make_investigation_graph
+from fin_graph.graphs.investigation.services import ClaimJudgment
+from fin_graph.integrations.catalog import default_registry
+from fin_graph.integrations.context import RunContext
+from fin_graph.memory.service import IncidentMemory
 
 
 @tool

@@ -2,9 +2,9 @@ from __future__ import annotations
 
 import pytest
 
-from sre_graph.config.settings import Settings
-from sre_graph.domain.tools import Domain, EvidenceType, SideEffectLevel, ToolMeta
-from sre_graph.safety.approval import ApprovalPolicy
+from fin_graph.config.settings import Settings
+from fin_graph.domain.tools import Domain, EvidenceType, SideEffectLevel, ToolMeta
+from fin_graph.safety.approval import ApprovalPolicy
 
 
 def _meta(level: SideEffectLevel) -> ToolMeta:

@@ -44,7 +44,7 @@ Los cambios previos del workspace y `projects/` se conservaron. El plan es
 | Wheel | Construido; incluye skills, contratos, dataset, worker y UI |
 | Preflight real `.harness-runs/full-provider-check-20261021` | Blocked: `OPENAI_API_KEY` no configurada |
 
-Las 18 omisiones requieren `SRE_GRAPH_TEST_DATABASE_URL` (Postgres). Las validaciones
+Las 18 omisiones requieren `FIN_GRAPH_TEST_DATABASE_URL` (Postgres). Las validaciones
 scripted y las pruebas con modelos simulados prueban el software, **no calidad RCA ni
 mejora de un modelo real**. Smoke mantiene `quality_eligible=false` y `promotable=false`.
 No se ejecutó CI remoto ni se repitieron pruebas web: esta ampliación no cambia la UI.

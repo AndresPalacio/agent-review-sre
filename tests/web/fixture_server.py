@@ -19,23 +19,23 @@ from langgraph.store.memory import InMemoryStore
 from pydantic import BaseModel, Field
 from sqlalchemy.ext.asyncio import AsyncEngine, create_async_engine
 
-from sre_graph.agents.testing.scripted_model import ScriptedChatModel
-from sre_graph.config.settings import Settings
-from sre_graph.domain.alerts.noise import AlertExtraction
-from sre_graph.evals.fixtures import FixtureBackend
-from sre_graph.evals.runner import ScriptedServices
-from sre_graph.evals.scenarios import load_scenario
-from sre_graph.graphs.chat.graph import make_chat_graph
-from sre_graph.graphs.investigation.graph import make_investigation_graph
-from sre_graph.graphs.remediation.graph import ActionCatalog, ActionSpec, make_remediation_graph
-from sre_graph.integrations.context import RunContext
-from sre_graph.integrations.registry import IntegrationRegistry
-from sre_graph.memory.service import IncidentMemory
-from sre_graph.safety.approval import ApprovalPolicy
-from sre_graph.server.app import create_app
-from sre_graph.server.config import ServerConfig
-from sre_graph.server.manager import RunManager
-from sre_graph.server.storage import Base, Storage
+from fin_graph.agents.testing.scripted_model import ScriptedChatModel
+from fin_graph.config.settings import Settings
+from fin_graph.domain.alerts.noise import AlertExtraction
+from fin_graph.evals.fixtures import FixtureBackend
+from fin_graph.evals.runner import ScriptedServices
+from fin_graph.evals.scenarios import load_scenario
+from fin_graph.graphs.chat.graph import make_chat_graph
+from fin_graph.graphs.investigation.graph import make_investigation_graph
+from fin_graph.graphs.remediation.graph import ActionCatalog, ActionSpec, make_remediation_graph
+from fin_graph.integrations.context import RunContext
+from fin_graph.integrations.registry import IntegrationRegistry
+from fin_graph.memory.service import IncidentMemory
+from fin_graph.safety.approval import ApprovalPolicy
+from fin_graph.server.app import create_app
+from fin_graph.server.config import ServerConfig
+from fin_graph.server.manager import RunManager
+from fin_graph.server.storage import Base, Storage
 
 
 class ScaleArgs(BaseModel):
@@ -144,7 +144,7 @@ async def _build_fixture_app(engine: AsyncEngine, ui_dir: Path) -> FastAPI:
 
 
 async def main() -> None:
-    with TemporaryDirectory(prefix="sre-graph-browser-") as directory:
+    with TemporaryDirectory(prefix="fin-graph-browser-") as directory:
         app = await create_fixture_app(Path(directory) / "fixture.sqlite")
         try:
             await uvicorn.Server(uvicorn.Config(app, host="127.0.0.1", port=8000)).serve()

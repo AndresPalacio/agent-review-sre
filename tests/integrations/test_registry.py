@@ -6,18 +6,18 @@ from typing import Any
 import pytest
 from langchain_core.tools import BaseTool, tool
 
-from sre_graph.domain.tools import Domain, EvidenceType, ToolMeta
-from sre_graph.integrations.alertmanager.integration import AlertmanagerIntegration
-from sre_graph.integrations.base import Integration, VerifyResult, VerifyStatus
-from sre_graph.integrations.context import RunContext
-from sre_graph.integrations.datadog.integration import DatadogIntegration
-from sre_graph.integrations.grafana.integration import GrafanaIntegration
-from sre_graph.integrations.loki.integration import LokiIntegration
-from sre_graph.integrations.newrelic.integration import NewRelicIntegration
-from sre_graph.integrations.prometheus.integration import MimirIntegration, PrometheusIntegration
-from sre_graph.integrations.registry import IntegrationRegistry
-from sre_graph.integrations.tempo.integration import TempoIntegration
-from sre_graph.integrations.tooling import integration_tool
+from fin_graph.domain.tools import Domain, EvidenceType, ToolMeta
+from fin_graph.integrations.alertmanager.integration import AlertmanagerIntegration
+from fin_graph.integrations.base import Integration, VerifyResult, VerifyStatus
+from fin_graph.integrations.context import RunContext
+from fin_graph.integrations.datadog.integration import DatadogIntegration
+from fin_graph.integrations.grafana.integration import GrafanaIntegration
+from fin_graph.integrations.loki.integration import LokiIntegration
+from fin_graph.integrations.newrelic.integration import NewRelicIntegration
+from fin_graph.integrations.prometheus.integration import MimirIntegration, PrometheusIntegration
+from fin_graph.integrations.registry import IntegrationRegistry
+from fin_graph.integrations.tempo.integration import TempoIntegration
+from fin_graph.integrations.tooling import integration_tool
 
 # Built at runtime so this file holds no string that looks like a real credential.
 GITHUB_TOKEN = "ghp_" + "a1B2c3D4e5F6g7H8i9J0k1L2m3N4o5P6q7R8"

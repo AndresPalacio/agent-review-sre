@@ -12,8 +12,8 @@ from langchain_core.messages import AIMessage, HumanMessage, ToolMessage
 from langchain_core.tools import tool
 from langgraph.types import Command
 
-from sre_graph.agents.factory import make_agent
-from sre_graph.agents.testing.scripted_model import ScriptedChatModel, tool_call_message
+from fin_graph.agents.factory import make_agent
+from fin_graph.agents.testing.scripted_model import ScriptedChatModel, tool_call_message
 
 ToolCallResult = ToolMessage | Command[Any]
 

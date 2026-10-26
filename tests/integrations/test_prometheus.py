@@ -3,12 +3,18 @@ from __future__ import annotations
 import httpx
 import pytest
 
-from sre_graph.domain.tools import Domain, SideEffectLevel, read_tool_meta
-from sre_graph.integrations.base import IntegrationError, VerifyStatus
-from sre_graph.integrations.catalog import default_registry
-from sre_graph.integrations.prometheus.client import PrometheusClient
-from sre_graph.integrations.prometheus.integration import MimirIntegration, PrometheusIntegration
-from sre_graph.integrations.prometheus.settings import MimirSettings, PrometheusSettings
+from fin_graph.domain.tools import Domain, SideEffectLevel, read_tool_meta
+from fin_graph.integrations.base import IntegrationError, VerifyStatus
+from fin_graph.integrations.catalog import default_registry
+from fin_graph.integrations.prometheus.client import PrometheusClient
+from fin_graph.integrations.prometheus.integration import MimirIntegration, PrometheusIntegration
+from fin_graph.integrations.prometheus.settings import MimirSettings, PrometheusSettings
+
+
+@pytest.fixture(autouse=True)
+def _observability_only(monkeypatch: pytest.MonkeyPatch) -> None:
+    """These tests cover the SRE catalog; switch off the market data that is on by default."""
+    monkeypatch.setenv("YAHOO_ENABLED", "false")
 
 
 def _transport(seen: list[httpx.Request], *, status: int = 200) -> httpx.MockTransport:

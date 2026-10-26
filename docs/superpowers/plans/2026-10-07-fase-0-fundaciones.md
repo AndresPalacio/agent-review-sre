@@ -1,21 +1,21 @@
-# Fase 0 — Fundaciones de sre-graph: plan de implementación
+# Fase 0 — Fundaciones de fin-graph: plan de implementación
 
 > **Para agentes:** SUB-SKILL REQUERIDA: usa superpowers:subagent-driven-development (recomendado) o superpowers:executing-plans para implementar este plan tarea por tarea. Los pasos usan checkboxes (`- [ ]`).
 
-**Goal:** dejar listo el repo `sre-graph` verificado offline, con:
+**Goal:** dejar listo el repo `fin-graph` verificado offline, con:
 - configuración, modelos LLM por rol y persistencia (memoria/SQLite/Postgres);
 - el kit de agentes portado del starter kit y un middleware de caché de tools;
 - tests de contrato de LangGraph y un grafo demo visible en LangGraph Studio.
 
 **Architecture:**
-- Paquete Python `sre_graph` (layout `src/`) en capas con dependencias solo hacia abajo: `graphs → agents → llm | persistence → config`, validado por import-linter.
+- Paquete Python `fin_graph` (layout `src/`) en capas con dependencias solo hacia abajo: `graphs → agents → llm | persistence → config`, validado por import-linter.
 - Los agentes se construyen con `create_agent` (LangChain v1) a través de una única costura, `make_agent`.
 - El patrón supervisor/subagentes se porta del starter kit.
 - Los tests corren grafos reales sin red con un modelo guionado (`ScriptedChatModel`).
 
 **Tech Stack:** Python 3.12, uv, LangGraph 1.2.14, LangChain 1.4.3 / langchain-core 1.6.7, langgraph-checkpoint-sqlite 3.1.1, langgraph-checkpoint-postgres 3.1.2 (psycopg 3), pydantic-settings 2.15, pytest 9 + pytest-asyncio 1.4, ruff 0.16, mypy 2.4, import-linter 2.15, Docker (`pgvector/pgvector:pg17`), langgraph-cli 0.4.33.
 
-**Spec:** `docs/specs/2026-10-07-sre-graph-design.md`
+**Spec:** `docs/specs/2026-10-07-fin-graph-design.md`
 
 > **Alcance:** solo la Fase 0. Las Fases 1 y 2 reciben su propio plan al cerrar esta, porque dependen de lo que confirme el spike y de las versiones que fije `uv.lock`.
 > Todo el código de este plan ya se ejecutó en un borrador sobre Windows 11 con: 43 tests (incluidos 2 contra Postgres en Docker), ruff, mypy `strict` e import-linter en verde.
@@ -37,7 +37,7 @@
   - Solo el grafo más externo lo lleva.
   - `langgraph.json` exporta fábricas compiladas sin checkpointer.
 - **Capas:** dependencias solo hacia abajo, con contrato de import-linter.
-- **Repo:** `C:\Users\USUARIO\Desktop\devops-telemetri\sre-graph`, paquete `sre_graph`, rama de trabajo `fase-0`.
+- **Repo:** `C:\Users\USUARIO\Desktop\devops-telemetri\fin-graph`, paquete `fin_graph`, rama de trabajo `fase-0`.
 - **Atribución:** `NOTICE` (Apache-2.0) para el material adaptado.
 - **Commits:** cada commit termina con el trailer `Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>`.
 
@@ -65,16 +65,16 @@
 | `docker-compose.yml` | Postgres + pgvector local en el puerto 5433 |
 | `langgraph.json` | Grafos expuestos a LangGraph Studio |
 | `.github/workflows/ci.yml` | Gate de calidad en CI, con Postgres de servicio |
-| `src/sre_graph/config/settings.py` | `Settings` y `PersistenceBackend` |
-| `src/sre_graph/llm/models.py` | `ModelRole`, `ModelSpec`, `resolve_model_spec`, `get_model` |
-| `src/sre_graph/persistence/paths.py` | `prepare_sqlite_path` |
-| `src/sre_graph/persistence/checkpointer.py` | `open_checkpointer` |
-| `src/sre_graph/persistence/store.py` | `open_store` |
-| `src/sre_graph/agents/testing/scripted_model.py` | `ScriptedChatModel`, `tool_call_message`, `ScriptedModelExhaustedError` |
-| `src/sre_graph/agents/factory.py` | `make_agent` |
-| `src/sre_graph/agents/subagents.py` | `SubagentSpec`, `subagent_tool`, `make_supervisor` |
-| `src/sre_graph/agents/middleware/tool_cache.py` | `ToolResultCacheMiddleware` |
-| `src/sre_graph/graphs/demo.py` | `make_demo_graph` (se retira en la Fase 2) |
+| `src/fin_graph/config/settings.py` | `Settings` y `PersistenceBackend` |
+| `src/fin_graph/llm/models.py` | `ModelRole`, `ModelSpec`, `resolve_model_spec`, `get_model` |
+| `src/fin_graph/persistence/paths.py` | `prepare_sqlite_path` |
+| `src/fin_graph/persistence/checkpointer.py` | `open_checkpointer` |
+| `src/fin_graph/persistence/store.py` | `open_store` |
+| `src/fin_graph/agents/testing/scripted_model.py` | `ScriptedChatModel`, `tool_call_message`, `ScriptedModelExhaustedError` |
+| `src/fin_graph/agents/factory.py` | `make_agent` |
+| `src/fin_graph/agents/subagents.py` | `SubagentSpec`, `subagent_tool`, `make_supervisor` |
+| `src/fin_graph/agents/middleware/tool_cache.py` | `ToolResultCacheMiddleware` |
+| `src/fin_graph/graphs/demo.py` | `make_demo_graph` (se retira en la Fase 2) |
 | `tests/**` | Un archivo de test por módulo, más `tests/spikes/` (contratos de LangGraph) |
 | `docs/spikes/fase-0-mecanismos.md` | Hallazgos del spike |
 
@@ -84,8 +84,8 @@
 
 **Files:**
 - Create: `pyproject.toml`, `.python-version`, `.gitignore`, `.env.example`, `LICENSE`, `NOTICE`, `README.md`
-- Create: `src/sre_graph/__init__.py`, `src/sre_graph/py.typed`, y `__init__.py` en `config/`, `llm/`, `persistence/`, `agents/`, `agents/middleware/`, `agents/testing/`, `graphs/`
-- Create: `src/sre_graph/config/settings.py`
+- Create: `src/fin_graph/__init__.py`, `src/fin_graph/py.typed`, y `__init__.py` en `config/`, `llm/`, `persistence/`, `agents/`, `agents/middleware/`, `agents/testing/`, `graphs/`
+- Create: `src/fin_graph/config/settings.py`
 - Test: `tests/conftest.py`, `tests/config/test_settings.py`
 
 **Interfaces:**
@@ -113,7 +113,7 @@ Expected: un email. Si está vacío, configurar `git config --global user.name` 
 - [ ] **Step 2: Rama de trabajo**
 
 ```bash
-cd /c/Users/USUARIO/Desktop/devops-telemetri/sre-graph
+cd /c/Users/USUARIO/Desktop/devops-telemetri/fin-graph
 git checkout -b fase-0
 ```
 
@@ -125,7 +125,7 @@ Expected: `Switched to a new branch 'fase-0'`
 
 ```toml
 [project]
-name = "sre-graph"
+name = "fin-graph"
 version = "0.1.0"
 description = "Multi-agent incident investigation (RCA) built natively on LangGraph"
 readme = "README.md"
@@ -160,7 +160,7 @@ requires = ["hatchling>=1.27"]
 build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/sre_graph"]
+packages = ["src/fin_graph"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
@@ -168,7 +168,7 @@ addopts = "-ra --import-mode=importlib -p no:langsmith_plugin"
 asyncio_mode = "auto"
 asyncio_default_fixture_loop_scope = "function"
 markers = [
-    "postgres: needs SRE_GRAPH_TEST_DATABASE_URL pointing at Postgres with pgvector",
+    "postgres: needs FIN_GRAPH_TEST_DATABASE_URL pointing at Postgres with pgvector",
 ]
 
 [tool.ruff]
@@ -184,19 +184,19 @@ python_version = "3.12"
 strict = true
 plugins = ["pydantic.mypy"]
 mypy_path = "src"
-packages = ["sre_graph"]
+packages = ["fin_graph"]
 
 [tool.importlinter]
-root_package = "sre_graph"
+root_package = "fin_graph"
 
 [[tool.importlinter.contracts]]
-name = "sre-graph layers (dependencies point downward only)"
+name = "fin-graph layers (dependencies point downward only)"
 type = "layers"
 layers = [
-    "sre_graph.graphs",
-    "sre_graph.agents",
-    "sre_graph.llm | sre_graph.persistence",
-    "sre_graph.config",
+    "fin_graph.graphs",
+    "fin_graph.agents",
+    "fin_graph.llm | fin_graph.persistence",
+    "fin_graph.config",
 ]
 ```
 
@@ -239,9 +239,9 @@ LLM_TEMPERATURE=0
 
 # Persistencia: memory | sqlite | postgres
 PERSISTENCE_BACKEND=memory
-SQLITE_PATH=data/sre-graph.sqlite
+SQLITE_PATH=data/fin-graph.sqlite
 # Postgres de docker compose; connect_timeout evita esperas largas si no responde.
-DATABASE_URL=postgresql://sre_graph:sre_graph@localhost:5433/sre_graph?connect_timeout=5
+DATABASE_URL=postgresql://fin_graph:fin_graph@localhost:5433/fin_graph?connect_timeout=5
 
 # Sin trazas a terceros.
 LANGSMITH_TRACING=false
@@ -259,8 +259,8 @@ Expected: las primeras líneas contienen `Apache License` y `Version 2.0, Januar
 `NOTICE`:
 
 ```text
-sre-graph
-Copyright 2026 The sre-graph authors
+fin-graph
+Copyright 2026 The fin-graph authors
 
 This product includes material adapted from the following Apache-2.0 licensed projects:
 
@@ -275,25 +275,25 @@ This product includes material adapted from the following Apache-2.0 licensed pr
 `README.md` (provisional; la Tarea 10 lo completa):
 
 ```markdown
-# sre-graph
+# fin-graph
 
 Investigación multiagente de incidencias (RCA) construida de forma nativa sobre LangGraph.
-Diseño: [docs/specs/2026-10-07-sre-graph-design.md](docs/specs/2026-10-07-sre-graph-design.md).
+Diseño: [docs/specs/2026-10-07-fin-graph-design.md](docs/specs/2026-10-07-fin-graph-design.md).
 ```
 
 - [ ] **Step 4: Esqueleto del paquete y `conftest.py`**
 
 ```bash
-mkdir -p src/sre_graph/{config,llm,persistence,agents/middleware,agents/testing,graphs} tests/config
-printf '"""sre-graph: multi-agent incident investigation built natively on LangGraph."""\n' > src/sre_graph/__init__.py
-printf '"""Runtime settings."""\n' > src/sre_graph/config/__init__.py
-printf '"""Chat models per agent role."""\n' > src/sre_graph/llm/__init__.py
-printf '"""Checkpointer and long-term store factories."""\n' > src/sre_graph/persistence/__init__.py
-printf '"""Agent building blocks: factory, subagents, middleware and test doubles."""\n' > src/sre_graph/agents/__init__.py
-printf '"""Custom agent middleware."""\n' > src/sre_graph/agents/middleware/__init__.py
-printf '"""Test doubles for agents (offline, deterministic)."""\n' > src/sre_graph/agents/testing/__init__.py
-printf '"""LangGraph graphs (the orchestration layer)."""\n' > src/sre_graph/graphs/__init__.py
-: > src/sre_graph/py.typed
+mkdir -p src/fin_graph/{config,llm,persistence,agents/middleware,agents/testing,graphs} tests/config
+printf '"""fin-graph: multi-agent incident investigation built natively on LangGraph."""\n' > src/fin_graph/__init__.py
+printf '"""Runtime settings."""\n' > src/fin_graph/config/__init__.py
+printf '"""Chat models per agent role."""\n' > src/fin_graph/llm/__init__.py
+printf '"""Checkpointer and long-term store factories."""\n' > src/fin_graph/persistence/__init__.py
+printf '"""Agent building blocks: factory, subagents, middleware and test doubles."""\n' > src/fin_graph/agents/__init__.py
+printf '"""Custom agent middleware."""\n' > src/fin_graph/agents/middleware/__init__.py
+printf '"""Test doubles for agents (offline, deterministic)."""\n' > src/fin_graph/agents/testing/__init__.py
+printf '"""LangGraph graphs (the orchestration layer)."""\n' > src/fin_graph/graphs/__init__.py
+: > src/fin_graph/py.typed
 ```
 
 `tests/conftest.py`:
@@ -345,16 +345,16 @@ def _isolated_env(monkeypatch: pytest.MonkeyPatch) -> None:
 @pytest.fixture
 def postgres_url() -> str:
     """Connection string for the Postgres used by ``postgres``-marked tests."""
-    url = os.environ.get("SRE_GRAPH_TEST_DATABASE_URL")
+    url = os.environ.get("FIN_GRAPH_TEST_DATABASE_URL")
     if not url:
-        pytest.skip("SRE_GRAPH_TEST_DATABASE_URL is not set")
+        pytest.skip("FIN_GRAPH_TEST_DATABASE_URL is not set")
     return url
 ```
 
 - [ ] **Step 5: Instalar el entorno**
 
 Run: `uv sync`
-Expected: crea `.venv/` y `uv.lock`, e instala `sre-graph` en modo editable sin errores (puede tardar unos minutos por `langgraph-cli[inmem]`).
+Expected: crea `.venv/` y `uv.lock`, e instala `fin-graph` en modo editable sin errores (puede tardar unos minutos por `langgraph-cli[inmem]`).
 
 - [ ] **Step 6: Escribir los tests de `Settings` (fallan)**
 
@@ -368,7 +368,7 @@ from pathlib import Path
 import pytest
 from pydantic import ValidationError
 
-from sre_graph.config.settings import PersistenceBackend, Settings
+from fin_graph.config.settings import PersistenceBackend, Settings
 
 
 def test_defaults_without_environment() -> None:
@@ -426,11 +426,11 @@ def test_unknown_persistence_backend_lists_the_valid_values(
 - [ ] **Step 7: Verificar que fallan**
 
 Run: `uv run pytest tests/config -q`
-Expected: FAIL con `ModuleNotFoundError: No module named 'sre_graph.config.settings'`.
+Expected: FAIL con `ModuleNotFoundError: No module named 'fin_graph.config.settings'`.
 
 - [ ] **Step 8: Implementar `Settings`**
 
-`src/sre_graph/config/settings.py`:
+`src/fin_graph/config/settings.py`:
 
 ```python
 """Runtime settings read from environment variables and an optional ``.env`` file."""
@@ -464,7 +464,7 @@ class Settings(BaseSettings):
     llm_timeout_seconds: float = 120.0
     llm_max_retries: int = 2
     persistence_backend: PersistenceBackend = PersistenceBackend.MEMORY
-    sqlite_path: str = "sre-graph.sqlite"
+    sqlite_path: str = "fin-graph.sqlite"
     database_url: str | None = None
 
     def require_database_url(self) -> str:
@@ -488,7 +488,7 @@ Expected: `All checks passed!`, archivos ya formateados, `Success: no issues fou
 
 ```bash
 git add pyproject.toml uv.lock .python-version .gitignore .env.example LICENSE NOTICE README.md src tests docs
-git commit -m "chore: scaffold sre-graph with uv, quality gates and env-driven settings" -m "Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
+git commit -m "chore: scaffold fin-graph with uv, quality gates and env-driven settings" -m "Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
 ```
 
 ---
@@ -496,7 +496,7 @@ git commit -m "chore: scaffold sre-graph with uv, quality gates and env-driven s
 ### Task 2: Modelos LLM por rol
 
 **Files:**
-- Create: `src/sre_graph/llm/models.py`
+- Create: `src/fin_graph/llm/models.py`
 - Test: `tests/llm/test_models.py`
 
 **Interfaces:**
@@ -518,8 +518,8 @@ from __future__ import annotations
 import pytest
 from langchain_anthropic import ChatAnthropic
 
-from sre_graph.config.settings import Settings
-from sre_graph.llm.models import ModelRole, ModelSpec, get_model, resolve_model_spec
+from fin_graph.config.settings import Settings
+from fin_graph.llm.models import ModelRole, ModelSpec, get_model, resolve_model_spec
 
 
 def test_anthropic_defaults_differ_by_role() -> None:
@@ -567,11 +567,11 @@ def test_blank_role_variable_falls_back_to_the_provider_default(
 - [ ] **Step 2: Verificar que fallan**
 
 Run: `uv run pytest tests/llm -q`
-Expected: FAIL con `ModuleNotFoundError: No module named 'sre_graph.llm.models'`.
+Expected: FAIL con `ModuleNotFoundError: No module named 'fin_graph.llm.models'`.
 
 - [ ] **Step 3: Implementar**
 
-`src/sre_graph/llm/models.py`:
+`src/fin_graph/llm/models.py`:
 
 ```python
 """Chat models per agent role, built with LangChain's ``init_chat_model``."""
@@ -584,7 +584,7 @@ from enum import StrEnum
 from langchain.chat_models import init_chat_model
 from langchain_core.language_models import BaseChatModel
 
-from sre_graph.config.settings import Settings
+from fin_graph.config.settings import Settings
 
 
 class ModelRole(StrEnum):
@@ -666,7 +666,7 @@ Expected: todo en verde.
 - [ ] **Step 5: Commit**
 
 ```bash
-git add src/sre_graph/llm tests/llm
+git add src/fin_graph/llm tests/llm
 git commit -m "feat(llm): resolve chat models per agent role via init_chat_model" -m "Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
 ```
 
@@ -675,7 +675,7 @@ git commit -m "feat(llm): resolve chat models per agent role via init_chat_model
 ### Task 3: Persistencia (checkpointer y store) + Postgres local
 
 **Files:**
-- Create: `src/sre_graph/persistence/paths.py`, `src/sre_graph/persistence/checkpointer.py`, `src/sre_graph/persistence/store.py`, `docker-compose.yml`
+- Create: `src/fin_graph/persistence/paths.py`, `src/fin_graph/persistence/checkpointer.py`, `src/fin_graph/persistence/store.py`, `docker-compose.yml`
 - Test: `tests/persistence/test_checkpointer.py`, `tests/persistence/test_store.py`
 
 **Interfaces:**
@@ -701,8 +701,8 @@ import pytest
 from langgraph.checkpoint.memory import InMemorySaver
 from langgraph.graph import END, START, StateGraph
 
-from sre_graph.config.settings import PersistenceBackend, Settings
-from sre_graph.persistence.checkpointer import open_checkpointer
+from fin_graph.config.settings import PersistenceBackend, Settings
+from fin_graph.persistence.checkpointer import open_checkpointer
 
 
 class CounterState(TypedDict, total=False):
@@ -783,9 +783,9 @@ from pathlib import Path
 
 import pytest
 
-from sre_graph.config.settings import PersistenceBackend, Settings
-from sre_graph.persistence.checkpointer import open_checkpointer
-from sre_graph.persistence.store import open_store
+from fin_graph.config.settings import PersistenceBackend, Settings
+from fin_graph.persistence.checkpointer import open_checkpointer
+from fin_graph.persistence.store import open_store
 
 
 async def _put_then_reopen_and_get(settings: Settings) -> object:
@@ -836,11 +836,11 @@ async def test_postgres_store_survives_reopening(postgres_url: str) -> None:
 - [ ] **Step 2: Verificar que fallan**
 
 Run: `uv run pytest tests/persistence -q`
-Expected: FAIL con `ModuleNotFoundError: No module named 'sre_graph.persistence.checkpointer'`.
+Expected: FAIL con `ModuleNotFoundError: No module named 'fin_graph.persistence.checkpointer'`.
 
 - [ ] **Step 3: Implementar**
 
-`src/sre_graph/persistence/paths.py`:
+`src/fin_graph/persistence/paths.py`:
 
 ```python
 """Filesystem preparation shared by the SQLite-backed persistence factories."""
@@ -859,7 +859,7 @@ def prepare_sqlite_path(path: str) -> str:
     return path
 ```
 
-`src/sre_graph/persistence/checkpointer.py`:
+`src/fin_graph/persistence/checkpointer.py`:
 
 ```python
 """Checkpointer per backend: memory for tests, SQLite for the local CLI, Postgres for the server."""
@@ -875,8 +875,8 @@ from langgraph.checkpoint.memory import InMemorySaver
 from langgraph.checkpoint.postgres.aio import AsyncPostgresSaver
 from langgraph.checkpoint.sqlite.aio import AsyncSqliteSaver
 
-from sre_graph.config.settings import PersistenceBackend, Settings
-from sre_graph.persistence.paths import prepare_sqlite_path
+from fin_graph.config.settings import PersistenceBackend, Settings
+from fin_graph.persistence.paths import prepare_sqlite_path
 
 
 @asynccontextmanager
@@ -897,7 +897,7 @@ async def open_checkpointer(settings: Settings) -> AsyncIterator[BaseCheckpointS
             yield postgres_saver
 ```
 
-`src/sre_graph/persistence/store.py`:
+`src/fin_graph/persistence/store.py`:
 
 ```python
 """Long-term store per backend, chosen by the same setting as the checkpointer."""
@@ -912,8 +912,8 @@ from langgraph.store.memory import InMemoryStore
 from langgraph.store.postgres.aio import AsyncPostgresStore
 from langgraph.store.sqlite.aio import AsyncSqliteStore
 
-from sre_graph.config.settings import PersistenceBackend, Settings
-from sre_graph.persistence.paths import prepare_sqlite_path
+from fin_graph.config.settings import PersistenceBackend, Settings
+from fin_graph.persistence.paths import prepare_sqlite_path
 
 
 @asynccontextmanager
@@ -941,15 +941,15 @@ services:
   postgres:
     image: pgvector/pgvector:pg17
     environment:
-      POSTGRES_USER: sre_graph
-      POSTGRES_PASSWORD: sre_graph
-      POSTGRES_DB: sre_graph
+      POSTGRES_USER: fin_graph
+      POSTGRES_PASSWORD: fin_graph
+      POSTGRES_DB: fin_graph
     ports:
       - "5433:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U sre_graph -d sre_graph"]
+      test: ["CMD-SHELL", "pg_isready -U fin_graph -d fin_graph"]
       interval: 5s
       timeout: 3s
       retries: 20
@@ -969,7 +969,7 @@ Expected: `6 passed, 2 skipped` (los skips son los tests `postgres`).
 
 ```bash
 docker compose up -d --wait
-SRE_GRAPH_TEST_DATABASE_URL="postgresql://sre_graph:sre_graph@localhost:5433/sre_graph?connect_timeout=5" uv run pytest -m postgres -q
+FIN_GRAPH_TEST_DATABASE_URL="postgresql://fin_graph:fin_graph@localhost:5433/fin_graph?connect_timeout=5" uv run pytest -m postgres -q
 docker compose down
 ```
 
@@ -981,7 +981,7 @@ Run: `uv run ruff check . && uv run ruff format --check . && uv run mypy && uv r
 Expected: todo en verde.
 
 ```bash
-git add src/sre_graph/persistence tests/persistence docker-compose.yml
+git add src/fin_graph/persistence tests/persistence docker-compose.yml
 git commit -m "feat(persistence): checkpointer and store per backend with local Postgres" -m "Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
 ```
 
@@ -990,7 +990,7 @@ git commit -m "feat(persistence): checkpointer and store per backend with local 
 ### Task 4: Modelo guionado para tests (`ScriptedChatModel`)
 
 **Files:**
-- Create: `src/sre_graph/agents/testing/scripted_model.py`
+- Create: `src/fin_graph/agents/testing/scripted_model.py`
 - Test: `tests/agents/test_scripted_model.py`
 
 **Interfaces:**
@@ -1015,7 +1015,7 @@ import pytest
 from langchain_core.messages import AIMessage
 from langchain_core.tools import tool
 
-from sre_graph.agents.testing.scripted_model import (
+from fin_graph.agents.testing.scripted_model import (
     ScriptedChatModel,
     ScriptedModelExhaustedError,
     tool_call_message,
@@ -1057,11 +1057,11 @@ def test_binding_tools_keeps_the_same_script() -> None:
 - [ ] **Step 2: Verificar que fallan**
 
 Run: `uv run pytest tests/agents/test_scripted_model.py -q`
-Expected: FAIL con `ModuleNotFoundError: No module named 'sre_graph.agents.testing.scripted_model'`.
+Expected: FAIL con `ModuleNotFoundError: No module named 'fin_graph.agents.testing.scripted_model'`.
 
 - [ ] **Step 3: Implementar**
 
-`src/sre_graph/agents/testing/scripted_model.py`:
+`src/fin_graph/agents/testing/scripted_model.py`:
 
 ```python
 """Offline chat model for tests: replays scripted AI messages in call order."""
@@ -1149,7 +1149,7 @@ Expected: todo en verde.
 - [ ] **Step 5: Commit**
 
 ```bash
-git add src/sre_graph/agents/testing tests/agents/test_scripted_model.py
+git add src/fin_graph/agents/testing tests/agents/test_scripted_model.py
 git commit -m "test(agents): scripted chat model to drive real graphs offline" -m "Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
 ```
 
@@ -1158,7 +1158,7 @@ git commit -m "test(agents): scripted chat model to drive real graphs offline" -
 ### Task 5: Fábrica de agentes (`make_agent`)
 
 **Files:**
-- Create: `src/sre_graph/agents/factory.py`
+- Create: `src/fin_graph/agents/factory.py`
 - Test: `tests/agents/test_factory.py`
 
 **Interfaces:**
@@ -1182,8 +1182,8 @@ from langchain_core.messages import AIMessage, HumanMessage, ToolMessage
 from langchain_core.tools import tool
 from pydantic import BaseModel
 
-from sre_graph.agents.factory import make_agent
-from sre_graph.agents.testing.scripted_model import ScriptedChatModel, tool_call_message
+from fin_graph.agents.factory import make_agent
+from fin_graph.agents.testing.scripted_model import ScriptedChatModel, tool_call_message
 
 
 class Finding(BaseModel):
@@ -1247,11 +1247,11 @@ def test_tools_read_the_runtime_context() -> None:
 - [ ] **Step 2: Verificar que fallan**
 
 Run: `uv run pytest tests/agents/test_factory.py -q`
-Expected: FAIL con `ModuleNotFoundError: No module named 'sre_graph.agents.factory'`.
+Expected: FAIL con `ModuleNotFoundError: No module named 'fin_graph.agents.factory'`.
 
 - [ ] **Step 3: Implementar**
 
-`src/sre_graph/agents/factory.py`:
+`src/fin_graph/agents/factory.py`:
 
 ```python
 """The single construction seam for agents: a thin, explicit wrapper over ``create_agent``."""
@@ -1312,7 +1312,7 @@ Expected: todo en verde.
 - [ ] **Step 5: Commit**
 
 ```bash
-git add src/sre_graph/agents/factory.py tests/agents/test_factory.py
+git add src/fin_graph/agents/factory.py tests/agents/test_factory.py
 git commit -m "feat(agents): make_agent as the single construction seam over create_agent" -m "Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
 ```
 
@@ -1321,7 +1321,7 @@ git commit -m "feat(agents): make_agent as the single construction seam over cre
 ### Task 6: Supervisor con subagentes como tools
 
 **Files:**
-- Create: `src/sre_graph/agents/subagents.py`
+- Create: `src/fin_graph/agents/subagents.py`
 - Test: `tests/agents/test_subagents.py`
 
 **Interfaces:**
@@ -1354,9 +1354,9 @@ from langgraph.checkpoint.memory import InMemorySaver
 from langgraph.types import Command, interrupt
 from pydantic import BaseModel
 
-from sre_graph.agents.factory import make_agent
-from sre_graph.agents.subagents import SubagentSpec, make_supervisor
-from sre_graph.agents.testing.scripted_model import ScriptedChatModel, tool_call_message
+from fin_graph.agents.factory import make_agent
+from fin_graph.agents.subagents import SubagentSpec, make_supervisor
+from fin_graph.agents.testing.scripted_model import ScriptedChatModel, tool_call_message
 
 
 @tool
@@ -1542,11 +1542,11 @@ async def test_runtime_context_reaches_the_subagents_tools() -> None:
 - [ ] **Step 2: Verificar que fallan**
 
 Run: `uv run pytest tests/agents/test_subagents.py -q`
-Expected: FAIL con `ModuleNotFoundError: No module named 'sre_graph.agents.subagents'`.
+Expected: FAIL con `ModuleNotFoundError: No module named 'fin_graph.agents.subagents'`.
 
 - [ ] **Step 3: Implementar**
 
-`src/sre_graph/agents/subagents.py`:
+`src/fin_graph/agents/subagents.py`:
 
 ```python
 """Subagents pattern: compiled agents that a supervisor calls as tools."""
@@ -1568,7 +1568,7 @@ from langgraph.store.base import BaseStore
 from langgraph.types import Checkpointer
 from pydantic import BaseModel, Field
 
-from sre_graph.agents.factory import make_agent
+from fin_graph.agents.factory import make_agent
 
 
 class SubagentTask(BaseModel):
@@ -1670,7 +1670,7 @@ Expected: todo en verde.
 - [ ] **Step 5: Commit**
 
 ```bash
-git add src/sre_graph/agents/subagents.py tests/agents/test_subagents.py
+git add src/fin_graph/agents/subagents.py tests/agents/test_subagents.py
 git commit -m "feat(agents): supervisor with subagents as tools, forwarding runtime context" -m "Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
 ```
 
@@ -1679,7 +1679,7 @@ git commit -m "feat(agents): supervisor with subagents as tools, forwarding runt
 ### Task 7: Middleware de caché de resultados de tools
 
 **Files:**
-- Create: `src/sre_graph/agents/middleware/tool_cache.py`
+- Create: `src/fin_graph/agents/middleware/tool_cache.py`
 - Test: `tests/agents/middleware/test_tool_cache.py`
 
 **Interfaces:**
@@ -1703,9 +1703,9 @@ from typing import Any
 from langchain_core.messages import AIMessage, HumanMessage, ToolMessage
 from langchain_core.tools import ToolException, tool
 
-from sre_graph.agents.factory import make_agent
-from sre_graph.agents.middleware.tool_cache import ToolResultCacheMiddleware
-from sre_graph.agents.testing.scripted_model import ScriptedChatModel, tool_call_message
+from fin_graph.agents.factory import make_agent
+from fin_graph.agents.middleware.tool_cache import ToolResultCacheMiddleware
+from fin_graph.agents.testing.scripted_model import ScriptedChatModel, tool_call_message
 
 
 class FakeClock:
@@ -1876,11 +1876,11 @@ def test_same_arguments_in_a_different_order_hit_the_cache() -> None:
 - [ ] **Step 2: Verificar que fallan**
 
 Run: `uv run pytest tests/agents/middleware -q`
-Expected: FAIL con `ModuleNotFoundError: No module named 'sre_graph.agents.middleware.tool_cache'`.
+Expected: FAIL con `ModuleNotFoundError: No module named 'fin_graph.agents.middleware.tool_cache'`.
 
 - [ ] **Step 3: Implementar**
 
-`src/sre_graph/agents/middleware/tool_cache.py`:
+`src/fin_graph/agents/middleware/tool_cache.py`:
 
 ```python
 """Serve repeated identical tool calls from a short-lived, thread-scoped cache."""
@@ -1997,7 +1997,7 @@ Expected: todo en verde.
 - [ ] **Step 5: Commit**
 
 ```bash
-git add src/sre_graph/agents/middleware/tool_cache.py tests/agents/middleware
+git add src/fin_graph/agents/middleware/tool_cache.py tests/agents/middleware
 git commit -m "feat(agents): thread-scoped TTL cache for repeated identical tool calls" -m "Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
 ```
 
@@ -2033,8 +2033,8 @@ from langgraph.graph import END, START, StateGraph
 from langgraph.types import Send
 from pydantic import BaseModel
 
-from sre_graph.agents.factory import make_agent
-from sre_graph.agents.testing.scripted_model import ScriptedChatModel, tool_call_message
+from fin_graph.agents.factory import make_agent
+from fin_graph.agents.testing.scripted_model import ScriptedChatModel, tool_call_message
 
 
 class Finding(BaseModel):
@@ -2269,7 +2269,7 @@ git commit -m "test(spikes): pin the LangGraph contracts the design relies on" -
 ### Task 9: Grafo demo y `langgraph.json` para Studio
 
 **Files:**
-- Create: `src/sre_graph/graphs/demo.py`, `langgraph.json`
+- Create: `src/fin_graph/graphs/demo.py`, `langgraph.json`
 - Test: `tests/test_langgraph_json.py`
 
 **Interfaces:**
@@ -2325,7 +2325,7 @@ Expected: error de colección con `FileNotFoundError` sobre `langgraph.json`.
 
 - [ ] **Step 3: Implementar**
 
-`src/sre_graph/graphs/demo.py`:
+`src/fin_graph/graphs/demo.py`:
 
 ```python
 """Demo graph for LangGraph Studio until the investigation graph lands (removed in Fase 2)."""
@@ -2338,10 +2338,10 @@ from typing import Any
 from langchain_core.tools import tool
 from langgraph.graph.state import CompiledStateGraph
 
-from sre_graph.agents.factory import make_agent
-from sre_graph.agents.subagents import SubagentSpec, make_supervisor
-from sre_graph.config.settings import Settings
-from sre_graph.llm.models import ModelRole, get_model
+from fin_graph.agents.factory import make_agent
+from fin_graph.agents.subagents import SubagentSpec, make_supervisor
+from fin_graph.config.settings import Settings
+from fin_graph.llm.models import ModelRole, get_model
 
 
 @tool
@@ -2375,7 +2375,7 @@ def make_demo_graph() -> CompiledStateGraph[Any, Any, Any, Any]:
   "python_version": "3.12",
   "dependencies": ["."],
   "graphs": {
-    "demo_supervisor": "./src/sre_graph/graphs/demo.py:make_demo_graph"
+    "demo_supervisor": "./src/fin_graph/graphs/demo.py:make_demo_graph"
   },
   "env": ".env"
 }
@@ -2405,7 +2405,7 @@ Run: `uv run ruff check . && uv run ruff format --check . && uv run mypy && uv r
 Expected: todo en verde.
 
 ```bash
-git add src/sre_graph/graphs/demo.py langgraph.json tests/test_langgraph_json.py
+git add src/fin_graph/graphs/demo.py langgraph.json tests/test_langgraph_json.py
 git commit -m "feat(graphs): demo supervisor graph exposed to LangGraph Studio" -m "Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
 ```
 
@@ -2439,18 +2439,18 @@ jobs:
       postgres:
         image: pgvector/pgvector:pg17
         env:
-          POSTGRES_USER: sre_graph
-          POSTGRES_PASSWORD: sre_graph
-          POSTGRES_DB: sre_graph
+          POSTGRES_USER: fin_graph
+          POSTGRES_PASSWORD: fin_graph
+          POSTGRES_DB: fin_graph
         ports:
           - 5432:5432
         options: >-
-          --health-cmd "pg_isready -U sre_graph -d sre_graph"
+          --health-cmd "pg_isready -U fin_graph -d fin_graph"
           --health-interval 5s
           --health-timeout 3s
           --health-retries 20
     env:
-      SRE_GRAPH_TEST_DATABASE_URL: postgresql://sre_graph:sre_graph@localhost:5432/sre_graph
+      FIN_GRAPH_TEST_DATABASE_URL: postgresql://fin_graph:fin_graph@localhost:5432/fin_graph
       LANGSMITH_TRACING: "false"
     steps:
       - uses: actions/checkout@v4
@@ -2470,10 +2470,10 @@ jobs:
 `README.md`:
 
 ````markdown
-# sre-graph
+# fin-graph
 
 Investigación multiagente de incidencias (RCA) construida de forma nativa sobre LangGraph.
-Diseño completo: [docs/specs/2026-10-07-sre-graph-design.md](docs/specs/2026-10-07-sre-graph-design.md).
+Diseño completo: [docs/specs/2026-10-07-fin-graph-design.md](docs/specs/2026-10-07-fin-graph-design.md).
 
 > Estado: Fase 0 (fundaciones). El grafo de investigación llega en la Fase 2.
 
@@ -2494,7 +2494,7 @@ uv run pytest
 
 ```bash
 docker compose up -d --wait
-SRE_GRAPH_TEST_DATABASE_URL="postgresql://sre_graph:sre_graph@localhost:5433/sre_graph?connect_timeout=5" uv run pytest -m postgres
+FIN_GRAPH_TEST_DATABASE_URL="postgresql://fin_graph:fin_graph@localhost:5433/fin_graph?connect_timeout=5" uv run pytest -m postgres
 ```
 
 Para usarlo desde la app, pon `PERSISTENCE_BACKEND=postgres` en `.env`.
@@ -2528,7 +2528,7 @@ Expected:
 
 ```bash
 docker compose up -d --wait
-SRE_GRAPH_TEST_DATABASE_URL="postgresql://sre_graph:sre_graph@localhost:5433/sre_graph?connect_timeout=5" uv run pytest -q
+FIN_GRAPH_TEST_DATABASE_URL="postgresql://fin_graph:fin_graph@localhost:5433/fin_graph?connect_timeout=5" uv run pytest -q
 docker compose down
 ```
 

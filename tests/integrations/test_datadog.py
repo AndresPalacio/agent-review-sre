@@ -5,11 +5,11 @@ import json
 import httpx
 import pytest
 
-from sre_graph.domain.tools import Domain, SideEffectLevel, read_tool_meta
-from sre_graph.integrations.base import IntegrationError, VerifyStatus
-from sre_graph.integrations.datadog.client import DatadogClient
-from sre_graph.integrations.datadog.integration import DatadogIntegration
-from sre_graph.integrations.datadog.settings import DatadogSettings
+from fin_graph.domain.tools import Domain, SideEffectLevel, read_tool_meta
+from fin_graph.integrations.base import IntegrationError, VerifyStatus
+from fin_graph.integrations.datadog.client import DatadogClient
+from fin_graph.integrations.datadog.integration import DatadogIntegration
+from fin_graph.integrations.datadog.settings import DatadogSettings
 
 
 def test_datadog_is_disabled_and_requires_both_keys() -> None:

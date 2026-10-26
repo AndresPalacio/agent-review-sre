@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 from datetime import UTC, datetime
 
-from sre_graph.integrations.payload import PartialList, text_payload, tool_payload
+from fin_graph.integrations.payload import PartialList, text_payload, tool_payload
 
 
 def test_small_data_becomes_compact_json() -> None:

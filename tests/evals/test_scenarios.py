@@ -5,7 +5,7 @@ from datetime import UTC, datetime
 
 import pytest
 
-from sre_graph.evals.scenarios import load_scenario, load_suite
+from fin_graph.evals.scenarios import load_scenario, load_suite
 
 
 def test_all_36_historical_scenarios_are_available() -> None:

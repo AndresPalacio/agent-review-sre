@@ -48,9 +48,9 @@ MCP expone estas capacidades a otro cliente. No es el cerebro ni el scheduler. L
 
 PyCharm incluye tres configuraciones en `.run`:
 
-- **SRE Graph - Async panel**: ejecuta panel y servidor; útil para Run. Para depurar agentes en el subproceso, activa la conexión automática del debugger a subprocesos de Python.
-- **SRE Graph - Async Agent Server**: inicia el motor directamente en Debug, puerto `8011`.
-- **SRE Graph - Async cliente debug**: con el motor anterior activo, inicia en Debug la secuencia automática de inicio → hijos → actualización → reconexión → resultado.
+- **Fin Graph - Async panel**: ejecuta panel y servidor; útil para Run. Para depurar agentes en el subproceso, activa la conexión automática del debugger a subprocesos de Python.
+- **Fin Graph - Async Agent Server**: inicia el motor directamente en Debug, puerto `8011`.
+- **Fin Graph - Async cliente debug**: con el motor anterior activo, inicia en Debug la secuencia automática de inicio → hijos → actualización → reconexión → resultado.
 
 Las herramientas de supervisor e hijos exigen `ledger_path` en el contexto del run. Un run lanzado desde Studio o con el SDK sin pasar por el gateway recibe `control_unavailable` y no inicia hijos ni lee fixtures.
 
@@ -111,12 +111,12 @@ HTTP tiene las mismas operaciones en `/work`, `/work/{id}`, `/work/{id}/update` 
 
 ## Activar Decisions y un modelo real
 
-Son dos selecciones independientes: `--policy decisions` usa Decisions para routing; `SRE_ASYNC_MODEL=provider:model` usa un modelo real para supervisor e hijos. Puedes evaluar cada una por separado.
+Son dos selecciones independientes: `--policy decisions` usa Decisions para routing; `FIN_ASYNC_MODEL=provider:model` usa un modelo real para supervisor e hijos. Puedes evaluar cada una por separado.
 
 ```powershell
 # Configura OPENAI_API_KEY en el entorno sin guardarla en Git.
 # Sustituye el identificador por un modelo de chat habilitado en tu cuenta.
-$env:SRE_ASYNC_MODEL = 'openai:IDENTIFICADOR_DE_TU_MODELO'
+$env:FIN_ASYNC_MODEL = 'openai:IDENTIFICADOR_DE_TU_MODELO'
 .venv\Scripts\python.exe examples/demo_supervisor_async.py --serve --policy decisions
 ```
 

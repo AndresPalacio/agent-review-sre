@@ -16,9 +16,9 @@ from pydantic import SecretStr
 from slack_bolt.authorization.authorize_result import AuthorizeResult
 from slack_sdk.web.async_client import AsyncWebClient
 
-from sre_graph.gateway import GatewayResult, GatewayRunPending
-from sre_graph.gateway.settings import SlackGatewaySettings
-from sre_graph.gateway.slack import SlackGateway
+from fin_graph.gateway import GatewayResult, GatewayRunPending
+from fin_graph.gateway.settings import SlackGatewaySettings
+from fin_graph.gateway.slack import SlackGateway
 
 
 class Store:
@@ -415,7 +415,7 @@ async def test_socket_mode_is_opt_in_and_closes_connection(setup: Any, monkeypat
         async def close_async(self) -> None:
             events.append("closed")
 
-    monkeypatch.setattr("sre_graph.gateway.slack.AsyncSocketModeHandler", Handler)
+    monkeypatch.setattr("fin_graph.gateway.slack.AsyncSocketModeHandler", Handler)
     await gateway.start_socket_mode()
     assert events == []
     gateway.settings = gateway.settings.model_copy(

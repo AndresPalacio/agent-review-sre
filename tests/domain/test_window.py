@@ -4,7 +4,7 @@ from datetime import UTC, datetime, timedelta, timezone
 
 import pytest
 
-from sre_graph.domain.window import (
+from fin_graph.domain.window import (
     DEFAULT_LOOKBACK,
     MAX_LOOKBACK,
     IncidentWindow,

@@ -1,4 +1,4 @@
-# Piloto de supervisor asíncrono para SRE Graph
+# Piloto de supervisor asíncrono para Fin Graph
 
 Implementa la alternativa B del [tradeoff](../../arquitecture-review/2026-10-22-tradeoff-orquestacion-agentes.md), autorizada con «aplica las mejoras».
 
@@ -6,7 +6,7 @@ El usuario debe poder iniciar una investigación, ver las llamadas que el superv
 
 ## Corte implementable
 
-- Paquete optativo `sre_graph.work`: contratos y ledger SQLite de comandos, política de routing intercambiable, servicio de trabajos y adaptador al SDK de Agent Server. El servidor es el único motor de ejecución; SQLite conserva identidad y comandos del piloto.
+- Paquete optativo `fin_graph.work`: contratos y ledger SQLite de comandos, política de routing intercambiable, servicio de trabajos y adaptador al SDK de Agent Server. El servidor es el único motor de ejecución; SQLite conserva identidad y comandos del piloto.
 - Supervisor construido con la fábrica existente y `AsyncSubAgentMiddleware` real. Dos hijos Deep Agents de lectura, métricas y logs, con notificación nativa. Los datos iniciales son fixtures sintéticos explícitos, sin acceso a infraestructura productiva.
 - Modo `offline` con decisiones de prueba identificadas; modo `provider:model` para que un LLM real elija las herramientas. No presentar el modo offline como inferencia real. La falta de credenciales impide medir el proveedor, pero no probar ejecución, protocolos y recuperación local.
 - Routing `direct`, `investigate`, `clarify`: reglas por defecto o adaptador OpenAI Decisions opcional. Registrar proveedor, selección y fallback. Nunca usar probabilidades para autorizar cambios.

@@ -1,4 +1,4 @@
-# better-harness para sre-graph
+# better-harness para fin-graph
 
 Implementar el ciclo completo solicitado sobre el grafo RCA existente. Deep Agents
 actúa como optimizador externo usando el paquete oficial better-harness, fijado a

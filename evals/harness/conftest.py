@@ -8,10 +8,10 @@ from pathlib import Path
 
 import pytest
 
-from sre_graph.evals.runner import run_suite
-from sre_graph.evals.scenarios import load_scenario
-from sre_graph.harness.configuration import load_config
-from sre_graph.harness.quality import assess_record
+from fin_graph.evals.runner import run_suite
+from fin_graph.evals.scenarios import load_scenario
+from fin_graph.harness.configuration import load_config
+from fin_graph.harness.quality import assess_record
 
 
 @pytest.hookimpl(wrapper=True)

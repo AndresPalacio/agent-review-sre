@@ -13,7 +13,7 @@ semántica de polling y paginación; RCA y chat verifican todas sus fronteras.
 **Tech Stack:** Python 3.12, LangGraph/LangChain fijados en uv.lock, FastAPI,
 SQLAlchemy, Postgres, pytest.
 
-**Spec:** [Diseño base](../../specs/2026-10-07-sre-graph-design.md) y
+**Spec:** [Diseño base](../../specs/2026-10-07-fin-graph-design.md) y
 [fase 6](../specs/2026-10-08-fase-6-scheduler-gateways-design.md).
 
 ## Restricciones
@@ -109,6 +109,6 @@ propagarlos al grafo y guardar deduplicación durable de reportes.
 - [x] Revisión independiente de los cuatro bloques y corrección de observaciones.
 - [x] `uv run --locked ruff check .` y `uv run --locked ruff format --check .`.
 - [x] `uv run --locked mypy` y `uv run --locked lint-imports`.
-- [x] Suite completa con `SRE_GRAPH_REQUIRE_POSTGRES=1` y Postgres local.
+- [x] Suite completa con `FIN_GRAPH_REQUIRE_POSTGRES=1` y Postgres local.
 - [x] Smoke offline de evaluación, construcción del wheel y documentación de resultados.
 - [x] Inspeccionar diff/status; entregar cambios sin push ni despliegue.

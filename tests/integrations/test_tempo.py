@@ -3,11 +3,11 @@ from __future__ import annotations
 import httpx
 import pytest
 
-from sre_graph.domain.tools import Domain, read_tool_meta
-from sre_graph.integrations.base import IntegrationError, VerifyStatus
-from sre_graph.integrations.tempo.client import TempoClient
-from sre_graph.integrations.tempo.integration import TempoIntegration
-from sre_graph.integrations.tempo.settings import TempoSettings
+from fin_graph.domain.tools import Domain, read_tool_meta
+from fin_graph.integrations.base import IntegrationError, VerifyStatus
+from fin_graph.integrations.tempo.client import TempoClient
+from fin_graph.integrations.tempo.integration import TempoIntegration
+from fin_graph.integrations.tempo.settings import TempoSettings
 
 
 def test_tempo_is_disabled_until_configured() -> None:

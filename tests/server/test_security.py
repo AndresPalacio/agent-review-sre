@@ -9,8 +9,8 @@ import pytest
 from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import padding, rsa
 
-from sre_graph.domain.alerts.model import AlertSource
-from sre_graph.server.security import WebhookVerifier, canonical_sns_message
+from fin_graph.domain.alerts.model import AlertSource
+from fin_graph.server.security import WebhookVerifier, canonical_sns_message
 
 
 @pytest.mark.parametrize("source", list(AlertSource))

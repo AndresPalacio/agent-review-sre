@@ -5,14 +5,14 @@ import json
 import httpx
 import pytest
 
-from sre_graph.delivery.client import PagerDutyClient, SlackClient, TelegramClient
-from sre_graph.delivery.service import DeliveryService, DeliveryStatus
-from sre_graph.delivery.settings import PagerDutySettings, SlackSettings, TelegramSettings
-from sre_graph.domain.alerts.model import AlertSource, NormalizedAlert
-from sre_graph.domain.diagnosis import unknown_diagnosis
-from sre_graph.domain.report import Report
-from sre_graph.integrations.base import IntegrationError, VerifyStatus
-from sre_graph.integrations.context import RunContext
+from fin_graph.delivery.client import PagerDutyClient, SlackClient, TelegramClient
+from fin_graph.delivery.service import DeliveryService, DeliveryStatus
+from fin_graph.delivery.settings import PagerDutySettings, SlackSettings, TelegramSettings
+from fin_graph.domain.alerts.model import AlertSource, NormalizedAlert
+from fin_graph.domain.diagnosis import unknown_diagnosis
+from fin_graph.domain.report import Report
+from fin_graph.integrations.base import IntegrationError, VerifyStatus
+from fin_graph.integrations.context import RunContext
 
 
 def test_pagerduty_client_is_available_to_approved_actions_only_when_configured() -> None:
@@ -116,7 +116,7 @@ async def test_send_report_uses_renderers_redaction_and_provider_destinations() 
     assert bodies[0]["client_msg_id"]
     assert bodies[1]["parse_mode"] == "HTML"
     assert bodies[1]["chat_id"] == "42"
-    assert bodies[2]["note"]["content"].startswith("sre-graph RCA")
+    assert bodies[2]["note"]["content"].startswith("fin-graph RCA")
     assert all(secret not in request.content.decode() for request in seen)
 
 
@@ -148,3 +148,35 @@ async def test_telegram_rejects_a_malformed_success_body() -> None:
 
     with pytest.raises(IntegrationError, match="send failed"):
         await client.send("42", "message", "incident-1")
+
+
+async def test_send_analysis_renders_the_analysis_and_skips_pagerduty() -> None:
+    from tests.domain.test_analysis_report import _report as analysis_report
+
+    seen: list[httpx.Request] = []
+
+    def respond(request: httpx.Request) -> httpx.Response:
+        seen.append(request)
+        if "slack.com" in request.url.host:
+            return httpx.Response(200, json={"ok": True, "ts": "1.2"})
+        return httpx.Response(200, json={"ok": True, "result": {"message_id": 7}})
+
+    transport = httpx.MockTransport(respond)
+    service = DeliveryService(
+        SlackClient("slack-key", transport=transport),
+        TelegramClient("telegram-key", transport=transport),
+        PagerDutyClient("pager-key", "oncall@example.com", transport=transport),
+    )
+
+    results = await service.send_analysis(
+        analysis_report(), {"slack": "C1", "telegram": "42", "pagerduty": "P1"}, "run-1"
+    )
+
+    assert [item.status for item in results] == [
+        DeliveryStatus.SENT,
+        DeliveryStatus.SENT,
+        DeliveryStatus.FAILED,
+    ]
+    assert results[2].detail == "pagerduty carries no analysis"
+    assert len(seen) == 2
+    assert "Análisis DEEP" in json.loads(seen[0].content)["text"]

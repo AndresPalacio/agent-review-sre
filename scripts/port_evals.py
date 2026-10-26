@@ -25,7 +25,7 @@ def main() -> None:
     )
     args = parser.parse_args()
     source = args.source_repo.resolve()
-    target = Path(__file__).resolve().parents[1] / "src" / "sre_graph" / "evals" / "data"
+    target = Path(__file__).resolve().parents[1] / "src" / "fin_graph" / "evals" / "data"
     commit = git(source, "rev-parse", SOURCE_REV).decode().strip()
     manifest: dict[str, object] = {
         "source": "https://github.com/Tracer-Cloud/opensre",

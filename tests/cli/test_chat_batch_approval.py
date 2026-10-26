@@ -9,15 +9,15 @@ from langchain_core.messages import AIMessage
 from langgraph.checkpoint.memory import InMemorySaver
 from langgraph.store.memory import InMemoryStore
 
-from sre_graph.agents.testing.scripted_model import ScriptedChatModel
-from sre_graph.cli.chat import ChatSession, RemoteChatSession
-from sre_graph.graphs.chat.graph import make_chat_graph
-from sre_graph.graphs.remediation.graph import ActionCatalog
-from sre_graph.integrations.context import RunContext
-from sre_graph.integrations.registry import IntegrationRegistry
-from sre_graph.memory.service import IncidentMemory
-from sre_graph.persistence.action_ledger import open_sqlite_action_ledger
-from sre_graph.safety.approval import ApprovalPolicy
+from fin_graph.agents.testing.scripted_model import ScriptedChatModel
+from fin_graph.cli.chat import ChatSession, RemoteChatSession
+from fin_graph.graphs.chat.graph import make_chat_graph
+from fin_graph.graphs.remediation.graph import ActionCatalog
+from fin_graph.integrations.context import RunContext
+from fin_graph.integrations.registry import IntegrationRegistry
+from fin_graph.memory.service import IncidentMemory
+from fin_graph.persistence.action_ledger import open_sqlite_action_ledger
+from fin_graph.safety.approval import ApprovalPolicy
 
 
 def _local_session(store: InMemoryStore, *, note_count: int = 2, **kwargs) -> ChatSession:

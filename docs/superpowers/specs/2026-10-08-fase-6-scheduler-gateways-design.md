@@ -2,7 +2,7 @@
 
 ## Objetivo y alcance
 
-Completar la fase 6 del [diseño base](../../specs/2026-10-07-sre-graph-design.md):
+Completar la fase 6 del [diseño base](../../specs/2026-10-07-fin-graph-design.md):
 chequeos programados y digest, retención y vencimiento de aprobaciones, entrada
 Slack/Telegram y aprobación desde los bots. Las acciones mutantes continúan pasando
 por el contrato HITL de fase 5. Se trabaja en la rama normal `fase-6`, sin push,

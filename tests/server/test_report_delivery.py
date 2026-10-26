@@ -11,22 +11,22 @@ import pytest
 from langgraph.checkpoint.memory import InMemorySaver
 from sqlalchemy.ext.asyncio import create_async_engine
 
-from sre_graph.delivery.client import SlackClient
-from sre_graph.delivery.service import DeliveryService, DeliveryStatus
-from sre_graph.domain.alerts.model import AlertSource, NormalizedAlert
-from sre_graph.domain.diagnosis import unknown_diagnosis
-from sre_graph.domain.report import Report
-from sre_graph.graphs.investigation.graph import make_investigation_graph
-from sre_graph.graphs.investigation.services import UnavailableServices
-from sre_graph.integrations.context import RunContext
-from sre_graph.integrations.prometheus.client import PrometheusClient
-from sre_graph.integrations.registry import IntegrationRegistry
-from sre_graph.scheduler.jobs import HealthJobs
-from sre_graph.server.app import create_app
-from sre_graph.server.config import ServerConfig
-from sre_graph.server.manager import RunManager
-from sre_graph.server.security import WebhookVerifier
-from sre_graph.server.storage import Base, Storage
+from fin_graph.delivery.client import SlackClient
+from fin_graph.delivery.service import DeliveryService, DeliveryStatus
+from fin_graph.domain.alerts.model import AlertSource, NormalizedAlert
+from fin_graph.domain.diagnosis import unknown_diagnosis
+from fin_graph.domain.report import Report
+from fin_graph.graphs.investigation.graph import make_investigation_graph
+from fin_graph.graphs.investigation.services import UnavailableServices
+from fin_graph.integrations.context import RunContext
+from fin_graph.integrations.prometheus.client import PrometheusClient
+from fin_graph.integrations.registry import IntegrationRegistry
+from fin_graph.scheduler.jobs import HealthJobs
+from fin_graph.server.app import create_app
+from fin_graph.server.config import ServerConfig
+from fin_graph.server.manager import RunManager
+from fin_graph.server.security import WebhookVerifier
+from fin_graph.server.storage import Base, Storage
 
 
 @pytest.fixture

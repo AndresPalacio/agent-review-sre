@@ -6,7 +6,7 @@ import pytest
 from sqlalchemy import update
 from sqlalchemy.ext.asyncio import create_async_engine
 
-from sre_graph.server.storage import Base, CheckpointThreadRow, GatewayEventRow, Storage
+from fin_graph.server.storage import Base, CheckpointThreadRow, GatewayEventRow, Storage
 
 
 async def _storage() -> tuple[Storage, object]:
@@ -138,7 +138,7 @@ async def test_gateway_run_recovery_claims_abandoned_queued_run() -> None:
     await storage.create_run("orphan", "thread")
     cutoff = datetime.now(UTC) - timedelta(minutes=2)
     async with engine.begin() as connection:  # type: ignore[attr-defined]
-        from sre_graph.server.storage import RunRow
+        from fin_graph.server.storage import RunRow
 
         await connection.execute(
             update(RunRow)

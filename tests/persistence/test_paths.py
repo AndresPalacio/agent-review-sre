@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pytest
 
-from sre_graph.persistence.paths import prepare_sqlite_path
+from fin_graph.persistence.paths import prepare_sqlite_path
 
 
 def test_home_shortcut_is_expanded_and_its_folder_created(

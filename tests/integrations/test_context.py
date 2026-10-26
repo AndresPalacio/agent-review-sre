@@ -2,8 +2,8 @@ from __future__ import annotations
 
 import pytest
 
-from sre_graph.integrations.base import IntegrationNotConfiguredError
-from sre_graph.integrations.context import RunContext
+from fin_graph.integrations.base import IntegrationNotConfiguredError
+from fin_graph.integrations.context import RunContext
 
 
 class PagerClient:

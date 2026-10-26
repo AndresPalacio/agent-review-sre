@@ -1,4 +1,4 @@
-# Tradeoff de arquitectura para el orquestador de SRE Graph
+# Tradeoff de arquitectura para el orquestador de Fin Graph
 
 Fecha de evaluación: 22 de octubre de 2026. Decisión propuesta para evolución del producto.
 
@@ -29,12 +29,12 @@ No conocemos todavía el volumen de incidentes, la proporción de consultas brev
 
 | Evidencia en el repositorio | Implicación para la decisión |
 |---|---|
-| [Supervisor de chat](../../src/sre_graph/graphs/chat/graph.py): crea especialistas `ask_*`, herramientas directas y un supervisor con LLM. | Ya hay un agente que elige herramientas y delega. No hace falta reconstruirlo para comenzar el experimento. |
-| [Delegación a especialistas](../../src/sre_graph/agents/subagents.py): el supervisor espera `await agent.ainvoke(...)`. | Hay delegación durante la ejecución; falta el ciclo de hijo independiente con identidad y seguimiento entre turnos. |
-| [Grafo RCA](../../src/sre_graph/graphs/investigation/graph.py): planificación, restricciones y distribución con `Send`. | Ya existe paralelismo. La principal novedad de async sería la interacción y continuidad, no simplemente ejecutar dos consultas a la vez. |
-| [RunManager](../../src/sre_graph/server/manager.py): checkpoints, reconciliación, heartbeat y recuperación; dispatch mediante `asyncio.create_task`. | Existe recuperación parcial que debe conservarse. No equivale a un contrato general de trabajos padre e hijo con actualizaciones y resultados versionados. |
-| [Cliente MCP](../../src/sre_graph/integrations/mcp/runtime.py) y [prueba de servidor local](../../tests/integrations/test_mcp_loader.py). | Consumir herramientas MCP está implementado. Exponer la investigación como servidor MCP es otra integración. |
-| [Runtime común](../../src/sre_graph/harness/runtime.py) y [optimización](../../src/sre_graph/harness/experiment.py). | Las comparaciones deben usar este harness para mantener trazas y restricciones consistentes. |
+| [Supervisor de chat](../../src/fin_graph/graphs/chat/graph.py): crea especialistas `ask_*`, herramientas directas y un supervisor con LLM. | Ya hay un agente que elige herramientas y delega. No hace falta reconstruirlo para comenzar el experimento. |
+| [Delegación a especialistas](../../src/fin_graph/agents/subagents.py): el supervisor espera `await agent.ainvoke(...)`. | Hay delegación durante la ejecución; falta el ciclo de hijo independiente con identidad y seguimiento entre turnos. |
+| [Grafo RCA](../../src/fin_graph/graphs/investigation/graph.py): planificación, restricciones y distribución con `Send`. | Ya existe paralelismo. La principal novedad de async sería la interacción y continuidad, no simplemente ejecutar dos consultas a la vez. |
+| [RunManager](../../src/fin_graph/server/manager.py): checkpoints, reconciliación, heartbeat y recuperación; dispatch mediante `asyncio.create_task`. | Existe recuperación parcial que debe conservarse. No equivale a un contrato general de trabajos padre e hijo con actualizaciones y resultados versionados. |
+| [Cliente MCP](../../src/fin_graph/integrations/mcp/runtime.py) y [prueba de servidor local](../../tests/integrations/test_mcp_loader.py). | Consumir herramientas MCP está implementado. Exponer la investigación como servidor MCP es otra integración. |
+| [Runtime común](../../src/fin_graph/harness/runtime.py) y [optimización](../../src/fin_graph/harness/experiment.py). | Las comparaciones deben usar este harness para mantener trazas y restricciones consistentes. |
 | [Demo](../../examples/demo_agentes.py) con `DemoServices(ScriptedServices)` y fixtures. | Verifica el flujo y permite depurar estado; no mide selección real de un modelo ni agentes remotos. |
 
 La inspección del entorno encontró `deepagents==0.7.29`, `langgraph==1.2.14`, `langchain==1.4.7`, `langgraph-api==0.13.3`, `langgraph-sdk==0.4.6` y `openai==3.26.0`. [langgraph.json](../../langgraph.json) registra actualmente el grafo `investigation`. Tener paquetes instalados no demuestra un despliegue operativo de supervisor e hijos.
@@ -71,7 +71,7 @@ También conviene incluir un agente con herramientas directas como control exper
 
 La guía oficial de **Decisions** documenta respuestas `choice`, `predicate` y `score`. Al consultar, estaba en beta pública y admitía `gpt-6-luna`. La selección entre categorías tiene un encaje distinto de generar un plan o argumentos para herramientas. La API también puede devolver una negativa; la aplicación debe tratarla explícitamente. [Guía](https://developers.openai.com/api/docs/guides/decisions), [respuesta de la API](https://developers.openai.com/api/reference/python/resources/decisions/methods/create).
 
-Para SRE Graph probaría una selección como `consulta_directa`, `investigacion_rca`, `investigacion_async` o `pedir_contexto`. El código prepara las opciones elegibles según herramientas, permisos y presupuesto. El resultado se vincula a la revisión del trabajo; antes de ejecutar se comprueba que sigue vigente. Las transiciones obligatorias —por ejemplo, detenerse al agotar el presupuesto— permanecen en código.
+Para Fin Graph probaría una selección como `consulta_directa`, `investigacion_rca`, `investigacion_async` o `pedir_contexto`. El código prepara las opciones elegibles según herramientas, permisos y presupuesto. El resultado se vincula a la revisión del trabajo; antes de ejecutar se comprueba que sigue vigente. Las transiciones obligatorias —por ejemplo, detenerse al agotar el presupuesto— permanecen en código.
 
 | Política a comparar | Ventaja potencial | Coste o fallo relevante |
 |---|---|---|
@@ -113,11 +113,11 @@ En 0.7.29, el SDK usado por la cancelación tiene `wait=False` por defecto y el 
 | `create_deep_agent` para supervisor e hijos | Recibe un conjunto integrado de capacidades del harness. | Hay que revisar herramientas, middleware y contexto añadidos para evitar duplicación con lo existente. |
 | Otro agente LLM que envuelva el RCA como herramienta | Adaptación rápida al formato de conversación. | Otra decisión sobre si ejecutar RCA, posibles repeticiones y reformulación del informe. |
 
-El RCA actual recibe `raw_alert` y produce `report`; el protocolo de hijos espera mensajes y obtiene una respuesta conversacional. Hace falta un adaptador de entrada y salida. Añadir otro LLM únicamente para traducir estos formatos resulta difícil de justificar. También hay que conservar las referencias a evidencia y evitar que un hijo y su padre entreguen dos veces el mismo informe. [Estado RCA](../../src/sre_graph/graphs/investigation/state.py), [entrega del grafo](../../src/sre_graph/graphs/investigation/graph.py).
+El RCA actual recibe `raw_alert` y produce `report`; el protocolo de hijos espera mensajes y obtiene una respuesta conversacional. Hace falta un adaptador de entrada y salida. Añadir otro LLM únicamente para traducir estos formatos resulta difícil de justificar. También hay que conservar las referencias a evidencia y evitar que un hijo y su padre entreguen dos veces el mismo informe. [Estado RCA](../../src/fin_graph/graphs/investigation/state.py), [entrega del grafo](../../src/fin_graph/graphs/investigation/graph.py).
 
 El adaptador debe definir además qué significa actualizar RCA: su `intake` reinicializa parte del estado. Hay que elegir entre iniciar una investigación con entrada completa revisada o continuar desde un estado compatible. Reutilizar un hilo no basta para garantizar continuidad de la evidencia.
 
-El supervisor actual transmite un `RunContext` de Python con clientes. Al pasar a otro run, incluso codesplegado mediante ASGI, cada worker deberá reconstruir sus clientes y verificar la identidad autorizada. Transferir solo contexto serializable autorizado; no guardar objetos de clientes ni secretos en el historial. [Contexto actual](../../src/sre_graph/integrations/context.py).
+El supervisor actual transmite un `RunContext` de Python con clientes. Al pasar a otro run, incluso codesplegado mediante ASGI, cada worker deberá reconstruir sus clientes y verificar la identidad autorizada. Transferir solo contexto serializable autorizado; no guardar objetos de clientes ni secretos en el historial. [Contexto actual](../../src/fin_graph/integrations/context.py).
 
 El middleware estándar llama al SDK directamente. Su integración debe hacer que inicio, actualización y cancelación atraviesen los controles del servicio común, mediante adaptadores o validación en el servidor. `async_tasks` será el seguimiento del supervisor; no otra autoridad sobre el estado de negocio.
 
@@ -141,7 +141,7 @@ La integración requiere OAuth con PKCE, registro dinámico de cliente y habilit
 
 El repositorio está archivado. En el commit `35b15fb31ffe276a405c8890c4f32f02166709a6`, el [agente de entrada](https://github.com/tuannvm/jira-a2a/blob/35b15fb31ffe276a405c8890c4f32f02166709a6/internal/agents/jiraretrieval.go#L82) recibe el webhook, obtiene el ticket y lanza una goroutine. El [servidor común](https://github.com/tuannvm/jira-a2a/blob/35b15fb31ffe276a405c8890c4f32f02166709a6/internal/common/server.go#L48) usa un gestor de tareas en memoria. Ese recorrido enseña integración entre agentes, pero no demuestra recuperación durable al reiniciar.
 
-Tomaría la separación entre ingesta, enriquecimiento y análisis. Para SRE Graph propondría registrar el evento antes de confirmarlo, deduplicar su identificador y separar el resultado de investigación del comentario que se entrega a Jira. Así un reintento de entrega no necesita repetir toda la investigación ni generar un ciclo de comentarios y webhooks.
+Tomaría la separación entre ingesta, enriquecimiento y análisis. Para Fin Graph propondría registrar el evento antes de confirmarlo, deduplicar su identificador y separar el resultado de investigación del comentario que se entrega a Jira. Así un reintento de entrega no necesita repetir toda la investigación ni generar un ciclo de comentarios y webhooks.
 
 ## Elección del motor de ejecución
 
@@ -165,7 +165,7 @@ Temporal conserva la ejecución de workflows y separa Activities para trabajo ex
 
 El estudio *Towards a Science of Scaling Agent Systems*, versión 3 del 8 de abril de 2026, compara 260 configuraciones sobre seis benchmarks. Encuentra que la utilidad de coordinar agentes depende de la estructura de la tarea y que las tareas secuenciales o intensivas en herramientas pueden sufrir sobrecoste. Sus límites incluyen conjuntos pequeños en algunos benchmarks y sensibilidad al diseño experimental. No proporciona una predicción de mejora para nuestros incidentes. [Estudio y limitaciones](https://arxiv.org/html/2512.08296v3).
 
-Anthropic describe beneficios al dividir búsquedas independientes y costes adicionales de tokens, coordinación y despliegue. Sus resultados son de investigación, con modelos y tareas propios; no sirven como multiplicador presupuestario de SRE Graph. La lección aplicable es comprobar que cada hijo tiene un objetivo independiente y entrega evidencia recuperable. [Experiencia de ingeniería](https://www.anthropic.com/research/multi-agent-research-system).
+Anthropic describe beneficios al dividir búsquedas independientes y costes adicionales de tokens, coordinación y despliegue. Sus resultados son de investigación, con modelos y tareas propios; no sirven como multiplicador presupuestario de Fin Graph. La lección aplicable es comprobar que cada hijo tiene un objetivo independiente y entrega evidencia recuperable. [Experiencia de ingeniería](https://www.anthropic.com/research/multi-agent-research-system).
 
 Rovo describe una evolución hacia herramientas directas y contexto coherente para evitar pérdidas al transferir trabajo, junto con hijos independientes cuando el trabajo necesita aislamiento y continuidad. Esto favorece una arquitectura híbrida, con delegación selectiva. No establece que Rovo utilice Decisions, Temporal o los repositorios estudiados. [Long Horizon](https://www.atlassian.com/blog/how-we-build/rovo-long-horizon-reasoning-engine), [autonomía y harness](https://www.atlassian.com/blog/rovo/agent-autonomy).
 

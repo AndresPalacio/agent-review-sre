@@ -6,8 +6,8 @@ from typing import Any
 
 import pytest
 
-from sre_graph.domain.alerts.model import AlertParseError, AlertSource, AlertStatus, Severity
-from sre_graph.domain.alerts.sources import (
+from fin_graph.domain.alerts.model import AlertParseError, AlertSource, AlertStatus, Severity
+from fin_graph.domain.alerts.sources import (
     parse_alertmanager,
     parse_cloudwatch,
     parse_datadog,
@@ -26,7 +26,7 @@ def _alertmanager(status: str = "firing") -> dict[str, Any]:
         "version": "4",
         "groupKey": '{}:{alertname="KubePodCrashLooping"}',
         "status": status,
-        "receiver": "sre-graph",
+        "receiver": "fin-graph",
         "groupLabels": {"alertname": "KubePodCrashLooping"},
         "commonLabels": {
             "alertname": "KubePodCrashLooping",
@@ -103,7 +103,7 @@ def test_malformed_alertmanager_alerts_raise_a_parse_error(alerts: Any) -> None:
 
 def test_a_grafana_webhook_strips_the_status_prefix_and_links_the_panel() -> None:
     payload = {
-        "receiver": "sre-graph",
+        "receiver": "fin-graph",
         "status": "firing",
         "orgId": 1,
         "title": "[FIRING:1] HighLatency (checkout)",

@@ -30,55 +30,55 @@ max_case_latency = 180
 
 [surfaces.tools]
 kind = "workspace_file"
-target = "src/sre_graph/graphs/investigation/strategy/tools.py"
+target = "src/fin_graph/graphs/investigation/strategy/tools.py"
 filename = "tools.py"
-base_file = "../src/sre_graph/graphs/investigation/strategy/tools.py"
+base_file = "../src/fin_graph/graphs/investigation/strategy/tools.py"
 
 [surfaces.skills]
 kind = "workspace_file"
-target = "src/sre_graph/graphs/investigation/strategy/skills.md"
+target = "src/fin_graph/graphs/investigation/strategy/skills.md"
 filename = "skills.md"
-base_file = "../src/sre_graph/graphs/investigation/strategy/skills.md"
+base_file = "../src/fin_graph/graphs/investigation/strategy/skills.md"
 
 [surfaces.planning]
 kind = "workspace_file"
-target = "src/sre_graph/graphs/investigation/strategy/planning.py"
+target = "src/fin_graph/graphs/investigation/strategy/planning.py"
 filename = "planning.py"
-base_file = "../src/sre_graph/graphs/investigation/strategy/planning.py"
+base_file = "../src/fin_graph/graphs/investigation/strategy/planning.py"
 
 [surfaces.middleware]
 kind = "workspace_file"
-target = "src/sre_graph/graphs/investigation/strategy/middleware.py"
+target = "src/fin_graph/graphs/investigation/strategy/middleware.py"
 filename = "middleware.py"
-base_file = "../src/sre_graph/graphs/investigation/strategy/middleware.py"
+base_file = "../src/fin_graph/graphs/investigation/strategy/middleware.py"
 
 [surfaces.middleware_registration]
 kind = "workspace_file"
-target = "src/sre_graph/graphs/investigation/strategy/registration.py"
+target = "src/fin_graph/graphs/investigation/strategy/registration.py"
 filename = "registration.py"
-base_file = "../src/sre_graph/graphs/investigation/strategy/registration.py"
+base_file = "../src/fin_graph/graphs/investigation/strategy/registration.py"
 
 [surfaces.plan]
 kind = "module_attr"
-target = "sre_graph.graphs.investigation.prompts:PLAN_PROMPT"
+target = "fin_graph.graphs.investigation.prompts:PLAN_PROMPT"
 filename = "plan.txt"
 base_value = "Propose 1-4 falsifiable hypotheses and one concrete task per useful available domain."
 
 [surfaces.specialist]
 kind = "module_attr"
-target = "sre_graph.graphs.investigation.prompts:SPECIALIST_PROMPT"
+target = "fin_graph.graphs.investigation.prompts:SPECIALIST_PROMPT"
 filename = "specialist.txt"
 base_value = "Return a finding grounded in the observed evidence."
 
 [surfaces.synthesis]
 kind = "module_attr"
-target = "sre_graph.graphs.investigation.prompts:SYNTHESIS_PROMPT"
+target = "fin_graph.graphs.investigation.prompts:SYNTHESIS_PROMPT"
 filename = "synthesis.txt"
 base_value = "Write an incident-command diagnosis. Keep unsupported causes unknown and cite evidence ids."
 
 [surfaces.judge]
 kind = "module_attr"
-target = "sre_graph.graphs.investigation.prompts:JUDGE_PROMPT"
+target = "fin_graph.graphs.investigation.prompts:JUDGE_PROMPT"
 filename = "judge.txt"
 base_value = "Decide whether these specific observations support the factual claim. Be skeptical."
 

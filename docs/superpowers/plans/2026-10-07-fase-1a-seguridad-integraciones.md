@@ -21,7 +21,7 @@
 
 **Tech Stack:** lo de la Fase 0 (Python 3.12, uv, LangGraph 1.2.14, LangChain 1.4.3 / langchain-core 1.6.7, pydantic-settings 2.15, pytest 9 + pytest-asyncio 1.4, ruff 0.16, mypy 2.4, import-linter 2.15), más `kubernetes` 37.0.0 (modelos Pydantic) y `urllib3` 2.8.
 
-**Spec:** `docs/specs/2026-10-07-sre-graph-design.md`
+**Spec:** `docs/specs/2026-10-07-fin-graph-design.md`
 
 > **Alcance:** la Fase 1 se divide en cuatro planes, cada uno con software que funciona y se prueba por sí solo:
 > - **1a (este):** deudas de la Fase 0, seguridad, marco de integraciones y Kubernetes.
@@ -52,7 +52,7 @@
 - **Gate de calidad** al cerrar cada tarea: `uv run ruff check . && uv run ruff format --check . && uv run mypy && uv run lint-imports && uv run pytest`.
 - **Idioma:** prosa de documentos en español; código, identificadores y docstrings en inglés.
 - **Repo:**
-  - `C:\Users\USUARIO\Desktop\devops-telemetri\sre-graph`, rama de trabajo `fase-1a` creada desde `main`.
+  - `C:\Users\USUARIO\Desktop\devops-telemetri\fin-graph`, rama de trabajo `fase-1a` creada desde `main`.
   - Todo local: sin remoto y sin push.
 - **Commits:** cada commit termina con el trailer `Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>`.
 
@@ -96,35 +96,35 @@ Estas decisiones ajustan la spec o difieren partes de ella. Cada una dice qué c
 - **Inyección de prompts, en la Fase 2.** Las reglas anti-inyección y la delimitación de salidas de tools como datos viven en los prompts de especialistas y del chat. En 1a las tools ya entregan JSON o texto acotado, sin instrucciones propias.
 - **Diferido de la revisión de la Fase 0:**
   - Deduplicar llamadas concurrentes idénticas en la caché va a la Fase 2.
-  - El comando `sre-graph integrations list|verify` va a la Fase 2 (CLI); aquí queda `IntegrationRegistry.verify_all`.
+  - El comando `fin-graph integrations list|verify` va a la Fase 2 (CLI); aquí queda `IntegrationRegistry.verify_all`.
 - **`parse_docstring=True` en las tools de integración.** La primera línea del docstring y la sección `Args:` son lo que el modelo lee: se redactan para el modelo.
 
 ## Mapa de archivos
 
 | Archivo | Responsabilidad |
 |---|---|
-| `src/sre_graph/config/settings.py` | `Settings` con vacíos = default, nombres normalizados, `DATABASE_URL` como `SecretStr` y los campos de seguridad |
-| `src/sre_graph/persistence/paths.py` | `prepare_sqlite_path` con `~` y ruta vacía rechazada |
-| `src/sre_graph/agents/testing/scripted_model.py`, `src/sre_graph/agents/subagents.py` | Arreglos menores de la Fase 0 |
-| `src/sre_graph/domain/tools.py` | `Domain`, `SideEffectLevel`, `EvidenceType`, `ToolMeta`, `attach_tool_meta`, `read_tool_meta` |
-| `src/sre_graph/agents/middleware/tool_cache.py` | Caché basada en `ToolMeta` |
-| `src/sre_graph/safety/secrets.py` | `redact_secrets`, `redact_value`, `SECRET_PATTERNS` |
-| `src/sre_graph/safety/masking.py` | `IdentifierKind`, `MaskingPolicy`, `Masker` |
-| `src/sre_graph/safety/approval.py` | `ApprovalPolicy` |
-| `src/sre_graph/agents/middleware/guardrails.py` | `GuardrailsMiddleware` |
-| `src/sre_graph/agents/middleware/masking.py` | `MaskingMiddleware` |
-| `src/sre_graph/agents/middleware/approval.py` | `approval_middleware` |
-| `src/sre_graph/integrations/base.py` | `Integration`, `IntegrationError`, `IntegrationNotConfiguredError`, `VerifyStatus`, `VerifyResult` |
-| `src/sre_graph/integrations/context.py` | `RunContext`, `require_client` |
-| `src/sre_graph/integrations/payload.py` | `tool_payload`, `text_payload` |
-| `src/sre_graph/integrations/tooling.py` | `integration_tool` |
-| `src/sre_graph/integrations/registry.py` | `IntegrationRegistry` |
-| `src/sre_graph/integrations/catalog.py` | `default_registry` |
-| `src/sre_graph/integrations/kubernetes/settings.py` | `KubernetesSettings`, `INTEGRATION_ID` |
-| `src/sre_graph/integrations/kubernetes/summaries.py` | Objetos de la API → dicts compactos y sin secretos |
-| `src/sre_graph/integrations/kubernetes/client.py` | `KubernetesClient` (async, solo lectura) |
-| `src/sre_graph/integrations/kubernetes/tools.py` | Las 9 tools `k8s_*` y `TOOLS` |
-| `src/sre_graph/integrations/kubernetes/integration.py` | `KubernetesIntegration` |
+| `src/fin_graph/config/settings.py` | `Settings` con vacíos = default, nombres normalizados, `DATABASE_URL` como `SecretStr` y los campos de seguridad |
+| `src/fin_graph/persistence/paths.py` | `prepare_sqlite_path` con `~` y ruta vacía rechazada |
+| `src/fin_graph/agents/testing/scripted_model.py`, `src/fin_graph/agents/subagents.py` | Arreglos menores de la Fase 0 |
+| `src/fin_graph/domain/tools.py` | `Domain`, `SideEffectLevel`, `EvidenceType`, `ToolMeta`, `attach_tool_meta`, `read_tool_meta` |
+| `src/fin_graph/agents/middleware/tool_cache.py` | Caché basada en `ToolMeta` |
+| `src/fin_graph/safety/secrets.py` | `redact_secrets`, `redact_value`, `SECRET_PATTERNS` |
+| `src/fin_graph/safety/masking.py` | `IdentifierKind`, `MaskingPolicy`, `Masker` |
+| `src/fin_graph/safety/approval.py` | `ApprovalPolicy` |
+| `src/fin_graph/agents/middleware/guardrails.py` | `GuardrailsMiddleware` |
+| `src/fin_graph/agents/middleware/masking.py` | `MaskingMiddleware` |
+| `src/fin_graph/agents/middleware/approval.py` | `approval_middleware` |
+| `src/fin_graph/integrations/base.py` | `Integration`, `IntegrationError`, `IntegrationNotConfiguredError`, `VerifyStatus`, `VerifyResult` |
+| `src/fin_graph/integrations/context.py` | `RunContext`, `require_client` |
+| `src/fin_graph/integrations/payload.py` | `tool_payload`, `text_payload` |
+| `src/fin_graph/integrations/tooling.py` | `integration_tool` |
+| `src/fin_graph/integrations/registry.py` | `IntegrationRegistry` |
+| `src/fin_graph/integrations/catalog.py` | `default_registry` |
+| `src/fin_graph/integrations/kubernetes/settings.py` | `KubernetesSettings`, `INTEGRATION_ID` |
+| `src/fin_graph/integrations/kubernetes/summaries.py` | Objetos de la API → dicts compactos y sin secretos |
+| `src/fin_graph/integrations/kubernetes/client.py` | `KubernetesClient` (async, solo lectura) |
+| `src/fin_graph/integrations/kubernetes/tools.py` | Las 9 tools `k8s_*` y `TOOLS` |
+| `src/fin_graph/integrations/kubernetes/integration.py` | `KubernetesIntegration` |
 | `tests/**` | Un archivo de test por módulo; `tests/integrations/kubernetes/conftest.py` sirve el namespace grabado |
 | `.env.example`, `README.md`, `.github/workflows/ci.yml`, `docs/spikes/fase-0-mecanismos.md` | Configuración documentada, guía y CI |
 
@@ -132,10 +132,10 @@ Estas decisiones ajustan la spec o difieren partes de ella. Cada una dice qué c
 
 ## Antes de empezar
 
-Todas las tareas cierran con el mismo gate. Las pruebas de Postgres corren contra el contenedor de `docker compose`; `SRE_GRAPH_REQUIRE_POSTGRES=1` hace que fallen, en vez de omitirse, si falta la URL. En Git Bash cada comando del gate se escribe completo, porque las variables exportadas no sobreviven entre llamadas del agente:
+Todas las tareas cierran con el mismo gate. Las pruebas de Postgres corren contra el contenedor de `docker compose`; `FIN_GRAPH_REQUIRE_POSTGRES=1` hace que fallen, en vez de omitirse, si falta la URL. En Git Bash cada comando del gate se escribe completo, porque las variables exportadas no sobreviven entre llamadas del agente:
 
 ```bash
-uv run ruff check . && uv run ruff format --check . && uv run mypy && uv run lint-imports && SRE_GRAPH_TEST_DATABASE_URL="postgresql://sre_graph:sre_graph@localhost:5433/sre_graph?connect_timeout=5" SRE_GRAPH_REQUIRE_POSTGRES=1 uv run pytest
+uv run ruff check . && uv run ruff format --check . && uv run mypy && uv run lint-imports && FIN_GRAPH_TEST_DATABASE_URL="postgresql://fin_graph:fin_graph@localhost:5433/fin_graph?connect_timeout=5" FIN_GRAPH_REQUIRE_POSTGRES=1 uv run pytest
 ```
 
 ---
@@ -155,7 +155,7 @@ Esta tarea paga deudas menores de la revisión de la Fase 0:
 También agrega los campos de seguridad que consumen las Tareas 5 y 6.
 
 **Files:**
-- Modify: `src/sre_graph/config/settings.py`, `src/sre_graph/persistence/paths.py`
+- Modify: `src/fin_graph/config/settings.py`, `src/fin_graph/persistence/paths.py`
 - Modify: `tests/conftest.py`, `tests/config/test_settings.py`, `tests/persistence/test_store.py`, `tests/test_env_example.py`
 - Create: `tests/persistence/test_paths.py`
 - Modify: `.env.example`, `.gitignore`, `.github/workflows/ci.yml`, `README.md`
@@ -175,20 +175,20 @@ También agrega los campos de seguridad que consumen las Tareas 5 y 6.
 - [ ] **Step 1: Rama, Postgres y línea base**
 
 ```bash
-cd /c/Users/USUARIO/Desktop/devops-telemetri/sre-graph
+cd /c/Users/USUARIO/Desktop/devops-telemetri/fin-graph
 git status --short
 git checkout -b fase-1a
 git add docs/superpowers/plans/2026-10-07-fase-1a-seguridad-integraciones.md
 git commit -m "docs: add phase 1a implementation plan" -m "Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
 docker compose up -d --wait
 uv sync --locked
-SRE_GRAPH_TEST_DATABASE_URL="postgresql://sre_graph:sre_graph@localhost:5433/sre_graph?connect_timeout=5" uv run pytest
+FIN_GRAPH_TEST_DATABASE_URL="postgresql://fin_graph:fin_graph@localhost:5433/fin_graph?connect_timeout=5" uv run pytest
 ```
 
 Expected:
 - `git status --short` muestra solo `?? docs/superpowers/plans/2026-10-07-fase-1a-seguridad-integraciones.md`. Este plan entra como primer commit de la rama, igual que en la Fase 0.
 - Aparece `Switched to a new branch 'fase-1a'` y el commit del plan.
-- El contenedor `sre-graph-postgres-1` queda `Healthy`.
+- El contenedor `fin-graph-postgres-1` queda `Healthy`.
 - pytest termina con `54 passed`.
 
 - [ ] **Step 2: Tests que fallan**
@@ -204,7 +204,7 @@ from pathlib import Path
 import pytest
 from pydantic import ValidationError
 
-from sre_graph.config.settings import PersistenceBackend, Settings
+from fin_graph.config.settings import PersistenceBackend, Settings
 
 
 def test_defaults_without_environment() -> None:
@@ -268,7 +268,7 @@ def test_blank_variables_fall_back_to_defaults(monkeypatch: pytest.MonkeyPatch) 
     settings = Settings(_env_file=None)
 
     assert settings.llm_provider == "anthropic"
-    assert settings.sqlite_path == "sre-graph.sqlite"
+    assert settings.sqlite_path == "fin-graph.sqlite"
 
 
 def test_provider_and_environment_names_are_normalized(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -312,7 +312,7 @@ from pathlib import Path
 
 import pytest
 
-from sre_graph.persistence.paths import prepare_sqlite_path
+from fin_graph.persistence.paths import prepare_sqlite_path
 
 
 def test_home_shortcut_is_expanded_and_its_folder_created(
@@ -369,7 +369,7 @@ from pathlib import Path
 import pytest
 from dotenv import dotenv_values
 
-from sre_graph.config.settings import Settings
+from fin_graph.config.settings import Settings
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -416,7 +416,7 @@ Expected: `10 failed`.
 
 - [ ] **Step 4: Implementación**
 
-Reemplaza el contenido de `src/sre_graph/config/settings.py` por:
+Reemplaza el contenido de `src/fin_graph/config/settings.py` por:
 
 ```python
 """Runtime settings read from environment variables and an optional ``.env`` file."""
@@ -458,7 +458,7 @@ class Settings(BaseSettings):
     llm_timeout_seconds: float = 120.0
     llm_max_retries: int = 2
     persistence_backend: PersistenceBackend = PersistenceBackend.MEMORY
-    sqlite_path: str = "sre-graph.sqlite"
+    sqlite_path: str = "fin-graph.sqlite"
     database_url: SecretStr | None = None
     environment: str = "dev"
     auto_approve_tools: Annotated[tuple[str, ...], NoDecode] = ()
@@ -488,7 +488,7 @@ class Settings(BaseSettings):
         return self.database_url.get_secret_value()
 ```
 
-Reemplaza el contenido de `src/sre_graph/persistence/paths.py` por:
+Reemplaza el contenido de `src/fin_graph/persistence/paths.py` por:
 
 ```python
 """Filesystem preparation shared by the SQLite-backed persistence factories."""
@@ -531,9 +531,9 @@ LLM_MAX_RETRIES=2
 
 # Persistencia: memory | sqlite | postgres
 PERSISTENCE_BACKEND=memory
-SQLITE_PATH=data/sre-graph.sqlite
+SQLITE_PATH=data/fin-graph.sqlite
 # Postgres de docker compose; connect_timeout evita esperas largas si no responde.
-DATABASE_URL=postgresql://sre_graph:sre_graph@localhost:5433/sre_graph?connect_timeout=5
+DATABASE_URL=postgresql://fin_graph:fin_graph@localhost:5433/fin_graph?connect_timeout=5
 
 # Entorno: en prod toda tool que cambia estado pide aprobación humana.
 ENVIRONMENT=dev
@@ -568,8 +568,8 @@ import langsmith
 import pytest
 from langsmith import utils as langsmith_utils
 
-from sre_graph.config.settings import Settings
-from sre_graph.config.tracing import disable_external_tracing
+from fin_graph.config.settings import Settings
+from fin_graph.config.tracing import disable_external_tracing
 
 _PROVIDER_AND_TRACING_ENV = (
     "ANTHROPIC_API_KEY",
@@ -626,27 +626,27 @@ def tracing_enabled_by_environment(monkeypatch: pytest.MonkeyPatch) -> Iterator[
 
 @pytest.fixture
 def postgres_url() -> str:
-    """Connection string for ``postgres``-marked tests; CI sets ``SRE_GRAPH_REQUIRE_POSTGRES=1``.
+    """Connection string for ``postgres``-marked tests; CI sets ``FIN_GRAPH_REQUIRE_POSTGRES=1``.
 
     With that flag a missing URL fails the test instead of skipping it, so a
     misnamed variable in CI cannot silently drop the Postgres coverage.
     """
-    url = os.environ.get("SRE_GRAPH_TEST_DATABASE_URL")
+    url = os.environ.get("FIN_GRAPH_TEST_DATABASE_URL")
     if url:
         return url
-    if os.environ.get("SRE_GRAPH_REQUIRE_POSTGRES") == "1":
-        pytest.fail("SRE_GRAPH_REQUIRE_POSTGRES=1 but SRE_GRAPH_TEST_DATABASE_URL is not set")
-    pytest.skip("SRE_GRAPH_TEST_DATABASE_URL is not set")
+    if os.environ.get("FIN_GRAPH_REQUIRE_POSTGRES") == "1":
+        pytest.fail("FIN_GRAPH_REQUIRE_POSTGRES=1 but FIN_GRAPH_TEST_DATABASE_URL is not set")
+    pytest.skip("FIN_GRAPH_TEST_DATABASE_URL is not set")
 ```
 
 En `.gitignore`, cambia la línea `data/` por `/data/`, para que solo se ignore la carpeta de datos de la raíz (la de `SQLITE_PATH=data/...`) y no cualquier `data/` futura con fixtures.
 
-En `.github/workflows/ci.yml`, agrega `SRE_GRAPH_REQUIRE_POSTGRES: "1"` al bloque `env` del job:
+En `.github/workflows/ci.yml`, agrega `FIN_GRAPH_REQUIRE_POSTGRES: "1"` al bloque `env` del job:
 
 ```yaml
     env:
-      SRE_GRAPH_TEST_DATABASE_URL: postgresql://sre_graph:sre_graph@localhost:5432/sre_graph
-      SRE_GRAPH_REQUIRE_POSTGRES: "1"
+      FIN_GRAPH_TEST_DATABASE_URL: postgresql://fin_graph:fin_graph@localhost:5432/fin_graph
+      FIN_GRAPH_REQUIRE_POSTGRES: "1"
       LANGSMITH_TRACING: "false"
 ```
 
@@ -656,10 +656,10 @@ Reemplaza el contenido de `README.md` por esta versión:
 - quita la frase prematura sobre usar Postgres "desde la app".
 
 ````markdown
-# sre-graph
+# fin-graph
 
 Investigación multiagente de incidencias (RCA) construida de forma nativa sobre LangGraph.
-Diseño completo: [docs/specs/2026-10-07-sre-graph-design.md](docs/specs/2026-10-07-sre-graph-design.md).
+Diseño completo: [docs/specs/2026-10-07-fin-graph-design.md](docs/specs/2026-10-07-fin-graph-design.md).
 
 > Estado: Fase 0 (fundaciones). El grafo de investigación llega en la Fase 2.
 
@@ -683,13 +683,13 @@ reescribes, usa `Set-Content -Encoding utf8`.
 
 ```bash
 docker compose up -d --wait
-SRE_GRAPH_TEST_DATABASE_URL="postgresql://sre_graph:sre_graph@localhost:5433/sre_graph?connect_timeout=5" uv run pytest -m postgres
+FIN_GRAPH_TEST_DATABASE_URL="postgresql://fin_graph:fin_graph@localhost:5433/fin_graph?connect_timeout=5" uv run pytest -m postgres
 ```
 
 En PowerShell:
 
 ```powershell
-$env:SRE_GRAPH_TEST_DATABASE_URL = "postgresql://sre_graph:sre_graph@localhost:5433/sre_graph?connect_timeout=5"
+$env:FIN_GRAPH_TEST_DATABASE_URL = "postgresql://fin_graph:fin_graph@localhost:5433/fin_graph?connect_timeout=5"
 uv run pytest -m postgres
 ```
 
@@ -723,9 +723,9 @@ Expected: `21 passed, 1 skipped` (el skip es la prueba de Postgres de `test_stor
 
 - [ ] **Step 6: Verificar la exigencia de Postgres**
 
-Run: `SRE_GRAPH_REQUIRE_POSTGRES=1 uv run pytest -m postgres`
+Run: `FIN_GRAPH_REQUIRE_POSTGRES=1 uv run pytest -m postgres`
 
-Expected: `2 errors`, con `SRE_GRAPH_REQUIRE_POSTGRES=1 but SRE_GRAPH_TEST_DATABASE_URL is not set`.
+Expected: `2 errors`, con `FIN_GRAPH_REQUIRE_POSTGRES=1 but FIN_GRAPH_TEST_DATABASE_URL is not set`.
 
 Run: `uv run pytest -m postgres`
 
@@ -734,7 +734,7 @@ Expected: `2 skipped`.
 - [ ] **Step 7: Gate**
 
 ```bash
-uv run ruff check . && uv run ruff format --check . && uv run mypy && uv run lint-imports && SRE_GRAPH_TEST_DATABASE_URL="postgresql://sre_graph:sre_graph@localhost:5433/sre_graph?connect_timeout=5" SRE_GRAPH_REQUIRE_POSTGRES=1 uv run pytest
+uv run ruff check . && uv run ruff format --check . && uv run mypy && uv run lint-imports && FIN_GRAPH_TEST_DATABASE_URL="postgresql://fin_graph:fin_graph@localhost:5433/fin_graph?connect_timeout=5" FIN_GRAPH_REQUIRE_POSTGRES=1 uv run pytest
 ```
 
 Expected: `All checks passed!`, archivos ya formateados, `Success: no issues found`, `Contracts: 1 kept, 0 broken.` y `64 passed`.
@@ -742,7 +742,7 @@ Expected: `All checks passed!`, archivos ya formateados, `Success: no issues fou
 - [ ] **Step 8: Commit**
 
 ```bash
-git add src/sre_graph/config/settings.py src/sre_graph/persistence/paths.py tests/conftest.py tests/config/test_settings.py tests/persistence/test_paths.py tests/persistence/test_store.py tests/test_env_example.py .env.example .gitignore .github/workflows/ci.yml README.md
+git add src/fin_graph/config/settings.py src/fin_graph/persistence/paths.py tests/conftest.py tests/config/test_settings.py tests/persistence/test_paths.py tests/persistence/test_store.py tests/test_env_example.py .env.example .gitignore .github/workflows/ci.yml README.md
 git commit -m "fix(config): blank vars use defaults, secret DATABASE_URL, safety settings and stricter test isolation" -m "Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
 ```
 
@@ -758,7 +758,7 @@ Arreglos menores de la revisión de la Fase 0:
 Además, dos spikes fijan contratos que la Fase 2 y la Fase 5 dan por hechos.
 
 **Files:**
-- Modify: `src/sre_graph/agents/testing/scripted_model.py`, `src/sre_graph/agents/subagents.py`
+- Modify: `src/fin_graph/agents/testing/scripted_model.py`, `src/fin_graph/agents/subagents.py`
 - Modify: `tests/agents/test_scripted_model.py`, `tests/agents/test_subagents.py`, `tests/agents/test_factory.py`
 - Create: `tests/spikes/test_middleware_async_contract.py`, `tests/spikes/test_subgraph_node_interrupt.py`
 - Modify: `docs/spikes/fase-0-mecanismos.md`
@@ -783,8 +783,8 @@ from langchain_core.messages import AIMessage, HumanMessage
 from langchain_core.tools import tool
 from langgraph.checkpoint.memory import InMemorySaver
 
-from sre_graph.agents.factory import make_agent
-from sre_graph.agents.testing.scripted_model import (
+from fin_graph.agents.factory import make_agent
+from fin_graph.agents.testing.scripted_model import (
     ScriptedChatModel,
     ScriptedModelExhaustedError,
     tool_call_message,
@@ -806,10 +806,10 @@ def test_reusing_one_scripted_message_keeps_both_replies_in_the_thread() -> None
     assert len(second["messages"]) == 4
 ```
 
-En `tests/agents/test_subagents.py`, cambia el import de `sre_graph.agents.subagents` por:
+En `tests/agents/test_subagents.py`, cambia el import de `fin_graph.agents.subagents` por:
 
 ```python
-from sre_graph.agents.subagents import SubagentSpec, make_supervisor, subagent_result_text
+from fin_graph.agents.subagents import SubagentSpec, make_supervisor, subagent_result_text
 ```
 
 y agrega al final:
@@ -894,8 +894,8 @@ from langchain_core.messages import AIMessage, HumanMessage, ToolMessage
 from langchain_core.tools import tool
 from langgraph.types import Command
 
-from sre_graph.agents.factory import make_agent
-from sre_graph.agents.testing.scripted_model import ScriptedChatModel, tool_call_message
+from fin_graph.agents.factory import make_agent
+from fin_graph.agents.testing.scripted_model import ScriptedChatModel, tool_call_message
 
 ToolCallResult = ToolMessage | Command[Any]
 
@@ -1025,13 +1025,13 @@ Expected: `3 failed, 18 passed`.
 
 - [ ] **Step 3: Implementación**
 
-En `src/sre_graph/agents/testing/scripted_model.py`, la última línea de `_generate` pasa a devolver una copia:
+En `src/fin_graph/agents/testing/scripted_model.py`, la última línea de `_generate` pasa a devolver una copia:
 
 ```python
         return ChatResult(generations=[ChatGeneration(message=message.model_copy(deep=True))])
 ```
 
-En `src/sre_graph/agents/subagents.py`, cambia el import de `dataclasses` por:
+En `src/fin_graph/agents/subagents.py`, cambia el import de `dataclasses` por:
 
 ```python
 from dataclasses import asdict, dataclass, is_dataclass
@@ -1099,7 +1099,7 @@ Entorno: Python 3.12 sobre Windows 11. La fila 8 y el test de contrato de la fil
 - [ ] **Step 6: Gate**
 
 ```bash
-uv run ruff check . && uv run ruff format --check . && uv run mypy && uv run lint-imports && SRE_GRAPH_TEST_DATABASE_URL="postgresql://sre_graph:sre_graph@localhost:5433/sre_graph?connect_timeout=5" SRE_GRAPH_REQUIRE_POSTGRES=1 uv run pytest
+uv run ruff check . && uv run ruff format --check . && uv run mypy && uv run lint-imports && FIN_GRAPH_TEST_DATABASE_URL="postgresql://fin_graph:fin_graph@localhost:5433/fin_graph?connect_timeout=5" FIN_GRAPH_REQUIRE_POSTGRES=1 uv run pytest
 ```
 
 Expected: todo en verde y `72 passed`.
@@ -1107,7 +1107,7 @@ Expected: todo en verde y `72 passed`.
 - [ ] **Step 7: Commit**
 
 ```bash
-git add src/sre_graph/agents/testing/scripted_model.py src/sre_graph/agents/subagents.py tests/agents/test_scripted_model.py tests/agents/test_subagents.py tests/agents/test_factory.py tests/spikes/test_middleware_async_contract.py tests/spikes/test_subgraph_node_interrupt.py docs/spikes/fase-0-mecanismos.md
+git add src/fin_graph/agents/testing/scripted_model.py src/fin_graph/agents/subagents.py tests/agents/test_scripted_model.py tests/agents/test_subagents.py tests/agents/test_factory.py tests/spikes/test_middleware_async_contract.py tests/spikes/test_subgraph_node_interrupt.py docs/spikes/fase-0-mecanismos.md
 git commit -m "fix(agents): copy scripted replies, pass only reply text to supervisors, pin async and subgraph contracts" -m "Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
 ```
 
@@ -1118,8 +1118,8 @@ git commit -m "fix(agents): copy scripted replies, pass only reply text to super
 Cada tool de integración declara para qué sirve y qué puede cambiar. Ese contrato vive en `domain/tools.py`, porque lo leen la caché, la política de aprobación y el registro de integraciones. La caché de la Fase 0 deja de leer claves sueltas de `metadata` y pasa a usar `ToolMeta`.
 
 **Files:**
-- Create: `src/sre_graph/domain/__init__.py`, `src/sre_graph/domain/tools.py`
-- Modify: `src/sre_graph/agents/middleware/tool_cache.py`, `pyproject.toml`
+- Create: `src/fin_graph/domain/__init__.py`, `src/fin_graph/domain/tools.py`
+- Modify: `src/fin_graph/agents/middleware/tool_cache.py`, `pyproject.toml`
 - Test: `tests/domain/test_tools.py`, `tests/agents/middleware/test_tool_cache.py`
 
 **Interfaces:**
@@ -1147,7 +1147,7 @@ from typing import Any
 import pytest
 from langchain_core.tools import tool
 
-from sre_graph.domain.tools import (
+from fin_graph.domain.tools import (
     Domain,
     EvidenceType,
     SideEffectLevel,
@@ -1222,10 +1222,10 @@ import pytest
 from langchain_core.messages import AIMessage, HumanMessage, ToolMessage
 from langchain_core.tools import BaseTool, ToolException, tool
 
-from sre_graph.agents.factory import make_agent
-from sre_graph.agents.middleware.tool_cache import CACHE_SCOPE_KEY, ToolResultCacheMiddleware
-from sre_graph.agents.testing.scripted_model import ScriptedChatModel, tool_call_message
-from sre_graph.domain.tools import Domain, EvidenceType, SideEffectLevel, ToolMeta, attach_tool_meta
+from fin_graph.agents.factory import make_agent
+from fin_graph.agents.middleware.tool_cache import CACHE_SCOPE_KEY, ToolResultCacheMiddleware
+from fin_graph.agents.testing.scripted_model import ScriptedChatModel, tool_call_message
+from fin_graph.domain.tools import Domain, EvidenceType, SideEffectLevel, ToolMeta, attach_tool_meta
 
 
 class FakeClock:
@@ -1460,17 +1460,17 @@ def test_same_arguments_in_a_different_order_hit_the_cache() -> None:
 
 Run: `uv run pytest tests/domain/test_tools.py tests/agents/middleware/test_tool_cache.py -v`
 
-Expected: `2 errors` durante la colección, con `ModuleNotFoundError: No module named 'sre_graph.domain'`.
+Expected: `2 errors` durante la colección, con `ModuleNotFoundError: No module named 'fin_graph.domain'`.
 
 - [ ] **Step 3: Implementación**
 
-`src/sre_graph/domain/__init__.py`:
+`src/fin_graph/domain/__init__.py`:
 
 ```python
 """Pure domain types shared by integrations, agents and graphs."""
 ```
 
-`src/sre_graph/domain/tools.py`:
+`src/fin_graph/domain/tools.py`:
 
 ```python
 """The metadata every integration tool carries: what it is for and what it may change."""
@@ -1562,7 +1562,7 @@ def read_tool_meta(tool: BaseTool | None) -> ToolMeta | None:
     return None if tool is None else ToolMeta.from_metadata(tool.metadata)
 ```
 
-Reemplaza el contenido de `src/sre_graph/agents/middleware/tool_cache.py` por:
+Reemplaza el contenido de `src/fin_graph/agents/middleware/tool_cache.py` por:
 
 ```python
 """Serve repeated identical read-only tool calls from a short-lived, run-scoped cache."""
@@ -1581,7 +1581,7 @@ from langchain.agents.middleware.types import ToolCallRequest
 from langchain_core.messages import ToolMessage
 from langgraph.types import Command
 
-from sre_graph.domain.tools import SideEffectLevel, read_tool_meta
+from fin_graph.domain.tools import SideEffectLevel, read_tool_meta
 
 #: ``configurable`` key an entry point sets to a fresh id for every run it starts.
 CACHE_SCOPE_KEY = "tool_cache_scope"
@@ -1690,11 +1690,11 @@ En `pyproject.toml`, agrega la capa `domain` al contrato de import-linter:
 
 ```toml
 layers = [
-    "sre_graph.graphs",
-    "sre_graph.agents",
-    "sre_graph.domain",
-    "sre_graph.llm | sre_graph.persistence",
-    "sre_graph.config",
+    "fin_graph.graphs",
+    "fin_graph.agents",
+    "fin_graph.domain",
+    "fin_graph.llm | fin_graph.persistence",
+    "fin_graph.config",
 ]
 ```
 
@@ -1707,7 +1707,7 @@ Expected: `15 passed`.
 - [ ] **Step 5: Gate**
 
 ```bash
-uv run ruff check . && uv run ruff format --check . && uv run mypy && uv run lint-imports && SRE_GRAPH_TEST_DATABASE_URL="postgresql://sre_graph:sre_graph@localhost:5433/sre_graph?connect_timeout=5" SRE_GRAPH_REQUIRE_POSTGRES=1 uv run pytest
+uv run ruff check . && uv run ruff format --check . && uv run mypy && uv run lint-imports && FIN_GRAPH_TEST_DATABASE_URL="postgresql://fin_graph:fin_graph@localhost:5433/fin_graph?connect_timeout=5" FIN_GRAPH_REQUIRE_POSTGRES=1 uv run pytest
 ```
 
 Expected: todo en verde y `78 passed`.
@@ -1715,7 +1715,7 @@ Expected: todo en verde y `78 passed`.
 - [ ] **Step 6: Commit**
 
 ```bash
-git add src/sre_graph/domain src/sre_graph/agents/middleware/tool_cache.py tests/domain tests/agents/middleware/test_tool_cache.py pyproject.toml
+git add src/fin_graph/domain src/fin_graph/agents/middleware/tool_cache.py tests/domain tests/agents/middleware/test_tool_cache.py pyproject.toml
 git commit -m "feat(domain): ToolMeta contract for tool routing and side effects; cache reads it" -m "Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
 ```
 
@@ -1726,7 +1726,7 @@ git commit -m "feat(domain): ToolMeta contract for tool routing and side effects
 Toda salida de tool pasa por la redacción antes de que la vean el modelo o el checkpoint. Las reglas cubren formatos conocidos (llaves privadas, AWS, GitHub, Slack, claves de LLM, Google, JWT, Bearer, credenciales en URLs) y asignaciones del tipo `password=...`. Solo se reemplaza el secreto: el nombre de la variable o el host quedan, porque son evidencia útil.
 
 **Files:**
-- Create: `src/sre_graph/safety/__init__.py`, `src/sre_graph/safety/secrets.py`, `src/sre_graph/agents/middleware/guardrails.py`
+- Create: `src/fin_graph/safety/__init__.py`, `src/fin_graph/safety/secrets.py`, `src/fin_graph/agents/middleware/guardrails.py`
 - Modify: `pyproject.toml`
 - Test: `tests/safety/test_secrets.py`, `tests/agents/middleware/test_guardrails.py`
 
@@ -1747,7 +1747,7 @@ from __future__ import annotations
 
 import pytest
 
-from sre_graph.safety.secrets import redact_secrets, redact_value
+from fin_graph.safety.secrets import redact_secrets, redact_value
 
 # Built at runtime so this file holds no string that looks like a real credential.
 AWS_KEY = "AKIA" + "ABCDEFGHIJKLMNOP"
@@ -1840,9 +1840,9 @@ from langchain_core.messages import AIMessage, HumanMessage, ToolMessage
 from langchain_core.tools import tool
 from langgraph.checkpoint.memory import InMemorySaver
 
-from sre_graph.agents.factory import make_agent
-from sre_graph.agents.middleware.guardrails import GuardrailsMiddleware
-from sre_graph.agents.testing.scripted_model import ScriptedChatModel, tool_call_message
+from fin_graph.agents.factory import make_agent
+from fin_graph.agents.middleware.guardrails import GuardrailsMiddleware
+from fin_graph.agents.testing.scripted_model import ScriptedChatModel, tool_call_message
 
 # Built at runtime so this file holds no string that looks like a real credential.
 GITHUB_TOKEN = "ghp_" + "a1B2c3D4e5F6g7H8i9J0k1L2m3N4o5P6q7R8"
@@ -1906,17 +1906,17 @@ async def test_redaction_also_applies_to_async_runs() -> None:
 
 Run: `uv run pytest tests/safety/test_secrets.py tests/agents/middleware/test_guardrails.py -v`
 
-Expected: `2 errors` durante la colección, con `ModuleNotFoundError: No module named 'sre_graph.safety'` y `No module named 'sre_graph.agents.middleware.guardrails'`.
+Expected: `2 errors` durante la colección, con `ModuleNotFoundError: No module named 'fin_graph.safety'` y `No module named 'fin_graph.agents.middleware.guardrails'`.
 
 - [ ] **Step 3: Implementación**
 
-`src/sre_graph/safety/__init__.py`:
+`src/fin_graph/safety/__init__.py`:
 
 ```python
 """Secret redaction, identifier masking and the approval policy."""
 ```
 
-`src/sre_graph/safety/secrets.py`:
+`src/fin_graph/safety/secrets.py`:
 
 ```python
 """Redact credentials from text before a model, a checkpoint or a channel can see them."""
@@ -2008,7 +2008,7 @@ def _replacer(kind: str) -> Callable[[re.Match[str]], str]:
     return replace
 ```
 
-`src/sre_graph/agents/middleware/guardrails.py`:
+`src/fin_graph/agents/middleware/guardrails.py`:
 
 ```python
 """Redact credentials from every tool result before the model or the checkpoint sees it."""
@@ -2023,7 +2023,7 @@ from langchain.agents.middleware.types import ToolCallRequest
 from langchain_core.messages import ToolMessage
 from langgraph.types import Command
 
-from sre_graph.safety.secrets import redact_value
+from fin_graph.safety.secrets import redact_value
 
 ToolCallResult = ToolMessage | Command[Any]
 
@@ -2061,12 +2061,12 @@ En `pyproject.toml`, agrega la capa `safety` encima de `domain`:
 
 ```toml
 layers = [
-    "sre_graph.graphs",
-    "sre_graph.agents",
-    "sre_graph.safety",
-    "sre_graph.domain",
-    "sre_graph.llm | sre_graph.persistence",
-    "sre_graph.config",
+    "fin_graph.graphs",
+    "fin_graph.agents",
+    "fin_graph.safety",
+    "fin_graph.domain",
+    "fin_graph.llm | fin_graph.persistence",
+    "fin_graph.config",
 ]
 ```
 
@@ -2079,7 +2079,7 @@ Expected: `18 passed`.
 - [ ] **Step 5: Gate**
 
 ```bash
-uv run ruff check . && uv run ruff format --check . && uv run mypy && uv run lint-imports && SRE_GRAPH_TEST_DATABASE_URL="postgresql://sre_graph:sre_graph@localhost:5433/sre_graph?connect_timeout=5" SRE_GRAPH_REQUIRE_POSTGRES=1 uv run pytest
+uv run ruff check . && uv run ruff format --check . && uv run mypy && uv run lint-imports && FIN_GRAPH_TEST_DATABASE_URL="postgresql://fin_graph:fin_graph@localhost:5433/fin_graph?connect_timeout=5" FIN_GRAPH_REQUIRE_POSTGRES=1 uv run pytest
 ```
 
 Expected: todo en verde y `96 passed`.
@@ -2087,7 +2087,7 @@ Expected: todo en verde y `96 passed`.
 - [ ] **Step 6: Commit**
 
 ```bash
-git add src/sre_graph/safety src/sre_graph/agents/middleware/guardrails.py tests/safety/test_secrets.py tests/agents/middleware/test_guardrails.py pyproject.toml
+git add src/fin_graph/safety src/fin_graph/agents/middleware/guardrails.py tests/safety/test_secrets.py tests/agents/middleware/test_guardrails.py pyproject.toml
 git commit -m "feat(safety): redact credentials from every tool result before the model or checkpoint" -m "Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
 ```
 
@@ -2098,7 +2098,7 @@ git commit -m "feat(safety): redact credentials from every tool result before th
 Con `MASK_ENABLED=true`, los identificadores de infraestructura (pods, namespaces, clusters, hosts, cuentas, IPs, emails, servicios y patrones extra) se reemplazan por tokens estables antes de cada llamada al modelo. La respuesta del modelo (texto, args de tool calls y salida estructurada) se desenmascara antes de guardarse o de que corra una tool. Los detectores se portan de opensre (`infrastructure/safety/masking/detectors.py`), reescritos.
 
 **Files:**
-- Create: `src/sre_graph/safety/masking.py`, `src/sre_graph/agents/middleware/masking.py`
+- Create: `src/fin_graph/safety/masking.py`, `src/fin_graph/agents/middleware/masking.py`
 - Test: `tests/safety/test_masking.py`, `tests/agents/middleware/test_masking.py`
 
 **Interfaces:**
@@ -2127,8 +2127,8 @@ import re
 
 import pytest
 
-from sre_graph.config.settings import Settings
-from sre_graph.safety.masking import IdentifierKind, Masker, MaskingPolicy
+from fin_graph.config.settings import Settings
+from fin_graph.safety.masking import IdentifierKind, Masker, MaskingPolicy
 
 POD = "checkout-7d9f8b6c5-x2x9z"
 ENABLED = MaskingPolicy(enabled=True)
@@ -2249,10 +2249,10 @@ from langchain_core.tools import BaseTool, tool
 from langgraph.graph.state import CompiledStateGraph
 from pydantic import BaseModel
 
-from sre_graph.agents.factory import make_agent
-from sre_graph.agents.middleware.masking import MaskingMiddleware
-from sre_graph.agents.testing.scripted_model import ScriptedChatModel, tool_call_message
-from sre_graph.safety.masking import Masker, MaskingPolicy
+from fin_graph.agents.factory import make_agent
+from fin_graph.agents.middleware.masking import MaskingMiddleware
+from fin_graph.agents.testing.scripted_model import ScriptedChatModel, tool_call_message
+from fin_graph.safety.masking import Masker, MaskingPolicy
 
 POD = "checkout-7d9f8b6c5-x2x9z"
 POLICY = MaskingPolicy(enabled=True)
@@ -2364,11 +2364,11 @@ async def test_masking_also_applies_to_async_runs() -> None:
 
 Run: `uv run pytest tests/safety/test_masking.py tests/agents/middleware/test_masking.py -v`
 
-Expected: `2 errors` durante la colección, con `ModuleNotFoundError: No module named 'sre_graph.safety.masking'` y `No module named 'sre_graph.agents.middleware.masking'`.
+Expected: `2 errors` durante la colección, con `ModuleNotFoundError: No module named 'fin_graph.safety.masking'` y `No module named 'fin_graph.agents.middleware.masking'`.
 
 - [ ] **Step 3: Implementación**
 
-`src/sre_graph/safety/masking.py`:
+`src/fin_graph/safety/masking.py`:
 
 ```python
 """Reversible masking of infrastructure identifiers before text reaches an external model."""
@@ -2382,7 +2382,7 @@ from dataclasses import dataclass, field
 from enum import StrEnum
 from typing import Any
 
-from sre_graph.config.settings import Settings
+from fin_graph.config.settings import Settings
 
 
 class IdentifierKind(StrEnum):
@@ -2547,7 +2547,7 @@ def _map_strings(value: Any, transform: Callable[[str], str]) -> Any:
     return value
 ```
 
-`src/sre_graph/agents/middleware/masking.py`:
+`src/fin_graph/agents/middleware/masking.py`:
 
 ```python
 """Hide infrastructure identifiers from the model and restore them in everything it returns."""
@@ -2567,7 +2567,7 @@ from langchain.agents.middleware import (
 from langchain_core.messages import AIMessage, BaseMessage
 from pydantic import BaseModel
 
-from sre_graph.safety.masking import Masker, MaskingPolicy
+from fin_graph.safety.masking import Masker, MaskingPolicy
 
 ModelCallResult = ModelResponse[Any] | AIMessage | ExtendedModelResponse[Any]
 
@@ -2660,7 +2660,7 @@ Expected: `19 passed`.
 - [ ] **Step 5: Gate**
 
 ```bash
-uv run ruff check . && uv run ruff format --check . && uv run mypy && uv run lint-imports && SRE_GRAPH_TEST_DATABASE_URL="postgresql://sre_graph:sre_graph@localhost:5433/sre_graph?connect_timeout=5" SRE_GRAPH_REQUIRE_POSTGRES=1 uv run pytest
+uv run ruff check . && uv run ruff format --check . && uv run mypy && uv run lint-imports && FIN_GRAPH_TEST_DATABASE_URL="postgresql://fin_graph:fin_graph@localhost:5433/fin_graph?connect_timeout=5" FIN_GRAPH_REQUIRE_POSTGRES=1 uv run pytest
 ```
 
 Expected: todo en verde y `115 passed`.
@@ -2668,7 +2668,7 @@ Expected: todo en verde y `115 passed`.
 - [ ] **Step 6: Commit**
 
 ```bash
-git add src/sre_graph/safety/masking.py src/sre_graph/agents/middleware/masking.py tests/safety/test_masking.py tests/agents/middleware/test_masking.py
+git add src/fin_graph/safety/masking.py src/fin_graph/agents/middleware/masking.py tests/safety/test_masking.py tests/agents/middleware/test_masking.py
 git commit -m "feat(safety): reversible identifier masking around every model call" -m "Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
 ```
 
@@ -2685,7 +2685,7 @@ La política decide qué llamadas esperan a un humano:
 `approval_middleware` traduce la política al `HumanInTheLoopMiddleware` de LangChain. Así el formato de aprobación (`action_requests` → `decisions` approve/edit/reject) es el mismo para el chat, la remediación, la UI, el CLI y los bots.
 
 **Files:**
-- Create: `src/sre_graph/safety/approval.py`, `src/sre_graph/agents/middleware/approval.py`
+- Create: `src/fin_graph/safety/approval.py`, `src/fin_graph/agents/middleware/approval.py`
 - Test: `tests/safety/test_approval.py`, `tests/agents/middleware/test_approval.py`
 
 **Interfaces:**
@@ -2707,9 +2707,9 @@ from __future__ import annotations
 
 import pytest
 
-from sre_graph.config.settings import Settings
-from sre_graph.domain.tools import Domain, EvidenceType, SideEffectLevel, ToolMeta
-from sre_graph.safety.approval import ApprovalPolicy
+from fin_graph.config.settings import Settings
+from fin_graph.domain.tools import Domain, EvidenceType, SideEffectLevel, ToolMeta
+from fin_graph.safety.approval import ApprovalPolicy
 
 
 def _meta(level: SideEffectLevel) -> ToolMeta:
@@ -2771,11 +2771,11 @@ from langgraph.checkpoint.memory import InMemorySaver
 from langgraph.graph.state import CompiledStateGraph
 from langgraph.types import Command
 
-from sre_graph.agents.factory import make_agent
-from sre_graph.agents.middleware.approval import approval_middleware
-from sre_graph.agents.testing.scripted_model import ScriptedChatModel, tool_call_message
-from sre_graph.domain.tools import Domain, EvidenceType, SideEffectLevel, ToolMeta, attach_tool_meta
-from sre_graph.safety.approval import ApprovalPolicy
+from fin_graph.agents.factory import make_agent
+from fin_graph.agents.middleware.approval import approval_middleware
+from fin_graph.agents.testing.scripted_model import ScriptedChatModel, tool_call_message
+from fin_graph.domain.tools import Domain, EvidenceType, SideEffectLevel, ToolMeta, attach_tool_meta
+from fin_graph.safety.approval import ApprovalPolicy
 
 CONFIG: Any = {"configurable": {"thread_id": "t1"}}
 UNDO_API = tool_call_message("k8s_rollout_undo", {"deployment": "api"}, "c1")
@@ -2885,11 +2885,11 @@ def test_an_auto_approved_call_runs_without_pausing() -> None:
 
 Run: `uv run pytest tests/safety/test_approval.py tests/agents/middleware/test_approval.py -v`
 
-Expected: `2 errors` durante la colección, con `ModuleNotFoundError: No module named 'sre_graph.safety.approval'` y `No module named 'sre_graph.agents.middleware.approval'`.
+Expected: `2 errors` durante la colección, con `ModuleNotFoundError: No module named 'fin_graph.safety.approval'` y `No module named 'fin_graph.agents.middleware.approval'`.
 
 - [ ] **Step 3: Implementación**
 
-`src/sre_graph/safety/approval.py`:
+`src/fin_graph/safety/approval.py`:
 
 ```python
 """Which tool calls need a human decision before they run."""
@@ -2898,8 +2898,8 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from sre_graph.config.settings import Settings
-from sre_graph.domain.tools import SideEffectLevel, ToolMeta
+from fin_graph.config.settings import Settings
+from fin_graph.domain.tools import SideEffectLevel, ToolMeta
 
 PRODUCTION = "prod"
 
@@ -2932,7 +2932,7 @@ class ApprovalPolicy:
         return tool_name not in self.auto_approve
 ```
 
-`src/sre_graph/agents/middleware/approval.py`:
+`src/fin_graph/agents/middleware/approval.py`:
 
 ```python
 """Pause tool calls that need a human decision, using LangChain's human-in-the-loop middleware."""
@@ -2944,8 +2944,8 @@ from collections.abc import Iterable
 from langchain.agents.middleware import HumanInTheLoopMiddleware, InterruptOnConfig
 from langchain_core.tools import BaseTool
 
-from sre_graph.domain.tools import read_tool_meta
-from sre_graph.safety.approval import ApprovalPolicy
+from fin_graph.domain.tools import read_tool_meta
+from fin_graph.safety.approval import ApprovalPolicy
 
 
 def approval_middleware(
@@ -2977,7 +2977,7 @@ Expected: `13 passed`.
 - [ ] **Step 5: Gate**
 
 ```bash
-uv run ruff check . && uv run ruff format --check . && uv run mypy && uv run lint-imports && SRE_GRAPH_TEST_DATABASE_URL="postgresql://sre_graph:sre_graph@localhost:5433/sre_graph?connect_timeout=5" SRE_GRAPH_REQUIRE_POSTGRES=1 uv run pytest
+uv run ruff check . && uv run ruff format --check . && uv run mypy && uv run lint-imports && FIN_GRAPH_TEST_DATABASE_URL="postgresql://fin_graph:fin_graph@localhost:5433/fin_graph?connect_timeout=5" FIN_GRAPH_REQUIRE_POSTGRES=1 uv run pytest
 ```
 
 Expected: todo en verde y `128 passed`.
@@ -2985,7 +2985,7 @@ Expected: todo en verde y `128 passed`.
 - [ ] **Step 6: Commit**
 
 ```bash
-git add src/sre_graph/safety/approval.py src/sre_graph/agents/middleware/approval.py tests/safety/test_approval.py tests/agents/middleware/test_approval.py
+git add src/fin_graph/safety/approval.py src/fin_graph/agents/middleware/approval.py tests/safety/test_approval.py tests/agents/middleware/test_approval.py
 git commit -m "feat(safety): approval policy by side-effect level and environment, wired to LangChain HITL" -m "Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
 ```
 
@@ -3002,7 +3002,7 @@ El contrato que siguen todas las integraciones de los planes 1a–1d:
 - **`IntegrationRegistry`:** registro explícito, que filtra por integraciones configuradas y por dominio.
 
 **Files:**
-- Create: `src/sre_graph/integrations/__init__.py`, `base.py`, `context.py`, `payload.py`, `tooling.py`, `registry.py` (todos bajo `src/sre_graph/integrations/`)
+- Create: `src/fin_graph/integrations/__init__.py`, `base.py`, `context.py`, `payload.py`, `tooling.py`, `registry.py` (todos bajo `src/fin_graph/integrations/`)
 - Modify: `pyproject.toml`
 - Test: `tests/integrations/test_payload.py`, `test_context.py`, `test_tooling.py`, `test_registry.py` (bajo `tests/integrations/`)
 
@@ -3047,7 +3047,7 @@ from __future__ import annotations
 import json
 from datetime import UTC, datetime
 
-from sre_graph.integrations.payload import text_payload, tool_payload
+from fin_graph.integrations.payload import text_payload, tool_payload
 
 
 def test_small_data_becomes_compact_json() -> None:
@@ -3113,8 +3113,8 @@ from __future__ import annotations
 
 import pytest
 
-from sre_graph.integrations.base import IntegrationNotConfiguredError
-from sre_graph.integrations.context import RunContext
+from fin_graph.integrations.base import IntegrationNotConfiguredError
+from fin_graph.integrations.context import RunContext
 
 
 class PagerClient:
@@ -3157,12 +3157,12 @@ from langchain.tools import ToolRuntime
 from langchain_core.messages import AIMessage, HumanMessage, ToolMessage
 from langgraph.graph.state import CompiledStateGraph
 
-from sre_graph.agents.factory import make_agent
-from sre_graph.agents.testing.scripted_model import ScriptedChatModel, tool_call_message
-from sre_graph.domain.tools import Domain, EvidenceType, ToolMeta, read_tool_meta
-from sre_graph.integrations.base import IntegrationError
-from sre_graph.integrations.context import RunContext, require_client
-from sre_graph.integrations.tooling import integration_tool
+from fin_graph.agents.factory import make_agent
+from fin_graph.agents.testing.scripted_model import ScriptedChatModel, tool_call_message
+from fin_graph.domain.tools import Domain, EvidenceType, ToolMeta, read_tool_meta
+from fin_graph.integrations.base import IntegrationError
+from fin_graph.integrations.context import RunContext, require_client
+from fin_graph.integrations.tooling import integration_tool
 
 META = ToolMeta(
     integration="pager",
@@ -3260,11 +3260,11 @@ from typing import Any
 import pytest
 from langchain_core.tools import BaseTool, tool
 
-from sre_graph.domain.tools import Domain, EvidenceType, ToolMeta
-from sre_graph.integrations.base import Integration, VerifyResult, VerifyStatus
-from sre_graph.integrations.context import RunContext
-from sre_graph.integrations.registry import IntegrationRegistry
-from sre_graph.integrations.tooling import integration_tool
+from fin_graph.domain.tools import Domain, EvidenceType, ToolMeta
+from fin_graph.integrations.base import Integration, VerifyResult, VerifyStatus
+from fin_graph.integrations.context import RunContext
+from fin_graph.integrations.registry import IntegrationRegistry
+from fin_graph.integrations.tooling import integration_tool
 
 # Built at runtime so this file holds no string that looks like a real credential.
 GITHUB_TOKEN = "ghp_" + "a1B2c3D4e5F6g7H8i9J0k1L2m3N4o5P6q7R8"
@@ -3474,17 +3474,17 @@ def test_an_empty_context_offers_no_tools() -> None:
 
 Run: `uv run pytest tests/integrations -v`
 
-Expected: `4 errors` durante la colección, con `ModuleNotFoundError: No module named 'sre_graph.integrations'`.
+Expected: `4 errors` durante la colección, con `ModuleNotFoundError: No module named 'fin_graph.integrations'`.
 
 - [ ] **Step 3: Implementación**
 
-`src/sre_graph/integrations/__init__.py`:
+`src/fin_graph/integrations/__init__.py`:
 
 ```python
 """External systems: settings, per-run clients, tools and connectivity checks."""
 ```
 
-`src/sre_graph/integrations/base.py`:
+`src/fin_graph/integrations/base.py`:
 
 ```python
 """What every integration provides: settings, a per-run client, tools and a connectivity check."""
@@ -3551,7 +3551,7 @@ class Integration[SettingsT, ClientT](ABC):
         """Prove the client can reach the system and read from it."""
 ```
 
-`src/sre_graph/integrations/context.py`:
+`src/fin_graph/integrations/context.py`:
 
 ```python
 """The per-run context that carries integration clients to tools."""
@@ -3564,7 +3564,7 @@ from typing import Any
 
 from langchain.tools import ToolRuntime
 
-from sre_graph.integrations.base import IntegrationNotConfiguredError
+from fin_graph.integrations.base import IntegrationNotConfiguredError
 
 
 @dataclass(frozen=True)
@@ -3606,7 +3606,7 @@ def require_client[ClientT](
     return context.client(integration, expected_type)
 ```
 
-`src/sre_graph/integrations/payload.py`:
+`src/fin_graph/integrations/payload.py`:
 
 ```python
 """Keep tool output small enough for the model, and say what was left out."""
@@ -3679,7 +3679,7 @@ def _fit_list(items: list[Any], max_items: int, max_chars: int) -> str | None:
     return best
 ```
 
-`src/sre_graph/integrations/tooling.py`:
+`src/fin_graph/integrations/tooling.py`:
 
 ```python
 """Turn an async function into an integration tool with metadata and readable errors."""
@@ -3691,7 +3691,7 @@ from typing import Any
 
 from langchain_core.tools import BaseTool, tool
 
-from sre_graph.domain.tools import ToolMeta, attach_tool_meta
+from fin_graph.domain.tools import ToolMeta, attach_tool_meta
 
 ToolFunction = Callable[..., Awaitable[tuple[str, Any]]]
 
@@ -3715,7 +3715,7 @@ def integration_tool(meta: ToolMeta) -> Callable[[ToolFunction], BaseTool]:
     return decorate
 ```
 
-`src/sre_graph/integrations/registry.py`:
+`src/fin_graph/integrations/registry.py`:
 
 ```python
 """The integrations a deployment knows about, and the clients and tools of one run."""
@@ -3728,10 +3728,10 @@ from typing import Any
 
 from langchain_core.tools import BaseTool
 
-from sre_graph.domain.tools import Domain, read_tool_meta
-from sre_graph.integrations.base import Integration, VerifyResult, VerifyStatus
-from sre_graph.integrations.context import RunContext
-from sre_graph.safety.secrets import redact_secrets
+from fin_graph.domain.tools import Domain, read_tool_meta
+from fin_graph.integrations.base import Integration, VerifyResult, VerifyStatus
+from fin_graph.integrations.context import RunContext
+from fin_graph.safety.secrets import redact_secrets
 
 
 class IntegrationRegistry:
@@ -3823,13 +3823,13 @@ En `pyproject.toml`, agrega la capa `integrations` entre `agents` y `safety`:
 
 ```toml
 layers = [
-    "sre_graph.graphs",
-    "sre_graph.agents",
-    "sre_graph.integrations",
-    "sre_graph.safety",
-    "sre_graph.domain",
-    "sre_graph.llm | sre_graph.persistence",
-    "sre_graph.config",
+    "fin_graph.graphs",
+    "fin_graph.agents",
+    "fin_graph.integrations",
+    "fin_graph.safety",
+    "fin_graph.domain",
+    "fin_graph.llm | fin_graph.persistence",
+    "fin_graph.config",
 ]
 ```
 
@@ -3842,7 +3842,7 @@ Expected: `29 passed`.
 - [ ] **Step 5: Gate**
 
 ```bash
-uv run ruff check . && uv run ruff format --check . && uv run mypy && uv run lint-imports && SRE_GRAPH_TEST_DATABASE_URL="postgresql://sre_graph:sre_graph@localhost:5433/sre_graph?connect_timeout=5" SRE_GRAPH_REQUIRE_POSTGRES=1 uv run pytest
+uv run ruff check . && uv run ruff format --check . && uv run mypy && uv run lint-imports && FIN_GRAPH_TEST_DATABASE_URL="postgresql://fin_graph:fin_graph@localhost:5433/fin_graph?connect_timeout=5" FIN_GRAPH_REQUIRE_POSTGRES=1 uv run pytest
 ```
 
 Expected: todo en verde y `157 passed`.
@@ -3850,7 +3850,7 @@ Expected: todo en verde y `157 passed`.
 - [ ] **Step 6: Commit**
 
 ```bash
-git add src/sre_graph/integrations tests/integrations pyproject.toml
+git add src/fin_graph/integrations tests/integrations pyproject.toml
 git commit -m "feat(integrations): per-run context, explicit registry, compact payloads and verify" -m "Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
 ```
 
@@ -3873,7 +3873,7 @@ Referencia funcional: opensre `integrations/kubernetes/client.py`, que se reescr
 
 **Files:**
 - Modify: `pyproject.toml`, `uv.lock`
-- Create: `src/sre_graph/integrations/kubernetes/__init__.py`, `settings.py`, `summaries.py`, `client.py` (bajo `src/sre_graph/integrations/kubernetes/`)
+- Create: `src/fin_graph/integrations/kubernetes/__init__.py`, `settings.py`, `summaries.py`, `client.py` (bajo `src/fin_graph/integrations/kubernetes/`)
 - Modify: `tests/conftest.py`
 - Test: `tests/integrations/kubernetes/conftest.py`, `tests/integrations/kubernetes/test_client.py`
 
@@ -3925,8 +3925,8 @@ import langsmith
 import pytest
 from langsmith import utils as langsmith_utils
 
-from sre_graph.config.settings import Settings
-from sre_graph.config.tracing import disable_external_tracing
+from fin_graph.config.settings import Settings
+from fin_graph.config.tracing import disable_external_tracing
 
 _PROVIDER_AND_TRACING_ENV = (
     "ANTHROPIC_API_KEY",
@@ -3994,17 +3994,17 @@ def tracing_enabled_by_environment(monkeypatch: pytest.MonkeyPatch) -> Iterator[
 
 @pytest.fixture
 def postgres_url() -> str:
-    """Connection string for ``postgres``-marked tests; CI sets ``SRE_GRAPH_REQUIRE_POSTGRES=1``.
+    """Connection string for ``postgres``-marked tests; CI sets ``FIN_GRAPH_REQUIRE_POSTGRES=1``.
 
     With that flag a missing URL fails the test instead of skipping it, so a
     misnamed variable in CI cannot silently drop the Postgres coverage.
     """
-    url = os.environ.get("SRE_GRAPH_TEST_DATABASE_URL")
+    url = os.environ.get("FIN_GRAPH_TEST_DATABASE_URL")
     if url:
         return url
-    if os.environ.get("SRE_GRAPH_REQUIRE_POSTGRES") == "1":
-        pytest.fail("SRE_GRAPH_REQUIRE_POSTGRES=1 but SRE_GRAPH_TEST_DATABASE_URL is not set")
-    pytest.skip("SRE_GRAPH_TEST_DATABASE_URL is not set")
+    if os.environ.get("FIN_GRAPH_REQUIRE_POSTGRES") == "1":
+        pytest.fail("FIN_GRAPH_REQUIRE_POSTGRES=1 but FIN_GRAPH_TEST_DATABASE_URL is not set")
+    pytest.skip("FIN_GRAPH_TEST_DATABASE_URL is not set")
 ```
 
 Crea `tests/integrations/kubernetes/conftest.py`:
@@ -4031,7 +4031,7 @@ import pytest
 from kubernetes import client as k8s
 from kubernetes.client import rest
 
-from sre_graph.integrations.kubernetes.client import KubernetesClient
+from fin_graph.integrations.kubernetes.client import KubernetesClient
 
 CRASHING_POD = "checkout-7d9f8b6c5-x2x9z"
 HEALTHY_POD = "checkout-7d9f8b6c5-abcde"
@@ -4550,9 +4550,9 @@ import urllib3
 from kubernetes import client as k8s
 from kubernetes.config.config_exception import ConfigException
 
-from sre_graph.integrations.base import IntegrationError
-from sre_graph.integrations.kubernetes.client import KubernetesClient
-from sre_graph.integrations.kubernetes.settings import KubernetesSettings
+from fin_graph.integrations.base import IntegrationError
+from fin_graph.integrations.kubernetes.client import KubernetesClient
+from fin_graph.integrations.kubernetes.settings import KubernetesSettings
 
 CRASHING_POD = "checkout-7d9f8b6c5-x2x9z"
 HEALTHY_POD = "checkout-7d9f8b6c5-abcde"
@@ -4775,7 +4775,7 @@ En `pyproject.toml`, agrega al final de `dependencies` el SDK y `urllib3`. El cl
 ]
 ```
 
-En `[tool.mypy]`, debajo de `packages = ["sre_graph"]`, agrega:
+En `[tool.mypy]`, debajo de `packages = ["fin_graph"]`, agrega:
 
 ```toml
 # The Kubernetes SDK types its API classes but not its kubeconfig loaders.
@@ -4790,17 +4790,17 @@ Expected:
 
 Run: `uv run pytest tests/integrations/kubernetes/test_client.py -v`
 
-Expected: `ImportError while loading conftest`, ahora con `ModuleNotFoundError: No module named 'sre_graph.integrations.kubernetes'`.
+Expected: `ImportError while loading conftest`, ahora con `ModuleNotFoundError: No module named 'fin_graph.integrations.kubernetes'`.
 
 - [ ] **Step 4: Implementación**
 
-`src/sre_graph/integrations/kubernetes/__init__.py`:
+`src/fin_graph/integrations/kubernetes/__init__.py`:
 
 ```python
 """Kubernetes: read-only pods, logs, events, workloads, rollouts, nodes, autoscalers and usage."""
 ```
 
-`src/sre_graph/integrations/kubernetes/settings.py`:
+`src/fin_graph/integrations/kubernetes/settings.py`:
 
 ```python
 """``K8S_*`` settings. The integration stays off until ``K8S_ENABLED=true``."""
@@ -4838,7 +4838,7 @@ class KubernetesSettings(BaseSettings):
     max_items: int = Field(default=200, ge=1, le=1000)
 ```
 
-`src/sre_graph/integrations/kubernetes/summaries.py`:
+`src/fin_graph/integrations/kubernetes/summaries.py`:
 
 ```python
 """Turn Kubernetes API objects into small dicts a model can read: facts only, no secrets.
@@ -5288,7 +5288,7 @@ def _value_text(current: V2MetricValueStatus) -> str:
     return str(current.average_value or current.value or "?")
 ```
 
-`src/sre_graph/integrations/kubernetes/client.py`:
+`src/fin_graph/integrations/kubernetes/client.py`:
 
 ```python
 """Read-only access to one Kubernetes cluster, async over the blocking SDK."""
@@ -5307,9 +5307,9 @@ from kubernetes.client.exceptions import ApiException
 from kubernetes.config.incluster_config import load_incluster_config
 from kubernetes.config.kube_config import load_kube_config
 
-from sre_graph.integrations.base import IntegrationError
-from sre_graph.integrations.kubernetes import summaries
-from sre_graph.integrations.kubernetes.settings import KubernetesSettings
+from fin_graph.integrations.base import IntegrationError
+from fin_graph.integrations.kubernetes import summaries
+from fin_graph.integrations.kubernetes.settings import KubernetesSettings
 
 MAX_LOG_LINES = 1000
 
@@ -5593,7 +5593,7 @@ Expected: `17 passed`.
 - [ ] **Step 6: Gate**
 
 ```bash
-uv run ruff check . && uv run ruff format --check . && uv run mypy && uv run lint-imports && SRE_GRAPH_TEST_DATABASE_URL="postgresql://sre_graph:sre_graph@localhost:5433/sre_graph?connect_timeout=5" SRE_GRAPH_REQUIRE_POSTGRES=1 uv run pytest
+uv run ruff check . && uv run ruff format --check . && uv run mypy && uv run lint-imports && FIN_GRAPH_TEST_DATABASE_URL="postgresql://fin_graph:fin_graph@localhost:5433/fin_graph?connect_timeout=5" FIN_GRAPH_REQUIRE_POSTGRES=1 uv run pytest
 ```
 
 Expected: todo en verde y `174 passed`.
@@ -5601,7 +5601,7 @@ Expected: todo en verde y `174 passed`.
 - [ ] **Step 7: Commit**
 
 ```bash
-git add pyproject.toml uv.lock src/sre_graph/integrations/kubernetes tests/conftest.py tests/integrations/kubernetes/conftest.py tests/integrations/kubernetes/test_client.py
+git add pyproject.toml uv.lock src/fin_graph/integrations/kubernetes tests/conftest.py tests/integrations/kubernetes/conftest.py tests/integrations/kubernetes/test_client.py
 git commit -m "feat(kubernetes): read-only async client with compact, secret-free summaries" -m "Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
 ```
 
@@ -5617,7 +5617,7 @@ Las 9 tools `k8s_*` exponen el cliente a los especialistas. Todas son de solo le
 `KubernetesIntegration` une settings, cliente, tools y `verify`, y `default_registry()` registra las integraciones incorporadas. Con esto queda cubierta la aceptación de la Fase 1 para Kubernetes. El `verify` contra un cluster real es opcional (Step 6).
 
 **Files:**
-- Create: `src/sre_graph/integrations/kubernetes/tools.py`, `src/sre_graph/integrations/kubernetes/integration.py`, `src/sre_graph/integrations/catalog.py`
+- Create: `src/fin_graph/integrations/kubernetes/tools.py`, `src/fin_graph/integrations/kubernetes/integration.py`, `src/fin_graph/integrations/catalog.py`
 - Test: `tests/integrations/kubernetes/test_tools.py`, `tests/integrations/kubernetes/test_integration.py`
 - Modify: `tests/test_env_example.py`, `.env.example`, `README.md`
 
@@ -5644,13 +5644,13 @@ from typing import Any
 import pytest
 from langchain_core.messages import AIMessage, HumanMessage, ToolMessage
 
-from sre_graph.agents.factory import make_agent
-from sre_graph.agents.middleware.guardrails import GuardrailsMiddleware
-from sre_graph.agents.testing.scripted_model import ScriptedChatModel, tool_call_message
-from sre_graph.domain.tools import Domain, SideEffectLevel, read_tool_meta
-from sre_graph.integrations.context import RunContext
-from sre_graph.integrations.kubernetes.client import KubernetesClient
-from sre_graph.integrations.kubernetes.tools import TOOLS
+from fin_graph.agents.factory import make_agent
+from fin_graph.agents.middleware.guardrails import GuardrailsMiddleware
+from fin_graph.agents.testing.scripted_model import ScriptedChatModel, tool_call_message
+from fin_graph.domain.tools import Domain, SideEffectLevel, read_tool_meta
+from fin_graph.integrations.context import RunContext
+from fin_graph.integrations.kubernetes.client import KubernetesClient
+from fin_graph.integrations.kubernetes.tools import TOOLS
 
 CRASHING_POD = "checkout-7d9f8b6c5-x2x9z"
 PODS = "/api/v1/namespaces/payments/pods"
@@ -5788,11 +5788,11 @@ from typing import Any
 
 import pytest
 
-from sre_graph.integrations.base import IntegrationError, VerifyResult, VerifyStatus
-from sre_graph.integrations.catalog import default_registry
-from sre_graph.integrations.kubernetes.client import KubernetesClient
-from sre_graph.integrations.kubernetes.integration import KubernetesIntegration
-from sre_graph.integrations.kubernetes.settings import KubernetesSettings
+from fin_graph.integrations.base import IntegrationError, VerifyResult, VerifyStatus
+from fin_graph.integrations.catalog import default_registry
+from fin_graph.integrations.kubernetes.client import KubernetesClient
+from fin_graph.integrations.kubernetes.integration import KubernetesIntegration
+from fin_graph.integrations.kubernetes.settings import KubernetesSettings
 
 
 def test_settings_default_to_disabled() -> None:
@@ -5898,8 +5898,8 @@ from pathlib import Path
 import pytest
 from dotenv import dotenv_values
 
-from sre_graph.config.settings import Settings
-from sre_graph.integrations.kubernetes.settings import KubernetesSettings
+from fin_graph.config.settings import Settings
+from fin_graph.integrations.kubernetes.settings import KubernetesSettings
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -5933,7 +5933,7 @@ def test_env_example_loads_as_is() -> None:
 
 Run: `uv run pytest tests/integrations/kubernetes/test_tools.py tests/integrations/kubernetes/test_integration.py -v`
 
-Expected: `2 errors` durante la colección, con `No module named 'sre_graph.integrations.kubernetes.tools'` y `No module named 'sre_graph.integrations.catalog'`.
+Expected: `2 errors` durante la colección, con `No module named 'fin_graph.integrations.kubernetes.tools'` y `No module named 'fin_graph.integrations.catalog'`.
 
 Run: `uv run pytest tests/test_env_example.py -v`
 
@@ -5941,7 +5941,7 @@ Expected: `1 failed, 4 passed`. `test_env_example_documents_every_setting` lista
 
 - [ ] **Step 3: Implementación**
 
-`src/sre_graph/integrations/kubernetes/tools.py`:
+`src/fin_graph/integrations/kubernetes/tools.py`:
 
 ```python
 """Read-only Kubernetes tools for the kubernetes, logs, metrics and changes specialists."""
@@ -5953,12 +5953,12 @@ from typing import Any
 from langchain.tools import ToolRuntime
 from langchain_core.tools import BaseTool
 
-from sre_graph.domain.tools import Domain, EvidenceType, ToolMeta
-from sre_graph.integrations.context import RunContext, require_client
-from sre_graph.integrations.kubernetes.client import KubernetesClient
-from sre_graph.integrations.kubernetes.settings import INTEGRATION_ID
-from sre_graph.integrations.payload import text_payload, tool_payload
-from sre_graph.integrations.tooling import integration_tool
+from fin_graph.domain.tools import Domain, EvidenceType, ToolMeta
+from fin_graph.integrations.context import RunContext, require_client
+from fin_graph.integrations.kubernetes.client import KubernetesClient
+from fin_graph.integrations.kubernetes.settings import INTEGRATION_ID
+from fin_graph.integrations.payload import text_payload, tool_payload
+from fin_graph.integrations.tooling import integration_tool
 
 
 def _meta(evidence_type: EvidenceType, *extra_domains: Domain) -> ToolMeta:
@@ -6132,7 +6132,7 @@ TOOLS: tuple[BaseTool, ...] = (
 )
 ```
 
-`src/sre_graph/integrations/kubernetes/integration.py`:
+`src/fin_graph/integrations/kubernetes/integration.py`:
 
 ```python
 """The Kubernetes integration: kubeconfig or in-cluster credentials, read-only tools."""
@@ -6141,10 +6141,10 @@ from __future__ import annotations
 
 from langchain_core.tools import BaseTool
 
-from sre_graph.integrations.base import Integration, VerifyResult, VerifyStatus
-from sre_graph.integrations.kubernetes.client import KubernetesClient
-from sre_graph.integrations.kubernetes.settings import INTEGRATION_ID, KubernetesSettings
-from sre_graph.integrations.kubernetes.tools import TOOLS
+from fin_graph.integrations.base import Integration, VerifyResult, VerifyStatus
+from fin_graph.integrations.kubernetes.client import KubernetesClient
+from fin_graph.integrations.kubernetes.settings import INTEGRATION_ID, KubernetesSettings
+from fin_graph.integrations.kubernetes.tools import TOOLS
 
 
 class KubernetesIntegration(Integration[KubernetesSettings, KubernetesClient]):
@@ -6178,15 +6178,15 @@ class KubernetesIntegration(Integration[KubernetesSettings, KubernetesClient]):
         )
 ```
 
-`src/sre_graph/integrations/catalog.py`:
+`src/fin_graph/integrations/catalog.py`:
 
 ```python
 """The built-in integrations, registered explicitly."""
 
 from __future__ import annotations
 
-from sre_graph.integrations.kubernetes.integration import KubernetesIntegration
-from sre_graph.integrations.registry import IntegrationRegistry
+from fin_graph.integrations.kubernetes.integration import KubernetesIntegration
+from fin_graph.integrations.registry import IntegrationRegistry
 
 
 def default_registry(env_file: str | None = ".env") -> IntegrationRegistry:
@@ -6210,9 +6210,9 @@ LLM_MAX_RETRIES=2
 
 # Persistencia: memory | sqlite | postgres
 PERSISTENCE_BACKEND=memory
-SQLITE_PATH=data/sre-graph.sqlite
+SQLITE_PATH=data/fin-graph.sqlite
 # Postgres de docker compose; connect_timeout evita esperas largas si no responde.
-DATABASE_URL=postgresql://sre_graph:sre_graph@localhost:5433/sre_graph?connect_timeout=5
+DATABASE_URL=postgresql://fin_graph:fin_graph@localhost:5433/fin_graph?connect_timeout=5
 
 # Entorno: en prod toda tool que cambia estado pide aprobación humana.
 ENVIRONMENT=dev
@@ -6244,10 +6244,10 @@ LANGCHAIN_TRACING_V2=false
 Reemplaza el contenido de `README.md` por esta versión, que actualiza el estado y explica cómo activar integraciones y qué protege la capa de seguridad:
 
 ````markdown
-# sre-graph
+# fin-graph
 
 Investigación multiagente de incidencias (RCA) construida de forma nativa sobre LangGraph.
-Diseño completo: [docs/specs/2026-10-07-sre-graph-design.md](docs/specs/2026-10-07-sre-graph-design.md).
+Diseño completo: [docs/specs/2026-10-07-fin-graph-design.md](docs/specs/2026-10-07-fin-graph-design.md).
 
 > Estado: Fase 1a (dominio, seguridad, marco de integraciones y Kubernetes).
 > El grafo de investigación llega en la Fase 2.
@@ -6272,13 +6272,13 @@ reescribes, usa `Set-Content -Encoding utf8`.
 
 ```bash
 docker compose up -d --wait
-SRE_GRAPH_TEST_DATABASE_URL="postgresql://sre_graph:sre_graph@localhost:5433/sre_graph?connect_timeout=5" uv run pytest -m postgres
+FIN_GRAPH_TEST_DATABASE_URL="postgresql://fin_graph:fin_graph@localhost:5433/fin_graph?connect_timeout=5" uv run pytest -m postgres
 ```
 
 En PowerShell:
 
 ```powershell
-$env:SRE_GRAPH_TEST_DATABASE_URL = "postgresql://sre_graph:sre_graph@localhost:5433/sre_graph?connect_timeout=5"
+$env:FIN_GRAPH_TEST_DATABASE_URL = "postgresql://fin_graph:fin_graph@localhost:5433/fin_graph?connect_timeout=5"
 uv run pytest -m postgres
 ```
 
@@ -6328,7 +6328,7 @@ Expected: `24 passed`.
 - [ ] **Step 5: Gate**
 
 ```bash
-uv run ruff check . && uv run ruff format --check . && uv run mypy && uv run lint-imports && SRE_GRAPH_TEST_DATABASE_URL="postgresql://sre_graph:sre_graph@localhost:5433/sre_graph?connect_timeout=5" SRE_GRAPH_REQUIRE_POSTGRES=1 uv run pytest
+uv run ruff check . && uv run ruff format --check . && uv run mypy && uv run lint-imports && FIN_GRAPH_TEST_DATABASE_URL="postgresql://fin_graph:fin_graph@localhost:5433/fin_graph?connect_timeout=5" FIN_GRAPH_REQUIRE_POSTGRES=1 uv run pytest
 ```
 
 Expected: todo en verde y `193 passed`.
@@ -6338,7 +6338,7 @@ Expected: todo en verde y `193 passed`.
 Solo si hay un cluster accesible (kind, minikube o uno de trabajo). Pon `K8S_ENABLED=true` en `.env` (y `K8S_KUBECONFIG`/`K8S_CONTEXT` si no usas `~/.kube/config`) y corre:
 
 ```bash
-uv run python -c "import asyncio; from sre_graph.integrations.catalog import default_registry; r = default_registry(); print(asyncio.run(r.verify_all(r.run_context())))"
+uv run python -c "import asyncio; from fin_graph.integrations.catalog import default_registry; r = default_registry(); print(asyncio.run(r.verify_all(r.run_context())))"
 ```
 
 Expected:
@@ -6350,7 +6350,7 @@ Si no hay cluster, sáltalo y anótalo en el ledger. Vuelve a dejar `K8S_ENABLED
 - [ ] **Step 7: Commit**
 
 ```bash
-git add src/sre_graph/integrations/kubernetes/tools.py src/sre_graph/integrations/kubernetes/integration.py src/sre_graph/integrations/catalog.py tests/integrations/kubernetes/test_tools.py tests/integrations/kubernetes/test_integration.py tests/test_env_example.py .env.example README.md
+git add src/fin_graph/integrations/kubernetes/tools.py src/fin_graph/integrations/kubernetes/integration.py src/fin_graph/integrations/catalog.py tests/integrations/kubernetes/test_tools.py tests/integrations/kubernetes/test_integration.py tests/test_env_example.py .env.example README.md
 git commit -m "feat(kubernetes): nine read-only tools, the integration and the default registry" -m "Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
 ```
 
@@ -6361,7 +6361,7 @@ git commit -m "feat(kubernetes): nine read-only tools, the integration and the d
 1. Corre el gate completo:
 
    ```bash
-   uv run ruff check . && uv run ruff format --check . && uv run mypy && uv run lint-imports && SRE_GRAPH_TEST_DATABASE_URL="postgresql://sre_graph:sre_graph@localhost:5433/sre_graph?connect_timeout=5" SRE_GRAPH_REQUIRE_POSTGRES=1 uv run pytest
+   uv run ruff check . && uv run ruff format --check . && uv run mypy && uv run lint-imports && FIN_GRAPH_TEST_DATABASE_URL="postgresql://fin_graph:fin_graph@localhost:5433/fin_graph?connect_timeout=5" FIN_GRAPH_REQUIRE_POSTGRES=1 uv run pytest
    ```
 
    Expected: `193 passed`. Sin la URL de Postgres: `191 passed, 2 skipped`.

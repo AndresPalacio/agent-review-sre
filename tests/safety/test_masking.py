@@ -5,8 +5,8 @@ import re
 
 import pytest
 
-from sre_graph.config.settings import Settings
-from sre_graph.safety.masking import IdentifierKind, Masker, MaskingPolicy
+from fin_graph.config.settings import Settings
+from fin_graph.safety.masking import IdentifierKind, Masker, MaskingPolicy
 
 POD = "checkout-7d9f8b6c5-x2x9z"
 ENABLED = MaskingPolicy(enabled=True)
@@ -152,3 +152,60 @@ def test_policy_from_settings_uses_the_configured_key() -> None:
     settings = Settings(_env_file=None, mask_enabled=True, mask_key="k" * 32)
 
     assert MaskingPolicy.from_settings(settings).key == b"k" * 32
+
+
+def test_financial_identifiers_are_masked_and_market_data_is_not() -> None:
+    masker = Masker(MaskingPolicy(enabled=True))
+    text = (
+        "Cliente: Juan Pérez, cuenta número 0123-4567-8901, tarjeta 4111 1111 1111 1111, "
+        "IBAN DE89 3704 0044 0532 0130 00, routing 021000021, ssn 123-45-6789, "
+        "phone +57 300 123 4567, portfolio id PF-2026-001"
+    )
+    market = (
+        "AAPL closed at 179.66, volume 73450582, market cap 2994371342560; NVDA EV 4200000000000"
+    )
+
+    masked = masker.mask(text)
+
+    for secret in (
+        "Juan Pérez",
+        "0123-4567-8901",
+        "4111 1111 1111 1111",
+        "DE89",
+        "021000021",
+        "123-45-6789",
+        "+57 300",
+        "PF-2026-001",
+    ):
+        assert secret not in masked, secret
+    assert masker.unmask(masked) == text
+    assert masker.mask(market) == market
+
+
+def test_checksums_keep_lookalike_numbers_unmasked() -> None:
+    masker = Masker(MaskingPolicy(enabled=True))
+
+    assert masker.mask("card 4111 1111 1111 1112") == "card 4111 1111 1111 1112"
+    assert masker.mask("IBAN DE00 3704 0044 0532 0130 00") == "IBAN DE00 3704 0044 0532 0130 00"
+    assert masker.mask("routing 123456789") == "routing 123456789"
+
+
+def test_financial_keys_mask_structured_values_but_never_tickers() -> None:
+    masker = Masker(MaskingPolicy(enabled=True))
+
+    masked = masker.mask_value(
+        {"account_number": "998877", "ticker": "TSLA", "client_name": "Ana Gómez"}
+    )
+
+    assert masked["ticker"] == "TSLA"
+    assert masked["account_number"].startswith("<ACCOUNT_NUMBER_")
+    assert masked["client_name"].startswith("<CLIENT_NAME_")
+
+
+def test_twelve_digit_financial_figures_are_not_aws_accounts() -> None:
+    masker = Masker(MaskingPolicy(enabled=True))
+    figures = '{"revenue": 383000000000.0, "market_cap": 345310000000}'
+
+    assert masker.mask(figures) == figures
+    masked = masker.mask("arn:aws:iam::123456789012:role/x aws_account_id=210987654321")
+    assert "123456789012" not in masked and "210987654321" not in masked

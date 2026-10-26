@@ -14,7 +14,7 @@ CONFIG = ROOT / "harness" / "sre.toml"
 def test_config_is_upstream_compatible_and_limits_surfaces():
     from better_harness.core import load_experiment
 
-    from sre_graph.harness.configuration import load_config
+    from fin_graph.harness.configuration import load_config
 
     config = load_config(CONFIG, model="scripted")
     upstream = load_experiment(CONFIG)
@@ -34,7 +34,7 @@ def test_config_is_upstream_compatible_and_limits_surfaces():
 
 
 async def test_smoke_runs_all_splits_without_proposer_and_never_claims_quality(tmp_path):
-    from sre_graph.harness.experiment import run_experiment
+    from fin_graph.harness.experiment import run_experiment
 
     result = await run_experiment(CONFIG, tmp_path / "smoke", model="scripted", max_iterations=0)
     assert result["status"] == "completed"
@@ -54,7 +54,7 @@ async def test_smoke_runs_all_splits_without_proposer_and_never_claims_quality(t
 
 
 async def test_scripted_cannot_optimize(tmp_path):
-    from sre_graph.harness.experiment import run_experiment
+    from fin_graph.harness.experiment import run_experiment
 
     with pytest.raises(ValueError, match="scripted"):
         await run_experiment(CONFIG, tmp_path / "invalid", model="scripted", max_iterations=1)
@@ -62,7 +62,7 @@ async def test_scripted_cannot_optimize(tmp_path):
 
 
 async def test_missing_credentials_records_blocked_before_proposing(tmp_path, monkeypatch):
-    from sre_graph.harness.experiment import run_experiment
+    from fin_graph.harness.experiment import run_experiment
 
     monkeypatch.delenv("OPENAI_API_KEY", raising=False)
     result = await run_experiment(
@@ -78,9 +78,9 @@ async def test_train_workspace_contains_no_private_case_data(tmp_path):
     from better_harness.core import RunLayout
     from better_harness.patching import build_baseline_variant
 
-    from sre_graph.harness.configuration import load_config
-    from sre_graph.harness.proposer import prepare_workspace
-    from sre_graph.harness.runner import evaluate_split
+    from fin_graph.harness.configuration import load_config
+    from fin_graph.harness.proposer import prepare_workspace
+    from fin_graph.harness.runner import evaluate_split
 
     config = load_config(CONFIG, model="scripted")
     layout = RunLayout(tmp_path)
@@ -98,11 +98,11 @@ async def test_train_workspace_contains_no_private_case_data(tmp_path):
 
 
 def test_config_rejects_editable_evaluator_or_unsafe_surface_path(tmp_path):
-    from sre_graph.harness.configuration import load_config, validate_config
+    from fin_graph.harness.configuration import load_config, validate_config
 
     config = load_config(CONFIG, model="scripted")
     for patch in (
-        {"target": "sre_graph.harness.quality:assess_record"},
+        {"target": "fin_graph.harness.quality:assess_record"},
         {"filename": "../escape.txt"},
     ):
         surfaces = dict(config.experiment.surfaces)
@@ -115,7 +115,7 @@ def test_config_rejects_editable_evaluator_or_unsafe_surface_path(tmp_path):
 def test_cli_exposes_validation_and_offline_smoke():
     from typer.testing import CliRunner
 
-    from sre_graph.cli.main import app
+    from fin_graph.cli.main import app
 
     result = CliRunner().invoke(app, ["harness", "validate", str(CONFIG)])
     assert result.exit_code == 0, result.output

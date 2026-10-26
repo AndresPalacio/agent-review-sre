@@ -12,12 +12,12 @@ from pydantic import SecretStr
 from sqlalchemy import update
 from sqlalchemy.ext.asyncio import create_async_engine
 
-from sre_graph.integrations.registry import IntegrationRegistry
-from sre_graph.scheduler.service import PgAdvisoryLease, SchedulerService
-from sre_graph.server.app import create_app
-from sre_graph.server.config import ServerConfig
-from sre_graph.server.migrate import upgrade
-from sre_graph.server.storage import GatewayEventRow, Storage
+from fin_graph.integrations.registry import IntegrationRegistry
+from fin_graph.scheduler.service import PgAdvisoryLease, SchedulerService
+from fin_graph.server.app import create_app
+from fin_graph.server.config import ServerConfig
+from fin_graph.server.migrate import upgrade
+from fin_graph.server.storage import GatewayEventRow, Storage
 
 
 @pytest.mark.postgres

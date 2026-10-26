@@ -8,8 +8,8 @@ from typing import Any
 import pytest
 from langchain_core.messages import AIMessage
 
-from sre_graph.agents.testing.scripted_model import ScriptedChatModel
-from sre_graph.graphs.health_check import (
+from fin_graph.agents.testing.scripted_model import ScriptedChatModel
+from fin_graph.graphs.health_check import (
     HealthCheckDefinition,
     HealthCheckResult,
     make_health_check_graph,

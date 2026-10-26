@@ -10,15 +10,15 @@ from langgraph.checkpoint.memory import InMemorySaver
 from sqlalchemy.ext.asyncio import create_async_engine
 from typer.testing import CliRunner
 
-from sre_graph.graphs.investigation.services import UnavailableServices
-from sre_graph.harness.runtime import make_investigation_graph
-from sre_graph.integrations.context import RunContext
-from sre_graph.integrations.registry import IntegrationRegistry
-from sre_graph.scheduler.jobs import HealthJobs
-from sre_graph.server.app import create_app
-from sre_graph.server.manager import RunManager
-from sre_graph.server.security import WebhookVerifier
-from sre_graph.server.storage import Base, Storage
+from fin_graph.graphs.investigation.services import UnavailableServices
+from fin_graph.harness.runtime import make_investigation_graph
+from fin_graph.integrations.context import RunContext
+from fin_graph.integrations.registry import IntegrationRegistry
+from fin_graph.scheduler.jobs import HealthJobs
+from fin_graph.server.app import create_app
+from fin_graph.server.manager import RunManager
+from fin_graph.server.security import WebhookVerifier
+from fin_graph.server.storage import Base, Storage
 
 
 @pytest.mark.parametrize("source", ["api", "webhook", "scheduler"])
@@ -103,7 +103,7 @@ async def test_api_webhook_and_scheduled_incidents_expose_same_runtime(tmp_path,
 def test_cli_runtime_is_machine_readable_and_needs_no_optimizer(monkeypatch):
     import builtins
 
-    from sre_graph.cli.main import app
+    from fin_graph.cli.main import app
 
     original = builtins.__import__
 
@@ -119,8 +119,8 @@ def test_cli_runtime_is_machine_readable_and_needs_no_optimizer(monkeypatch):
 
 
 def test_cli_default_investigation_uses_harness_variant_pin(monkeypatch):
-    from sre_graph.cli.main import app
-    from sre_graph.harness import runtime
+    from fin_graph.cli.main import app
+    from fin_graph.harness import runtime
 
     monkeypatch.setattr(runtime, "default_registry", lambda: IntegrationRegistry([], env_file=None))
     monkeypatch.setattr(runtime, "_services", lambda settings: UnavailableServices())
@@ -128,6 +128,6 @@ def test_cli_default_investigation_uses_harness_variant_pin(monkeypatch):
     passed = runner.invoke(app, ["investigate", "--text", '{"title":"API error"}'])
     assert passed.exit_code == 0, passed.output
     assert "API error" in passed.output
-    monkeypatch.setenv("SRE_HARNESS_EXPECTED_VARIANT", "wrong")
+    monkeypatch.setenv("FIN_HARNESS_EXPECTED_VARIANT", "wrong")
     rejected = runner.invoke(app, ["investigate", "--text", '{"title":"API error"}'])
     assert rejected.exit_code == 1

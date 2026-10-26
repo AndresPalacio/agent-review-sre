@@ -3,11 +3,11 @@ from __future__ import annotations
 import httpx
 import pytest
 
-from sre_graph.domain.tools import SideEffectLevel, read_tool_meta
-from sre_graph.integrations.alertmanager.client import AlertmanagerClient
-from sre_graph.integrations.alertmanager.integration import AlertmanagerIntegration
-from sre_graph.integrations.alertmanager.settings import AlertmanagerSettings
-from sre_graph.integrations.base import IntegrationError, VerifyStatus
+from fin_graph.domain.tools import SideEffectLevel, read_tool_meta
+from fin_graph.integrations.alertmanager.client import AlertmanagerClient
+from fin_graph.integrations.alertmanager.integration import AlertmanagerIntegration
+from fin_graph.integrations.alertmanager.settings import AlertmanagerSettings
+from fin_graph.integrations.base import IntegrationError, VerifyStatus
 
 
 def test_alertmanager_is_disabled_and_requires_url_when_enabled() -> None:

@@ -2,7 +2,7 @@ import json
 
 from typer.testing import CliRunner
 
-from sre_graph.cli.main import app
+from fin_graph.cli.main import app
 
 
 def test_record_replay_cli(tmp_path):

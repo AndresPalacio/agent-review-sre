@@ -1,7 +1,7 @@
 # Correcciones de congruencia antes de fase 7
 
 Plan: [cierre de fase 6](../superpowers/plans/2026-10-08-cierre-fase-6.md).
-Referencia: [diseño base](../specs/2026-10-07-sre-graph-design.md).
+Referencia: [diseño base](../specs/2026-10-07-fin-graph-design.md).
 
 La revisión funcional de las fases 0–6 encontró once problemas pese a que las
 792 pruebas existentes pasaban. El usuario pidió corregirlos antes de avanzar
@@ -49,7 +49,7 @@ incierto queda bloqueado para reconciliación manual.
 ## Verificación
 
 Gate global completado: **880 pruebas aprobadas, ninguna omitida**, con
-`SRE_GRAPH_REQUIRE_POSTGRES=1` y Postgres local en `localhost:5433` (34,87 s).
+`FIN_GRAPH_REQUIRE_POSTGRES=1` y Postgres local en `localhost:5433` (34,87 s).
 Son 88 pruebas más que la base revisada. Ruff check y formato (313 archivos),
 mypy (221 fuentes) e import-linter aprobaron. El smoke offline terminó con
 **3 completadas, 0 fallidas y 0 bloqueadas**. `uv build --wheel --offline`

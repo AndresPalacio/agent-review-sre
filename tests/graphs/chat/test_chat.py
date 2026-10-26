@@ -8,12 +8,12 @@ from langgraph.store.memory import InMemoryStore
 from langgraph.types import Command
 from pydantic import BaseModel
 
-from sre_graph.agents.testing.scripted_model import ScriptedChatModel, tool_call_message
-from sre_graph.graphs.chat.graph import make_chat_graph
-from sre_graph.graphs.remediation.graph import ActionCatalog, ActionSpec
-from sre_graph.integrations.context import RunContext
-from sre_graph.memory.service import IncidentMemory
-from sre_graph.safety.approval import ApprovalPolicy
+from fin_graph.agents.testing.scripted_model import ScriptedChatModel, tool_call_message
+from fin_graph.graphs.chat.graph import make_chat_graph
+from fin_graph.graphs.remediation.graph import ActionCatalog, ActionSpec
+from fin_graph.integrations.context import RunContext
+from fin_graph.memory.service import IncidentMemory
+from fin_graph.safety.approval import ApprovalPolicy
 
 
 class EmptyRegistry:

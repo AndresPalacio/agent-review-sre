@@ -8,7 +8,7 @@
 
 **Tech Stack:** Python 3.12, boto3/botocore, httpx 0.28, pydantic-settings, langchain-mcp-adapters, pytest, uv.
 
-**Spec:** `docs/specs/2026-10-07-sre-graph-design.md`, secciones Integraciones ola 1, Seguridad y Fase 1.
+**Spec:** `docs/specs/2026-10-07-fin-graph-design.md`, secciones Integraciones ola 1, Seguridad y Fase 1.
 
 ## Global Constraints
 

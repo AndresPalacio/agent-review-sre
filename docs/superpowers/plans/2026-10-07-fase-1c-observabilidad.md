@@ -8,7 +8,7 @@
 
 **Tech Stack:** Python 3.12, pydantic-settings, httpx 0.28, LangChain tools, pytest con `httpx.MockTransport`, uv; versiones fijadas en `uv.lock`.
 
-**Spec:** `docs/specs/2026-10-07-sre-graph-design.md`, sección Integraciones, ola 1.
+**Spec:** `docs/specs/2026-10-07-fin-graph-design.md`, sección Integraciones, ola 1.
 
 ## Global Constraints
 
@@ -59,7 +59,7 @@ Fuentes de endpoints: [Prometheus HTTP API](https://prometheus.io/docs/prometheu
 
 ### Task 1: Transporte HTTP seguro y contrato común
 
-**Files:** `pyproject.toml`, `uv.lock`, `src/sre_graph/integrations/http.py`, `tests/integrations/test_http.py`.
+**Files:** `pyproject.toml`, `uv.lock`, `src/fin_graph/integrations/http.py`, `tests/integrations/test_http.py`.
 
 **Interfaces:** Produce `HttpJsonClient(base_url: str, headers: Mapping[str,str] | None = None, timeout_seconds: float = 15, transport: httpx.AsyncBaseTransport | None = None)`; `request(...) -> Any`; `prometheus_data(payload: Any, vendor: str) -> Any`; `require_window(start: int, end: int, max_seconds: int = 604800) -> None`.
 

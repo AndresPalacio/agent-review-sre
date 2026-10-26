@@ -12,15 +12,15 @@ from langgraph.types import Command
 from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import create_async_engine
 
-from sre_graph.graphs.investigation.graph import make_investigation_graph
-from sre_graph.graphs.investigation.services import UnavailableServices
-from sre_graph.graphs.remediation.graph import ActionCatalog, ActionSpec, make_remediation_graph
-from sre_graph.integrations.context import RunContext
-from sre_graph.integrations.registry import IntegrationRegistry
-from sre_graph.safety.approval import ApprovalPolicy
-from sre_graph.server.app import _gateway_decide, create_app
-from sre_graph.server.manager import RunManager
-from sre_graph.server.storage import Base, Storage
+from fin_graph.graphs.investigation.graph import make_investigation_graph
+from fin_graph.graphs.investigation.services import UnavailableServices
+from fin_graph.graphs.remediation.graph import ActionCatalog, ActionSpec, make_remediation_graph
+from fin_graph.integrations.context import RunContext
+from fin_graph.integrations.registry import IntegrationRegistry
+from fin_graph.safety.approval import ApprovalPolicy
+from fin_graph.server.app import _gateway_decide, create_app
+from fin_graph.server.manager import RunManager
+from fin_graph.server.storage import Base, Storage
 
 
 class SlackStub:

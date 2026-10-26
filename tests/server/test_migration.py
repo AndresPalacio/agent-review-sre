@@ -6,7 +6,7 @@ from pathlib import Path
 from sqlalchemy import inspect
 from sqlalchemy.ext.asyncio import create_async_engine
 
-from sre_graph.server.migrate import upgrade
+from fin_graph.server.migrate import upgrade
 
 
 async def test_alembic_upgrade_is_repeatable(tmp_path: Path) -> None:

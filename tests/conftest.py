@@ -11,8 +11,8 @@ import langsmith
 import pytest
 from langsmith import utils as langsmith_utils
 
-from sre_graph.config.settings import Settings
-from sre_graph.config.tracing import disable_external_tracing
+from fin_graph.config.settings import Settings
+from fin_graph.config.tracing import disable_external_tracing
 
 _PROVIDER_AND_TRACING_ENV = (
     "ANTHROPIC_API_KEY",
@@ -25,7 +25,7 @@ _PROVIDER_AND_TRACING_ENV = (
     "LANGSMITH_OTEL_ENABLED",
 )
 #: Every integration reads its settings from variables with its own prefix.
-_INTEGRATION_ENV_PREFIXES = ("K8S_",)
+_INTEGRATION_ENV_PREFIXES = ("K8S_", "YAHOO_", "FINANCIAL_DATASETS_")
 #: Read by client libraries directly (the Kubernetes SDK falls back to KUBECONFIG).
 _CLIENT_LIBRARY_ENV = ("KUBECONFIG",)
 
@@ -80,14 +80,14 @@ def tracing_enabled_by_environment(monkeypatch: pytest.MonkeyPatch) -> Iterator[
 
 @pytest.fixture
 def postgres_url() -> str:
-    """Connection string for ``postgres``-marked tests; CI sets ``SRE_GRAPH_REQUIRE_POSTGRES=1``.
+    """Connection string for ``postgres``-marked tests; CI sets ``FIN_GRAPH_REQUIRE_POSTGRES=1``.
 
     With that flag a missing URL fails the test instead of skipping it, so a
     misnamed variable in CI cannot silently drop the Postgres coverage.
     """
-    url = os.environ.get("SRE_GRAPH_TEST_DATABASE_URL")
+    url = os.environ.get("FIN_GRAPH_TEST_DATABASE_URL")
     if url:
         return url
-    if os.environ.get("SRE_GRAPH_REQUIRE_POSTGRES") == "1":
-        pytest.fail("SRE_GRAPH_REQUIRE_POSTGRES=1 but SRE_GRAPH_TEST_DATABASE_URL is not set")
-    pytest.skip("SRE_GRAPH_TEST_DATABASE_URL is not set")
+    if os.environ.get("FIN_GRAPH_REQUIRE_POSTGRES") == "1":
+        pytest.fail("FIN_GRAPH_REQUIRE_POSTGRES=1 but FIN_GRAPH_TEST_DATABASE_URL is not set")
+    pytest.skip("FIN_GRAPH_TEST_DATABASE_URL is not set")

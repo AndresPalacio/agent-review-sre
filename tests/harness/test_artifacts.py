@@ -12,8 +12,8 @@ def make_run(tmp_path):
     from better_harness.core import RunLayout
     from better_harness.patching import build_baseline_variant, build_variant
 
-    from sre_graph.harness.artifacts import save_source_baseline
-    from sre_graph.harness.configuration import load_config
+    from fin_graph.harness.artifacts import save_source_baseline
+    from fin_graph.harness.configuration import load_config
 
     config = load_config(Path(__file__).resolve().parents[2] / "harness/sre.toml", model="scripted")
     layout = RunLayout(tmp_path / "run")
@@ -36,29 +36,29 @@ def make_run(tmp_path):
 
 
 def test_export_contains_reviewable_files_diff_and_qualification(tmp_path):
-    from sre_graph.harness.artifacts import export_variant
+    from fin_graph.harness.artifacts import export_variant
 
     run = make_run(tmp_path)
     destination = tmp_path / "review"
     result = export_variant(run, destination)
     assert result["promotable"] is False
     assert (
-        destination / "src/sre_graph/graphs/investigation/strategy/skills.md"
+        destination / "src/fin_graph/graphs/investigation/strategy/skills.md"
     ).read_text() == "Inspect evidence chronology.\n"
     assert "+Inspect evidence chronology." in (destination / "changes.diff").read_text()
-    assert (destination / "src/sre_graph/graphs/investigation/prompts.py").is_file()
+    assert (destination / "src/fin_graph/graphs/investigation/prompts.py").is_file()
     import hashlib
 
     for relative, digest in result["files"].items():
         assert hashlib.sha256((destination / relative).read_bytes()).hexdigest() == digest
-    tools = "src/sre_graph/graphs/investigation/strategy/tools.py"
+    tools = "src/fin_graph/graphs/investigation/strategy/tools.py"
     assert (destination / tools).read_bytes() == (run / "source-baseline" / tools).read_bytes()
     with pytest.raises(FileExistsError):
         export_variant(run, destination)
 
 
 def test_inspection_rejects_variant_path_traversal(tmp_path):
-    from sre_graph.harness.artifacts import inspect_run
+    from fin_graph.harness.artifacts import inspect_run
 
     run = make_run(tmp_path)
     (run / "summary.json").write_text(json.dumps({"selected_variant": "../../secret"}))
@@ -70,7 +70,7 @@ def test_exported_patch_applies_to_the_captured_source(tmp_path):
     import shutil
     import subprocess
 
-    from sre_graph.harness.artifacts import export_variant
+    from fin_graph.harness.artifacts import export_variant
 
     run = make_run(tmp_path)
     export = tmp_path / "review"
@@ -89,7 +89,7 @@ def test_exported_patch_applies_to_the_captured_source(tmp_path):
 def test_cli_exposes_contracts_inspection_and_export():
     from typer.testing import CliRunner
 
-    from sre_graph.cli.main import app
+    from fin_graph.cli.main import app
 
     cli = CliRunner()
     help_text = cli.invoke(app, ["harness", "--help"]).output

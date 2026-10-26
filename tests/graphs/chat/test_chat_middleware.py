@@ -4,14 +4,14 @@ from langchain_core.messages import AIMessage, HumanMessage
 from langchain_core.tools import BaseTool, tool
 from langgraph.store.memory import InMemoryStore
 
-from sre_graph.agents.testing.scripted_model import ScriptedChatModel, tool_call_message
-from sre_graph.config.settings import Settings
-from sre_graph.domain.tools import Domain, EvidenceType, ToolMeta, attach_tool_meta
-from sre_graph.graphs.chat.graph import make_chat_graph
-from sre_graph.graphs.remediation.graph import ActionCatalog
-from sre_graph.integrations.context import RunContext
-from sre_graph.memory.service import IncidentMemory
-from sre_graph.safety.approval import ApprovalPolicy
+from fin_graph.agents.testing.scripted_model import ScriptedChatModel, tool_call_message
+from fin_graph.config.settings import Settings
+from fin_graph.domain.tools import Domain, EvidenceType, ToolMeta, attach_tool_meta
+from fin_graph.graphs.chat.graph import make_chat_graph
+from fin_graph.graphs.remediation.graph import ActionCatalog
+from fin_graph.integrations.context import RunContext
+from fin_graph.memory.service import IncidentMemory
+from fin_graph.safety.approval import ApprovalPolicy
 
 
 class EmptyRegistry:

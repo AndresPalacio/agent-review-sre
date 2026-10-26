@@ -5,8 +5,8 @@ from langchain_core.messages import AIMessage, HumanMessage
 from langchain_core.tools import tool
 from langgraph.checkpoint.memory import InMemorySaver
 
-from sre_graph.agents.factory import make_agent
-from sre_graph.agents.testing.scripted_model import (
+from fin_graph.agents.factory import make_agent
+from fin_graph.agents.testing.scripted_model import (
     ScriptedChatModel,
     ScriptedModelExhaustedError,
     tool_call_message,

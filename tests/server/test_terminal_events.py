@@ -7,9 +7,9 @@ import httpx
 from sqlalchemy.ext.asyncio import create_async_engine
 from tests.server.test_manager import ScriptedGraph
 
-from sre_graph.server.app import create_app
-from sre_graph.server.manager import RunManager
-from sre_graph.server.storage import Base, Storage
+from fin_graph.server.app import create_app
+from fin_graph.server.manager import RunManager
+from fin_graph.server.storage import Base, Storage
 
 
 class PausedTerminalStorage(Storage):
@@ -121,9 +121,9 @@ async def test_partial_production_startup_stops_manager_before_closing_storage(
     from langgraph.checkpoint.memory import InMemorySaver
     from langgraph.store.memory import InMemoryStore
 
-    import sre_graph.server.app as server_module
-    from sre_graph.integrations.registry import IntegrationRegistry
-    from sre_graph.server.config import ServerConfig
+    import fin_graph.server.app as server_module
+    from fin_graph.integrations.registry import IntegrationRegistry
+    from fin_graph.server.config import ServerConfig
 
     url = f"sqlite+aiosqlite:///{tmp_path / 'startup.sqlite'}"
     engine = create_async_engine(url)
@@ -217,7 +217,7 @@ async def test_stale_unfinished_checkpoint_commits_interrupted_event(tmp_path: P
 
     from sqlalchemy import update
 
-    from sre_graph.server.storage import RunRow
+    from fin_graph.server.storage import RunRow
 
     engine = create_async_engine(f"sqlite+aiosqlite:///{tmp_path / 'stale.sqlite'}")
     async with engine.begin() as connection:

@@ -10,9 +10,9 @@ import urllib3
 from kubernetes import client as k8s
 from kubernetes.config.config_exception import ConfigException
 
-from sre_graph.integrations.base import IntegrationError
-from sre_graph.integrations.kubernetes.client import KubernetesClient
-from sre_graph.integrations.kubernetes.settings import KubernetesSettings
+from fin_graph.integrations.base import IntegrationError
+from fin_graph.integrations.kubernetes.client import KubernetesClient
+from fin_graph.integrations.kubernetes.settings import KubernetesSettings
 
 CRASHING_POD = "checkout-7d9f8b6c5-x2x9z"
 HEALTHY_POD = "checkout-7d9f8b6c5-abcde"
@@ -203,7 +203,7 @@ async def test_restart_sdk_sends_conditional_server_dry_run_patch(
                 "template": {
                     "metadata": {
                         "annotations": {
-                            "sre-graph.io/restart-token": "action-1",
+                            "fin-graph.io/restart-token": "action-1",
                         }
                     }
                 }

@@ -2,13 +2,13 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** convertir alertas en reportes RCA citados mediante un grafo LangGraph con especialistas paralelos, refinamiento acotado y un comando local `sre-graph investigate` que muestre progreso.
+**Goal:** convertir alertas en reportes RCA citados mediante un grafo LangGraph con especialistas paralelos, refinamiento acotado y un comando local `fin-graph investigate` que muestre progreso.
 
 **Architecture:** El estado del grafo contiene solo datos JSON; clientes, modelos y credenciales viven fuera de él, en el contexto de ejecución o en dependencias de construcción. `Send` lanza un especialista por tarea y los reducers reúnen evidencia y hallazgos. Las etapas deterministas usan el dominio existente; planner, especialistas, síntesis y juicio de claims usan agentes LangChain con salida estructurada e inyección para pruebas offline.
 
 **Tech Stack:** Python 3.12, LangGraph 1.2, LangChain 1.4, Typer, Rich, Pydantic, pytest, uv.
 
-**Spec:** `docs/specs/2026-10-07-sre-graph-design.md`, secciones “Agentes”, “Grafo de investigación”, “CLI” y tabla de Fase 2.
+**Spec:** `docs/specs/2026-10-07-fin-graph-design.md`, secciones “Agentes”, “Grafo de investigación”, “CLI” y tabla de Fase 2.
 
 ## Global Constraints
 
@@ -74,7 +74,7 @@
 
 ### Task 4: CLI, Studio y cierre
 
-**Interfaces:** `sre-graph investigate --file PATH|--text TEXT [--source SOURCE]` con progreso y Markdown final; `make_runtime_graph()` crea registry/modelos bajo demanda; `langgraph.json` publica investigación. Entrada inválida sale sin stacktrace ni secretos.
+**Interfaces:** `fin-graph investigate --file PATH|--text TEXT [--source SOURCE]` con progreso y Markdown final; `make_runtime_graph()` crea registry/modelos bajo demanda; `langgraph.json` publica investigación. Entrada inválida sale sin stacktrace ni secretos.
 
 - [ ] Escribir tests CLI offline con grafo inyectado para flags excluyentes, progreso, salida Markdown y códigos de error. Correr RED.
 - [ ] Añadir Typer/Rich y entry point, conectar fábrica local/Studio, README y registro de avance; pasar tests focalizados.

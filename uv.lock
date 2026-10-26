@@ -1,5 +1,5 @@
 version = 1
-revision = 5
+revision = 3
 requires-python = "==3.12.*"
 
 [[package]]
@@ -483,6 +483,126 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/bb/29/745f7d30d47fe0f251d3ad3dc2978a23141917661998763bebb6da007eb1/filetype-1.2.0.tar.gz", hash = "sha256:66b56cd6474bf41d8c54660347d37afcc3f7d1970648de365c102ef77548aadb", size = 998020, upload-time = "2022-11-02T17:34:04.141Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/18/79/1b8fa1bb3568781e84c9200f951c735f3f157429f44be0495da55894d620/filetype-1.2.0-py2.py3-none-any.whl", hash = "sha256:7ce71b6880181241cf7ac8697a2f1eb6a8bd9b429f7ad6d27b8db9ba5f1c2d25", size = 19970, upload-time = "2022-11-02T17:34:01.425Z" },
+]
+
+[[package]]
+name = "fin-graph"
+version = "0.1.0"
+source = { editable = "." }
+dependencies = [
+    { name = "aiohttp" },
+    { name = "aiosqlite" },
+    { name = "alembic" },
+    { name = "apscheduler" },
+    { name = "boto3" },
+    { name = "cryptography" },
+    { name = "fastapi" },
+    { name = "httpx" },
+    { name = "kubernetes" },
+    { name = "langchain" },
+    { name = "langchain-anthropic" },
+    { name = "langchain-core" },
+    { name = "langchain-mcp-adapters" },
+    { name = "langchain-ollama" },
+    { name = "langchain-openai" },
+    { name = "langgraph" },
+    { name = "langgraph-checkpoint-postgres" },
+    { name = "langgraph-checkpoint-sqlite" },
+    { name = "platformdirs" },
+    { name = "prompt-toolkit" },
+    { name = "psycopg", extra = ["binary", "pool"] },
+    { name = "pydantic" },
+    { name = "pydantic-settings" },
+    { name = "pyyaml" },
+    { name = "rich" },
+    { name = "slack-bolt" },
+    { name = "sqlalchemy", extra = ["asyncio"] },
+    { name = "typer" },
+    { name = "urllib3" },
+    { name = "uvicorn" },
+]
+
+[package.optional-dependencies]
+agents = [
+    { name = "deepagents" },
+    { name = "langgraph-sdk" },
+    { name = "mcp" },
+    { name = "openai" },
+]
+harness = [
+    { name = "better-harness" },
+    { name = "deepagents" },
+]
+
+[package.dev-dependencies]
+dev = [
+    { name = "import-linter" },
+    { name = "langgraph-cli", extra = ["inmem"] },
+    { name = "mypy" },
+    { name = "pytest" },
+    { name = "pytest-asyncio" },
+    { name = "ruff" },
+    { name = "types-pyyaml" },
+]
+harness = [
+    { name = "better-harness" },
+    { name = "deepagents" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "aiohttp", specifier = ">=3.13,<4" },
+    { name = "aiosqlite", specifier = ">=0.22.1" },
+    { name = "alembic", specifier = ">=1.16,<2" },
+    { name = "apscheduler", specifier = ">=3.11.3,<4" },
+    { name = "better-harness", marker = "extra == 'harness'", git = "https://github.com/langchain-ai/deepagents.git?subdirectory=examples%2Fbetter-harness&rev=be75459c444b53d21d633ef2ab997a01d0739c71" },
+    { name = "boto3", specifier = ">=1.40,<2" },
+    { name = "cryptography", specifier = ">=45,<48" },
+    { name = "deepagents", marker = "extra == 'agents'", specifier = ">=0.7.29,<0.8" },
+    { name = "deepagents", marker = "extra == 'harness'", specifier = ">=0.7.29,<0.8" },
+    { name = "fastapi", specifier = ">=0.117,<1" },
+    { name = "httpx", specifier = ">=0.28,<0.29" },
+    { name = "kubernetes", specifier = ">=37.0.0" },
+    { name = "langchain", specifier = ">=1.4.3,<1.5" },
+    { name = "langchain-anthropic", specifier = ">=1.7.5" },
+    { name = "langchain-core", specifier = ">=1.6.7,<1.7" },
+    { name = "langchain-mcp-adapters", specifier = ">=0.3.2,<0.4" },
+    { name = "langchain-ollama", specifier = ">=1.1.0,<2" },
+    { name = "langchain-openai", specifier = ">=1.6.7" },
+    { name = "langgraph", specifier = ">=1.2.14,<1.3" },
+    { name = "langgraph-checkpoint-postgres", specifier = ">=3.1.2" },
+    { name = "langgraph-checkpoint-sqlite", specifier = ">=3.1.1" },
+    { name = "langgraph-sdk", marker = "extra == 'agents'", specifier = ">=0.4.6,<0.5" },
+    { name = "mcp", marker = "extra == 'agents'", specifier = ">=1.30.0,<2" },
+    { name = "openai", marker = "extra == 'agents'", specifier = ">=3.26.0,<4" },
+    { name = "platformdirs", specifier = ">=4,<5" },
+    { name = "prompt-toolkit", specifier = ">=3.0,<4" },
+    { name = "psycopg", extras = ["binary", "pool"], specifier = ">=3.3.6" },
+    { name = "pydantic", specifier = ">=2.13" },
+    { name = "pydantic-settings", specifier = ">=2.15" },
+    { name = "pyyaml", specifier = ">=6.0,<7" },
+    { name = "rich", specifier = ">=15.0.0" },
+    { name = "slack-bolt", specifier = ">=1.27,<2" },
+    { name = "sqlalchemy", extras = ["asyncio"], specifier = ">=2.0,<3" },
+    { name = "typer", specifier = ">=0.27.3" },
+    { name = "urllib3", specifier = ">=2.8,<3" },
+    { name = "uvicorn", specifier = ">=0.35,<1" },
+]
+provides-extras = ["agents", "harness"]
+
+[package.metadata.requires-dev]
+dev = [
+    { name = "import-linter", specifier = ">=2.15" },
+    { name = "langgraph-cli", extras = ["inmem"], specifier = ">=0.4.33" },
+    { name = "mypy", specifier = ">=2.4" },
+    { name = "pytest", specifier = ">=9.1" },
+    { name = "pytest-asyncio", specifier = ">=1.4" },
+    { name = "ruff", specifier = ">=0.16" },
+    { name = "types-pyyaml", specifier = ">=6.0,<7" },
+]
+harness = [
+    { name = "better-harness", git = "https://github.com/langchain-ai/deepagents.git?subdirectory=examples%2Fbetter-harness&rev=be75459c444b53d21d633ef2ab997a01d0739c71" },
+    { name = "deepagents", specifier = ">=0.7.29,<0.8" },
 ]
 
 [[package]]
@@ -999,6 +1119,19 @@ wheels = [
 ]
 
 [[package]]
+name = "langchain-ollama"
+version = "1.1.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "langchain-core" },
+    { name = "ollama" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/d4/9b/6641afe8a5bf807e454fd464eddfc7eb2f2df53cb0b29744381171f9c609/langchain_ollama-1.1.0.tar.gz", hash = "sha256:f776f56f6782ae4da7692579b94a6575906118318d1023b455d7207f9d059811", size = 133075, upload-time = "2026-04-07T02:48:00.873Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/2c/b2/c2acb076590a98bee2816ed5f285e00df162a34238f9e276e175e14ebc35/langchain_ollama-1.1.0-py3-none-any.whl", hash = "sha256:43ac83a6eacb0f43855810739794dd55019e0d9b17bdcf3ecb3b1991ac3b59dd", size = 31413, upload-time = "2026-04-07T02:47:59.642Z" },
+]
+
+[[package]]
 name = "langchain-openai"
 version = "1.6.7"
 source = { registry = "https://pypi.org/simple" }
@@ -1401,6 +1534,19 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/7a/d8/a1bcc8ba112a627f8ffbdc212a78ce18d3ac07e91a5ca65d27918eee25a1/oauthlib-4.0.0.tar.gz", hash = "sha256:efb274799819440f95b4ab3b818869f1ce9ae26c5beacba0201d1a1b76b54f86", size = 187232, upload-time = "2026-09-28T06:01:18.77Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/d9/f4/78229a1066068ca14fc60fb26cf7381cabe4382261392b90e5f9552722d4/oauthlib-4.0.0-py3-none-any.whl", hash = "sha256:624c28c13a0a59cabf9747dfa52af63be3e512a7f2714df16e91b5b3a145e6cd", size = 159715, upload-time = "2026-09-28T06:01:17.008Z" },
+]
+
+[[package]]
+name = "ollama"
+version = "0.6.3"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "httpx" },
+    { name = "pydantic" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/b8/97/eeafe65594e4f4b25e443e068ef7d83aa3105b023e12e1c408c38669fc07/ollama-0.6.3.tar.gz", hash = "sha256:41fc49a8095c4a75939c4c1f8582e4d0671692fb6eac2a5a7ede8c9872b67096", size = 56868, upload-time = "2026-09-29T01:26:51.906Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/4d/64/87505d9e006461233c21c8e66dc1ecee49c996090584b216abd0dd4a8322/ollama-0.6.3-py3-none-any.whl", hash = "sha256:6a20bc42c1a5f889295d7ec490d35e5132fc31f339561530f43a8abd4dbfe508", size = 16603, upload-time = "2026-09-29T01:26:50.451Z" },
 ]
 
 [[package]]
@@ -2155,124 +2301,6 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/00/d4/f2b936d3bdc38eadcbd2a87875815db36430fab0363182ba5d12cd8e0b51/sqlite_vec-0.1.9-py3-none-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:4e921e592f24a5f9a18f590b6ddd530eb637e2d474e3b1972f9bbeb773aa3cb9", size = 160076, upload-time = "2026-03-31T08:02:33.796Z" },
     { url = "https://files.pythonhosted.org/packages/6f/ad/6afd073b0f817b3e03f9e37ad626ae341805891f23c74b5292818f49ac63/sqlite_vec-0.1.9-py3-none-manylinux_2_17_x86_64.manylinux2014_x86_64.manylinux1_x86_64.whl", hash = "sha256:1515727990b49e79bcaf75fdee2ffc7d461f8b66905013231251f1c8938e7786", size = 163388, upload-time = "2026-03-31T08:02:34.888Z" },
     { url = "https://files.pythonhosted.org/packages/42/89/81b2907cda14e566b9bf215e2ad82fc9b349edf07d2010756ffdb902f328/sqlite_vec-0.1.9-py3-none-win_amd64.whl", hash = "sha256:4a28dc12fa4b53d7b1dced22da2488fade444e96b5d16fd2d698cd670675cf32", size = 292804, upload-time = "2026-03-31T08:02:36.035Z" },
-]
-
-[[package]]
-name = "sre-graph"
-version = "0.1.0"
-source = { editable = "." }
-dependencies = [
-    { name = "aiohttp" },
-    { name = "aiosqlite" },
-    { name = "alembic" },
-    { name = "apscheduler" },
-    { name = "boto3" },
-    { name = "cryptography" },
-    { name = "fastapi" },
-    { name = "httpx" },
-    { name = "kubernetes" },
-    { name = "langchain" },
-    { name = "langchain-anthropic" },
-    { name = "langchain-core" },
-    { name = "langchain-mcp-adapters" },
-    { name = "langchain-openai" },
-    { name = "langgraph" },
-    { name = "langgraph-checkpoint-postgres" },
-    { name = "langgraph-checkpoint-sqlite" },
-    { name = "platformdirs" },
-    { name = "prompt-toolkit" },
-    { name = "psycopg", extra = ["binary", "pool"] },
-    { name = "pydantic" },
-    { name = "pydantic-settings" },
-    { name = "pyyaml" },
-    { name = "rich" },
-    { name = "slack-bolt" },
-    { name = "sqlalchemy", extra = ["asyncio"] },
-    { name = "typer" },
-    { name = "urllib3" },
-    { name = "uvicorn" },
-]
-
-[package.optional-dependencies]
-agents = [
-    { name = "deepagents" },
-    { name = "langgraph-sdk" },
-    { name = "mcp" },
-    { name = "openai" },
-]
-harness = [
-    { name = "better-harness" },
-    { name = "deepagents" },
-]
-
-[package.dev-dependencies]
-dev = [
-    { name = "import-linter" },
-    { name = "langgraph-cli", extra = ["inmem"] },
-    { name = "mypy" },
-    { name = "pytest" },
-    { name = "pytest-asyncio" },
-    { name = "ruff" },
-    { name = "types-pyyaml" },
-]
-harness = [
-    { name = "better-harness" },
-    { name = "deepagents" },
-]
-
-[package.metadata]
-requires-dist = [
-    { name = "aiohttp", specifier = ">=3.13,<4" },
-    { name = "aiosqlite", specifier = ">=0.22.1" },
-    { name = "alembic", specifier = ">=1.16,<2" },
-    { name = "apscheduler", specifier = ">=3.11.3,<4" },
-    { name = "better-harness", marker = "extra == 'harness'", git = "https://github.com/langchain-ai/deepagents.git?subdirectory=examples%2Fbetter-harness&rev=be75459c444b53d21d633ef2ab997a01d0739c71" },
-    { name = "boto3", specifier = ">=1.40,<2" },
-    { name = "cryptography", specifier = ">=45,<48" },
-    { name = "deepagents", marker = "extra == 'agents'", specifier = ">=0.7.29,<0.8" },
-    { name = "deepagents", marker = "extra == 'harness'", specifier = ">=0.7.29,<0.8" },
-    { name = "fastapi", specifier = ">=0.117,<1" },
-    { name = "httpx", specifier = ">=0.28,<0.29" },
-    { name = "kubernetes", specifier = ">=37.0.0" },
-    { name = "langchain", specifier = ">=1.4.3,<1.5" },
-    { name = "langchain-anthropic", specifier = ">=1.7.5" },
-    { name = "langchain-core", specifier = ">=1.6.7,<1.7" },
-    { name = "langchain-mcp-adapters", specifier = ">=0.3.2,<0.4" },
-    { name = "langchain-openai", specifier = ">=1.6.7" },
-    { name = "langgraph", specifier = ">=1.2.14,<1.3" },
-    { name = "langgraph-checkpoint-postgres", specifier = ">=3.1.2" },
-    { name = "langgraph-checkpoint-sqlite", specifier = ">=3.1.1" },
-    { name = "langgraph-sdk", marker = "extra == 'agents'", specifier = ">=0.4.6,<0.5" },
-    { name = "mcp", marker = "extra == 'agents'", specifier = ">=1.30.0,<2" },
-    { name = "openai", marker = "extra == 'agents'", specifier = ">=3.26.0,<4" },
-    { name = "platformdirs", specifier = ">=4,<5" },
-    { name = "prompt-toolkit", specifier = ">=3.0,<4" },
-    { name = "psycopg", extras = ["binary", "pool"], specifier = ">=3.3.6" },
-    { name = "pydantic", specifier = ">=2.13" },
-    { name = "pydantic-settings", specifier = ">=2.15" },
-    { name = "pyyaml", specifier = ">=6.0,<7" },
-    { name = "rich", specifier = ">=15.0.0" },
-    { name = "slack-bolt", specifier = ">=1.27,<2" },
-    { name = "sqlalchemy", extras = ["asyncio"], specifier = ">=2.0,<3" },
-    { name = "typer", specifier = ">=0.27.3" },
-    { name = "urllib3", specifier = ">=2.8,<3" },
-    { name = "uvicorn", specifier = ">=0.35,<1" },
-]
-provides-extras = ["agents", "harness"]
-
-[package.metadata.requires-dev]
-dev = [
-    { name = "import-linter", specifier = ">=2.15" },
-    { name = "langgraph-cli", extras = ["inmem"], specifier = ">=0.4.33" },
-    { name = "mypy", specifier = ">=2.4" },
-    { name = "pytest", specifier = ">=9.1" },
-    { name = "pytest-asyncio", specifier = ">=1.4" },
-    { name = "ruff", specifier = ">=0.16" },
-    { name = "types-pyyaml", specifier = ">=6.0,<7" },
-]
-harness = [
-    { name = "better-harness", git = "https://github.com/langchain-ai/deepagents.git?subdirectory=examples%2Fbetter-harness&rev=be75459c444b53d21d633ef2ab997a01d0739c71" },
-    { name = "deepagents", specifier = ">=0.7.29,<0.8" },
 ]
 
 [[package]]

@@ -2,13 +2,13 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** evaluar el grafo RCA con los 36 escenarios históricos de OpenSRE, un backend offline reproducible, scorers y `sre-graph eval run`.
+**Goal:** evaluar el grafo RCA con los 36 escenarios históricos de OpenSRE, un backend offline reproducible, scorers y `fin-graph eval run`.
 
 **Architecture:** Los datos portados viven dentro del paquete y se cargan con herencia de metadata y fallback por archivo de evidencia. `FixtureBackend` crea clientes falsos tipados y un `RunContext` para ejecutar las tools de lectura existentes sin red; el grafo recibe esas tools sin cambios. Un runner separa un smoke guionado de las corridas con modelo real y escribe resultados JSON/Markdown sin confundir smoke con calidad RCA.
 
 **Tech Stack:** Python 3.12, LangGraph, LangChain, Pydantic, PyYAML, Typer, pytest.
 
-**Spec:** `docs/specs/2026-10-07-sre-graph-design.md`, sección «Evaluación» y fila de Fase 3.
+**Spec:** `docs/specs/2026-10-07-fin-graph-design.md`, sección «Evaluación» y fila de Fase 3.
 
 ## Global Constraints
 
@@ -37,12 +37,12 @@
 
 | Ruta | Responsabilidad |
 |---|---|
-| `src/sre_graph/evals/data/` | 36 escenarios portados y manifiesto de procedencia |
-| `src/sre_graph/evals/scenarios.py` | Modelos, loader y herencia segura |
-| `src/sre_graph/evals/fixtures.py` | Clientes falsos, contexto y mapeo fuente↔tool |
-| `src/sre_graph/evals/scoring.py` | Scorers deterministas y juez opcional |
-| `src/sre_graph/evals/runner.py` | Selección de suite, repeticiones, ejecución y artefactos |
-| `src/sre_graph/cli/main.py` | Subcomando `eval run` |
+| `src/fin_graph/evals/data/` | 36 escenarios portados y manifiesto de procedencia |
+| `src/fin_graph/evals/scenarios.py` | Modelos, loader y herencia segura |
+| `src/fin_graph/evals/fixtures.py` | Clientes falsos, contexto y mapeo fuente↔tool |
+| `src/fin_graph/evals/scoring.py` | Scorers deterministas y juez opcional |
+| `src/fin_graph/evals/runner.py` | Selección de suite, repeticiones, ejecución y artefactos |
+| `src/fin_graph/cli/main.py` | Subcomando `eval run` |
 | `tests/evals/`, `.github/workflows/ci.yml`, `README.md`, `docs/progress/` | Cobertura, CI y evidencia |
 
 ### Task 1: dataset y loader
@@ -71,7 +71,7 @@
 
 ### Task 4: runner, CLI, CI y cierre
 
-**Interfaces:** `sre-graph eval run --suite smoke|eks|rds|all --model scripted|provider:model --repeat N --output-dir PATH`. El runner invoca el grafo con `FixtureBackend`, no entrega; escribe `results.json` y `report.md` con estado por corrida. Smoke usa servicio/modelo guionado solo para verificar el pipeline; real inicializa `LangChainServices` y mide uso/latencia.
+**Interfaces:** `fin-graph eval run --suite smoke|eks|rds|all --model scripted|provider:model --repeat N --output-dir PATH`. El runner invoca el grafo con `FixtureBackend`, no entrega; escribe `results.json` y `report.md` con estado por corrida. Smoke usa servicio/modelo guionado solo para verificar el pipeline; real inicializa `LangChainServices` y mide uso/latencia.
 
 - [ ] Escribir tests RED del CLI y runner: smoke offline con fixtures, artefactos, repeat, fallo aislado, modelo ausente y ausencia de envíos.
 - [ ] Implementar runner/CLI, integración CI smoke y README; ejecutar smoke GREEN y documentar la línea base real bloqueada sin credenciales.

@@ -4,13 +4,13 @@ import pytest
 from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import create_async_engine
 
-from sre_graph.graphs.remediation.graph import (
+from fin_graph.graphs.remediation.graph import (
     ActionCatalog,
     ActionSpec,
     UncertainActionOutcome,
 )
-from sre_graph.integrations.context import RunContext
-from sre_graph.server.storage import Base, Storage
+from fin_graph.integrations.context import RunContext
+from fin_graph.server.storage import Base, Storage
 
 
 async def test_action_result_is_replayed_without_second_write() -> None:

@@ -6,16 +6,16 @@ from typing import Any
 import pytest
 from langchain_core.tools import tool
 
-from sre_graph.agents.testing.scripted_model import ScriptedChatModel, tool_call_message
-from sre_graph.domain.alerts.parsing import text_alert
-from sre_graph.domain.diagnosis import Claim, Diagnosis, IncidentStatus
-from sre_graph.domain.evidence import evidence_id
-from sre_graph.domain.investigation import InvestigationPlan, SpecialistTask
-from sre_graph.domain.tools import Domain, EvidenceType, ToolMeta, attach_tool_meta
-from sre_graph.domain.window import resolve_window
-from sre_graph.graphs.investigation.services import LangChainServices
-from sre_graph.integrations.context import RunContext
-from sre_graph.llm.models import ModelRole
+from fin_graph.agents.testing.scripted_model import ScriptedChatModel, tool_call_message
+from fin_graph.domain.alerts.parsing import text_alert
+from fin_graph.domain.diagnosis import Claim, Diagnosis, IncidentStatus
+from fin_graph.domain.evidence import evidence_id
+from fin_graph.domain.investigation import InvestigationPlan, SpecialistTask
+from fin_graph.domain.tools import Domain, EvidenceType, ToolMeta, attach_tool_meta
+from fin_graph.domain.window import resolve_window
+from fin_graph.graphs.investigation.services import LangChainServices
+from fin_graph.integrations.context import RunContext
+from fin_graph.llm.models import ModelRole
 
 
 @tool(response_format="content_and_artifact")

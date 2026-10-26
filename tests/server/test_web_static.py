@@ -2,7 +2,7 @@ from pathlib import Path
 
 import httpx
 
-from sre_graph.server.app import create_app
+from fin_graph.server.app import create_app
 
 
 async def test_spa_fallback_protects_api_and_missing_assets(tmp_path: Path) -> None:

@@ -20,16 +20,16 @@ from uuid import uuid4
 from fastapi import FastAPI, HTTPException
 from langgraph.checkpoint.memory import InMemorySaver
 
-from sre_graph.config.tracing import disable_external_tracing
-from sre_graph.domain.diagnosis import Claim, Diagnosis, HypothesisOutcome, IncidentStatus
-from sre_graph.domain.investigation import Hypothesis, InvestigationPlan, SpecialistTask, Verdict
-from sre_graph.domain.tools import Domain
-from sre_graph.evals.fixtures import FixtureBackend
-from sre_graph.evals.runner import ScriptedServices
-from sre_graph.evals.scenarios import load_scenario
-from sre_graph.graphs.investigation.graph import InvestigationLimits
-from sre_graph.graphs.investigation.services import ClaimJudgment
-from sre_graph.harness.runtime import make_investigation_graph
+from fin_graph.config.tracing import disable_external_tracing
+from fin_graph.domain.diagnosis import Claim, Diagnosis, HypothesisOutcome, IncidentStatus
+from fin_graph.domain.investigation import Hypothesis, InvestigationPlan, SpecialistTask, Verdict
+from fin_graph.domain.tools import Domain
+from fin_graph.evals.fixtures import FixtureBackend
+from fin_graph.evals.runner import ScriptedServices
+from fin_graph.evals.scenarios import load_scenario
+from fin_graph.graphs.investigation.graph import InvestigationLimits
+from fin_graph.graphs.investigation.services import ClaimJudgment
+from fin_graph.harness.runtime import make_investigation_graph
 
 CheckpointObserver = Callable[[str, dict[str, Any], tuple[str, ...]], None]
 
@@ -219,7 +219,7 @@ def inspect_checkpoint(
 
 def create_demo_app() -> FastAPI:
     app = FastAPI(
-        title="SRE Graph: demo offline",
+        title="Fin Graph: demo offline",
         description="API educativa: sin claves, sin LLM, datos en memoria. POST sin body. "
         "Ejecuta el grafo real y espera el resultado; no es la API de produccion.",
     )

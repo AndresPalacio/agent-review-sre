@@ -1,0 +1,440 @@
+{
+ "_source": "ai-hedge-fund (MIT) originals run with pandas; see NOTICE. Hurst values are the original's (always ~0, a known bug fixed in the port).",
+ "allowed": {
+  "AAA": {
+   "buy": 20,
+   "hold": 0,
+   "sell": 50,
+   "short": 20
+  },
+  "BBB": {
+   "buy": 139,
+   "hold": 0,
+   "short": 139
+  },
+  "CCC": {
+   "buy": 95,
+   "cover": 20,
+   "hold": 0,
+   "short": 95
+  }
+ },
+ "buffett": {
+  "deep_value": {
+   "book_value": 3,
+   "consistency": 3,
+   "fundamentals": 3,
+   "intrinsic_value": 1159195526.8804939,
+   "maintenance_capex": 35000000.0,
+   "management": 2,
+   "moat": 4,
+   "owner_earnings": 110294117.64705884,
+   "pricing_power": 2
+  },
+  "distressed": {
+   "book_value": 0,
+   "consistency": 3,
+   "fundamentals": 3,
+   "intrinsic_value": -1184090166.401413,
+   "maintenance_capex": 76500000.0,
+   "management": 0,
+   "moat": 4,
+   "owner_earnings": -102815789.47368425,
+   "pricing_power": 0
+  },
+  "quality": {
+   "book_value": 3,
+   "consistency": 3,
+   "fundamentals": 4,
+   "intrinsic_value": 1228132671363.336,
+   "maintenance_capex": 10000000000.000002,
+   "management": 2,
+   "moat": 4,
+   "owner_earnings": 95672897196.26169,
+   "pricing_power": 4
+  }
+ },
+ "fundamentals": {
+  "AAPL": {
+   "confidence": 25.0,
+   "parts": {
+    "financial_health_signal": "neutral",
+    "growth_signal": "neutral",
+    "price_ratios_signal": "bearish",
+    "profitability_signal": "bullish"
+   },
+   "signal": "neutral"
+  },
+  "MSFT": {
+   "confidence": 50.0,
+   "parts": {
+    "financial_health_signal": "neutral",
+    "growth_signal": "bearish",
+    "price_ratios_signal": "bearish",
+    "profitability_signal": "bullish"
+   },
+   "signal": "bearish"
+  },
+  "TSLA": {
+   "confidence": 25.0,
+   "parts": {
+    "financial_health_signal": "neutral",
+    "growth_signal": "bullish",
+    "price_ratios_signal": "bearish",
+    "profitability_signal": "neutral"
+   },
+   "signal": "neutral"
+  }
+ },
+ "graham": {
+  "deep_value": {
+   "earnings": 4,
+   "strength": 5,
+   "total": 16,
+   "valuation": 7
+  },
+  "distressed": {
+   "earnings": 0,
+   "strength": 0,
+   "total": 0,
+   "valuation": 0
+  },
+  "quality": {
+   "earnings": 4,
+   "strength": 1,
+   "total": 5,
+   "valuation": 0
+  }
+ },
+ "max_shares": {
+  "AAA": 20,
+  "BBB": 139,
+  "CCC": 95
+ },
+ "risk": {
+  "AAA": {
+   "annualized_volatility": 0.3464821872295057,
+   "avg_correlation": 0.9999729483484432,
+   "correlation_multiplier": 0.7,
+   "portfolio_value": 105085.21399999999,
+   "price": 152.2608,
+   "remaining": 3078.986128545952,
+   "volatility_percentile": 55.55555555555556
+  },
+  "BBB": {
+   "annualized_volatility": 0.5191536571996161,
+   "avg_correlation": -0.14647775282449943,
+   "correlation_multiplier": 1.1,
+   "portfolio_value": 105085.21399999999,
+   "price": 83.1253,
+   "remaining": 11559.37354,
+   "volatility_percentile": 75.55555555555556
+  },
+  "CCC": {
+   "annualized_volatility": 0.17272146245270875,
+   "avg_correlation": 0.9999729483484432,
+   "correlation_multiplier": 0.7,
+   "portfolio_value": 105085.21399999999,
+   "price": 126.3913,
+   "remaining": 12016.965677903485,
+   "volatility_percentile": 55.55555555555556
+  }
+ },
+ "sentiment": {
+  "AAPL": {
+   "bearish_trades": 1,
+   "bullish_trades": 9,
+   "confidence": 36.3,
+   "signal": "bullish"
+  },
+  "MSFT": {
+   "bearish_trades": 9,
+   "bullish_trades": 1,
+   "confidence": 35.34,
+   "signal": "bearish"
+  },
+  "TSLA": {
+   "bearish_trades": 4,
+   "bullish_trades": 2,
+   "confidence": 33.98,
+   "signal": "bullish"
+  }
+ },
+ "technicals": {
+  "down": {
+   "adx_last": 80.35264908951365,
+   "atr_last": 0.5979785714285717,
+   "bb_lower_last": 27.820176480045482,
+   "bb_upper_last": 32.58525351995452,
+   "ema_21_last": 30.32770863139035,
+   "hurst_original": 4.686994974318529e-16,
+   "kurt_last": -0.9558044391973376,
+   "mean_reversion": {
+    "confidence": 0.5,
+    "metrics": {
+     "price_vs_bb": 0.218952078049599,
+     "rsi_14": 17.899285788220638,
+     "rsi_28": 18.233858068860968,
+     "z_score": -1.4803851543877764
+    },
+    "signal": "neutral"
+   },
+   "momentum": {
+    "confidence": 0.5,
+    "metrics": {
+     "momentum_1m": -0.10422365545717949,
+     "momentum_3m": -0.3830709104599327,
+     "momentum_6m": -0.5884702023523193,
+     "volume_momentum": 0.6189479458394741
+    },
+    "signal": "neutral"
+   },
+   "rsi_14_last": 17.899285788220638,
+   "skew_last": 0.12633691035797331,
+   "stat_arb": {
+    "confidence": 0.5,
+    "metrics": {
+     "hurst_exponent": 4.686994974318529e-16,
+     "kurtosis": -0.9558044391973376,
+     "skewness": 0.12633691035797331
+    },
+    "signal": "neutral"
+   },
+   "trend": {
+    "confidence": 0.8035264908951365,
+    "metrics": {
+     "adx": 80.35264908951365,
+     "trend_strength": 0.8035264908951365
+    },
+    "signal": "bearish"
+   },
+   "volatility": {
+    "confidence": 0.5,
+    "metrics": {
+     "atr_ratio": 0.020717465706812124,
+     "historical_volatility": 0.1425338299922672,
+     "volatility_regime": 0.9020898030827658,
+     "volatility_z_score": -0.8741017841997811
+    },
+    "signal": "neutral"
+   }
+  },
+  "short": {
+   "adx_last": 25.226548096964372,
+   "atr_last": 2.6396071428571415,
+   "bb_lower_last": 90.56240406940616,
+   "bb_upper_last": 99.16902593059383,
+   "ema_21_last": 94.85561036881094,
+   "hurst_original": 4.686994974318529e-16,
+   "kurt_last": NaN,
+   "mean_reversion": {
+    "confidence": 0.5,
+    "metrics": {
+     "price_vs_bb": 0.7290660646880035,
+     "rsi_14": 59.535901102201244,
+     "rsi_28": 58.1211527503712,
+     "z_score": 0.0
+    },
+    "signal": "neutral"
+   },
+   "momentum": {
+    "confidence": 0.5,
+    "metrics": {
+     "momentum_1m": 0.03930674856856298,
+     "momentum_3m": 0.0,
+     "momentum_6m": 0.0,
+     "volume_momentum": 1.1451899737427855
+    },
+    "signal": "neutral"
+   },
+   "rsi_14_last": 59.535901102201244,
+   "skew_last": NaN,
+   "stat_arb": {
+    "confidence": 0.5,
+    "metrics": {
+     "hurst_exponent": 4.686994974318529e-16,
+     "kurtosis": 0.0,
+     "skewness": 0.0
+    },
+    "signal": "neutral"
+   },
+   "trend": {
+    "confidence": 0.5,
+    "metrics": {
+     "adx": 25.226548096964372,
+     "trend_strength": 0.25226548096964374
+    },
+    "signal": "neutral"
+   },
+   "volatility": {
+    "confidence": 0.5,
+    "metrics": {
+     "atr_ratio": 0.02725819357496026,
+     "historical_volatility": 0.2810328131199923,
+     "volatility_regime": 0.0,
+     "volatility_z_score": 0.0
+    },
+    "signal": "neutral"
+   }
+  },
+  "up": {
+   "adx_last": 27.112670679782774,
+   "atr_last": 6.936042857142858,
+   "bb_lower_last": 352.13460009115255,
+   "bb_upper_last": 371.59734990884743,
+   "ema_21_last": 361.3898628643958,
+   "hurst_original": 4.686994974318529e-16,
+   "kurt_last": -0.9556369058669917,
+   "mean_reversion": {
+    "confidence": 0.5,
+    "metrics": {
+     "price_vs_bb": 1.0912538108843102,
+     "rsi_14": 62.96761169348387,
+     "rsi_28": 62.54908334497202,
+     "z_score": 1.9973786638447704
+    },
+    "signal": "neutral"
+   },
+   "momentum": {
+    "confidence": 0.5,
+    "metrics": {
+     "momentum_1m": 0.0636139556953117,
+     "momentum_3m": 0.11987488725815687,
+     "momentum_6m": 0.41884765327155304,
+     "volume_momentum": 0.6189479458394741
+    },
+    "signal": "neutral"
+   },
+   "rsi_14_last": 62.96761169348387,
+   "skew_last": 0.12646606259784932,
+   "stat_arb": {
+    "confidence": 0.5,
+    "metrics": {
+     "hurst_exponent": 4.686994974318529e-16,
+     "kurtosis": -0.9556369058669917,
+     "skewness": 0.12646606259784932
+    },
+    "signal": "neutral"
+   },
+   "trend": {
+    "confidence": 0.27112670679782774,
+    "metrics": {
+     "adx": 27.112670679782774,
+     "trend_strength": 0.27112670679782774
+    },
+    "signal": "bullish"
+   },
+   "volatility": {
+    "confidence": 0.5,
+    "metrics": {
+     "atr_ratio": 0.018576692547307486,
+     "historical_volatility": 0.1436741456758193,
+     "volatility_regime": 0.902062655490283,
+     "volatility_z_score": -0.8743735114387229
+    },
+    "signal": "neutral"
+   }
+  },
+  "walk": {
+   "adx_last": 43.436093253096594,
+   "atr_last": 3.0777142857142854,
+   "bb_lower_last": 115.3123707155611,
+   "bb_upper_last": 129.9124992844389,
+   "ema_21_last": 122.77803896864226,
+   "hurst_original": 4.686994974318529e-16,
+   "kurt_last": -0.9532499439177545,
+   "mean_reversion": {
+    "confidence": 0.5,
+    "metrics": {
+     "price_vs_bb": 0.42873110705216366,
+     "rsi_14": 39.415306221803895,
+     "rsi_28": 38.94614313410663,
+     "z_score": -1.1507118502089821
+    },
+    "signal": "neutral"
+   },
+   "momentum": {
+    "confidence": 0.5,
+    "metrics": {
+     "momentum_1m": -0.02727824794556899,
+     "momentum_3m": -0.20824601318204417,
+     "momentum_6m": -0.09593446033402364,
+     "volume_momentum": 0.6189479458394741
+    },
+    "signal": "neutral"
+   },
+   "rsi_14_last": 39.415306221803895,
+   "skew_last": 0.13845336550331377,
+   "stat_arb": {
+    "confidence": 0.5,
+    "metrics": {
+     "hurst_exponent": 4.686994974318529e-16,
+     "kurtosis": -0.9532499439177545,
+     "skewness": 0.13845336550331377
+    },
+    "signal": "neutral"
+   },
+   "trend": {
+    "confidence": 0.4343609325309659,
+    "metrics": {
+     "adx": 43.436093253096594,
+     "trend_strength": 0.4343609325309659
+    },
+    "signal": "bearish"
+   },
+   "volatility": {
+    "confidence": 0.5,
+    "metrics": {
+     "atr_ratio": 0.02531600053724821,
+     "historical_volatility": 0.2576818029293379,
+     "volatility_regime": 0.9023878304232911,
+     "volatility_z_score": -0.8732817390092313
+    },
+    "signal": "neutral"
+   }
+  }
+ },
+ "valuation": {
+  "deep_value": {
+   "confidence": 100,
+   "methods": {
+    "dcf": {
+     "signal": "bullish",
+     "value": 1126212955.57
+    },
+    "owner_earnings": {
+     "signal": "bullish",
+     "value": 2694931490.21
+    },
+    "residual_income": {
+     "signal": "bullish",
+     "value": 2710719734.63
+    }
+   },
+   "signal": "bullish"
+  },
+  "distressed": null,
+  "quality": {
+   "confidence": 100,
+   "methods": {
+    "dcf": {
+     "signal": "bearish",
+     "value": 963411677029.0
+    },
+    "ev_ebitda": {
+     "signal": "neutral",
+     "value": 2783108079270.29
+    },
+    "owner_earnings": {
+     "signal": "bearish",
+     "value": 644655146840.88
+    },
+    "residual_income": {
+     "signal": "bearish",
+     "value": 2294539128195.44
+    }
+   },
+   "signal": "bearish"
+  }
+ }
+}

@@ -10,9 +10,9 @@ from typing import Any
 import httpx
 import pytest
 
-from sre_graph.gateway import GatewayResult, GatewayRunPending
-from sre_graph.gateway.settings import TelegramGatewaySettings
-from sre_graph.gateway.telegram import TelegramGateway
+from fin_graph.gateway import GatewayResult, GatewayRunPending
+from fin_graph.gateway.settings import TelegramGatewaySettings
+from fin_graph.gateway.telegram import TelegramGateway
 
 
 class Store:

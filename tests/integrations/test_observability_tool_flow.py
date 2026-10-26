@@ -7,24 +7,24 @@ import httpx
 import pytest
 from langchain_core.messages import AIMessage, HumanMessage, ToolMessage
 
-from sre_graph.agents.factory import make_agent
-from sre_graph.agents.testing.scripted_model import ScriptedChatModel, tool_call_message
-from sre_graph.integrations.alertmanager.client import AlertmanagerClient
-from sre_graph.integrations.alertmanager.integration import AlertmanagerIntegration
-from sre_graph.integrations.base import Integration
-from sre_graph.integrations.context import RunContext
-from sre_graph.integrations.datadog.client import DatadogClient
-from sre_graph.integrations.datadog.integration import DatadogIntegration
-from sre_graph.integrations.grafana.client import GrafanaClient
-from sre_graph.integrations.grafana.integration import GrafanaIntegration
-from sre_graph.integrations.loki.client import LokiClient
-from sre_graph.integrations.loki.integration import LokiIntegration
-from sre_graph.integrations.newrelic.client import NewRelicClient
-from sre_graph.integrations.newrelic.integration import NewRelicIntegration
-from sre_graph.integrations.prometheus.client import PrometheusClient
-from sre_graph.integrations.prometheus.integration import MimirIntegration, PrometheusIntegration
-from sre_graph.integrations.tempo.client import TempoClient
-from sre_graph.integrations.tempo.integration import TempoIntegration
+from fin_graph.agents.factory import make_agent
+from fin_graph.agents.testing.scripted_model import ScriptedChatModel, tool_call_message
+from fin_graph.integrations.alertmanager.client import AlertmanagerClient
+from fin_graph.integrations.alertmanager.integration import AlertmanagerIntegration
+from fin_graph.integrations.base import Integration
+from fin_graph.integrations.context import RunContext
+from fin_graph.integrations.datadog.client import DatadogClient
+from fin_graph.integrations.datadog.integration import DatadogIntegration
+from fin_graph.integrations.grafana.client import GrafanaClient
+from fin_graph.integrations.grafana.integration import GrafanaIntegration
+from fin_graph.integrations.loki.client import LokiClient
+from fin_graph.integrations.loki.integration import LokiIntegration
+from fin_graph.integrations.newrelic.client import NewRelicClient
+from fin_graph.integrations.newrelic.integration import NewRelicIntegration
+from fin_graph.integrations.prometheus.client import PrometheusClient
+from fin_graph.integrations.prometheus.integration import MimirIntegration, PrometheusIntegration
+from fin_graph.integrations.tempo.client import TempoClient
+from fin_graph.integrations.tempo.integration import TempoIntegration
 
 
 def _case(

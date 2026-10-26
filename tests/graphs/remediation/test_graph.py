@@ -7,9 +7,9 @@ from langgraph.checkpoint.memory import InMemorySaver
 from langgraph.types import Command
 from pydantic import BaseModel, Field
 
-from sre_graph.graphs.remediation.graph import ActionCatalog, ActionSpec, make_remediation_graph
-from sre_graph.integrations.context import RunContext
-from sre_graph.safety.approval import ApprovalPolicy
+from fin_graph.graphs.remediation.graph import ActionCatalog, ActionSpec, make_remediation_graph
+from fin_graph.integrations.context import RunContext
+from fin_graph.safety.approval import ApprovalPolicy
 
 
 class ScaleArgs(BaseModel):

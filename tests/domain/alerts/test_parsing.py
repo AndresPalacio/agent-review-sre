@@ -5,8 +5,8 @@ from typing import Any
 
 import pytest
 
-from sre_graph.domain.alerts.model import AlertParseError, AlertSource
-from sre_graph.domain.alerts.parsing import detect_source, parse_alert, text_alert
+from fin_graph.domain.alerts.model import AlertParseError, AlertSource
+from fin_graph.domain.alerts.parsing import detect_source, parse_alert, text_alert
 
 
 @pytest.mark.parametrize(

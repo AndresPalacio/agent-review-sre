@@ -19,7 +19,7 @@ import pytest
 from kubernetes import client as k8s
 from kubernetes.client import rest
 
-from sre_graph.integrations.kubernetes.client import KubernetesClient
+from fin_graph.integrations.kubernetes.client import KubernetesClient
 
 CRASHING_POD = "checkout-7d9f8b6c5-x2x9z"
 HEALTHY_POD = "checkout-7d9f8b6c5-abcde"

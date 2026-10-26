@@ -15,6 +15,8 @@ def test_license_is_the_unmodified_apache_template() -> None:
 def test_notice_credits_this_project_and_each_upstream_holder() -> None:
     notice = (ROOT / "NOTICE").read_text(encoding="utf-8")
 
-    assert "Copyright 2026 The sre-graph authors" in notice
+    assert "Copyright 2026 The fin-graph authors" in notice
     assert "Copyright 2026 Tracer Cloud" in notice
     assert "Copyright 2025 Abhishek Chauhan" in notice
+    assert "Copyright (c) 2024 Virat Singh" in notice
+    assert "Permission is hereby granted, free of charge" in notice

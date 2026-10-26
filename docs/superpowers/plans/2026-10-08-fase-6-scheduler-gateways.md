@@ -8,7 +8,7 @@
 
 **Tech Stack:** Python 3.12, LangGraph 1.2, APScheduler 3.x, SQLAlchemy/Postgres, Slack Bolt async, FastAPI, httpx, pytest.
 
-**Spec:** `docs/superpowers/specs/2026-10-08-fase-6-scheduler-gateways-design.md` y `docs/specs/2026-10-07-sre-graph-design.md`.
+**Spec:** `docs/superpowers/specs/2026-10-08-fase-6-scheduler-gateways-design.md` y `docs/specs/2026-10-07-fin-graph-design.md`.
 
 ## Global Constraints
 
@@ -30,7 +30,7 @@
 
 ### Task 1: Grafo y persistencia de health checks
 
-**Files:** crear `src/sre_graph/graphs/health_check/{__init__,graph}.py`, `tests/graphs/health_check/test_graph.py`; modificar `src/sre_graph/server/storage.py` y añadir migración `0006_phase6.py`.
+**Files:** crear `src/fin_graph/graphs/health_check/{__init__,graph}.py`, `tests/graphs/health_check/test_graph.py`; modificar `src/fin_graph/server/storage.py` y añadir migración `0006_phase6.py`.
 
 **Interfaces:** `HealthCheckDefinition`, `HealthCheckResult`, `make_health_check_graph(probe, model=None)`; `Storage.record_health_result(...)`, `recent_health_results(...)`, `put_schedule(...)`, `list_schedules(...)`, `delete_schedule(...)`.
 
@@ -40,7 +40,7 @@
 
 ### Task 2: Scheduler líder y jobs
 
-**Files:** crear `src/sre_graph/scheduler/{__init__,service,jobs}.py`, `tests/scheduler/test_service.py`; modificar configuración y lockfile.
+**Files:** crear `src/fin_graph/scheduler/{__init__,service,jobs}.py`, `tests/scheduler/test_service.py`; modificar configuración y lockfile.
 
 **Interfaces:** `SchedulerService.start()/stop()/sync_schedule()`, `run_scheduled_job(schedule_id)`; Postgres advisory lock, APScheduler SQLAlchemyJobStore, jobs internos de retención y expiry.
 
@@ -50,7 +50,7 @@
 
 ### Task 3: Vencimiento de aprobaciones
 
-**Files:** crear `src/sre_graph/scheduler/expiry.py`, `tests/scheduler/test_expiry.py`; modificar `src/sre_graph/graphs/remediation/graph.py`, `src/sre_graph/server/storage.py` y `src/sre_graph/server/app.py`.
+**Files:** crear `src/fin_graph/scheduler/expiry.py`, `tests/scheduler/test_expiry.py`; modificar `src/fin_graph/graphs/remediation/graph.py`, `src/fin_graph/server/storage.py` y `src/fin_graph/server/app.py`.
 
 **Interfaces:** `expire_pending_approvals(...)` con locks, reloj inyectable y decisión `reject`; actor interno limitado a rechazo.
 
@@ -60,7 +60,7 @@
 
 ### Task 4: Gateway Slack
 
-**Files:** crear `src/sre_graph/gateway/{__init__,slack,settings}.py`, `tests/gateway/test_slack.py`; ampliar `delivery/client.py` solo para editar mensaje.
+**Files:** crear `src/fin_graph/gateway/{__init__,slack,settings}.py`, `tests/gateway/test_slack.py`; ampliar `delivery/client.py` solo para editar mensaje.
 
 **Interfaces:** `SlackGateway` procesa `message` y `action`, usa `AsyncApp` y firma Bolt; HTTP y Socket Mode optativo.
 
@@ -70,7 +70,7 @@
 
 ### Task 5: Gateway Telegram
 
-**Files:** crear `src/sre_graph/gateway/telegram.py`, `tests/gateway/test_telegram.py`; ampliar `delivery/client.py` para editar mensaje y responder callback.
+**Files:** crear `src/fin_graph/gateway/telegram.py`, `tests/gateway/test_telegram.py`; ampliar `delivery/client.py` para editar mensaje y responder callback.
 
 **Interfaces:** `TelegramGateway.handle(update, secret)`, validación de webhook, inline keyboard y correlación persistida.
 
@@ -80,9 +80,9 @@
 
 ### Task 6: Superficie compartida, API, CLI y lifespan
 
-**Files:** modificar `src/sre_graph/server/{app,config}.py`, `src/sre_graph/cli/main.py`, `tests/server/test_scheduler_api.py`, `tests/server/test_gateway_api.py`, `tests/cli/test_schedules.py`.
+**Files:** modificar `src/fin_graph/server/{app,config}.py`, `src/fin_graph/cli/main.py`, `tests/server/test_scheduler_api.py`, `tests/server/test_gateway_api.py`, `tests/cli/test_schedules.py`.
 
-**Interfaces:** `/v1/schedules` CRUD/trigger, `/v1/gateway/slack`, `/v1/gateway/telegram`; `sre-graph schedules`; shared approval adapter para bots/API.
+**Interfaces:** `/v1/schedules` CRUD/trigger, `/v1/gateway/slack`, `/v1/gateway/telegram`; `fin-graph schedules`; shared approval adapter para bots/API.
 
 - [x] Tests de autenticación, validación, rutas, estados, lifecycle sin credenciales y CLI; confirmar RED.
 - [x] Conectar scheduler y gateways al servidor; confirmar GREEN.

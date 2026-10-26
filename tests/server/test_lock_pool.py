@@ -9,8 +9,8 @@ from sqlalchemy import event, text
 from sqlalchemy.exc import TimeoutError as PoolTimeoutError
 from sqlalchemy.ext.asyncio import AsyncEngine, create_async_engine
 
-from sre_graph.server.migrate import upgrade
-from sre_graph.server.storage import Base, Storage
+from fin_graph.server.migrate import upgrade
+from fin_graph.server.storage import Base, Storage
 
 
 @pytest.mark.postgres

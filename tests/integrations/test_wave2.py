@@ -8,12 +8,12 @@ import httpx
 import pytest
 from pydantic import ValidationError
 
-from sre_graph.domain.tools import Domain, SideEffectLevel, read_tool_meta
-from sre_graph.integrations.base import IntegrationError
-from sre_graph.integrations.catalog import default_registry
-from sre_graph.integrations.wave2 import wave2_integrations
-from sre_graph.integrations.wave2.client import Wave2Client
-from sre_graph.integrations.wave2.settings import WAVE2_SETTINGS
+from fin_graph.domain.tools import Domain, SideEffectLevel, read_tool_meta
+from fin_graph.integrations.base import IntegrationError
+from fin_graph.integrations.catalog import default_registry
+from fin_graph.integrations.wave2 import wave2_integrations
+from fin_graph.integrations.wave2.client import Wave2Client
+from fin_graph.integrations.wave2.settings import WAVE2_SETTINGS
 
 IDS = {
     "opsgenie",
@@ -259,7 +259,7 @@ def test_settings_reject_incomplete_or_unsafe_configuration() -> None:
 
 
 def test_registry_domains_include_wave2_logs() -> None:
-    from sre_graph.integrations.context import RunContext
+    from fin_graph.integrations.context import RunContext
 
     registry = default_registry(env_file=None)
     context = RunContext(clients={"splunk": object(), "argocd": object()})

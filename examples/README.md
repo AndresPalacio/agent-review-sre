@@ -64,14 +64,14 @@ uv run python examples/demo_agentes.py --inspect
 ### PyCharm: configuración compartida
 
 El repositorio incluye
-[SRE Graph - Orquestador offline](../.run/SRE%20Graph%20-%20Orquestador%20offline.run.xml).
-Usa el intérprete del módulo `sre-graph`, configurado en el proyecto como `uv (sre-graph)`.
+[Fin Graph - Orquestador offline](../.run/SRE%20Graph%20-%20Orquestador%20offline.run.xml).
+Usa el intérprete del módulo `fin-graph`, configurado en el proyecto como `uv (fin-graph)`.
 Si falta el entorno, ejecuta `uv sync` y selecciona `.venv/Scripts/python.exe`.
 
 1. Abre [demo_agentes.py](demo_agentes.py) y busca `# BREAKPOINT` en
    `inspect_checkpoint`. Pon el breakpoint en la siguiente línea ejecutable,
    `view: dict[str, Any] = {`.
-2. Selecciona **SRE Graph - Orquestador offline** y pulsa **Debug**.
+2. Selecciona **Fin Graph - Orquestador offline** y pulsa **Debug**.
 3. Inspecciona las variables `node`, `state` y `next_nodes`. Usa **Resume** para
    llegar al siguiente checkpoint. Con **Run** se imprime todo sin detenerse.
 4. Si quieres detenerte únicamente en la decisión de repetir, usa la condición
@@ -101,18 +101,18 @@ Para seguir una ejecución dentro de sus nodos, coloca breakpoints adicionales:
 | Archivo y función | Variables o acción que observar |
 |---|---|
 | [demo_agentes.py](demo_agentes.py), `DemoServices.plan` | `available`, `findings`, `self.round` y el plan que se propone. |
-| [graph.py](../src/sre_graph/graphs/investigation/graph.py), `plan` | `candidate`, `chosen`, `max_tasks`: cómo se restringe el plan. |
-| [graph.py](../src/sre_graph/graphs/investigation/graph.py), `dispatch` | `tasks` y los `Send` que despachan al especialista. |
-| [runner.py](../src/sre_graph/evals/runner.py), `ScriptedServices.investigate` | `name`, `args`, `result`: petición de tool, ejecución y observación. |
-| [fixtures.py](../src/sre_graph/evals/fixtures.py), `FixtureKubernetes.list_pods` | La herramienta obtiene datos locales en lugar de consultar un clúster. |
+| [graph.py](../src/fin_graph/graphs/investigation/graph.py), `plan` | `candidate`, `chosen`, `max_tasks`: cómo se restringe el plan. |
+| [graph.py](../src/fin_graph/graphs/investigation/graph.py), `dispatch` | `tasks` y los `Send` que despachan al especialista. |
+| [runner.py](../src/fin_graph/evals/runner.py), `ScriptedServices.investigate` | `name`, `args`, `result`: petición de tool, ejecución y observación. |
+| [fixtures.py](../src/fin_graph/evals/fixtures.py), `FixtureKubernetes.list_pods` | La herramienta obtiene datos locales en lugar de consultar un clúster. |
 | [demo_agentes.py](demo_agentes.py), `DemoServices.synthesize` | La primera cita es inexistente; la segunda usa evidencia recopilada. |
-| [graph.py](../src/sre_graph/graphs/investigation/graph.py), `after_verify` | Verificación, rondas, presupuesto y tiempo determinan si se repite. |
+| [graph.py](../src/fin_graph/graphs/investigation/graph.py), `after_verify` | Verificación, rondas, presupuesto y tiempo determinan si se repite. |
 
 Las pausas en `inspect_checkpoint` quedan fuera de los timeouts de los nodos.
 Al entrar dentro de un nodo sí aplica el timeout de la demo, fijado en 30 minutos.
 
 El modelo real usaría `LangChainServices.plan` en
-[services.py](../src/sre_graph/graphs/investigation/services.py). Esta demo sustituye
+[services.py](../src/fin_graph/graphs/investigation/services.py). Esta demo sustituye
 esa llamada por un plan guionado para que puedas repetir y depurar el recorrido
 sin credenciales. Las transiciones, filtros del plan, tools, verificador de citas,
 checkpoints y trazas del harness sí usan el código del proyecto.

@@ -6,9 +6,9 @@ from typing import Any
 
 import pytest
 
-from sre_graph.integrations.base import IntegrationError
-from sre_graph.integrations.wave2.helm import HelmClient
-from sre_graph.integrations.wave2.settings import HelmSettings
+from fin_graph.integrations.base import IntegrationError
+from fin_graph.integrations.wave2.helm import HelmClient
+from fin_graph.integrations.wave2.settings import HelmSettings
 
 
 class Reader:

@@ -22,12 +22,12 @@ from uuid import uuid4
 
 import httpx
 
-from sre_graph.config.tracing import disable_external_tracing
-from sre_graph.work.contracts import CancelWork, StartWork, UpdateWork, WorkView
-from sre_graph.work.engine import AgentServerEngine
-from sre_graph.work.policy import OpenAIDecisionPolicy, RulesPolicy
-from sre_graph.work.service import WorkService
-from sre_graph.work.store import WorkStore
+from fin_graph.config.tracing import disable_external_tracing
+from fin_graph.work.contracts import CancelWork, StartWork, UpdateWork, WorkView
+from fin_graph.work.engine import AgentServerEngine
+from fin_graph.work.policy import OpenAIDecisionPolicy, RulesPolicy
+from fin_graph.work.service import WorkService
+from fin_graph.work.store import WorkStore
 
 ROOT = Path(__file__).resolve().parents[1]
 ACTOR = "local-demo"
@@ -179,7 +179,7 @@ async def scenario(service: WorkService, args: argparse.Namespace) -> None:
     final = await wait_for(restarted, work.work_id, lambda view: view.status == "completed")
     assert final.revision == 2
     assert {c["agent_name"]: c["thread_id"] for c in final.children} == child_threads
-    if os.environ.get("SRE_ASYNC_MODEL", "offline") == "offline":
+    if os.environ.get("FIN_ASYNC_MODEL", "offline") == "offline":
         assert any(call["tool"] == "update_async_task" for call in final.decision_trace)
         assert "5m" in (final.result or "")
         assert "metrics" in (final.result or "") and "logs" in (final.result or "")
@@ -197,7 +197,7 @@ async def run(args: argparse.Namespace) -> None:
             import uvicorn
             from fastapi.responses import HTMLResponse
 
-            from sre_graph.work.api import create_app
+            from fin_graph.work.api import create_app
 
             app = create_app(service, actor=ACTOR)
             html = (ROOT / "examples" / "async_pilot.html").read_text(encoding="utf-8")

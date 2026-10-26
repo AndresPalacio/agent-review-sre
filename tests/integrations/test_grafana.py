@@ -3,11 +3,11 @@ from __future__ import annotations
 import httpx
 import pytest
 
-from sre_graph.domain.tools import SideEffectLevel, read_tool_meta
-from sre_graph.integrations.base import IntegrationError, VerifyStatus
-from sre_graph.integrations.grafana.client import GrafanaClient
-from sre_graph.integrations.grafana.integration import GrafanaIntegration
-from sre_graph.integrations.grafana.settings import GrafanaSettings
+from fin_graph.domain.tools import SideEffectLevel, read_tool_meta
+from fin_graph.integrations.base import IntegrationError, VerifyStatus
+from fin_graph.integrations.grafana.client import GrafanaClient
+from fin_graph.integrations.grafana.integration import GrafanaIntegration
+from fin_graph.integrations.grafana.settings import GrafanaSettings
 
 
 def test_grafana_is_disabled_until_configured() -> None:

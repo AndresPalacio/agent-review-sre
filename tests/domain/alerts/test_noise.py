@@ -4,8 +4,8 @@ from datetime import UTC, datetime
 
 import pytest
 
-from sre_graph.domain.alerts.model import AlertSource, Severity
-from sre_graph.domain.alerts.noise import AlertExtraction, alert_from_extraction, is_trivial_message
+from fin_graph.domain.alerts.model import AlertSource, Severity
+from fin_graph.domain.alerts.noise import AlertExtraction, alert_from_extraction, is_trivial_message
 
 
 @pytest.mark.parametrize(

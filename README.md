@@ -1,7 +1,7 @@
-# sre-graph
+# fin-graph
 
 Investigación multiagente de incidencias (RCA) construida de forma nativa sobre LangGraph.
-Diseño completo: [docs/specs/2026-10-07-sre-graph-design.md](docs/specs/2026-10-07-sre-graph-design.md).
+Diseño completo: [docs/specs/2026-10-07-fin-graph-design.md](docs/specs/2026-10-07-fin-graph-design.md).
 Guía de los patrones de agentes y del recorrido de una pregunta:
 [docs/arquitectura-agentes.md](docs/arquitectura-agentes.md).
 
@@ -13,7 +13,7 @@ panel en `http://127.0.0.1:8012`, modelo offline y datos sintéticos explícitos
 Las investigaciones del producto se ejecutan por defecto mediante el
 [runtime del harness](docs/better-harness.md#ejecución-predeterminada-del-producto):
 CLI, chat, API/UI, webhooks, gateways, tareas programadas y Studio comparten
-configuración, identidad de variante y trazas. `uv run sre-graph harness runtime`
+configuración, identidad de variante y trazas. `uv run fin-graph harness runtime`
 muestra la variante instalada y sus límites. La optimización train/holdout/scorecard
 es una operación explícita aparte; la ejecución habitual no requiere el extra `harness`.
 
@@ -82,7 +82,7 @@ chat; preparación y aprobación de remediaciones; automatizaciones e integracio
 El rol de la API key determina las operaciones disponibles. La clave se mantiene
 en memoria: al recargar la página o cerrar sesión debes introducirla de nuevo.
 
-Para desarrollo, inicia la API con `uv run sre-graph serve` y, en otra terminal:
+Para desarrollo, inicia la API con `uv run fin-graph serve` y, en otra terminal:
 
 ```powershell
 cd web
@@ -96,10 +96,10 @@ incluyas claves en variables `VITE_*` ni en URLs. El chat requiere un modelo
 configurado y las acciones requieren sus integraciones, igual que en API/CLI.
 
 Para servir todo desde FastAPI, ejecuta `npm run build` en `web/` antes de arrancar
-el servidor. El build genera `src/sre_graph/server/static`, ignorado por Git. La
+el servidor. El build genera `src/fin_graph/server/static`, ignorado por Git. La
 consola queda en `http://127.0.0.1:8000/`; `/v1`, `/docs` y health mantienen sus rutas.
 Antes de crear un wheel, compila también la UI; `uv build --wheel` incluye esos
-estáticos. `docker build -t sre-graph .` hace ambos pasos en una imagen multistage.
+estáticos. `docker build -t fin-graph .` hace ambos pasos en una imagen multistage.
 
 Las remediaciones se preparan por separado del RCA. Revisa los argumentos y el
 dry-run antes de aprobar; la UI vincula la decisión al interrupt mostrado y exige
@@ -136,13 +136,13 @@ reescribes, usa `Set-Content -Encoding utf8`.
 
 ```bash
 docker compose up -d --wait
-SRE_GRAPH_TEST_DATABASE_URL="postgresql://sre_graph:sre_graph@localhost:5433/sre_graph?connect_timeout=5" uv run pytest -m postgres
+FIN_GRAPH_TEST_DATABASE_URL="postgresql://fin_graph:fin_graph@localhost:5433/fin_graph?connect_timeout=5" uv run pytest -m postgres
 ```
 
 En PowerShell:
 
 ```powershell
-$env:SRE_GRAPH_TEST_DATABASE_URL = "postgresql://sre_graph:sre_graph@localhost:5433/sre_graph?connect_timeout=5"
+$env:FIN_GRAPH_TEST_DATABASE_URL = "postgresql://fin_graph:fin_graph@localhost:5433/fin_graph?connect_timeout=5"
 uv run pytest -m postgres
 ```
 
@@ -161,8 +161,8 @@ Studio exporta `investigation`, el mismo grafo del CLI, sin checkpointer propio.
 ## Investigación local
 
 ```powershell
-uv run sre-graph investigate --file .\alert.json
-uv run sre-graph investigate --text "checkout muestra errores 5xx"
+uv run fin-graph investigate --file .\alert.json
+uv run fin-graph investigate --text "checkout muestra errores 5xx"
 ```
 
 `--file` admite un objeto JSON de webhook o texto UTF-8 (máximo 1 MiB). Se puede
@@ -178,7 +178,7 @@ Un reporte verificado guarda un resumen compacto en la memoria de incidentes.
 La API requiere `DATABASE_URL` de Postgres y `BOOTSTRAP_ADMIN_KEY` aleatoria de al
 menos 32 caracteres en `.env`. La primera arrancada ejecuta la migración Alembic y
 crea el hash de la clave admin en `api_keys`. El valor secreto no se devuelve por la
-API. Inicia con `uv run sre-graph serve`; escucha solo en `127.0.0.1:8000` por
+API. Inicia con `uv run fin-graph serve`; escucha solo en `127.0.0.1:8000` por
 defecto. `GET /v1/health` y `/v1/ready` son públicos; las rutas de consulta usan
 `X-API-Key` y las de creación/reanudación requieren rol operator o superior. Un
 administrador puede generar claves viewer/operator/approver/admin con
@@ -222,12 +222,12 @@ credenciales de vendors reales está pendiente.
 
 ## Chat y remediación (fase 5)
 
-`uv run sre-graph ask "¿Qué ocurrió en checkout?"` hace una consulta local;
-`uv run sre-graph chat` abre el REPL con `/new`, `/threads`, `/resume`,
+`uv run fin-graph ask "¿Qué ocurrió en checkout?"` hace una consulta local;
+`uv run fin-graph chat` abre el REPL con `/new`, `/threads`, `/resume`,
 `/investigate`, `/approve`, `/integrations`, `/cost` y `/exit`. Los hilos locales
 se guardan en SQLite bajo el directorio de datos del usuario. Para usar la API,
 añade `--server https://servidor.example --api-key <clave>` o configura
-`SRE_GRAPH_API_KEY`; `--thread-id` retoma un hilo remoto. El REPL muestra la
+`FIN_GRAPH_API_KEY`; `--thread-id` retoma un hilo remoto. El REPL muestra la
 solicitud de aprobación antes de aceptar `/approve approve|reject|edit`.
 Si la solicitud contiene varias acciones, `approve` y `reject` resuelven todo el
 lote mostrado. `edit` requiere una sola acción pendiente; la edición de lotes se
@@ -282,9 +282,9 @@ el disparo manual requiere operator. La CLI usa la misma API y exige HTTPS fuera
 de loopback:
 
 ```powershell
-uv run sre-graph schedules list --server http://localhost:8000 --api-key <clave>
-uv run sre-graph schedules create .\schedule.json --server http://localhost:8000 --api-key <clave>
-uv run sre-graph schedules run cpu --server http://localhost:8000 --api-key <clave>
+uv run fin-graph schedules list --server http://localhost:8000 --api-key <clave>
+uv run fin-graph schedules create .\schedule.json --server http://localhost:8000 --api-key <clave>
+uv run fin-graph schedules run cpu --server http://localhost:8000 --api-key <clave>
 ```
 
 Un `schedule.json` de salud contiene, por ejemplo,
@@ -322,15 +322,15 @@ propone la evolución posterior con prioridades y criterios de aceptación.
 
 ```powershell
 uv sync --locked --extra harness
-uv run --extra harness sre-graph harness validate
-uv run --extra harness sre-graph harness smoke
+uv run --extra harness fin-graph harness validate
+uv run --extra harness fin-graph harness smoke
 ```
 
 Smoke comprueba el funcionamiento del circuito; medir mejoras reales requiere
 credenciales del modelo. Ninguna variante se despliega automáticamente.
 
 ```powershell
-uv run sre-graph eval run --suite smoke --model scripted --output-dir .eval-results
+uv run fin-graph eval run --suite smoke --model scripted --output-dir .eval-results
 ```
 
 El smoke ejecuta el grafo y una lectura real de tool sobre cada uno de tres escenarios,
@@ -340,7 +340,7 @@ sin credenciales y **no mide la calidad RCA**: su diagnóstico es `unknown`
 deliberadamente. La suite completa también corre en CI.
 
 Para medir el modelo, configura la variable de credenciales del proveedor y ejecuta,
-por ejemplo, `uv run sre-graph eval run --suite all --model provider:model-name
+por ejemplo, `uv run fin-graph eval run --suite all --model provider:model-name
 --repeat 3 --output-dir .eval-results`. `eks` tiene 14 casos, `rds` 22 y `all` 36.
 Los runs con credenciales faltantes se registran como `blocked`; las fallas de un caso
 no detienen el resto. La evaluación solo usa fixtures locales; no activa integraciones
@@ -354,7 +354,7 @@ un `--answer-file` independiente y `--reviewer`. El formato versionado guarda
 argumentos y resultados redactados. `eval replay` ejecuta el grafo contra esas
 lecturas exactas: una llamada desconocida falla y no consulta integraciones reales.
 `eval compare baseline.json current.json` rechaza resultados incompletos, scripted,
-datasets distintos o regresiones. Consulta `uv run sre-graph eval --help` y la
+datasets distintos o regresiones. Consulta `uv run fin-graph eval --help` y la
 [guía de aceptación](docs/phase8-acceptance.md).
 
 ## Integraciones
@@ -373,10 +373,10 @@ integraciones nativas; los secretos se piden sin mostrarlos y la escritura de `.
 es atómica. `--verify` comprueba las credenciales propuestas antes de guardar:
 
 ```powershell
-uv run sre-graph integrations list
-uv run sre-graph integrations verify
-uv run sre-graph integrations setup prometheus --env-file .env --dry-run
-uv run sre-graph integrations setup prometheus --env-file .env --verify
+uv run fin-graph integrations list
+uv run fin-graph integrations verify
+uv run fin-graph integrations setup prometheus --env-file .env --dry-run
+uv run fin-graph integrations setup prometheus --env-file .env --verify
 ```
 
 También están disponibles Opsgenie, incident.io, Jira, Honeycomb, Elasticsearch,
@@ -387,7 +387,7 @@ Para usar el registro desde Python:
 
 ```python
 import asyncio
-from sre_graph.integrations.catalog import default_registry
+from fin_graph.integrations.catalog import default_registry
 
 
 async def main():

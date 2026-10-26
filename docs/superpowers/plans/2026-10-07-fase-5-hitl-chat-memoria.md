@@ -8,7 +8,7 @@
 
 **Tech Stack:** Python 3.12, LangGraph 1.2, LangChain 1.4, FastAPI, Typer, Postgres/SQLite/InMemory Store, pytest.
 
-**Spec:** `docs/specs/2026-10-07-sre-graph-design.md` (Fase 5, secciones de remediación, chat, memoria y superficies).
+**Spec:** `docs/specs/2026-10-07-fin-graph-design.md` (Fase 5, secciones de remediación, chat, memoria y superficies).
 
 ## Global Constraints
 
@@ -32,7 +32,7 @@
 
 ### Task 1: Modelo y catálogo de acciones mutantes
 
-**Files:** `src/sre_graph/domain/remediation.py`, `src/sre_graph/integrations/*/{client,tools}.py`, `tests/domain/test_remediation.py`, `tests/integrations/test_mutations.py`.
+**Files:** `src/fin_graph/domain/remediation.py`, `src/fin_graph/integrations/*/{client,tools}.py`, `tests/domain/test_remediation.py`, `tests/integrations/test_mutations.py`.
 
 **Interfaces:** `RemediationAction` existente; `ActionCatalog.prepare(action, context) -> PreparedAction`; `ActionCatalog.execute(prepared, idempotency_key, context) -> ActionResult`; herramientas con `ToolMeta.side_effect_level` explícito.
 
@@ -44,7 +44,7 @@
 
 ### Task 2: Subgrafo HITL durable y superficie de aprobación
 
-**Files:** `src/sre_graph/graphs/remediation/{__init__,graph,state}.py`, `src/sre_graph/server/{manager,app}.py`, `tests/graphs/remediation/test_graph.py`, `tests/server/test_approvals.py`.
+**Files:** `src/fin_graph/graphs/remediation/{__init__,graph,state}.py`, `src/fin_graph/server/{manager,app}.py`, `tests/graphs/remediation/test_graph.py`, `tests/server/test_approvals.py`.
 
 **Interfaces:** `make_remediation_graph(catalog, policy, checkpointer)`; `RunManager.approve(thread_id, decision, actor)`; `POST /v1/threads/{thread_id}/approve`.
 
@@ -56,7 +56,7 @@
 
 ### Task 3: Memoria y fuentes confiables
 
-**Files:** `src/sre_graph/memory/{__init__,service}.py`, `src/sre_graph/runbooks/{__init__,catalog}.py`, `src/sre_graph/skills/{__init__,catalog}.py`, `src/sre_graph/graphs/investigation/graph.py`, `tests/memory/test_service.py`, `tests/graphs/investigation/test_memory.py`.
+**Files:** `src/fin_graph/memory/{__init__,service}.py`, `src/fin_graph/runbooks/{__init__,catalog}.py`, `src/fin_graph/skills/{__init__,catalog}.py`, `src/fin_graph/graphs/investigation/graph.py`, `tests/memory/test_service.py`, `tests/graphs/investigation/test_memory.py`.
 
 **Interfaces:** `IncidentMemory.save_incident(report)`, `search_incidents(query, limit)`, `save_note(text)`, `load_runbook(id)`, `load_skill(id)`; namespaces del diseño.
 
@@ -66,7 +66,7 @@
 
 ### Task 4: Agente de chat con HITL
 
-**Files:** `src/sre_graph/graphs/chat/{__init__,graph,tools,prompts}.py`, `src/sre_graph/agents/middleware/*`, `tests/graphs/chat/test_chat.py`.
+**Files:** `src/fin_graph/graphs/chat/{__init__,graph,tools,prompts}.py`, `src/fin_graph/agents/middleware/*`, `tests/graphs/chat/test_chat.py`.
 
 **Interfaces:** `make_chat_graph(model, registry, memory, investigation, checkpointer, store, policy)`; herramientas `ask_<domain>`, `investigate`, `search_incident_memory`, `save_note`, `load_runbook`, `load_skill`; middleware LangChain y propios.
 
@@ -76,9 +76,9 @@
 
 ### Task 5: API SSE y CLI REPL
 
-**Files:** `src/sre_graph/server/{app,manager}.py`, `src/sre_graph/cli/{main,chat}.py`, `pyproject.toml`, `tests/server/test_chat_api.py`, `tests/cli/test_chat.py`.
+**Files:** `src/fin_graph/server/{app,manager}.py`, `src/fin_graph/cli/{main,chat}.py`, `pyproject.toml`, `tests/server/test_chat_api.py`, `tests/cli/test_chat.py`.
 
-**Interfaces:** `POST /v1/chat/threads/{thread_id}/messages` SSE; `sre-graph ask`, `sre-graph chat` con `/new /threads /resume /investigate /approve /integrations /cost /exit`.
+**Interfaces:** `POST /v1/chat/threads/{thread_id}/messages` SSE; `fin-graph ask`, `fin-graph chat` con `/new /threads /resume /investigate /approve /integrations /cost /exit`.
 
 - [ ] Probar autenticación, streaming, interrupción, reanudación y comandos offline.
 - [ ] Confirmar fallos iniciales; implementar API y REPL con persistencia SQLite local o servidor configurado.

@@ -4,7 +4,7 @@ import json
 
 import pytest
 
-from sre_graph.safety.secrets import redact_secrets, redact_text, redact_value
+from fin_graph.safety.secrets import redact_secrets, redact_text, redact_value
 
 # Built at runtime so this file holds no string that looks like a real credential.
 AWS_KEY = "AKIA" + "ABCDEFGHIJKLMNOP"
@@ -169,3 +169,25 @@ def test_common_credential_formats_are_redacted(text: str, secret: str, kept: st
 )
 def test_words_that_only_look_like_credential_names_are_left_alone(text: str) -> None:
     assert redact_secrets(text) == text
+
+
+def test_broker_and_market_data_credentials_are_redacted() -> None:
+    text = (
+        "APCA-API-KEY-ID: PKABCDEF1234567890XY APCA-API-SECRET-KEY=abcDEF123/xyz+987 "
+        "plaid access-sandbox-1a2b3c4d-1111-2222-3333-444455556666 "
+        "iex pk_0123456789abcdef0123456789abcdef "
+        "X-API-KEY: fdk_live_123456 https://api.polygon.io/v2?apiKey=Abc123Def456"
+    )
+
+    redacted = redact_secrets(text)
+
+    for secret in (
+        "PKABCDEF1234567890XY",
+        "abcDEF123/xyz+987",
+        "1a2b3c4d-1111",
+        "0123456789abcdef0123",
+        "fdk_live_123456",
+        "Abc123Def456",
+    ):
+        assert secret not in redacted, secret
+    assert redact_secrets("AAPL MSFT PKG AKAM") == "AAPL MSFT PKG AKAM"

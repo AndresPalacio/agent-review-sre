@@ -9,10 +9,10 @@ import pytest
 from langsmith import utils as langsmith_utils
 from sqlalchemy.ext.asyncio import create_async_engine
 
-from sre_graph.server.app import create_app
-from sre_graph.server.manager import RunManager
-from sre_graph.server.security import WebhookVerifier
-from sre_graph.server.storage import Base, Storage
+from fin_graph.server.app import create_app
+from fin_graph.server.manager import RunManager
+from fin_graph.server.security import WebhookVerifier
+from fin_graph.server.storage import Base, Storage
 
 
 def test_server_disables_external_tracing(tracing_enabled_by_environment: None) -> None:
@@ -51,7 +51,7 @@ async def test_failed_submit_releases_claimed_fingerprint(
             "/v1/alerts/alertmanager", json=payload, headers={"x-sre-webhook-token": "token"}
         )
         assert response.status_code == 500
-        from sre_graph.domain.alerts.parsing import parse_alert
+        from fin_graph.domain.alerts.parsing import parse_alert
 
         fingerprint = parse_alert(payload, source_hint="alertmanager").fingerprint
         assert await storage.fingerprint_thread("alertmanager", fingerprint) is None
@@ -59,7 +59,7 @@ async def test_failed_submit_releases_claimed_fingerprint(
 
 
 async def test_retention_retries_after_listing_error(monkeypatch: pytest.MonkeyPatch) -> None:
-    app_module = importlib.import_module("sre_graph.server.app")
+    app_module = importlib.import_module("fin_graph.server.app")
 
     async def no_delay(_: float) -> None:
         return None
@@ -77,7 +77,7 @@ async def test_retention_retries_after_listing_error(monkeypatch: pytest.MonkeyP
 
     storage = StorageStub()
     manager = type("Manager", (), {"storage": storage})()
-    from sre_graph.server.config import ServerConfig
+    from fin_graph.server.config import ServerConfig
 
     with pytest.raises(asyncio.CancelledError):
         await app_module._retention_loop(manager, object(), ServerConfig(_env_file=None))

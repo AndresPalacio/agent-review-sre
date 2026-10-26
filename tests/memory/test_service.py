@@ -3,7 +3,7 @@ from __future__ import annotations
 from langchain_core.embeddings import Embeddings
 from langgraph.store.memory import InMemoryStore
 
-from sre_graph.memory.service import IncidentMemory
+from fin_graph.memory.service import IncidentMemory
 
 
 async def test_recall_incident_by_metadata_without_embeddings() -> None:

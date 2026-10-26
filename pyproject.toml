@@ -1,7 +1,7 @@
 [project]
-name = "sre-graph"
+name = "fin-graph"
 version = "0.1.0"
-description = "Multi-agent incident investigation (RCA) built natively on LangGraph"
+description = "Multi-agent financial analysis and paper trading built natively on LangGraph"
 readme = "README.md"
 requires-python = ">=3.12,<3.13"
 license = "Apache-2.0"
@@ -35,10 +35,11 @@ dependencies = [
     "apscheduler>=3.11.3,<4",
     "slack-bolt>=1.27,<2",
     "aiohttp>=3.13,<4",
+    "langchain-ollama>=1.1.0,<2",
 ]
 
 [project.scripts]
-sre-graph = "sre_graph.cli.main:main"
+fin-graph = "fin_graph.cli.main:main"
 
 [project.optional-dependencies]
 agents = [
@@ -72,10 +73,10 @@ requires = ["hatchling>=1.27"]
 build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/sre_graph"]
+packages = ["src/fin_graph"]
 
 [tool.hatch.build]
-artifacts = ["src/sre_graph/server/static/**"]
+artifacts = ["src/fin_graph/server/static/**"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
@@ -83,7 +84,8 @@ addopts = "-ra --import-mode=importlib -p no:langsmith_plugin"
 asyncio_mode = "auto"
 asyncio_default_fixture_loop_scope = "function"
 markers = [
-    "postgres: needs SRE_GRAPH_TEST_DATABASE_URL pointing at Postgres with pgvector",
+    "postgres: needs FIN_GRAPH_TEST_DATABASE_URL pointing at Postgres with pgvector",
+    "ollama: needs a local Ollama server (OLLAMA_BASE_URL) with llama3.2:3b pulled",
 ]
 
 [tool.ruff]
@@ -100,7 +102,7 @@ python_version = "3.12"
 strict = true
 plugins = ["pydantic.mypy"]
 mypy_path = "src"
-packages = ["sre_graph"]
+packages = ["fin_graph"]
 # The Kubernetes SDK types its API classes but not its kubeconfig loaders.
 untyped_calls_exclude = ["kubernetes.config"]
 
@@ -113,19 +115,19 @@ module = ["better_harness.*"]
 ignore_missing_imports = true
 
 [tool.importlinter]
-root_package = "sre_graph"
+root_package = "fin_graph"
 
 [[tool.importlinter.contracts]]
-name = "sre-graph layers (dependencies point downward only)"
+name = "fin-graph layers (dependencies point downward only)"
 type = "layers"
 layers = [
-    "sre_graph.graphs",
-    "sre_graph.agents",
-    "sre_graph.integrations",
-    "sre_graph.safety",
-    "sre_graph.domain",
-    "sre_graph.llm | sre_graph.persistence",
-    "sre_graph.config",
+    "fin_graph.graphs",
+    "fin_graph.agents",
+    "fin_graph.integrations",
+    "fin_graph.safety",
+    "fin_graph.domain",
+    "fin_graph.llm | fin_graph.persistence",
+    "fin_graph.config",
 ]
 
 [tool.uv.sources]

@@ -9,10 +9,10 @@ import pytest
 from langchain_core.messages import ToolMessage
 from langchain_core.tools import tool
 
-from sre_graph.domain.tools import Domain, EvidenceType, SideEffectLevel, ToolMeta, attach_tool_meta
-from sre_graph.graphs.investigation.specialists import read_tools
-from sre_graph.integrations.mcp.runtime import _bounded_tool, with_configured_mcp
-from sre_graph.integrations.registry import IntegrationRegistry
+from fin_graph.domain.tools import Domain, EvidenceType, SideEffectLevel, ToolMeta, attach_tool_meta
+from fin_graph.graphs.investigation.specialists import read_tools
+from fin_graph.integrations.mcp.runtime import _bounded_tool, with_configured_mcp
+from fin_graph.integrations.registry import IntegrationRegistry
 
 
 class Adapter:

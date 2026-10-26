@@ -9,8 +9,8 @@ Requisitos futuros: Docker funcionando; kind, kubectl y Helm en PATH; credencial
 ```powershell
 uv run python scripts/phase8_acceptance.py preflight
 uv run python scripts/phase8_acceptance.py load
-uv run sre-graph integrations setup --help
-uv run sre-graph eval run --help
+uv run fin-graph integrations setup --help
+uv run fin-graph eval run --help
 ```
 
 Copia `.env.example` a `.env` únicamente si `.env` todavía no existe. Introduce credenciales por un mecanismo local seguro; no las incluyas en comandos, archivos versionados o capturas. Configura `LLM_PROVIDER` y modelos por rol que el proveedor confirme disponibles; deja `LANGSMITH_TRACING=false`, `AUTO_APPROVE_TOOLS` vacío, y una clave `BOOTSTRAP_ADMIN_KEY` aleatoria de al menos 32 caracteres. El servidor requiere `DATABASE_URL` Postgres. La copia del ejemplo contiene una URL local para `docker compose`; eso no verifica conectividad.
@@ -18,14 +18,14 @@ Copia `.env.example` a `.env` únicamente si `.env` todavía no existe. Introduc
 El wizard valida y cambia únicamente los campos propuestos. Ejemplo sin secretos para Kubernetes, guardado por el operador como `kubernetes.sandbox.json`:
 
 ```json
-{"enabled":true,"kubeconfig":"C:/ruta/al/kubeconfig-sandbox","context":"kind-sre-graph-sandbox","verify_namespace":"sre-demo"}
+{"enabled":true,"kubeconfig":"C:/ruta/al/kubeconfig-sandbox","context":"kind-fin-graph-sandbox","verify_namespace":"sre-demo"}
 ```
 
 ```powershell
-uv run sre-graph integrations setup kubernetes --env-file .env --input-file kubernetes.sandbox.json --dry-run
-uv run sre-graph integrations setup kubernetes --env-file .env --input-file kubernetes.sandbox.json --verify
-uv run sre-graph integrations list --env-file .env
-uv run sre-graph integrations verify --env-file .env
+uv run fin-graph integrations setup kubernetes --env-file .env --input-file kubernetes.sandbox.json --dry-run
+uv run fin-graph integrations setup kubernetes --env-file .env --input-file kubernetes.sandbox.json --verify
+uv run fin-graph integrations list --env-file .env
+uv run fin-graph integrations verify --env-file .env
 ```
 
 Para Prometheus/Loki usa sus URLs reales accesibles desde el proceso Python, incluyendo puertos reenviados si procede. Un archivo de setup puede referenciar un secreto mediante `{"token":{"env":"SANDBOX_PROMETHEUS_TOKEN"}}`; nunca escribas el token literal en el archivo. Usa `--verify` únicamente cuando ya hayas elegido consultar ese sandbox. Las integraciones no configuradas permanecen desactivadas. Consulta [wave2](integrations-wave2.md) para campos nuevos; listar/verificar MCP con `--mcp-config` puede iniciar los servidores MCP configurados, por lo que se debe usar solo con configuración revisada.
@@ -37,9 +37,9 @@ Los escenarios usan fixtures de integraciones; el modelo real sí llama al prove
 ```powershell
 $Model = '<provider:model confirmado por el operador>'
 $Judge = '<provider:model del juez confirmado>'
-uv run sre-graph eval run --suite all --model $Model --judge-model $Judge --repeat 3 --output-dir .eval-results/sandbox-baseline
-uv run sre-graph eval run --suite all --model $Model --judge-model $Judge --repeat 3 --output-dir .eval-results/sandbox-current
-uv run sre-graph eval compare .eval-results/sandbox-baseline/results.json .eval-results/sandbox-current/results.json
+uv run fin-graph eval run --suite all --model $Model --judge-model $Judge --repeat 3 --output-dir .eval-results/sandbox-baseline
+uv run fin-graph eval run --suite all --model $Model --judge-model $Judge --repeat 3 --output-dir .eval-results/sandbox-current
+uv run fin-graph eval compare .eval-results/sandbox-baseline/results.json .eval-results/sandbox-current/results.json
 ```
 
 `all` cubre los 36 escenarios. Revisa que cada resultado tenga 108 intentos completados, cero fallos/bloqueos y `baseline_eligible=true`, con scores/citas/trayectorias, tokens y latencia registrados cuando disponibles. El primer baseline debe revisarse frente a las referencias independientes; conservar un baseline malo no demuestra calidad. Comparar exige mismo corpus/fingerprint, suite, modelos y repeticiones; una regresión devuelve exit no cero. Resultados `scripted` nunca sirven de baseline de calidad. Para una investigación real grabada, usa `eval record --answer-file ... --reviewer ...` con una respuesta suministrada independientemente del RCA, y `eval replay` para lecturas estrictas; no derives ground truth del reporte del agente.
@@ -49,17 +49,17 @@ uv run sre-graph eval compare .eval-results/sandbox-baseline/results.json .eval-
 Estos son comandos futuros de creación/modificación de un sandbox, no ejecutados por esta sesión. Verifica antes que el contexto indicado corresponde al sandbox elegido:
 
 ```powershell
-kind create cluster --name sre-graph-sandbox
-kubectl --context kind-sre-graph-sandbox create namespace sre-demo
-kubectl --context kind-sre-graph-sandbox cluster-info
+kind create cluster --name fin-graph-sandbox
+kubectl --context kind-fin-graph-sandbox create namespace sre-demo
+kubectl --context kind-fin-graph-sandbox cluster-info
 ```
 
 Instala kube-prometheus-stack y Loki mediante charts locales previamente revisados y versiones fijadas por el operador. No se proporcionan números de versión ni values universales: dependen del Kubernetes elegido. Conserva los paquetes, imágenes/digests y values para repetir el experimento:
 
 ```powershell
-helm upgrade --install monitoring '<ruta-chart-kube-prometheus-stack-fijado>' --kube-context kind-sre-graph-sandbox --namespace sre-demo -f '<values-monitoring-sandbox.yaml>' --wait
-helm upgrade --install logs '<ruta-chart-Loki-fijado>' --kube-context kind-sre-graph-sandbox --namespace sre-demo -f '<values-Loki-sandbox.yaml>' --wait
-kubectl --context kind-sre-graph-sandbox -n sre-demo get pods,services
+helm upgrade --install monitoring '<ruta-chart-kube-prometheus-stack-fijado>' --kube-context kind-fin-graph-sandbox --namespace sre-demo -f '<values-monitoring-sandbox.yaml>' --wait
+helm upgrade --install logs '<ruta-chart-Loki-fijado>' --kube-context kind-fin-graph-sandbox --namespace sre-demo -f '<values-Loki-sandbox.yaml>' --wait
+kubectl --context kind-fin-graph-sandbox -n sre-demo get pods,services
 ```
 
 Configura el colector de logs compatible con tu Loki para ingerir stdout del namespace. Descubre los Services creados por esos charts y usa port-forward hacia el proceso Python; no presupongas sus nombres. Configura y verifica Prometheus y Loki con el wizard. Debe existir evidencia de consultas sanas y logs del workload antes de inyectar el fallo.
@@ -68,12 +68,12 @@ Despliega un workload pequeño con una imagen conocida y fijada, guardando su YA
 
 ```powershell
 $ImageGood = '<imagen:tag o digest revisado>'
-kubectl --context kind-sre-graph-sandbox -n sre-demo create deployment checkout --image=$ImageGood
-kubectl --context kind-sre-graph-sandbox -n sre-demo rollout status deployment/checkout --timeout=120s
-kubectl --context kind-sre-graph-sandbox -n sre-demo rollout history deployment/checkout
+kubectl --context kind-fin-graph-sandbox -n sre-demo create deployment checkout --image=$ImageGood
+kubectl --context kind-fin-graph-sandbox -n sre-demo rollout status deployment/checkout --timeout=120s
+kubectl --context kind-fin-graph-sandbox -n sre-demo rollout history deployment/checkout
 ```
 
-Añade una regla Prometheus que detecte replicas no disponibles del deployment y labels `service=checkout`, `namespace=sre-demo`, `cluster=sre-graph-sandbox`. Inyecta exclusivamente en ese deployment una imagen inexistente que el operador elija. Conserva las revisiones sana y fallida y los eventos `ImagePullBackOff`/`ErrImagePull`. No asumas números de revisión: consulta rollout history y la anotación actual.
+Añade una regla Prometheus que detecte replicas no disponibles del deployment y labels `service=checkout`, `namespace=sre-demo`, `cluster=fin-graph-sandbox`. Inyecta exclusivamente en ese deployment una imagen inexistente que el operador elija. Conserva las revisiones sana y fallida y los eventos `ImagePullBackOff`/`ErrImagePull`. No asumas números de revisión: consulta rollout history y la anotación actual.
 
 ## Webhook, UI, reporte y aprobación
 
@@ -81,7 +81,7 @@ Arranca Postgres local y el servidor con la configuración de sandbox. Compila l
 
 ```powershell
 docker compose up -d --wait
-uv run sre-graph serve
+uv run fin-graph serve
 ```
 
 Configura `WEBHOOK_TOKENS` para `alertmanager` y selecciona una URL `/v1/alerts/alertmanager` accesible desde el cluster. El verificador requiere `X-SRE-Webhook-Token`: si la configuración de Alertmanager elegida no permite ese header, usa un proxy de entrada controlado que lo añada desde un Secret y limite origen/ruta; no desactives autenticación ni presupongas que un header Authorization es equivalente. Comprueba la conectividad cluster a API y registra que fue **Alertmanager**, no un POST manual, quien disparó la investigación.

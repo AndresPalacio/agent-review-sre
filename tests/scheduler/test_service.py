@@ -7,7 +7,7 @@ import pytest
 from apscheduler.jobstores.memory import MemoryJobStore
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
-from sre_graph.scheduler.service import SchedulerService, validate_schedule
+from fin_graph.scheduler.service import SchedulerService, validate_schedule
 
 
 class FakeLease:

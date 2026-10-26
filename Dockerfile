@@ -13,10 +13,10 @@ WORKDIR /app
 RUN pip install --no-cache-dir uv
 COPY pyproject.toml uv.lock README.md ./
 COPY src ./src
-COPY --from=web-build /app/src/sre_graph/server/static ./src/sre_graph/server/static
+COPY --from=web-build /app/src/fin_graph/server/static ./src/fin_graph/server/static
 RUN uv sync --frozen --no-dev --no-editable
 
-RUN useradd --system --create-home sregraph
-USER sregraph
+RUN useradd --system --create-home fingraph
+USER fingraph
 EXPOSE 8000
-CMD ["uv", "run", "--no-sync", "uvicorn", "sre_graph.server.asgi:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["uv", "run", "--no-sync", "uvicorn", "fin_graph.server.asgi:app", "--host", "0.0.0.0", "--port", "8000"]

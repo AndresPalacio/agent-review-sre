@@ -4,7 +4,7 @@ import httpx
 from fastapi import FastAPI, Request
 from fastapi.responses import Response, StreamingResponse
 
-from sre_graph.server.http_guards import HttpGuards, install_http_guards
+from fin_graph.server.http_guards import HttpGuards, install_http_guards
 
 
 async def test_limits_body_before_handler_and_sets_response_boundaries() -> None:

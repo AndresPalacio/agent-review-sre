@@ -3,11 +3,11 @@ from __future__ import annotations
 import httpx
 import pytest
 
-from sre_graph.domain.tools import Domain, SideEffectLevel, read_tool_meta
-from sre_graph.integrations.base import IntegrationError, VerifyStatus
-from sre_graph.integrations.sentry.client import SentryClient
-from sre_graph.integrations.sentry.integration import SentryIntegration
-from sre_graph.integrations.sentry.settings import SentrySettings
+from fin_graph.domain.tools import Domain, SideEffectLevel, read_tool_meta
+from fin_graph.integrations.base import IntegrationError, VerifyStatus
+from fin_graph.integrations.sentry.client import SentryClient
+from fin_graph.integrations.sentry.integration import SentryIntegration
+from fin_graph.integrations.sentry.settings import SentrySettings
 
 
 def test_sentry_needs_org_and_token_only_when_enabled() -> None:

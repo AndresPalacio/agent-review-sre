@@ -4,8 +4,8 @@ from typing import Any
 
 import pytest
 
-from sre_graph.harness import runtime
-from sre_graph.integrations.registry import IntegrationRegistry
+from fin_graph.harness import runtime
+from fin_graph.integrations.registry import IntegrationRegistry
 
 
 @pytest.mark.parametrize("studio", [False, True])
