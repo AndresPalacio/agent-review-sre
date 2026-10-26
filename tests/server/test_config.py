@@ -15,20 +15,20 @@ def test_server_requires_postgres_and_explicit_cors() -> None:
     assert config.cors_origins == ("https://a.example", "https://b.example")
 
 
-def test_alert_routes_are_loaded_from_json_environment(monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setenv("ALERT_DELIVERY_ROUTES", '{"default":{"slack":"C1"}}')
-    assert ServerConfig(_env_file=None).alert_delivery_routes == {"default": {"slack": "C1"}}
+def test_signal_routes_are_loaded_from_json_environment(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("SIGNAL_DELIVERY_ROUTES", '{"default":{"slack":"C1"}}')
+    assert ServerConfig(_env_file=None).signal_delivery_routes == {"default": {"slack": "C1"}}
 
 
 @pytest.mark.parametrize(
     "routes",
     [
         {"urgent": {"slack": "C1"}},
-        {"default": {"email": "ops@example.com"}},
-        {"critical": {"slack": " "}},
+        {"default": {"email": "trader@example.com"}},
+        {"tradingview": {"slack": " "}},
         {"default": {"telegram": "1" * 129}},
     ],
 )
-def test_alert_routes_reject_invalid_severity_channels_and_destinations(routes) -> None:
+def test_signal_routes_reject_unknown_sources_channels_and_destinations(routes) -> None:
     with pytest.raises(ValueError):
-        ServerConfig(_env_file=None, alert_delivery_routes=routes)
+        ServerConfig(_env_file=None, signal_delivery_routes=routes)

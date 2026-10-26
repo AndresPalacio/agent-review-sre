@@ -1,71 +1,49 @@
 from __future__ import annotations
 
+import hashlib
+import hmac
+import json
 from pathlib import Path
 
-import httpx
-from langgraph.checkpoint.memory import InMemorySaver
-from sqlalchemy.ext.asyncio import create_async_engine
+from tests.server.finance_app import (
+    AS_OF,
+    REQUEST,
+    analysis_manager,
+    client_for,
+    fixture_context,
+    make_storage,
+)
 
-from fin_graph.domain.alerts.model import AlertSource
-from fin_graph.graphs.investigation.graph import make_investigation_graph
-from fin_graph.graphs.investigation.services import UnavailableServices
-from fin_graph.integrations.context import RunContext
-from fin_graph.integrations.registry import IntegrationRegistry
 from fin_graph.server.app import create_app
-from fin_graph.server.manager import RunManager
 from fin_graph.server.security import WebhookVerifier
-from fin_graph.server.storage import Base, Storage
+
+TRADINGVIEW = {
+    "ticker": "NASDAQ:DEEP",
+    "exchange": "NASDAQ",
+    "interval": "1D",
+    "close": 8.0,
+    "time": f"{AS_OF}T20:00:00Z",
+    "message": "cruce de medias",
+}
 
 
-async def test_alertmanager_to_report_sse_dedupe_and_auth(tmp_path: Path) -> None:
-    engine = create_async_engine(f"sqlite+aiosqlite:///{tmp_path / 'api.sqlite'}")
-    async with engine.begin() as connection:
-        await connection.run_sync(Base.metadata.create_all)
-    storage = Storage(engine)
-    await storage.put_key("operator-key", "operator")
-    await storage.put_key("viewer-key", "viewer")
-    await storage.put_key("admin-key", "admin")
-    registry = IntegrationRegistry([], env_file=None)
-    graph = make_investigation_graph(UnavailableServices(), registry, checkpointer=InMemorySaver())
-    manager = RunManager(graph, storage, RunContext, max_concurrent=1)
+async def test_signal_to_report_sse_dedupe_and_auth(tmp_path: Path) -> None:
+    engine, storage = await make_storage(tmp_path / "api.sqlite")
+    manager = analysis_manager(storage, fixture_context(), max_concurrent=1)
     app = create_app(
         manager=manager,
-        registry=registry,
-        verifier=WebhookVerifier(
-            tokens={
-                "alertmanager": "webhook-key",
-                "grafana": "grafana-key",
-            }
-        ),
+        verifier=WebhookVerifier(tokens={"tradingview": "tv-key", "generic": "generic-key"}),
     )
-    alert = {
-        "version": "4",
-        "groupKey": "g",
-        "status": "firing",
-        "commonLabels": {"alertname": "HighCPU", "service": "checkout"},
-        "alerts": [
-            {
-                "status": "firing",
-                "labels": {"alertname": "HighCPU"},
-                "startsAt": "2026-10-07T10:00:00Z",
-            }
-        ],
-    }
-    async with (
-        app.router.lifespan_context(app),
-        httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://test") as client,
-    ):
+    async with client_for(app) as client:
         assert (await client.get("/v1/threads")).status_code == 401
         assert (
             await client.post(
-                "/v1/investigations", json={"text": "x"}, headers={"x-api-key": "viewer-key"}
+                "/v1/analyses", json={"text": "x"}, headers={"x-api-key": "viewer-key"}
             )
         ).status_code == 403
         assert (
             await client.post(
-                "/v1/api-keys",
-                json={"role": "viewer"},
-                headers={"x-api-key": "operator-key"},
+                "/v1/api-keys", json={"role": "viewer"}, headers={"x-api-key": "operator-key"}
             )
         ).status_code == 403
         created_key = await client.post(
@@ -75,31 +53,34 @@ async def test_alertmanager_to_report_sse_dedupe_and_auth(tmp_path: Path) -> Non
         assert (
             await client.get("/v1/threads", headers={"x-api-key": created_key.json()["key"]})
         ).status_code == 200
-        assert (await client.post("/v1/alerts/alertmanager", json=alert)).status_code == 401
+        assert (await client.post("/v1/signals/tradingview", json=TRADINGVIEW)).status_code == 401
         assert (
-            await client.post("/v1/alerts/alertmanager", content=b"not-json")
+            await client.post("/v1/signals/tradingview", content=b"not-json")
         ).status_code == 401
         assert (
             await client.post(
-                "/v1/alerts/grafana",
-                json=alert,
-                headers={"x-sre-webhook-token": "grafana-key"},
+                "/v1/signals/generic",
+                json={"message": "sin ticker"},
+                headers={"x-fin-webhook-token": "generic-key"},
             )
         ).status_code == 422
-        headers = {"x-sre-webhook-token": "webhook-key"}
-        response = await client.post("/v1/alerts/alertmanager", json=alert, headers=headers)
+        headers = {"x-fin-webhook-token": "tv-key"}
+        response = await client.post("/v1/signals/tradingview", json=TRADINGVIEW, headers=headers)
         assert response.status_code == 202, response.text
         run = response.json()
         await manager.wait(run["run_id"])
-        report = await client.get(
-            f"/v1/investigations/{run['thread_id']}", headers={"x-api-key": "viewer-key"}
+        detail = await client.get(
+            f"/v1/analyses/{run['thread_id']}", headers={"x-api-key": "viewer-key"}
         )
-        assert report.status_code == 200
-        assert report.json()["report"]["alert"]["title"] == "HighCPU"
+        assert detail.status_code == 200
+        report = detail.json()["report"]
+        assert report["request"]["source"] == "tradingview"
+        assert [section["ticker"] for section in report["sections"]] == ["DEEP"]
+        assert "cruce de medias" in report["request"]["trigger"]
         stream = await client.get(
             f"/v1/threads/{run['thread_id']}/stream", headers={"x-api-key": "viewer-key"}
         )
-        assert "event: stage" in stream.text
+        assert "event: stage" in stream.text and "event: analyst" in stream.text
         assert "event: status" in stream.text
         history = await client.get(
             f"/v1/threads/{run['thread_id']}/history", headers={"x-api-key": "viewer-key"}
@@ -130,9 +111,7 @@ async def test_alertmanager_to_report_sse_dedupe_and_auth(tmp_path: Path) -> Non
         assert len(tail.json()) == 1
         assert (
             await client.post(
-                "/v1/alerts/alertmanager",
-                content=b"x" * (1024 * 1024 + 1),
-                headers=headers,
+                "/v1/signals/tradingview", content=b"x" * (1024 * 1024 + 1), headers=headers
             )
         ).status_code == 413
 
@@ -142,88 +121,81 @@ async def test_alertmanager_to_report_sse_dedupe_and_auth(tmp_path: Path) -> Non
 
         assert (
             await client.post(
-                "/v1/alerts/alertmanager", content=oversized_chunks(), headers=headers
+                "/v1/signals/tradingview", content=oversized_chunks(), headers=headers
             )
         ).status_code == 413
-        assert (await client.post("/v1/alerts/alertmanager", json=alert, headers=headers)).json()[
-            "thread_id"
-        ] == run["thread_id"]
+        again = await client.post("/v1/signals/tradingview", json=TRADINGVIEW, headers=headers)
+        assert again.json() == {"thread_id": run["thread_id"], "deduplicated": True}
         assert (await client.get("/v1/ready")).status_code == 200
     await engine.dispose()
 
 
-async def test_all_eight_webhook_routes_accept_authenticated_source_payloads(
-    tmp_path: Path,
-) -> None:
-    engine = create_async_engine(f"sqlite+aiosqlite:///{tmp_path / 'sources.sqlite'}")
-    async with engine.begin() as connection:
-        await connection.run_sync(Base.metadata.create_all)
-    storage = Storage(engine)
-    await storage.put_key("viewer", "viewer")
-    registry = IntegrationRegistry([], env_file=None)
-    manager = RunManager(
-        make_investigation_graph(UnavailableServices(), registry, checkpointer=InMemorySaver()),
-        storage,
-        RunContext,
+async def test_every_signal_source_starts_an_analysis(tmp_path: Path) -> None:
+    engine, storage = await make_storage(tmp_path / "sources.sqlite")
+    manager = analysis_manager(storage, fixture_context())
+    secret = "hmac-secret"
+    verifier = WebhookVerifier(
+        tokens={"tradingview": "tv-key", "generic": "generic-key"},
+        hmac_secrets={"price_alert": secret},
     )
-    tokens = {source.value: f"token-{source.value}" for source in AlertSource}
-    app = create_app(manager=manager, registry=registry, verifier=WebhookVerifier(tokens=tokens))
-    payloads = {
-        "alertmanager": {
-            "version": "4",
-            "groupKey": "am",
-            "alerts": [{"status": "firing", "labels": {"alertname": "A"}}],
-        },
-        "grafana": {
-            "orgId": 1,
-            "title": "Grafana A",
-            "alerts": [{"status": "firing", "labels": {"alertname": "A"}, "fingerprint": "g1"}],
-        },
-        "datadog": {
-            "alert_transition": "Triggered",
-            "alert_type": "error",
-            "title": "Datadog A",
-            "alert_id": "d1",
-        },
-        "cloudwatch": {
-            "AlarmName": "CloudWatch A",
-            "NewStateValue": "ALARM",
-            "AlarmArn": "arn:aws:cloudwatch:us-east-1:1:alarm:a",
-        },
-        "sentry": {
-            "action": "triggered",
-            "data": {"event": {"event_id": "e1", "title": "Sentry A", "issue_id": "i1"}},
-        },
-        "pagerduty": {
-            "event": {
-                "event_type": "incident.triggered",
-                "data": {"id": "p1", "title": "PagerDuty A"},
-            }
-        },
-        "newrelic": {
-            "id": "n1",
-            "issueUrl": "https://one.newrelic.com/a",
-            "title": "NewRelic A",
-            "state": "ACTIVATED",
-        },
-        "generic": {"title": "Generic A"},
-    }
-    async with (
-        app.router.lifespan_context(app),
-        httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://test") as client,
-    ):
-        for source, payload in payloads.items():
-            response = await client.post(
-                f"/v1/alerts/{source}",
-                json=payload,
-                headers={"x-sre-webhook-token": tokens[source]},
-            )
+    app = create_app(manager=manager, verifier=verifier)
+    price_alert = json.dumps(
+        {"symbol": "DEEP", "change_pct": -7.5, "price": 8.0, "date": AS_OF}
+    ).encode()
+    signature = "sha256=" + hmac.new(secret.encode(), price_alert, hashlib.sha256).hexdigest()
+    calls = [
+        ("tradingview", {"content": json.dumps({**TRADINGVIEW, "token": "tv-key"})}, {}),
+        ("price_alert", {"content": price_alert}, {"x-fin-signature": signature}),
+        ("generic", {"json": REQUEST}, {"x-fin-webhook-token": "generic-key"}),
+    ]
+    async with client_for(app) as client:
+        for source, body, headers in calls:
+            response = await client.post(f"/v1/signals/{source}", headers=headers, **body)
             assert response.status_code == 202, (source, response.text)
             run = response.json()
             await manager.wait(run["run_id"])
-            report = await client.get(
-                f"/v1/investigations/{run['thread_id']}", headers={"x-api-key": "viewer"}
+            detail = await client.get(
+                f"/v1/analyses/{run['thread_id']}", headers={"x-api-key": "viewer-key"}
             )
-            assert report.status_code == 200
-            assert report.json()["report"]["alert"]["source"] == source
+            request = detail.json()["report"]["request"]
+            assert request["source"] == {"generic": "json"}.get(source, source)
+            assert request["tickers"] == ["DEEP"] and request["as_of"] == AS_OF
+        assert (
+            await client.post(
+                "/v1/signals/price_alert", content=price_alert, headers={"x-fin-signature": "bad"}
+            )
+        ).status_code == 401
+    await engine.dispose()
+
+
+async def test_analysis_requests_accept_text_or_json_but_not_both(tmp_path: Path) -> None:
+    engine, storage = await make_storage(tmp_path / "requests.sqlite")
+    manager = analysis_manager(storage, fixture_context())
+    app = create_app(manager=manager)
+    operator = {"x-api-key": "operator-key"}
+    async with client_for(app) as client:
+        both = await client.post(
+            "/v1/analyses", json={"text": "DEEP", "request": REQUEST}, headers=operator
+        )
+        nameless = await client.post(
+            "/v1/analyses", json={"request": {"question": "hola"}}, headers=operator
+        )
+        started = await client.post("/v1/analyses", json={"request": REQUEST}, headers=operator)
+        await manager.wait(started.json()["run_id"])
+        detail = await client.get(
+            f"/v1/analyses/{started.json()['thread_id']}", headers={"x-api-key": "viewer-key"}
+        )
+        explained = await client.get(
+            f"/v1/analyses/{started.json()['thread_id']}/explain",
+            headers={"x-api-key": "viewer-key"},
+        )
+
+    assert both.status_code == 422 and nameless.status_code == 422
+    body = detail.json()
+    assert body["run"]["status"] == "completed"
+    assert {item["domain"] for item in body["findings"]} >= {"valuation", "graham"}
+    assert body["theses"][0]["ticker"] == "DEEP"
+    execution = explained.json()["execution"]
+    assert execution["theses"][0]["ticker"] == "DEEP"
+    assert any(wave["analysts"] for wave in execution["waves"])
     await engine.dispose()

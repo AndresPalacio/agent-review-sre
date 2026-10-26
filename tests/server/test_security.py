@@ -1,90 +1,66 @@
 from __future__ import annotations
 
-import base64
+import hashlib
 import hmac
-import json
-from hashlib import sha256
 
 import pytest
-from cryptography.hazmat.primitives import hashes, serialization
-from cryptography.hazmat.primitives.asymmetric import padding, rsa
 
-from fin_graph.domain.alerts.model import AlertSource
-from fin_graph.server.security import WebhookVerifier, canonical_sns_message
+from fin_graph.server.security import REQUEST_SOURCE, SignalSource, WebhookVerifier
 
-
-@pytest.mark.parametrize("source", list(AlertSource))
-def test_each_source_requires_its_own_token(source: AlertSource) -> None:
-    verifier = WebhookVerifier(tokens={source.value: "test-token"})
-    body = b'{"title":"test"}'
-    with pytest.raises(ValueError, match="webhook authentication"):
-        verifier.verify(source, body, {}, {"title": "test"})
-    assert verifier.verify(
-        source, body, {"x-sre-webhook-token": "test-token"}, {"title": "test"}
-    ) == {"title": "test"}
+BODY = b'{"ticker": "AAPL", "exchange": "NASDAQ", "interval": "1D"}'
 
 
-def test_hmac_rejects_modified_body_and_token_downgrade() -> None:
-    verifier = WebhookVerifier(tokens={"grafana": "token"}, hmac_secrets={"grafana": "secret"})
-    body = b'{"title":"test"}'
-    signature = hmac.new(b"secret", body, sha256).hexdigest()
-    assert verifier.verify(
-        AlertSource.GRAFANA, body, {"x-sre-signature": f"sha256={signature}"}, {"title": "test"}
-    ) == {"title": "test"}
-    with pytest.raises(ValueError, match="webhook authentication"):
-        verifier.verify(
-            AlertSource.GRAFANA,
-            body + b" ",
-            {"x-sre-signature": f"sha256={signature}", "x-sre-webhook-token": "token"},
-            {"title": "test"},
-        )
+def test_a_source_without_credentials_is_refused() -> None:
+    verifier = WebhookVerifier()
+
+    for source in SignalSource:
+        assert not verifier.header_authenticated(source, BODY, {"x-fin-webhook-token": ""})
+        with pytest.raises(ValueError):
+            verifier.verify(source, BODY, {}, {"ticker": "AAPL"})
 
 
-def test_sns_v2_signature_with_pinned_public_key() -> None:
-    private = rsa.generate_private_key(public_exponent=65537, key_size=2048)
-    public_pem = private.public_key().public_bytes(
-        serialization.Encoding.PEM, serialization.PublicFormat.SubjectPublicKeyInfo
-    )
-    message = {
-        "Type": "Notification",
-        "SignatureVersion": "2",
-        "MessageId": "m1",
-        "Message": json.dumps({"AlarmName": "CPU"}),
-        "Timestamp": "2026-10-07T00:00:00Z",
-        "TopicArn": "arn:aws:sns:us-east-1:123456789012:alarms",
-        "SigningCertURL": "https://sns.us-east-1.amazonaws.com/cert.pem",
-    }
-    message["Signature"] = base64.b64encode(
-        private.sign(canonical_sns_message(message), padding.PKCS1v15(), hashes.SHA256())
-    ).decode()
+def test_hmac_wins_over_a_token_and_compares_the_raw_body() -> None:
     verifier = WebhookVerifier(
-        sns_topic_arn=message["TopicArn"],
-        sns_cert_url=message["SigningCertURL"],
-        sns_public_key_pem=public_pem,
+        tokens={"price_alert": "token"}, hmac_secrets={"price_alert": "secret"}
     )
-    assert verifier.verify(AlertSource.CLOUDWATCH, json.dumps(message).encode(), {}, message) == {
-        "AlarmName": "CPU"
-    }
-    message["Message"] = json.dumps({"AlarmName": "tampered"})
-    with pytest.raises(ValueError, match="SNS signature"):
-        verifier.verify(AlertSource.CLOUDWATCH, json.dumps(message).encode(), {}, message)
+    signature = "sha256=" + hmac.new(b"secret", BODY, hashlib.sha256).hexdigest()
+
+    assert verifier.header_authenticated(
+        SignalSource.PRICE_ALERT, BODY, {"x-fin-signature": signature}
+    )
+    assert not verifier.header_authenticated(
+        SignalSource.PRICE_ALERT, BODY + b" ", {"x-fin-signature": signature}
+    )
+    assert not verifier.header_authenticated(
+        SignalSource.PRICE_ALERT, BODY, {"x-fin-webhook-token": "token"}
+    )
 
 
-def test_malformed_sns_cert_url_is_rejected_without_server_error() -> None:
-    verifier = WebhookVerifier(
-        sns_topic_arn="arn:aws:sns:us-east-1:1:a",
-        sns_cert_url="https://sns.us-east-1.amazonaws.com:invalid/a.pem",
-        sns_public_key_pem=b"not-used",
+def test_tradingview_may_carry_its_token_in_the_body_and_never_leaks_it() -> None:
+    verifier = WebhookVerifier(tokens={"tradingview": "tv"})
+    payload = {"ticker": "AAPL", "token": "tv"}
+
+    verified = verifier.verify(SignalSource.TRADINGVIEW, BODY, {}, payload)
+
+    assert verified == {"ticker": "AAPL"}
+    with pytest.raises(ValueError):
+        verifier.verify(SignalSource.TRADINGVIEW, BODY, {}, {"ticker": "AAPL", "token": "x"})
+    # Only TradingView, which cannot set headers, may authenticate in the body.
+    generic = WebhookVerifier(tokens={"generic": "g"})
+    with pytest.raises(ValueError):
+        generic.verify(SignalSource.GENERIC, BODY, {}, {"tickers": ["AAPL"], "token": "g"})
+
+
+def test_a_header_token_also_strips_any_body_token() -> None:
+    verifier = WebhookVerifier(tokens={"generic": "g"})
+
+    verified = verifier.verify(
+        SignalSource.GENERIC, BODY, {"x-fin-webhook-token": "g"}, {"tickers": ["A"], "token": "z"}
     )
-    with pytest.raises(ValueError, match="untrusted SNS certificate URL"):
-        verifier.verify(
-            AlertSource.CLOUDWATCH,
-            b"{}",
-            {},
-            {
-                "Type": "Notification",
-                "SignatureVersion": "2",
-                "TopicArn": "arn:aws:sns:us-east-1:1:a",
-                "SigningCertURL": "https://sns.us-east-1.amazonaws.com:invalid/a.pem",
-            },
-        )
+
+    assert verified == {"tickers": ["A"]}
+
+
+def test_every_signal_source_maps_to_a_request_source() -> None:
+    assert set(REQUEST_SOURCE) == set(SignalSource)
+    assert REQUEST_SOURCE[SignalSource.GENERIC] == "json"

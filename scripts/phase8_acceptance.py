@@ -16,18 +16,27 @@ from pathlib import Path
 from typing import Any
 
 import httpx
+from langchain_core.tools import BaseTool
 from langgraph.checkpoint.memory import InMemorySaver
 from sqlalchemy.ext.asyncio import create_async_engine
 
-from fin_graph.graphs.investigation.graph import make_investigation_graph
-from fin_graph.graphs.investigation.services import UnavailableServices
+from fin_graph.evals.market.runner import run_context
+from fin_graph.evals.market.scenarios import load_equity_scenario
+from fin_graph.graphs.analysis.services import UnavailableAnalysisServices
+from fin_graph.harness.runtime import make_analysis_graph
+from fin_graph.integrations.analytics.tools import ANALYTICS_TOOLS
 from fin_graph.integrations.context import RunContext
-from fin_graph.integrations.registry import IntegrationRegistry
 from fin_graph.server.app import create_app
 from fin_graph.server.config import ServerConfig
 from fin_graph.server.manager import RunManager
-from fin_graph.server.security import WebhookVerifier
 from fin_graph.server.storage import Base, Storage
+
+
+class FixtureTools:
+    """The production analytics tools over the acceptance scenario's recorded market data."""
+
+    def tools(self, context: RunContext) -> list[BaseTool]:
+        return list(ANALYTICS_TOOLS)
 
 
 class MeasuredGraph:
@@ -81,23 +90,25 @@ async def load_check(*, burst: int = 32, pending: int = 8, concurrent: int = 2) 
                 await connection.run_sync(Base.metadata.create_all)
             storage = Storage(engine)
             await storage.put_key("offline-acceptance", "operator")
-            registry = IntegrationRegistry([], env_file=None)
+            scenario = load_equity_scenario("001-deep-value")
             graph = MeasuredGraph(
-                make_investigation_graph(
-                    UnavailableServices(), registry, checkpointer=InMemorySaver()
+                make_analysis_graph(
+                    UnavailableAnalysisServices(), FixtureTools(), checkpointer=InMemorySaver()
                 )
             )
             manager = RunManager(
-                graph, storage, RunContext, max_concurrent=concurrent, max_pending=pending
+                graph,
+                storage,
+                lambda: run_context(scenario),
+                max_concurrent=concurrent,
+                max_pending=pending,
             )
             config = ServerConfig(
                 _env_file=None, max_http_requests=512, stream_fallback_seconds=0.05
             )
             app = create_app(
                 manager=manager,
-                registry=registry,
                 config=config,
-                verifier=WebhookVerifier(tokens={"alertmanager": "offline-webhook"}),
             )
             headers = {"x-api-key": "offline-acceptance"}
             async with (
@@ -110,8 +121,13 @@ async def load_check(*, burst: int = 32, pending: int = 8, concurrent: int = 2) 
                 responses = await asyncio.gather(
                     *(
                         client.post(
-                            "/v1/investigations",
-                            json={"text": f"Investigate service checkout failure number {i}"},
+                            "/v1/analyses",
+                            json={
+                                "request": {
+                                    **scenario.request(),
+                                    "question": f"Carga financiera offline número {i}",
+                                }
+                            },
                             headers=headers,
                         )
                         for i in range(burst)
@@ -143,7 +159,7 @@ async def load_check(*, burst: int = 32, pending: int = 8, concurrent: int = 2) 
                     r is not None and r["status"] == "completed" for r in statuses
                 )
                 details = [
-                    await client.get(f"/v1/investigations/{r['thread_id']}", headers=headers)
+                    await client.get(f"/v1/analyses/{r['thread_id']}", headers=headers)
                     for r in accepted
                 ]
                 criteria["real_graph_reports"] = all(
@@ -172,8 +188,13 @@ async def load_check(*, burst: int = 32, pending: int = 8, concurrent: int = 2) 
                 graph.release.clear()
                 interrupted = (
                     await client.post(
-                        "/v1/investigations",
-                        json={"text": "Investigate interrupted checkout service"},
+                        "/v1/analyses",
+                        json={
+                            "request": {
+                                **scenario.request(),
+                                "question": "Análisis financiero interrumpido",
+                            }
+                        },
                         headers=headers,
                     )
                 ).json()
@@ -202,7 +223,7 @@ async def load_check(*, burst: int = 32, pending: int = 8, concurrent: int = 2) 
                     criteria["resume_completed"] = False
                 criteria["capacity_recovered"] = manager.pending_count == 0
                 body = await client.post(
-                    "/v1/investigations", content=b"x" * (1048576 + 1), headers=headers
+                    "/v1/analyses", content=b"x" * (1048576 + 1), headers=headers
                 )
                 criteria["oversized_body_rejected"] = body.status_code == 413
                 measurements = {
@@ -231,7 +252,7 @@ async def load_check(*, burst: int = 32, pending: int = 8, concurrent: int = 2) 
             "platform": platform.system(),
             "transport": "in-process ASGI",
             "storage": "temporary SQLite",
-            "graph": "actual investigation graph, deterministic unavailable-model fallbacks",
+            "graph": "actual analysis graph, deterministic unavailable-model fallbacks",
         },
         "limitations": [
             "No LLM quality or provider verification",

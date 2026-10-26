@@ -14,7 +14,7 @@ from fin_graph.server.storage import Base, Storage
 
 
 class State(TypedDict, total=False):
-    raw_alert: str
+    raw_request: str
     marker: str
     report: dict[str, str]
 

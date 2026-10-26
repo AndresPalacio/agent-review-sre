@@ -25,16 +25,15 @@ class ServerConfig(BaseSettings):
     stream_fallback_seconds: float = Field(default=15, ge=0.05, le=60)
     thread_retention_days: int = Field(default=30, ge=1)
     approval_ttl_hours: int = Field(default=24, ge=1, le=720)
-    alert_dedupe_minutes: int = Field(default=30, ge=1)
-    alert_delivery_routes: dict[
-        Literal["default", "critical", "high", "warning", "info"], DeliveryDestinations
+    #: A signal for the same tickers, day and source within this window starts no new analysis.
+    signal_dedupe_minutes: int = Field(default=30, ge=1)
+    #: Where each signal source's analysis report goes; ``default`` covers the rest.
+    signal_delivery_routes: dict[
+        Literal["default", "tradingview", "price_alert", "generic"], DeliveryDestinations
     ] = Field(default_factory=dict)
     cors_origins: Annotated[tuple[str, ...], NoDecode] = ()
     webhook_tokens: dict[str, SecretStr] = Field(default_factory=dict)
     webhook_hmac_secrets: dict[str, SecretStr] = Field(default_factory=dict)
-    sns_topic_arn: str | None = None
-    sns_cert_url: str | None = None
-    sns_public_key_path: str | None = None
 
     @field_validator("cors_origins", mode="before")
     @classmethod

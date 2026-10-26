@@ -245,47 +245,35 @@ async def test_resume_analysis_checkpoint_from_before_harness_migration():
     assert result["harness"]["mode"] == "analysis"
 
 
-async def test_incident_manager_persists_partial_trace_without_tool_arguments(
+async def test_analysis_manager_persists_partial_trace_without_tool_arguments(
     tmp_path, monkeypatch
 ):
-    """The incident API remains supported until its F6 migration."""
     from sqlalchemy.ext.asyncio import create_async_engine
 
-    from fin_graph.evals.fixtures import FixtureBackend
-    from fin_graph.evals.runner import ScriptedServices
-    from fin_graph.evals.scenarios import load_suite
-    from fin_graph.harness.runtime import make_investigation_graph
     from fin_graph.server.manager import RunManager
     from fin_graph.server.storage import Base, Storage
 
-    scenario = load_suite("smoke")[0]
-    backend = FixtureBackend(scenario)
     started = asyncio.Event()
 
     async def wait(*args, **kwargs):
         started.set()
         await asyncio.Event().wait()
 
-    monkeypatch.setattr(ScriptedServices, "investigate", wait)
-    graph = make_investigation_graph(
-        ScriptedServices(scenario),
-        backend.registry,
-        clock=lambda: scenario.reference_time,
-        checkpointer=InMemorySaver(),
-    )
+    monkeypatch.setattr(UnavailableAnalysisServices, "analyze", wait)
+    graph, context, request = fixture_graph(checkpointer=InMemorySaver())
     engine = create_async_engine(f"sqlite+aiosqlite:///{tmp_path / 'trace.sqlite'}")
     async with engine.begin() as connection:
         await connection.run_sync(Base.metadata.create_all)
     storage = Storage(engine)
-    manager = RunManager(graph, storage, lambda: backend.context)
+    manager = RunManager(graph, storage, lambda: context)
     try:
-        run = await manager.submit(scenario.alert, None)
+        run = await manager.submit(request, "json")
         await asyncio.wait_for(started.wait(), timeout=5)
         await asyncio.sleep(0.05)
         await manager.stop()
         events = await storage.events(run["thread_id"], 0)
         trace = [event["data"] for event in events if event["type"] == "harness_trace"]
-        assert any(event["name"] == "specialist_kubernetes" for event in trace)
+        assert any(event["name"] == "analyst_fundamentals" for event in trace)
         assert all("args" not in event and "window" not in event for event in trace)
         assert (await storage.get_run(run["run_id"]))["status"] == "interrupted"
     finally:

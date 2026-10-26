@@ -18,7 +18,7 @@ from fin_graph.gateway import (
     GatewayLeaseLost,
     GatewayRunPending,
     GatewayStore,
-    SubmitAlert,
+    SubmitRequest,
 )
 from fin_graph.gateway.buttons import button_value, parse_button
 from fin_graph.gateway.settings import TelegramGatewaySettings
@@ -32,7 +32,7 @@ class TelegramGateway:
         self,
         settings: TelegramGatewaySettings,
         store: GatewayStore,
-        submit_alert: SubmitAlert,
+        submit_request: SubmitRequest,
         decide: DecideApproval,
         *,
         transport: httpx.AsyncBaseTransport | None = None,
@@ -41,7 +41,7 @@ class TelegramGateway:
             raise ValueError("Telegram gateway is not configured")
         self.settings = settings
         self.store = store
-        self.submit_alert = submit_alert
+        self.submit_request = submit_request
         self.decide = decide
         self._secret = settings.webhook_secret.get_secret_value()
         self.client = httpx.AsyncClient(
@@ -73,7 +73,7 @@ class TelegramGateway:
                 return 200
             event_id = str(update["update_id"])
             payload = {
-                "type": "alert",
+                "type": "analysis",
                 "text": redact_secrets(text),
                 "destination": str(chat["id"]),
             }
@@ -139,8 +139,8 @@ class TelegramGateway:
         worker = asyncio.current_task()
         heartbeat = asyncio.create_task(self._heartbeat(event_id, owner, worker))
         try:
-            if payload.get("type") == "alert":
-                await self._investigate(payload["text"], payload["destination"], event_id, owner)
+            if payload.get("type") == "analysis":
+                await self._analyze(payload["text"], payload["destination"], event_id, owner)
             elif payload.get("type") == "approval":
                 await self._require_owner(event_id, owner)
                 await self._answer_callback(payload["query_id"], "Received")
@@ -195,7 +195,7 @@ class TelegramGateway:
         self, kind: str, thread_id: str, summary: str, approval_id: str
     ) -> str:
         """Post an inline keyboard for one pending checkpoint."""
-        if kind not in {"chat", "remediation"} or not 1 <= len(thread_id) <= 48 or not approval_id:
+        if kind not in {"chat", "orders"} or not 1 <= len(thread_id) <= 48 or not approval_id:
             raise ValueError("invalid approval notification")
         destination = self.settings.chat_id
         if destination is None:
@@ -215,7 +215,7 @@ class TelegramGateway:
                     self._secret, "telegram", destination, remote_id, kind, thread_id, choice
                 ),
             }
-            for choice, label in (("approve", "Approve"), ("reject", "Reject"))
+            for choice, label in (("approve", "Aprobar"), ("reject", "Rechazar"))
         ]
         await self._api(
             "editMessageText",
@@ -250,16 +250,16 @@ class TelegramGateway:
             raise ValueError("Telegram API request failed")
         return data
 
-    async def _investigate(self, text: str, destination: str, event_id: str, owner: str) -> None:
+    async def _analyze(self, text: str, destination: str, event_id: str, owner: str) -> None:
         remote_id: str | None = None
         try:
             await self._require_owner(event_id, owner)
             response = await self._api(
-                "sendMessage", {"chat_id": destination, "text": "Investigating alert…"}
+                "sendMessage", {"chat_id": destination, "text": "Analizando…"}
             )
             remote_id = str(response["result"]["message_id"])
             await self._require_owner(event_id, owner)
-            result = await self.submit_alert(text, "telegram", destination, remote_id, event_id)
+            result = await self.submit_request(text, "telegram", destination, remote_id, event_id)
             await self._require_owner(event_id, owner)
             await self.store.bind_gateway_thread(
                 "telegram", destination, remote_id, result.thread_id, approval_id=result.approval_id
@@ -287,7 +287,7 @@ class TelegramGateway:
                                     choice,
                                 ),
                             }
-                            for choice, label in (("approve", "Approve"), ("reject", "Reject"))
+                            for choice, label in (("approve", "Aprobar"), ("reject", "Rechazar"))
                         ]
                     ]
                 }
@@ -296,7 +296,7 @@ class TelegramGateway:
         except (GatewayRunPending, GatewayLeaseLost):
             raise
         except Exception:
-            _LOG.error("Telegram investigation failed")
+            _LOG.error("Telegram analysis failed")
             if remote_id is not None:
                 try:
                     await self._api(
@@ -304,7 +304,7 @@ class TelegramGateway:
                         {
                             "chat_id": destination,
                             "message_id": int(remote_id),
-                            "text": "Investigation failed. Please retry via the API.",
+                            "text": "El análisis falló; reinténtalo por la API.",
                         },
                     )
                 except ValueError:

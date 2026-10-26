@@ -139,7 +139,7 @@ def setup() -> tuple[SlackGateway, Store, WebClient, list[str], list[str]]:
     ) -> GatewayResult:
         submitted.append(text)
         assert (platform, destination, remote_id) == ("slack", "C1", "100.200")
-        return GatewayResult("thread-1", "report rendered", "remediation", approval_id="request-1")
+        return GatewayResult("thread-1", "report rendered", "orders", approval_id="request-1")
 
     async def decide(kind: str, thread_id: str, choice: str, actor: str, approval_id: str) -> str:
         assert approval_id == "request-1"
@@ -229,9 +229,9 @@ async def test_signed_channel_message_acks_then_publishes_report(setup: Any) -> 
         started.set()
         await release.wait()
         submitted.append(text)
-        return GatewayResult("thread-1", "report rendered", "remediation", approval_id="request-1")
+        return GatewayResult("thread-1", "report rendered", "orders", approval_id="request-1")
 
-    gateway.submit_alert = submit
+    gateway.submit_request = submit
     event = {
         "type": "event_callback",
         "event_id": "Ev1",
@@ -246,7 +246,7 @@ async def test_signed_channel_message_acks_then_publishes_report(setup: Any) -> 
     response = await asyncio.wait_for(send(gateway, event), timeout=2)
     assert response.status_code == 200
     await asyncio.wait_for(started.wait(), timeout=2)
-    assert web.posts[0]["text"] == "Investigating alert…"
+    assert web.posts[0]["text"] == "Analizando…"
     assert submitted == []
     release.set()
     await gateway.close()
@@ -295,7 +295,7 @@ async def test_message_ack_requires_durable_event_claim(setup: Any) -> None:
 
 async def test_pending_alert_replays_after_claim_without_worker(setup: Any) -> None:
     gateway, store, _, submitted, _ = setup
-    payload = {"type": "alert", "text": "recover alert", "destination": "C1"}
+    payload = {"type": "analysis", "text": "recover alert", "destination": "C1"}
     assert await store.claim_gateway_event("slack", "Ev-crash", payload)
     await gateway.replay_pending()
     assert submitted == ["recover alert"]
@@ -311,8 +311,8 @@ async def test_active_run_defers_replay_without_marking_gateway_failure(setup: A
     ) -> GatewayResult:
         raise GatewayRunPending()
 
-    gateway.submit_alert = pending
-    payload = {"type": "alert", "text": "recover alert", "destination": "C1"}
+    gateway.submit_request = pending
+    payload = {"type": "analysis", "text": "recover alert", "destination": "C1"}
     assert await store.claim_gateway_event("slack", "Ev-running", payload)
     await gateway.replay_pending()
     assert ("slack", "Ev-running") in store.pending
@@ -326,7 +326,7 @@ async def test_pending_approval_replays_after_claim_without_worker(setup: Any) -
     payload = {
         "type": "approval",
         "approval_id": "request-1",
-        "kind": "remediation",
+        "kind": "orders",
         "thread_id": "thread-1",
         "choice": "reject",
         "user_id": "U1",
@@ -335,7 +335,7 @@ async def test_pending_approval_replays_after_claim_without_worker(setup: Any) -
     }
     assert await store.claim_gateway_event("slack", "action-crash", payload)
     await gateway.replay_pending()
-    assert decisions == ["remediation:thread-1:reject:slack:U1"]
+    assert decisions == ["orders:thread-1:reject:slack:U1"]
     assert not store.pending
     await gateway.close()
 
@@ -377,7 +377,7 @@ async def test_report_blocks_are_preserved_in_slack_update(setup: Any) -> None:
     ) -> GatewayResult:
         return GatewayResult("thread-2", "RCA", report_blocks=blocks)
 
-    gateway.submit_alert = submit
+    gateway.submit_request = submit
     await send(
         gateway,
         {
@@ -393,11 +393,11 @@ async def test_report_blocks_are_preserved_in_slack_update(setup: Any) -> None:
 async def test_publish_approval_binds_message_and_buttons(setup: Any) -> None:
     gateway, store, web, _, _ = setup
     remote_id = await gateway.publish_approval(
-        "remediation", "thread-1", "Scale deployment?", "request-1"
+        "orders", "thread-1", "¿Comprar una acción?", "request-1"
     )
     assert remote_id == "100.200"
     assert store.links[("slack", "C1", remote_id)] == "thread-1"
-    assert web.posts[0]["text"] == "Scale deployment?"
+    assert web.posts[0]["text"] == "¿Comprar una acción?"
     assert len(web.updates[0]["blocks"][-1]["elements"]) == 2
 
 
@@ -496,14 +496,14 @@ async def test_duplicate_and_bot_message_are_ignored(setup: Any) -> None:
 async def test_button_requires_approver_and_matching_message(setup: Any) -> None:
     gateway, store, web, _, decisions = setup
     await store.bind_gateway_thread("slack", "C1", "100.200", "thread-1", approval_id="request-1")
-    value = signed_button("C1", "100.200", "r:thread-1:a")
+    value = signed_button("C1", "100.200", "o:thread-1:a")
     action = {
         "type": "block_actions",
         "trigger_id": "tr1",
         "user": {"id": "U2"},
         "channel": {"id": "C1"},
         "message": {"ts": "100.200"},
-        "actions": [{"action_id": "sre_approve", "value": value}],
+        "actions": [{"action_id": "fin_approve", "value": value}],
     }
     assert (await send(gateway, action)).status_code == 200
     action["user"]["id"] = "U1"
@@ -512,5 +512,5 @@ async def test_button_requires_approver_and_matching_message(setup: Any) -> None
     action["message"]["ts"] = "100.200"
     assert (await send(gateway, action)).status_code == 200
     await gateway.close()
-    assert decisions == ["remediation:thread-1:approve:slack:U1"]
+    assert decisions == ["orders:thread-1:approve:slack:U1"]
     assert web.updates[-1]["text"] == "Approved"

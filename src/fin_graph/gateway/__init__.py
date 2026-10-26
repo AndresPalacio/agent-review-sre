@@ -1,4 +1,4 @@
-"""Inbound bot adapters with server-owned persistence and investigation callbacks."""
+"""Inbound bot adapters with server-owned persistence and analysis callbacks."""
 
 from __future__ import annotations
 
@@ -73,5 +73,5 @@ class GatewayStore(Protocol):
     ) -> str | None: ...
 
 
-SubmitAlert = Callable[[str, str, str, str, str], Awaitable[GatewayResult]]
+SubmitRequest = Callable[[str, str, str, str, str], Awaitable[GatewayResult]]
 DecideApproval = Callable[[str, str, str, str, str], Awaitable[str]]

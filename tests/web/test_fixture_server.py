@@ -5,6 +5,8 @@ from pathlib import Path
 
 import httpx
 import pytest
+from tests.server.finance_app import REQUEST
+from tests.server.test_orders_api import ORDER
 from tests.web.fixture_server import create_fixture_app
 
 
@@ -47,54 +49,56 @@ async def test_offline_fixture_runs_real_graph_and_audited_action(
         ):
             headers = {"x-api-key": "admin-key"}
             response = await client.post(
-                "/v1/investigations",
-                json={"text": "Deployment checkout con pods OOMKilled"},
+                "/v1/analyses",
+                json={"request": REQUEST},
                 headers=headers,
             )
             assert response.status_code == 202, response.text
             thread = response.json()["thread_id"]
             for _ in range(100):
-                detail = (await client.get(f"/v1/investigations/{thread}", headers=headers)).json()
+                detail = (await client.get(f"/v1/analyses/{thread}", headers=headers)).json()
                 if detail["run"]["status"] in {"completed", "failed"}:
                     break
                 await asyncio.sleep(0.02)
             assert detail["run"]["status"] == "completed", detail
-            assert detail["evidence"][0]["tool"] == "k8s_list_pods"
+            assert detail["report"]["sections"][0]["ticker"] == "DEEP"
+            assert detail["evidence"][0]["tool"].startswith("compute_")
             assert detail["evidence"][0]["data"]
             queued = await client.post(
-                "/v1/remediations",
-                json={"tool": "fixture_scale", "args": {"namespace": "production", "replicas": 2}},
+                "/v1/orders",
+                json=ORDER,
                 headers=headers,
             )
             assert queued.status_code == 202, queued.text
             pending = queued.json()
             assert pending["approval_ids"]
             state = (await client.get("/__fixture/state")).json()
-            assert len(state["preparations"]) == 1
-            assert state["writes"] == []
+            assert state["portfolio"]["positions"] == {}
+            assert state["orders"] == []
             thread = pending["thread_id"]
             decision = {"decisions": [{"type": "approve"}], "approval_ids": pending["approval_ids"]}
             approved = await client.post(
-                f"/v1/remediations/{thread}/approve", json=decision, headers=headers
+                f"/v1/orders/{thread}/approve", json=decision, headers=headers
             )
             assert approved.status_code == 200, approved.text
-            assert approved.json()["outcome"] == "verified"
+            assert approved.json()["outcome"] == "filled"
             repeated = await client.post(
-                f"/v1/remediations/{thread}/approve", json=decision, headers=headers
+                f"/v1/orders/{thread}/approve", json=decision, headers=headers
             )
             assert repeated.status_code == 409
             state = (await client.get("/__fixture/state", params={"thread_id": thread})).json()
-            assert len(state["writes"]) == 1
+            assert state["portfolio"]["positions"]["DEEP"]["long"] == 10
+            assert len(state["orders"]) == 1
             assert state["approvals"][0]["decision"] == "approve"
-            assert state["approvals"][0]["action_name"] == "fixture_scale"
+            assert state["approvals"][0]["action_name"] == "place_paper_order"
             queued = await client.post(
-                "/v1/remediations",
-                json={"tool": "fixture_scale", "args": {"namespace": "production", "replicas": 3}},
+                "/v1/orders",
+                json={**ORDER, "quantity": 3},
                 headers=headers,
             )
             pending = queued.json()
             rejected = await client.post(
-                f"/v1/remediations/{pending['thread_id']}/approve",
+                f"/v1/orders/{pending['thread_id']}/approve",
                 json={"decisions": [{"type": "reject"}], "approval_ids": pending["approval_ids"]},
                 headers=headers,
             )
@@ -102,11 +106,11 @@ async def test_offline_fixture_runs_real_graph_and_audited_action(
             state = (
                 await client.get("/__fixture/state", params={"thread_id": pending["thread_id"]})
             ).json()
-            assert len(state["writes"]) == 1
+            assert len(state["orders"]) == 1
             assert state["approvals"][0]["decision"] == "reject"
             viewer = await client.post(
-                "/v1/remediations",
-                json={"tool": "fixture_scale", "args": {"replicas": 3}},
+                "/v1/orders",
+                json={**ORDER, "quantity": 3},
                 headers={"x-api-key": "viewer-key"},
             )
             assert viewer.status_code == 403

@@ -34,12 +34,8 @@ async def test_failed_submit_releases_claimed_fingerprint(
         raise RuntimeError("simulated submit failure")
 
     monkeypatch.setattr(manager, "schedule_existing", fail)
-    app = create_app(manager=manager, verifier=WebhookVerifier(tokens={"alertmanager": "token"}))
-    payload = {
-        "version": "4",
-        "groupKey": "g",
-        "alerts": [{"status": "firing", "labels": {"alertname": "A"}}],
-    }
+    app = create_app(manager=manager, verifier=WebhookVerifier(tokens={"generic": "token"}))
+    payload = {"tickers": ["DEEP"], "as_of": "2024-06-28"}
     async with (
         app.router.lifespan_context(app),
         httpx.AsyncClient(
@@ -48,13 +44,15 @@ async def test_failed_submit_releases_claimed_fingerprint(
         ) as client,
     ):
         response = await client.post(
-            "/v1/alerts/alertmanager", json=payload, headers={"x-sre-webhook-token": "token"}
+            "/v1/signals/generic", json=payload, headers={"x-fin-webhook-token": "token"}
         )
         assert response.status_code == 500
-        from fin_graph.domain.alerts.parsing import parse_alert
+        from datetime import date
 
-        fingerprint = parse_alert(payload, source_hint="alertmanager").fingerprint
-        assert await storage.fingerprint_thread("alertmanager", fingerprint) is None
+        from fin_graph.domain.requests.model import RequestSource, request_fingerprint
+
+        fingerprint = request_fingerprint(["DEEP"], date(2024, 6, 28), RequestSource.JSON)
+        assert await storage.fingerprint_thread("generic", fingerprint) is None
     await engine.dispose()
 
 

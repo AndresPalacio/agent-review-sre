@@ -18,37 +18,37 @@ async def _storage() -> tuple[Storage, object]:
 
 async def test_schedule_round_trip_and_disabled_default() -> None:
     storage, engine = await _storage()
-    definition = {"kind": "health_check", "interval_minutes": 5, "checks": []}
-    await storage.put_schedule("cpu", definition)
-    assert await storage.get_schedule("cpu") == {
-        "id": "cpu",
+    definition = {"kind": "market_watch", "interval_minutes": 5, "rules": []}
+    await storage.put_schedule("aapl-watch", definition)
+    assert await storage.get_schedule("aapl-watch") == {
+        "id": "aapl-watch",
         "definition": definition,
         "enabled": False,
     }
-    await storage.put_schedule("cpu", definition, enabled=True)
-    assert [item["id"] for item in await storage.list_schedules()] == ["cpu"]
-    assert (await storage.get_schedule("cpu"))["enabled"] is True
-    assert await storage.delete_schedule("cpu")
-    assert await storage.get_schedule("cpu") is None
+    await storage.put_schedule("aapl-watch", definition, enabled=True)
+    assert [item["id"] for item in await storage.list_schedules()] == ["aapl-watch"]
+    assert (await storage.get_schedule("aapl-watch"))["enabled"] is True
+    assert await storage.delete_schedule("aapl-watch")
+    assert await storage.get_schedule("aapl-watch") is None
     await engine.dispose()  # type: ignore[attr-defined]
 
 
 async def test_schedule_create_is_atomic_and_preserves_existing_definition() -> None:
     storage, engine = await _storage()
-    assert await storage.create_schedule("cpu", {"kind": "digest"}, enabled=False)
-    assert not await storage.create_schedule("cpu", {"kind": "health_check"}, enabled=True)
-    assert (await storage.get_schedule("cpu"))["definition"] == {"kind": "digest"}  # type: ignore[index]
+    assert await storage.create_schedule("aapl-watch", {"kind": "portfolio_digest"}, enabled=False)
+    assert not await storage.create_schedule("aapl-watch", {"kind": "market_watch"}, enabled=True)
+    assert (await storage.get_schedule("aapl-watch"))["definition"] == {"kind": "portfolio_digest"}  # type: ignore[index]
     await engine.dispose()  # type: ignore[attr-defined]
 
 
-async def test_health_results_are_bounded_and_ordered() -> None:
+async def test_watch_results_are_bounded_and_ordered() -> None:
     storage, engine = await _storage()
     now = datetime.now(UTC)
-    await storage.record_health_result("cpu", "healthy", {"value": 1}, now - timedelta(hours=2))
-    await storage.record_health_result("cpu", "anomalous", {"value": 9}, now)
-    rows = await storage.recent_health_results(now - timedelta(hours=1), limit=1)
+    await storage.record_watch_result("aapl", "normal", {"value": 1}, now - timedelta(hours=2))
+    await storage.record_watch_result("aapl", "triggered", {"value": 9}, now)
+    rows = await storage.recent_watch_results(now - timedelta(hours=1), limit=1)
     assert len(rows) == 1
-    assert rows[0]["status"] == "anomalous"
+    assert rows[0]["status"] == "triggered"
     assert rows[0]["details"] == {"value": 9}
     await engine.dispose()  # type: ignore[attr-defined]
 
@@ -82,7 +82,7 @@ async def test_approval_message_binding_survives_reopen_and_cannot_be_reassigned
 
 async def test_gateway_inbox_retains_pending_payload_for_recovery() -> None:
     storage, engine = await _storage()
-    payload = {"type": "alert", "text": "CPU high", "destination": "C1"}
+    payload = {"type": "analysis", "text": "analiza AAPL", "destination": "C1"}
     assert await storage.claim_gateway_event("slack", "Ev-recover", payload)
     assert not await storage.claim_gateway_event("slack", "Ev-recover", payload)
     old = datetime.now(UTC) - timedelta(hours=1)
@@ -99,7 +99,7 @@ async def test_gateway_inbox_retains_pending_payload_for_recovery() -> None:
 async def test_gateway_replay_claim_is_atomic_and_heartbeat_blocks_takeover() -> None:
     storage, engine = await _storage()
     second = Storage(engine)  # Separate session, as a second worker would use.
-    payload = {"type": "alert", "text": "CPU high", "destination": "C1"}
+    payload = {"type": "analysis", "text": "analiza AAPL", "destination": "C1"}
     assert await storage.claim_gateway_event("slack", "Ev-race", payload)
     cutoff = datetime.now(UTC) - timedelta(minutes=2)
     async with engine.begin() as connection:  # type: ignore[attr-defined]
@@ -117,7 +117,7 @@ async def test_gateway_replay_claim_is_atomic_and_heartbeat_blocks_takeover() ->
 
 async def test_replay_takeover_revokes_original_gateway_worker() -> None:
     storage, engine = await _storage()
-    assert await storage.claim_gateway_event("slack", "Ev-owner", {"type": "alert"}, "original")
+    assert await storage.claim_gateway_event("slack", "Ev-owner", {"type": "analysis"}, "original")
     cutoff = datetime.now(UTC) - timedelta(minutes=2)
     async with engine.begin() as connection:  # type: ignore[attr-defined]
         await connection.execute(
@@ -153,7 +153,7 @@ async def test_gateway_run_recovery_claims_abandoned_queued_run() -> None:
 
 async def test_gateway_permanent_failure_stops_replay_after_five_attempts() -> None:
     storage, engine = await _storage()
-    payload = {"type": "alert", "text": "CPU high", "destination": "C1"}
+    payload = {"type": "analysis", "text": "analiza AAPL", "destination": "C1"}
     assert await storage.claim_gateway_event("telegram", "Ev-dead", payload)
     for attempt in range(5):
         assert await storage.fail_gateway_event("telegram", "Ev-dead") == (attempt < 4)
@@ -172,10 +172,10 @@ async def test_gateway_run_restart_is_compare_and_swap() -> None:
     await engine.dispose()  # type: ignore[attr-defined]
 
 
-async def test_approval_candidates_only_include_old_chat_and_remediation() -> None:
+async def test_approval_candidates_only_include_old_chat_and_orders() -> None:
     storage, engine = await _storage()
     await storage.touch_checkpoint_thread("old", "chat")
-    await storage.touch_checkpoint_thread("fresh", "remediation")
+    await storage.touch_checkpoint_thread("fresh", "orders")
     async with engine.begin() as connection:  # type: ignore[attr-defined]
         await connection.execute(
             update(CheckpointThreadRow)
@@ -205,8 +205,8 @@ async def test_retention_cleans_phase6_metadata_and_gateway_links() -> None:
     await storage.bind_gateway_thread("slack", "C1", "1.2", "old-thread")
     await storage.claim_gateway_event("slack", "old-event")
     await storage.claim_gateway_event("slack", "new-event")
-    await storage.record_health_result("cpu", "healthy", {}, old)
-    await storage.record_health_result("cpu", "anomalous", {}, datetime.now(UTC))
+    await storage.record_watch_result("aapl", "normal", {}, old)
+    await storage.record_watch_result("aapl", "triggered", {}, datetime.now(UTC))
     async with engine.begin() as connection:  # type: ignore[attr-defined]
         await connection.execute(update(CheckpointThreadRow).values(touched_at=old))
         await connection.execute(
@@ -216,7 +216,7 @@ async def test_retention_cleans_phase6_metadata_and_gateway_links() -> None:
         )
     assert await storage.purge_before(cutoff) == ["old-thread"]
     assert await storage.gateway_thread("slack", "C1", "1.2") is None
-    assert len(await storage.recent_health_results(datetime.min.replace(tzinfo=UTC))) == 1
+    assert len(await storage.recent_watch_results(datetime.min.replace(tzinfo=UTC))) == 1
     assert await storage.claim_gateway_event("slack", "old-event")
     assert not await storage.claim_gateway_event("slack", "new-event")
     await engine.dispose()  # type: ignore[attr-defined]

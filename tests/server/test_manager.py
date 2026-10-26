@@ -37,7 +37,7 @@ class ScriptedGraph:
         )()
 
 
-async def test_manager_persists_only_safe_plan_and_specialist_metadata(tmp_path: Path) -> None:
+async def test_manager_persists_only_safe_plan_and_analyst_metadata(tmp_path: Path) -> None:
     class ProgressGraph:
         async def astream(
             self, value: object, *, context: object, stream_mode: object, config: dict[str, Any]
@@ -46,29 +46,21 @@ async def test_manager_persists_only_safe_plan_and_specialist_metadata(tmp_path:
                 "custom",
                 {
                     "type": "plan",
-                    "data": {
-                        "stage": "plan",
-                        "wave": 1,
-                        "tasks": [
-                            {
-                                "domain": "metrics",
-                                "hypothesis_ids": ["H1"],
-                                "objective": "private agent prompt",
-                            }
-                        ],
-                    },
+                    "data": {"stage": "plan", "wave": 1, "tasks": ["valuation", {"bad": 1}]},
                 },
             )
             yield (
                 "custom",
                 {
-                    "type": "specialist",
+                    "type": "analyst",
                     "data": {
-                        "stage": "metrics",
+                        "stage": "valuation",
                         "wave": 1,
-                        "domain": "metrics",
-                        "evidence_ids": ["ev_metrics"],
-                        "args": {"password": "private"},
+                        "domain": "valuation",
+                        "evidence_ids": ["ev_valuation"],
+                        "signals": {"DEEP": "bullish"},
+                        "args": {"api_key": "private"},
+                        "prompt": "private agent prompt",
                     },
                 },
             )
@@ -79,20 +71,17 @@ async def test_manager_persists_only_safe_plan_and_specialist_metadata(tmp_path:
         await connection.run_sync(Base.metadata.create_all)
     storage = Storage(engine)
     manager = RunManager(ProgressGraph(), storage, lambda: object())
-    run = await manager.submit("alert", None)
+    run = await manager.submit("analiza DEEP", None)
     await manager.wait(run["run_id"])
     events = await storage.events(run["thread_id"], 0)
-    assert [event["type"] for event in events] == ["status", "plan", "specialist", "status"]
-    assert events[1]["data"] == {
-        "stage": "plan",
-        "wave": 1,
-        "tasks": [{"domain": "metrics", "hypothesis_ids": ["H1"]}],
-    }
+    assert [event["type"] for event in events] == ["status", "plan", "analyst", "status"]
+    assert events[1]["data"] == {"stage": "plan", "wave": 1, "tasks": [{"domain": "valuation"}]}
     assert events[2]["data"] == {
-        "stage": "metrics",
+        "stage": "valuation",
         "wave": 1,
-        "domain": "metrics",
-        "evidence_ids": ["ev_metrics"],
+        "domain": "valuation",
+        "evidence_ids": ["ev_valuation"],
+        "signals": {"DEEP": "bullish"},
     }
     await engine.dispose()
 
@@ -177,7 +166,7 @@ async def test_gateway_recovery_restarts_orphaned_queued_run(tmp_path: Path) -> 
     await manager.wait("orphan-run")
     assert len(graph.calls) == 1
     assert graph.calls[0][1] == "orphan-thread"
-    assert graph.calls[0][0]["raw_alert"] == "alert"  # type: ignore[index]
+    assert graph.calls[0][0]["raw_request"] == "alert"  # type: ignore[index]
     assert (await storage.get_run("orphan-run"))["status"] == "completed"  # type: ignore[index]
     await engine.dispose()
 

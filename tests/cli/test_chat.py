@@ -14,9 +14,6 @@ from typer.testing import CliRunner
 from fin_graph.agents.testing.scripted_model import ScriptedChatModel, tool_call_message
 from fin_graph.cli.chat import ChatSession, RemoteChatSession
 from fin_graph.cli.main import app
-from fin_graph.domain.alerts.parsing import text_alert
-from fin_graph.domain.diagnosis import unknown_diagnosis
-from fin_graph.domain.report import build_report
 from fin_graph.graphs.chat.graph import make_chat_graph
 from fin_graph.integrations.context import RunContext
 from fin_graph.integrations.registry import IntegrationRegistry
@@ -273,9 +270,10 @@ async def test_remote_transport_exception_hides_api_key() -> None:
             raise AssertionError("transport error should fail the turn")
 
 
-async def test_remote_investigation_polls_for_report_and_reads_integrations() -> None:
-    alert = text_alert("API CPU high")
-    report = build_report(alert, unknown_diagnosis(alert, "fixture"), [])
+async def test_remote_analysis_polls_for_report_and_reads_integrations() -> None:
+    from tests.domain.test_analysis_report import _report
+
+    report = _report()
     paths: list[str] = []
     checks = 0
 
@@ -286,9 +284,9 @@ async def test_remote_investigation_polls_for_report_and_reads_integrations() ->
         if request.url.path == "/v1/integrations":
             return httpx.Response(200, json=[{"id": "grafana", "status": "available"}])
         if request.method == "POST":
-            assert request.content == b'{"text":"API CPU high"}'
+            assert request.content == b'{"text":"DEEP"}'
             return httpx.Response(
-                202, json={"run_id": "run-1", "thread_id": "investigation-1", "status": "queued"}
+                202, json={"run_id": "run-1", "thread_id": "analysis-1", "status": "queued"}
             )
         checks += 1
         if checks == 1:
@@ -303,14 +301,14 @@ async def test_remote_investigation_polls_for_report_and_reads_integrations() ->
     ) as client:
         session = RemoteChatSession(client, "secret-key")
         assert await session.command("/integrations") == "grafana: available"
-        result = await session.command("/investigate API CPU high")
+        result = await session.command("/analiza DEEP")
 
-    assert "API CPU high" in result
+    assert "Análisis DEEP" in result
     assert paths == [
         "/v1/integrations",
-        "/v1/investigations",
-        "/v1/investigations/investigation-1",
-        "/v1/investigations/investigation-1",
+        "/v1/analyses",
+        "/v1/analyses/analysis-1",
+        "/v1/analyses/analysis-1",
     ]
 
 

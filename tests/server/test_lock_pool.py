@@ -142,7 +142,7 @@ async def test_nested_locks_share_owned_connection_and_children_do_not(postgres_
         async with (
             storage.run_lock(thread),
             storage.approval_lock("chat", thread),
-            storage.approval_lock("remediation", thread),
+            storage.approval_lock("orders", thread),
         ):
             async with engine.connect() as connection:
                 assert await connection.scalar(text("SELECT 1")) == 1

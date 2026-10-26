@@ -39,20 +39,22 @@ class FakeStore:
 
 def test_schedule_definition_rejects_invalid_or_unbounded_inputs() -> None:
     with pytest.raises(ValueError):
-        validate_schedule({"kind": "health_check", "interval_minutes": 0, "checks": []})
+        validate_schedule({"kind": "market_watch", "interval_minutes": 0, "rules": []})
     with pytest.raises(ValueError):
-        validate_schedule({"kind": "digest", "hour": 25, "minute": 0, "timezone": "UTC"})
+        validate_schedule({"kind": "portfolio_digest", "hour": 25, "minute": 0, "timezone": "UTC"})
     with pytest.raises(ValueError):
-        validate_schedule({"kind": "digest", "hour": 8, "minute": 0, "timezone": "Fake/Zone"})
+        validate_schedule(
+            {"kind": "portfolio_digest", "hour": 8, "minute": 0, "timezone": "Fake/Zone"}
+        )
     assert (
         validate_schedule(
             {
-                "kind": "health_check",
+                "kind": "market_watch",
                 "interval_minutes": 5,
-                "checks": [{"id": "cpu", "expression": "up", "operator": "lt", "threshold": 1}],
+                "rules": [{"ticker": "aapl", "max_daily_move_pct": 4}],
             }
         )["kind"]
-        == "health_check"
+        == "market_watch"
     )
 
 
@@ -60,7 +62,7 @@ def test_schedule_rejects_blank_destinations() -> None:
     with pytest.raises(ValueError):
         validate_schedule(
             {
-                "kind": "digest",
+                "kind": "portfolio_digest",
                 "hour": 8,
                 "minute": 0,
                 "timezone": "UTC",
@@ -72,7 +74,7 @@ def test_schedule_rejects_blank_destinations() -> None:
 def test_schedule_normalizes_destination_whitespace() -> None:
     definition = validate_schedule(
         {
-            "kind": "digest",
+            "kind": "portfolio_digest",
             "hour": 8,
             "minute": 0,
             "timezone": "UTC",
@@ -91,7 +93,7 @@ async def test_nonleader_does_not_start_jobs() -> None:
 
     scheduler = AsyncIOScheduler(jobstores={"default": MemoryJobStore()})
     lease = FakeLease(False)
-    service = SchedulerService(store, {"health_check": handler}, scheduler=scheduler, lease=lease)
+    service = SchedulerService(store, {"market_watch": handler}, scheduler=scheduler, lease=lease)
     assert not await service.start()
     assert not scheduler.running
     assert calls == []
@@ -103,9 +105,9 @@ async def test_leader_reconciles_and_rechecks_schedule_before_dispatch() -> None
         "id": "cpu",
         "enabled": True,
         "definition": {
-            "kind": "health_check",
+            "kind": "market_watch",
             "interval_minutes": 5,
-            "checks": [{"id": "cpu", "expression": "up", "operator": "lt", "threshold": 1}],
+            "rules": [{"ticker": "AAPL"}],
         },
     }
     calls: list[str] = []
@@ -115,7 +117,7 @@ async def test_leader_reconciles_and_rechecks_schedule_before_dispatch() -> None
 
     scheduler = AsyncIOScheduler(jobstores={"default": MemoryJobStore()})
     lease = FakeLease()
-    service = SchedulerService(store, {"health_check": handler}, scheduler=scheduler, lease=lease)
+    service = SchedulerService(store, {"market_watch": handler}, scheduler=scheduler, lease=lease)
     assert await service.start()
     assert scheduler.get_job("user:cpu") is not None
     await service.run_schedule("cpu")
@@ -145,7 +147,7 @@ async def test_internal_jobs_are_registered_once() -> None:
     jobs: dict[str, Callable[[], Awaitable[None]]] = {"retention": retention, "expiry": expiry}
     scheduler = AsyncIOScheduler(jobstores={"default": MemoryJobStore()})
     service = SchedulerService(
-        store, {"health_check": noop}, internal_jobs=jobs, scheduler=scheduler, lease=FakeLease()
+        store, {"market_watch": noop}, internal_jobs=jobs, scheduler=scheduler, lease=FakeLease()
     )
     assert await service.start()
     assert scheduler.get_job("internal:retention") is not None
@@ -159,9 +161,9 @@ async def test_lost_lease_stops_dispatch_and_scheduler() -> None:
         "id": "cpu",
         "enabled": True,
         "definition": {
-            "kind": "health_check",
+            "kind": "market_watch",
             "interval_minutes": 5,
-            "checks": [{"id": "up", "expression": "up", "operator": "lt", "threshold": 1}],
+            "rules": [{"ticker": "AAPL"}],
         },
     }
     calls: list[str] = []
@@ -171,7 +173,7 @@ async def test_lost_lease_stops_dispatch_and_scheduler() -> None:
 
     lease = FakeLease()
     scheduler = AsyncIOScheduler(jobstores={"default": MemoryJobStore()})
-    service = SchedulerService(store, {"health_check": handler}, scheduler=scheduler, lease=lease)
+    service = SchedulerService(store, {"market_watch": handler}, scheduler=scheduler, lease=lease)
     assert await service.start()
     lease.healthy = False
     await service.run_schedule("cpu")
@@ -180,15 +182,15 @@ async def test_lost_lease_stops_dispatch_and_scheduler() -> None:
     assert not service.is_leader
 
 
-async def test_reconcile_does_not_postpone_existing_health_job() -> None:
+async def test_reconcile_does_not_postpone_existing_market_watch() -> None:
     store = FakeStore()
     store.schedules["slow"] = {
         "id": "slow",
         "enabled": True,
         "definition": {
-            "kind": "health_check",
+            "kind": "market_watch",
             "interval_minutes": 120,
-            "checks": [{"id": "up", "expression": "up", "operator": "lt", "threshold": 1}],
+            "rules": [{"ticker": "AAPL"}],
         },
     }
 
@@ -197,7 +199,7 @@ async def test_reconcile_does_not_postpone_existing_health_job() -> None:
 
     service = SchedulerService(
         store,
-        {"health_check": noop},
+        {"market_watch": noop},
         scheduler=AsyncIOScheduler(jobstores={"default": MemoryJobStore()}),
         lease=FakeLease(),
     )

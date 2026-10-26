@@ -1,4 +1,4 @@
-"""FastAPI API for one server process and its persisted LangGraph investigations."""
+"""FastAPI API: persisted analyses, trading signals, paper orders, portfolio and chat."""
 
 from __future__ import annotations
 
@@ -29,35 +29,32 @@ from fin_graph.config.settings import PersistenceBackend, Settings
 from fin_graph.config.tracing import disable_external_tracing
 from fin_graph.delivery.service import DeliveryService
 from fin_graph.delivery.settings import DeliveryDestinations
-from fin_graph.domain.alerts.model import AlertParseError, AlertSource
-from fin_graph.domain.alerts.parsing import detect_source, parse_alert
-from fin_graph.domain.rendering.slack import render_slack
-from fin_graph.domain.rendering.telegram import render_telegram
-from fin_graph.domain.report import Report
+from fin_graph.domain.analysis_report import AnalysisReport
+from fin_graph.domain.fills import OrderStatus
+from fin_graph.domain.orders import OrderAction, ProposedOrder, client_order_id
+from fin_graph.domain.rendering.analysis import render_analysis_slack, render_analysis_telegram
+from fin_graph.domain.requests.model import (
+    RequestParseError,
+    RequestSource,
+    normalize_ticker,
+    request_fingerprint,
+)
+from fin_graph.domain.requests.parsing import request_from_payload
 from fin_graph.gateway import GatewayResult, GatewayRunPending
 from fin_graph.gateway.settings import SlackGatewaySettings, TelegramGatewaySettings
 from fin_graph.gateway.slack import SlackGateway
 from fin_graph.gateway.telegram import TelegramGateway
 from fin_graph.graphs.chat.graph import make_chat_graph
-from fin_graph.graphs.remediation.actions import default_action_catalog
-from fin_graph.graphs.remediation.graph import (
-    ActionCatalog,
-    UncertainActionOutcome,
-    make_remediation_graph,
-)
-from fin_graph.harness.runtime import (
-    _analysis_services,
-    _services,
-    make_analysis_graph,
-    make_investigation_graph,
-)
+from fin_graph.graphs.orders.desk import OrderDesk
+from fin_graph.graphs.orders.graph import PLACE_ORDER, make_order_graph
+from fin_graph.harness.runtime import _analysis_services, make_analysis_graph
 from fin_graph.integrations.base import IntegrationError, IntegrationNotConfiguredError
+from fin_graph.integrations.broker.paper.broker import PaperBroker, PaperBrokerError
 from fin_graph.integrations.broker.paper.runtime import context_quotes, paper_broker
 from fin_graph.integrations.catalog import default_registry
 from fin_graph.integrations.context import RunContext
 from fin_graph.integrations.registry import IntegrationRegistry
 from fin_graph.llm.models import ModelRole, get_model
-from fin_graph.memory.service import IncidentMemory
 from fin_graph.memory.theses import ThesisMemory
 from fin_graph.persistence.checkpointer import open_checkpointer
 from fin_graph.persistence.paper_ledger import PaperLedgerStore
@@ -66,14 +63,14 @@ from fin_graph.safety.approval import ApprovalPolicy
 from fin_graph.safety.secrets import redact_secrets, redact_value
 from fin_graph.scheduler.delivery import send_digest_text
 from fin_graph.scheduler.expiry import ApprovalGraph, expire_pending_approvals
-from fin_graph.scheduler.jobs import HealthJobs
+from fin_graph.scheduler.market import MarketJobs
 from fin_graph.scheduler.service import SchedulerService, validate_schedule
 from fin_graph.server.config import ServerConfig
 from fin_graph.server.events import EventListener
 from fin_graph.server.explain import MAX_EXPLAIN_EVENTS, build_explanation
 from fin_graph.server.manager import RunManager, RunOverloaded
 from fin_graph.server.migrate import upgrade
-from fin_graph.server.security import WebhookVerifier
+from fin_graph.server.security import REQUEST_SOURCE, SignalSource, WebhookVerifier
 from fin_graph.server.storage import Storage
 
 _MAX_BODY = 1024 * 1024
@@ -81,10 +78,11 @@ _ROLE_LEVEL = {"viewer": 0, "operator": 1, "approver": 2, "admin": 3}
 _LOGGER = logging.getLogger(__name__)
 
 
-class InvestigationRequest(BaseModel):
-    text: str | None = Field(default=None, min_length=1, max_length=_MAX_BODY)
-    alert: dict[str, Any] | None = None
-    source: AlertSource | None = None
+class AnalysisRequestBody(BaseModel):
+    """Free text ("¿cómo ves AAPL?") or a JSON request naming tickers, horizon and question."""
+
+    text: str | None = Field(default=None, min_length=1, max_length=16000)
+    request: dict[str, Any] | None = None
     destinations: DeliveryDestinations = Field(default_factory=dict)
 
 
@@ -96,9 +94,13 @@ class ChatMessageRequest(BaseModel):
     message: str = Field(min_length=1, max_length=16000)
 
 
-class RemediationRequest(BaseModel):
-    tool: str = Field(min_length=1, max_length=100)
-    args: dict[str, Any]
+class OrderRequest(BaseModel):
+    """A paper market order; the reference price is today's quote."""
+
+    ticker: str = Field(min_length=1, max_length=16)
+    action: OrderAction
+    quantity: int = Field(gt=0, le=1_000_000)
+    reasoning: str = Field(default="", max_length=500)
 
 
 class CreateScheduleRequest(BaseModel):
@@ -119,12 +121,12 @@ def create_app(
     verifier: WebhookVerifier | None = None,
     config: ServerConfig | None = None,
     chat_graph: Any | None = None,
-    remediation_graph: Any | None = None,
+    order_graph: Any | None = None,
     approval_policy: ApprovalPolicy | None = None,
     scheduler_service: Any | None = None,
     slack_gateway: Any | None = None,
     telegram_gateway: Any | None = None,
-    action_catalog: ActionCatalog | None = None,
+    paper: PaperBroker | None = None,
     ui_dir: Path | None = None,
 ) -> FastAPI:
     """Create a production Postgres server or an injected offline ASGI test app."""
@@ -134,14 +136,12 @@ def create_app(
     @asynccontextmanager
     async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         if manager is not None:
-            app.state.action_catalog = action_catalog or default_action_catalog(
-                ledger=manager.storage
-            )
+            app.state.paper_broker = paper
             app.state.manager = manager
             app.state.registry = registry or IntegrationRegistry([], env_file=None)
             app.state.verifier = verifier or WebhookVerifier()
             app.state.chat_graph = chat_graph
-            app.state.remediation_graph = remediation_graph
+            app.state.order_graph = order_graph
             app.state.approval_policy = approval_policy or ApprovalPolicy.from_settings(Settings())
             app.state.scheduler = scheduler_service
             app.state.slack_gateway = slack_gateway
@@ -177,9 +177,7 @@ def create_app(
             await listener.start()
             saver = await stack.enter_async_context(open_checkpointer(settings))
             store = await stack.enter_async_context(open_store(settings))
-            memory = IncidentMemory(store)
-            actions = action_catalog or default_action_catalog(ledger=storage)
-            app.state.action_catalog = actions
+            theses = ThesisMemory(store)
             active_policy = approval_policy or ApprovalPolicy.from_settings(settings)
             active_registry = registry or default_registry()
             if registry is None:
@@ -187,26 +185,26 @@ def create_app(
 
                 active_registry = await with_configured_mcp(active_registry)
             delivery = DeliveryService.from_env(ledger=storage)
-
             # Paper orders share the server database; migration 0011 creates the tables.
-            paper = paper_broker(
-                settings,
+            active_paper = paper or paper_broker(
+                Settings(),
                 PaperLedgerStore(engine),
                 context_quotes(active_registry.run_context()),
             )
-            app.state.paper_broker = paper
+            app.state.paper_broker = active_paper
 
             def context_factory() -> RunContext:
                 context = delivery.extend_run_context(active_registry.run_context())
-                return replace(context, clients={**context.clients, "paper_broker": paper})
+                return replace(context, clients={**context.clients, "paper_broker": active_paper})
 
-            investigation_services = _services(settings)
-            graph = make_investigation_graph(
-                investigation_services,
+            analysis_services = _analysis_services(settings)
+            graph = make_analysis_graph(
+                analysis_services,
                 active_registry,
                 checkpointer=saver,
-                memory=memory,
+                memory=theses,
                 delivery=delivery,
+                settings=settings,
             )
             if chat_graph is not None:
                 active_chat = chat_graph
@@ -217,9 +215,8 @@ def create_app(
                     _LOGGER.warning("chat model unavailable at startup")
                     active_chat = None
                 else:
-                    theses = ThesisMemory(store)
                     chat_analysis = make_analysis_graph(
-                        _analysis_services(settings),
+                        analysis_services,
                         active_registry,
                         memory=theses,
                         checkpointer=False,  # Disable the inherited chat saver.
@@ -236,10 +233,8 @@ def create_app(
                         store=store,
                         settings=settings,
                     )
-            active_remediation = remediation_graph or make_remediation_graph(
-                actions,
-                active_policy,
-                checkpointer=saver,
+            active_orders = order_graph or make_order_graph(
+                OrderDesk(active_paper), active_policy, checkpointer=saver
             )
             active_manager = RunManager(
                 graph,
@@ -252,14 +247,16 @@ def create_app(
             app.state.registry = active_registry
             app.state.verifier = verifier or _verifier_from_config(options)
             app.state.chat_graph = active_chat
-            app.state.remediation_graph = active_remediation
+            app.state.order_graph = active_orders
             app.state.approval_policy = active_policy
             stack.push_async_callback(active_manager.stop)
             await active_manager.start()
-            health_jobs = HealthJobs(
+            market_jobs = MarketJobs(
                 storage,
                 active_manager,
                 context_factory,
+                broker=active_paper,
+                memory=theses,
                 send_text=lambda message, destinations, key: send_digest_text(
                     {
                         "slack": delivery.clients["slack"],
@@ -278,16 +275,16 @@ def create_app(
                     saver,
                     datetime.now(UTC) - timedelta(days=options.thread_retention_days),
                     app.state.chat_locks,
-                    app.state.remediation_locks,
+                    app.state.order_locks,
                 )
 
             async def run_expiry() -> None:
                 await expire_pending_approvals(
                     storage=storage,
                     chat_graph=active_chat,
-                    remediation_graph=cast(ApprovalGraph, active_remediation),
+                    order_graph=cast(ApprovalGraph, active_orders),
                     chat_locks=app.state.chat_locks,
-                    remediation_locks=app.state.remediation_locks,
+                    order_locks=app.state.order_locks,
                     context_factory=context_factory,
                     ttl=timedelta(hours=options.approval_ttl_hours),
                 )
@@ -305,7 +302,12 @@ def create_app(
 
             active_scheduler = scheduler_service or SchedulerService(
                 storage,
-                {"health_check": health_jobs.health_check, "digest": health_jobs.digest},
+                {
+                    "market_watch": market_jobs.market_watch,
+                    "portfolio_digest": market_jobs.portfolio_digest,
+                    "thesis_review": market_jobs.thesis_review,
+                    "watch_digest": market_jobs.watch_digest,
+                },
                 internal_jobs={
                     "retention": run_retention,
                     "expiry": run_expiry,
@@ -318,7 +320,7 @@ def create_app(
             stack.push_async_callback(active_scheduler.stop)
             app.state.scheduler = active_scheduler
 
-            async def submit_gateway_alert(
+            async def submit_gateway_request(
                 text: str, platform: str, destination: str, remote_id: str, event_id: str
             ) -> GatewayResult:
                 thread_id = str(uuid5(NAMESPACE_URL, f"fin-graph:gateway:{platform}:{event_id}"))
@@ -356,21 +358,35 @@ def create_app(
                 if run is not None and run["status"] == "recovering":
                     raise GatewayRunPending()
                 if run is None or run["status"] != "completed":
-                    return GatewayResult(thread_id, "Investigation failed.")
+                    return GatewayResult(thread_id, "El análisis falló.")
                 snapshot = await graph.aget_state({"configurable": {"thread_id": thread_id}})
                 report_data = snapshot.values.get("report") if snapshot.values else None
                 if not report_data:
-                    return GatewayResult(thread_id, "No report was produced.")
-                report = Report.model_validate(report_data)
+                    return GatewayResult(thread_id, "El mensaje no nombra ninguna acción.")
+                report = AnalysisReport.model_validate(report_data)
+                # One proposed order gets approval buttons; several stay in the API and CLI.
+                orders = [section.order for section in report.sections if section.order]
+                approval: tuple[str, str] | None = None
+                if len(orders) == 1:
+                    approval = await _start_order_thread(app, orders[0], thread_id)
+                order_thread, approval_id = approval or (thread_id, None)
+                kind = "orders" if approval_id else None
                 if platform == "slack":
-                    payload = cast(dict[str, Any], redact_value(render_slack(report)))
+                    payload = cast(dict[str, Any], redact_value(render_analysis_slack(report)))
                     return GatewayResult(
-                        thread_id,
+                        order_thread,
                         str(payload["text"]),
+                        approval_kind=kind,
                         report_blocks=cast(list[dict[str, Any]], payload["blocks"]),
+                        approval_id=approval_id,
                     )
                 if platform == "telegram":
-                    return GatewayResult(thread_id, redact_secrets(render_telegram(report)))
+                    return GatewayResult(
+                        order_thread,
+                        redact_secrets(render_analysis_telegram(report)),
+                        approval_kind=kind,
+                        approval_id=approval_id,
+                    )
                 raise ValueError("unsupported gateway platform")
 
             async def gateway_decide(
@@ -381,14 +397,14 @@ def create_app(
             slack_options = SlackGatewaySettings()
             telegram_options = TelegramGatewaySettings()
             app.state.slack_gateway = slack_gateway or (
-                SlackGateway(slack_options, storage, submit_gateway_alert, gateway_decide)
+                SlackGateway(slack_options, storage, submit_gateway_request, gateway_decide)
                 if slack_options.enabled
                 else None
             )
             if app.state.slack_gateway is not None:
                 stack.push_async_callback(app.state.slack_gateway.close)
             app.state.telegram_gateway = telegram_gateway or (
-                TelegramGateway(telegram_options, storage, submit_gateway_alert, gateway_decide)
+                TelegramGateway(telegram_options, storage, submit_gateway_request, gateway_decide)
                 if telegram_options.enabled
                 else None
             )
@@ -416,7 +432,7 @@ def create_app(
         )
 
     app.state.chat_locks = WeakValueDictionary()
-    app.state.remediation_locks = WeakValueDictionary()
+    app.state.order_locks = WeakValueDictionary()
     app.add_middleware(
         CORSMiddleware,
         allow_origins=list(options.cors_origins),
@@ -463,26 +479,27 @@ def create_app(
             headers={"Cache-Control": "no-store"},
         )
 
-    @app.post("/v1/investigations", status_code=202)
-    async def investigate(
+    @app.post("/v1/analyses", status_code=202)
+    async def analyze(
         request: Request, x_api_key: str | None = Header(default=None)
     ) -> dict[str, Any]:
         await _authorize(request, x_api_key, "operator")
         _, payload = await _bounded_json_object(request)
         try:
-            body = InvestigationRequest.model_validate(payload)
+            body = AnalysisRequestBody.model_validate(payload)
         except ValidationError as exc:
-            raise HTTPException(422, "invalid investigation request") from exc
-        if (body.text is None) == (body.alert is None):
-            raise HTTPException(422, "provide exactly one of text or alert")
-        raw: str | dict[str, Any] = body.text if body.text is not None else body.alert or {}
-        try:
-            parse_alert(raw, source_hint=body.source.value if body.source else None)
-        except AlertParseError as exc:
-            raise HTTPException(422, "invalid alert") from exc
-        return await _manager(request).submit(
-            raw, body.source.value if body.source else None, destinations=body.destinations
-        )
+            raise HTTPException(422, "invalid analysis request") from exc
+        if (body.text is None) == (body.request is None):
+            raise HTTPException(422, "provide exactly one of text or request")
+        if body.request is not None:
+            try:
+                request_from_payload(body.request)
+            except ValueError as exc:
+                raise HTTPException(422, "the request names no valid ticker") from exc
+            return await _manager(request).submit(
+                body.request, RequestSource.JSON.value, destinations=body.destinations
+            )
+        return await _manager(request).submit(body.text or "", None, destinations=body.destinations)
 
     @app.post("/v1/chat/threads/{thread_id}/messages")
     async def chat_message(
@@ -623,8 +640,8 @@ def create_app(
                 )
             except (ValueError, PermissionError) as exc:
                 raise HTTPException(422, type(exc).__name__) from exc
-            except UncertainActionOutcome as exc:
-                raise HTTPException(409, "action outcome is uncertain; reconcile manually") from exc
+            except RuntimeError as exc:
+                raise HTTPException(409, "the paper book kept changing; retry") from exc
             remaining = result.get("__interrupt__", ())
             if remaining:
                 await _notify_gateways(request.app, "chat", thread_id, remaining)
@@ -640,89 +657,129 @@ def create_app(
                 "approval_ids": [item.id for item in remaining],
             }
 
-    @app.post("/v1/remediations", status_code=202)
-    async def start_remediation(
+    @app.post("/v1/orders", status_code=202)
+    async def propose_order(
         request: Request, x_api_key: str | None = Header(default=None)
     ) -> dict[str, Any]:
         await _authorize(request, x_api_key, "operator")
-        graph = _remediation_graph(request)
+        broker = _paper(request)
         _, payload = await _bounded_json_object(request)
         try:
-            body = RemediationRequest.model_validate(payload)
-        except ValidationError as exc:
-            raise HTTPException(422, "invalid remediation request") from exc
+            body = OrderRequest.model_validate(payload)
+            symbol = normalize_ticker(body.ticker)
+        except (ValidationError, RequestParseError) as exc:
+            raise HTTPException(422, "invalid order request") from exc
+        if body.action is OrderAction.HOLD:
+            raise HTTPException(422, "hold is not an order")
+        try:
+            quote = await broker.quotes(symbol)
+        except (IntegrationError, TypeError) as exc:
+            raise HTTPException(503, "market data unavailable") from exc
+        if not quote or quote <= 0:
+            raise HTTPException(503, f"no quote for {symbol}")
         thread_id = str(uuid4())
-        config = _graph_config("remediation", thread_id)
-        locks: MutableMapping[str, asyncio.Lock] = request.app.state.remediation_locks
-        lock = locks.setdefault(thread_id, asyncio.Lock())
-        async with lock, _manager(request).storage.approval_lock("remediation", thread_id):
-            await _manager(request).storage.touch_checkpoint_thread(thread_id, "remediation")
-            try:
-                result = await graph.ainvoke(
-                    {"tool": body.tool, "args": body.args, "action_id": thread_id},
-                    config,
-                    context=_manager(request).context_factory(),
-                )
-            except (ValueError, ValidationError) as exc:
-                raise HTTPException(422, "invalid action or arguments") from exc
-            except IntegrationNotConfiguredError as exc:
-                raise HTTPException(503, "action integration unavailable") from exc
-            except IntegrationError as exc:
-                raise HTTPException(502, "action preparation failed") from exc
-        pending = result.get("__interrupt__", ())
-        if pending:
-            await _notify_gateways(request.app, "remediation", thread_id, pending)
-        return {
-            "thread_id": thread_id,
-            "status": "awaiting_approval" if pending else "completed",
-            "requests": redact_value([item.value for item in pending]),
-            "approval_ids": [item.id for item in pending],
-            "outcome": result.get("outcome"),
-        }
+        today = datetime.now(UTC).date()
+        order = ProposedOrder(
+            client_order_id=client_order_id(
+                f"api:{thread_id}", symbol, body.action, body.quantity, today
+            ),
+            ticker=symbol,
+            action=body.action,
+            quantity=body.quantity,
+            reference_price=quote,
+            as_of=today,
+            reasoning=body.reasoning,
+        )
+        result = await _run_order(request.app, thread_id, {"order": order.model_dump(mode="json")})
+        return _order_view(thread_id, result)
 
-    @app.get("/v1/remediations/actions")
-    async def remediation_actions(
+    @app.post("/v1/analyses/{thread_id}/orders", status_code=202)
+    async def propose_analysis_orders(
+        request: Request, thread_id: str, x_api_key: str | None = Header(default=None)
+    ) -> list[dict[str, Any]]:
+        """Put every order an analysis proposed up for approval, once per order."""
+        await _authorize(request, x_api_key, "operator")
+        active = _manager(request)
+        if await active.storage.latest_run(thread_id) is None:
+            raise HTTPException(404, "analysis not found")
+        snapshot = await active.graph.aget_state(active._config(thread_id))
+        orders = [
+            ProposedOrder.model_validate(item) for item in (snapshot.values or {}).get("orders", [])
+        ]
+        views = []
+        for order in orders:
+            order_thread = str(uuid5(NAMESPACE_URL, f"{thread_id}:{order.client_order_id}"))
+            state = await _order_graph(request).aget_state(_graph_config("orders", order_thread))
+            if state.values:
+                views.append(_order_view(order_thread, dict(state.values), state))
+                continue
+            result = await _run_order(
+                request.app, order_thread, {"order": order.model_dump(mode="json")}
+            )
+            views.append(_order_view(order_thread, result))
+        return views
+
+    @app.get("/v1/orders")
+    async def list_orders(
+        request: Request,
+        x_api_key: str | None = Header(default=None),
+        status: OrderStatus | None = None,
+    ) -> list[dict[str, Any]]:
+        await _authorize(request, x_api_key, "viewer")
+        executions = await _paper(request).orders(status=status)
+        return [item.model_dump(mode="json") for item in executions]
+
+    @app.get("/v1/orders/pending")
+    async def pending_orders(
+        request: Request, x_api_key: str | None = Header(default=None)
+    ) -> list[dict[str, Any]]:
+        await _authorize(request, x_api_key, "viewer")
+        graph = _order_graph(request)
+        views = []
+        for order_thread in await _manager(request).storage.checkpoint_threads("orders"):
+            state = await graph.aget_state(_graph_config("orders", order_thread))
+            if any(task.interrupts for task in state.tasks):
+                views.append(_order_view(order_thread, dict(state.values), state))
+        return views
+
+    @app.post("/v1/orders/settle")
+    async def settle_orders(
         request: Request, x_api_key: str | None = Header(default=None)
     ) -> list[dict[str, Any]]:
         await _authorize(request, x_api_key, "operator")
-        catalog: ActionCatalog = request.app.state.action_catalog
-        return [
-            {
-                "name": action.name,
-                "schema": action.args_schema.model_json_schema(),
-                "rollback": redact_secrets(action.rollback),
-            }
-            for action in catalog.actions.values()
-        ]
+        try:
+            settled = await _paper(request).settle()
+        except PaperBrokerError as exc:
+            raise HTTPException(422, str(exc)) from exc
+        return [item.model_dump(mode="json") for item in settled]
 
-    @app.get("/v1/remediations/{thread_id}")
-    async def remediation_status(
+    @app.post("/v1/orders/{client_order_id}/cancel")
+    async def cancel_order(
+        request: Request, client_order_id: str, x_api_key: str | None = Header(default=None)
+    ) -> dict[str, Any]:
+        await _authorize(request, x_api_key, "approver")
+        try:
+            execution = await _paper(request).cancel(client_order_id)
+        except PaperBrokerError as exc:
+            raise HTTPException(409, str(exc)) from exc
+        return execution.model_dump(mode="json")
+
+    @app.get("/v1/orders/{thread_id}")
+    async def order_status(
         request: Request, thread_id: str, x_api_key: str | None = Header(default=None)
     ) -> dict[str, Any]:
         await _authorize(request, x_api_key, "viewer")
-        state = await _remediation_graph(request).aget_state(
-            _graph_config("remediation", thread_id)
-        )
+        state = await _order_graph(request).aget_state(_graph_config("orders", thread_id))
         if not state.values:
-            raise HTTPException(404, "remediation thread not found")
-        pending_items = [item for task in state.tasks for item in task.interrupts]
-        pending = [item.value for item in pending_items]
-        return {
-            "thread_id": thread_id,
-            "status": "awaiting_approval" if pending else "completed",
-            "outcome": redact_value(state.values.get("outcome")),
-            "result": redact_value(state.values.get("result")),
-            "rollback": redact_value(state.values.get("rollback")),
-            "requests": redact_value(pending),
-            "approval_ids": [item.id for item in pending_items],
-        }
+            raise HTTPException(404, "order thread not found")
+        return _order_view(thread_id, dict(state.values), state)
 
-    @app.post("/v1/remediations/{thread_id}/approve")
-    async def approve_remediation(
+    @app.post("/v1/orders/{thread_id}/approve")
+    async def approve_order(
         request: Request, thread_id: str, x_api_key: str | None = Header(default=None)
     ) -> dict[str, Any]:
         role = await _authorize(request, x_api_key, "approver")
-        graph = _remediation_graph(request)
+        graph = _order_graph(request)
         _, payload = await _bounded_json_object(request)
         decisions = payload.get("decisions")
         if (
@@ -732,10 +789,23 @@ def create_app(
             or decisions[0].get("type") not in {"approve", "edit", "reject"}
         ):
             raise HTTPException(422, "one valid decision is required")
-        locks: MutableMapping[str, asyncio.Lock] = request.app.state.remediation_locks
+        if decisions[0]["type"] == "edit":
+            edited = decisions[0].get("edited_action")
+            args = edited.get("args") if isinstance(edited, dict) else None
+            quantity = args.get("quantity") if isinstance(args, dict) else None
+            if (
+                not isinstance(edited, dict)
+                or edited.get("name") != PLACE_ORDER
+                or set(args or {}) != {"quantity"}
+                or not isinstance(quantity, int)
+                or isinstance(quantity, bool)
+                or quantity <= 0
+            ):
+                raise HTTPException(422, "an edit may only change the positive integer quantity")
+        locks: MutableMapping[str, asyncio.Lock] = request.app.state.order_locks
         lock = locks.setdefault(thread_id, asyncio.Lock())
-        config = _graph_config("remediation", thread_id)
-        async with lock, _manager(request).storage.approval_lock("remediation", thread_id):
+        config = _graph_config("orders", thread_id)
+        async with lock, _manager(request).storage.approval_lock("orders", thread_id):
             state = await graph.aget_state(config)
             pending = [item for task in state.tasks for item in task.interrupts]
             if not pending:
@@ -749,38 +819,76 @@ def create_app(
                 raise HTTPException(503, "integration context unavailable")
             context = replace(base_context, actor=actor, role=role)
             approval_records = _approval_records(pending, decisions)
-            await _manager(request).storage.touch_checkpoint_thread(thread_id, "remediation")
+            await _manager(request).storage.touch_checkpoint_thread(thread_id, "orders")
             for decision, action_name, args_digest in approval_records:
                 await _manager(request).storage.record_approval(
-                    thread_id, "remediation", actor, decision, action_name, args_digest
+                    thread_id, "orders", actor, decision, action_name, args_digest
                 )
             try:
                 result = await graph.ainvoke(
                     Command(resume={"decisions": decisions}), config, context=context
                 )
-            except (ValueError, ValidationError, PermissionError) as exc:
+            except (ValueError, ValidationError, PermissionError, PaperBrokerError) as exc:
                 raise HTTPException(422, type(exc).__name__) from exc
             except IntegrationNotConfiguredError as exc:
-                raise HTTPException(503, "action integration unavailable") from exc
-            except IntegrationError as exc:
-                raise HTTPException(502, "action integration failed") from exc
-            except UncertainActionOutcome as exc:
-                raise HTTPException(409, "action outcome is uncertain; reconcile manually") from exc
+                raise HTTPException(503, "paper broker unavailable") from exc
+            except RuntimeError as exc:
+                raise HTTPException(409, "the paper book kept changing; retry") from exc
             pending_after = result.get("__interrupt__", ())
             if pending_after:
-                await _notify_gateways(request.app, "remediation", thread_id, pending_after)
-            return {
-                "thread_id": thread_id,
-                "status": "awaiting_approval" if pending_after else "completed",
-                "outcome": result.get("outcome"),
-                "result": redact_value(result.get("result")),
-                "rollback": redact_value(result.get("rollback")),
-                "requests": redact_value([item.value for item in pending_after]),
-                "approval_ids": [item.id for item in pending_after],
-            }
+                await _notify_gateways(request.app, "orders", thread_id, pending_after)
+            return _order_view(thread_id, result)
 
-    @app.get("/v1/investigations/{thread_id}/explain")
-    async def explain_investigation(
+    @app.get("/v1/portfolio")
+    async def portfolio(
+        request: Request, x_api_key: str | None = Header(default=None)
+    ) -> dict[str, Any]:
+        await _authorize(request, x_api_key, "viewer")
+        broker = _paper(request)
+        book = await broker.portfolio()
+        quotes: dict[str, float | None] = {}
+        for ticker in book.positions:
+            try:
+                quotes[ticker] = await broker.quotes(ticker)
+            except (IntegrationError, TypeError):
+                quotes[ticker] = None
+        prices = {ticker: price for ticker, price in quotes.items() if price}
+        positions = []
+        for ticker, held in sorted(book.positions.items()):
+            price = quotes.get(ticker)
+            for side, shares, cost in (
+                ("long", held.long, held.long_cost_basis),
+                ("short", held.short, held.short_cost_basis),
+            ):
+                if not shares:
+                    continue
+                pnl = None if price is None else (price - cost) * shares
+                positions.append(
+                    {
+                        "ticker": ticker,
+                        "side": side,
+                        "shares": shares,
+                        "cost_basis": cost,
+                        "price": price,
+                        "market_value": None if price is None else shares * price,
+                        "unrealized_pnl": None
+                        if pnl is None
+                        else round(pnl if side == "long" else -pnl, 2),
+                    }
+                )
+        queued = await broker.orders(status=OrderStatus.QUEUED)
+        return {
+            "currency": book.currency,
+            "cash": book.cash,
+            "margin_used": book.margin_used,
+            "net_liquidation_value": round(book.net_liquidation_value(prices), 2),
+            "positions": positions,
+            "queued_orders": len(queued),
+            "paper": True,
+        }
+
+    @app.get("/v1/analyses/{thread_id}/explain")
+    async def explain_analysis(
         request: Request, thread_id: str, x_api_key: str | None = Header(default=None)
     ) -> dict[str, Any]:
         await _authorize(request, x_api_key, "viewer")
@@ -803,8 +911,8 @@ def create_app(
             ),
         )
 
-    @app.get("/v1/investigations/{thread_id}")
-    async def investigation(
+    @app.get("/v1/analyses/{thread_id}")
+    async def analysis(
         request: Request, thread_id: str, x_api_key: str | None = Header(default=None)
     ) -> dict[str, Any]:
         await _authorize(request, x_api_key, "viewer")
@@ -820,7 +928,7 @@ def create_app(
                 {
                     "run": run,
                     "report": values.get("report") or None,
-                    "alert": values.get("alert") or None,
+                    "request": values.get("request") or None,
                     "harness": values.get("harness") or None,
                     **{
                         key: values.get(key)
@@ -828,10 +936,12 @@ def create_app(
                             "plan",
                             "findings",
                             "evidence",
-                            "incident_window",
-                            "diagnosis",
+                            "theses",
                             "verification",
-                            "actions",
+                            "limits",
+                            "decisions",
+                            "orders",
+                            "degraded",
                             "errors",
                         )
                     },
@@ -929,45 +1039,38 @@ def create_app(
         except ValueError as exc:
             raise HTTPException(409, str(exc)) from exc
 
-    @app.post("/v1/alerts/{source}", status_code=202, response_model=None)
-    async def alert(request: Request, source: AlertSource) -> dict[str, Any] | JSONResponse:
+    @app.post("/v1/signals/{source}", status_code=202, response_model=None)
+    async def signal(request: Request, source: SignalSource) -> dict[str, Any] | JSONResponse:
         raw = await _bounded_body(request)
         active_verifier: WebhookVerifier = request.app.state.verifier
         header_ok = active_verifier.header_authenticated(source, raw, request.headers)
-        if not header_ok and not (
-            source is AlertSource.CLOUDWATCH and active_verifier.sns_available
-        ):
-            raise HTTPException(401, "webhook authentication failed")
         try:
             payload = json.loads(raw)
             if not isinstance(payload, dict):
-                raise ValueError("alert must be an object")
+                raise ValueError("signal must be an object")
         except (ValueError, UnicodeError) as exc:
-            raise HTTPException(400 if header_ok else 401, "invalid JSON alert") from exc
+            raise HTTPException(400 if header_ok else 401, "invalid JSON signal") from exc
         try:
             verified = active_verifier.verify(source, raw, request.headers, payload)
         except ValueError as exc:
-            raise HTTPException(401, "webhook authentication failed") from exc
+            raise HTTPException(401, "signal authentication failed") from exc
+        kind = RequestSource(REQUEST_SOURCE[source])
         try:
-            detected = detect_source(verified)
-            if detected is not AlertSource.GENERIC and detected is not source:
-                raise AlertParseError("source mismatch")
-            normalized = parse_alert(verified, source_hint=source.value)
-            if normalized.source is not source:
-                raise AlertParseError("source mismatch")
-        except AlertParseError as exc:
-            raise HTTPException(422, "alert does not match source") from exc
+            parsed = request_from_payload(verified, source=kind)
+        except ValueError as exc:
+            raise HTTPException(422, "the signal names no valid ticker") from exc
+        fingerprint = request_fingerprint(parsed.tickers, parsed.as_of, kind)
         active = _manager(request)
         thread_id = str(uuid4())
         run_id = str(uuid4())
         with active.reserve() as reservation:
             claimed, prior = await active.storage.claim_webhook_run(
                 source.value,
-                normalized.fingerprint,
+                fingerprint,
                 thread_id,
                 run_id,
                 datetime.now(UTC),
-                timedelta(minutes=options.alert_dedupe_minutes),
+                timedelta(minutes=options.signal_dedupe_minutes),
             )
             if not claimed:
                 return JSONResponse({"thread_id": prior, "deduplicated": True})
@@ -976,18 +1079,16 @@ def create_app(
                     run_id,
                     thread_id,
                     verified,
-                    source.value,
-                    destinations=options.alert_delivery_routes.get(
-                        normalized.severity.value, options.alert_delivery_routes.get("default", {})
+                    kind.value,
+                    destinations=options.signal_delivery_routes.get(
+                        source.value, options.signal_delivery_routes.get("default", {})
                     ),
                     user_requested=False,
                     reservation=reservation,
                 )
             except (Exception, asyncio.CancelledError):
                 await active.storage.set_status(run_id, "failed", "schedule_failed")
-                await active.storage.release_fingerprint(
-                    source.value, normalized.fingerprint, thread_id
-                )
+                await active.storage.release_fingerprint(source.value, fingerprint, thread_id)
                 raise
 
         return {**result, "deduplicated": False}
@@ -1142,9 +1243,11 @@ def create_app(
                 return FileResponse(target)
             if first not in {
                 "",
-                "investigations",
+                "analyses",
                 "chat",
-                "remediations",
+                "orders",
+                "portfolio",
+                "backtests",
                 "schedules",
                 "integrations",
             }:
@@ -1190,15 +1293,79 @@ def _chat_graph(request: Request) -> Any:
     return graph
 
 
-def _remediation_graph(request: Request) -> Any:
-    graph = request.app.state.remediation_graph
+def _order_graph(request: Request) -> Any:
+    graph = request.app.state.order_graph
     if graph is None:
-        raise HTTPException(503, "remediation unavailable")
+        raise HTTPException(503, "paper orders unavailable")
     return graph
 
 
-def _graph_config(kind: Literal["chat", "remediation"], thread_id: str) -> dict[str, Any]:
+def _paper(request: Request) -> PaperBroker:
+    broker = request.app.state.paper_broker
+    if not isinstance(broker, PaperBroker):
+        raise HTTPException(503, "paper broker unavailable")
+    return broker
+
+
+def _graph_config(kind: Literal["chat", "orders"], thread_id: str) -> dict[str, Any]:
     return {"configurable": {"thread_id": f"{kind}:{thread_id}"}}
+
+
+def _order_view(thread_id: str, values: dict[str, Any], state: Any = None) -> dict[str, Any]:
+    """An order thread for the API: the outcome, its preview and fill, and what waits."""
+    items = (
+        [item for task in state.tasks for item in task.interrupts]
+        if state is not None
+        else list(values.get("__interrupt__", ()))
+    )
+    return {
+        "thread_id": thread_id,
+        "status": "awaiting_approval" if items else "completed",
+        "outcome": values.get("outcome"),
+        "order": redact_value(values.get("order")),
+        "preview": redact_value(values.get("preview")),
+        "execution": redact_value(values.get("execution")),
+        "denial": values.get("denial") or None,
+        "requests": redact_value([item.value for item in items]),
+        "approval_ids": [item.id for item in items],
+    }
+
+
+async def _run_order(app: FastAPI, thread_id: str, value: dict[str, Any]) -> dict[str, Any]:
+    """Start an order thread under its lock; notify the gateways when it waits for a human."""
+    graph = app.state.order_graph
+    if graph is None:
+        raise HTTPException(503, "paper orders unavailable")
+    manager: RunManager = app.state.manager
+    locks: MutableMapping[str, asyncio.Lock] = app.state.order_locks
+    lock = locks.setdefault(thread_id, asyncio.Lock())
+    async with lock, manager.storage.approval_lock("orders", thread_id):
+        await manager.storage.touch_checkpoint_thread(thread_id, "orders")
+        try:
+            result: dict[str, Any] = await graph.ainvoke(
+                value, _graph_config("orders", thread_id), context=manager.context_factory()
+            )
+        except (ValueError, ValidationError) as exc:
+            raise HTTPException(422, "invalid order") from exc
+        except IntegrationNotConfiguredError as exc:
+            raise HTTPException(503, "paper broker unavailable") from exc
+    pending = result.get("__interrupt__", ())
+    if pending:
+        await _notify_gateways(app, "orders", thread_id, pending)
+    return result
+
+
+async def _start_order_thread(
+    app: FastAPI, order: ProposedOrder, analysis_thread: str
+) -> tuple[str, str] | None:
+    """The order thread and approval id for an analysis' single proposed order, if it waits."""
+    order_thread = str(uuid5(NAMESPACE_URL, f"{analysis_thread}:{order.client_order_id}"))
+    try:
+        result = await _run_order(app, order_thread, {"order": order.model_dump(mode="json")})
+    except HTTPException:
+        return None
+    pending = result.get("__interrupt__", ())
+    return (order_thread, pending[0].id) if len(pending) == 1 else None
 
 
 def _approval_records(pending: list[Any], decisions: list[Any]) -> list[tuple[str, str, str]]:
@@ -1234,20 +1401,20 @@ async def _gateway_decide(
     app: FastAPI, kind: str, thread_id: str, choice: str, actor: str, approval_id: str
 ) -> str:
     """Resume the same checkpoint under the same lock and audit as the API."""
-    if kind not in {"chat", "remediation"} or choice not in {"approve", "reject"}:
+    if kind not in {"chat", "orders"} or choice not in {"approve", "reject"}:
         return "Invalid approval request."
     if not 1 <= len(thread_id) <= 64 or not actor.startswith(("slack:", "telegram:")):
         return "Invalid approval request."
     if not app.state.approval_policy.allows_approver(actor, "approver"):
         return "Not authorized to approve."
-    graph = app.state.chat_graph if kind == "chat" else app.state.remediation_graph
+    graph = app.state.chat_graph if kind == "chat" else app.state.order_graph
     if graph is None:
         return "Approval service unavailable."
     locks: MutableMapping[str, asyncio.Lock] = (
-        app.state.chat_locks if kind == "chat" else app.state.remediation_locks
+        app.state.chat_locks if kind == "chat" else app.state.order_locks
     )
     lock = locks.setdefault(thread_id, asyncio.Lock())
-    config = _graph_config(cast(Literal["chat", "remediation"], kind), thread_id)
+    config = _graph_config(cast(Literal["chat", "orders"], kind), thread_id)
     async with lock, app.state.manager.storage.approval_lock(kind, thread_id):
         state = await graph.aget_state(config)
         pending = [item for task in state.tasks for item in task.interrupts]
@@ -1273,14 +1440,15 @@ async def _gateway_decide(
             result = await graph.ainvoke(
                 Command(resume={"decisions": decisions}), config, context=context
             )
-        except UncertainActionOutcome:
-            return "Action outcome is uncertain; reconcile manually."
         except Exception:
             return "Approval could not be completed; inspect the thread in the API."
         if result.get("__interrupt__"):
             await _notify_gateways(app, kind, thread_id, result["__interrupt__"])
             return "Decision recorded; another approval is pending."
-        return "Rejected." if choice == "reject" else "Approved."
+        denial = result.get("denial")
+        if denial:
+            return f"Decisión rechazada: {denial}"
+        return "Rechazada." if choice == "reject" else f"Aprobada: {result.get('outcome', '')}."
 
 
 async def _notify_gateways(app: FastAPI, kind: str, thread_id: str, pending: Any) -> None:
@@ -1348,17 +1516,11 @@ async def _authorize(request: Request, key: str | None, minimum: str) -> str:
 
 
 def _verifier_from_config(config: ServerConfig) -> WebhookVerifier:
-    public_key = (
-        Path(config.sns_public_key_path).read_bytes() if config.sns_public_key_path else None
-    )
     return WebhookVerifier(
         tokens={key: value.get_secret_value() for key, value in config.webhook_tokens.items()},
         hmac_secrets={
             key: value.get_secret_value() for key, value in config.webhook_hmac_secrets.items()
         },
-        sns_topic_arn=config.sns_topic_arn,
-        sns_cert_url=config.sns_cert_url,
-        sns_public_key_pem=public_key,
     )
 
 
@@ -1367,15 +1529,15 @@ async def _retention_loop(
     saver: Any,
     config: ServerConfig,
     chat_locks: MutableMapping[str, asyncio.Lock] | None = None,
-    remediation_locks: MutableMapping[str, asyncio.Lock] | None = None,
+    order_locks: MutableMapping[str, asyncio.Lock] | None = None,
 ) -> None:
     chat_locks = chat_locks if chat_locks is not None else {}
-    remediation_locks = remediation_locks if remediation_locks is not None else {}
+    order_locks = order_locks if order_locks is not None else {}
     while True:
         await asyncio.sleep(3600)
         try:
             cutoff = datetime.now(UTC) - timedelta(days=config.thread_retention_days)
-            await _retention_cycle(manager, saver, cutoff, chat_locks, remediation_locks)
+            await _retention_cycle(manager, saver, cutoff, chat_locks, order_locks)
         except Exception:
             _LOGGER.warning("retention cycle failed")
 
@@ -1385,18 +1547,18 @@ async def _retention_cycle(
     saver: Any,
     cutoff: datetime,
     chat_locks: MutableMapping[str, asyncio.Lock],
-    remediation_locks: MutableMapping[str, asyncio.Lock],
+    order_locks: MutableMapping[str, asyncio.Lock],
 ) -> None:
     for thread_id in await manager.storage.expired_threads(cutoff):
-        investigation_lock = manager.locks.setdefault(thread_id, asyncio.Lock())
+        analysis_lock = manager.locks.setdefault(thread_id, asyncio.Lock())
         chat_lock = chat_locks.setdefault(thread_id, asyncio.Lock())
-        remediation_lock = remediation_locks.setdefault(thread_id, asyncio.Lock())
+        order_lock = order_locks.setdefault(thread_id, asyncio.Lock())
         async with (
-            investigation_lock,
+            analysis_lock,
             chat_lock,
-            remediation_lock,
+            order_lock,
             manager.storage.approval_lock("chat", thread_id),
-            manager.storage.approval_lock("remediation", thread_id),
+            manager.storage.approval_lock("orders", thread_id),
         ):
             try:
                 if thread_id not in await manager.storage.expired_threads(cutoff):
@@ -1404,7 +1566,8 @@ async def _retention_cycle(
                 for checkpoint_id in (
                     thread_id,
                     f"chat:{thread_id}",
-                    f"remediation:{thread_id}",
+                    f"orders:{thread_id}",
+                    f"remediation:{thread_id}",  # Legacy namespace, removed after F6 retention.
                 ):
                     await saver.adelete_thread(checkpoint_id)
                 await manager.storage.delete_thread(thread_id, cutoff)

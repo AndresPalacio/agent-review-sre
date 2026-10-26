@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import asyncio
 import logging
-import math
 from collections.abc import Awaitable, Callable, Mapping
 from datetime import UTC
 from threading import RLock
@@ -15,10 +14,12 @@ from apscheduler.jobstores.sqlalchemy import SQLAlchemyJobStore
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.cron import CronTrigger
 from apscheduler.triggers.interval import IntervalTrigger
+from pydantic import ValidationError
 from sqlalchemy import create_engine, text
 from sqlalchemy.engine import Connection, Engine
 
 from fin_graph.delivery.settings import validate_destinations
+from fin_graph.domain.market_watch import WatchRule
 
 _LOCK_ID = 0x46494E4752415048  # "FINGRAPH", stable across restarts.
 _ACTIVE_SERVICE: SchedulerService | None = None
@@ -103,6 +104,10 @@ class PgAdvisoryLease:
             self.engine.dispose()
 
 
+#: Schedules that run once a day at ``hour:minute`` in ``timezone``.
+DAILY_KINDS = frozenset({"portfolio_digest", "thesis_review", "watch_digest"})
+
+
 def validate_schedule(value: dict[str, Any]) -> dict[str, Any]:
     """Normalize the public schedule definition before it reaches the job store."""
     if not isinstance(value, dict):
@@ -117,48 +122,26 @@ def validate_schedule(value: dict[str, Any]) -> dict[str, Any]:
     ):
         raise ValueError("invalid schedule destinations")
     destinations = validate_destinations(destinations)
-    if kind == "health_check":
+    if kind == "market_watch":
         minutes = value.get("interval_minutes")
-        checks = value.get("checks")
+        rules = value.get("rules")
         if not isinstance(minutes, int) or isinstance(minutes, bool) or not 1 <= minutes <= 1440:
             raise ValueError("interval_minutes must be between 1 and 1440")
-        if not isinstance(checks, list) or not 1 <= len(checks) <= 20:
-            raise ValueError("health_check requires 1 to 20 checks")
-        ids: set[str] = set()
-        normalized = []
-        for check in checks:
-            if not isinstance(check, dict):
-                raise ValueError("check must be an object")
-            check_id, expression = check.get("id"), check.get("expression")
-            operator, threshold = check.get("operator"), check.get("threshold")
-            if (
-                not isinstance(check_id, str)
-                or not 1 <= len(check_id) <= 64
-                or check_id in ids
-                or not isinstance(expression, str)
-                or not 1 <= len(expression) <= 1000
-                or operator not in {"gt", "gte", "lt", "lte"}
-                or not isinstance(threshold, (int, float))
-                or isinstance(threshold, bool)
-                or not math.isfinite(threshold)
-            ):
-                raise ValueError("invalid health check")
-            ids.add(check_id)
-            normalized.append(
-                {
-                    "id": check_id,
-                    "expression": expression,
-                    "operator": operator,
-                    "threshold": float(threshold),
-                }
-            )
+        if not isinstance(rules, list) or not 1 <= len(rules) <= 20:
+            raise ValueError("market_watch requires 1 to 20 rules")
+        try:
+            parsed = [WatchRule.model_validate(rule) for rule in rules]
+        except ValidationError as exc:
+            raise ValueError("invalid market watch rule") from exc
+        if len({rule.ticker for rule in parsed}) != len(parsed):
+            raise ValueError("each ticker may have one rule")
         return {
             "kind": kind,
             "interval_minutes": minutes,
-            "checks": normalized,
+            "rules": [rule.model_dump(mode="json") for rule in parsed],
             "destinations": destinations,
         }
-    if kind == "digest":
+    if kind in DAILY_KINDS:
         hour, minute, zone = value.get("hour"), value.get("minute"), value.get("timezone")
         if (
             not isinstance(hour, int)
@@ -169,18 +152,24 @@ def validate_schedule(value: dict[str, Any]) -> dict[str, Any]:
             or not 0 <= minute <= 59
             or not isinstance(zone, str)
         ):
-            raise ValueError("invalid digest time")
+            raise ValueError("invalid daily schedule time")
         try:
             ZoneInfo(zone)
         except (ZoneInfoNotFoundError, ValueError) as exc:
-            raise ValueError("invalid digest timezone") from exc
-        return {
+            raise ValueError("invalid schedule timezone") from exc
+        daily: dict[str, Any] = {
             "kind": kind,
             "hour": hour,
             "minute": minute,
             "timezone": zone,
             "destinations": destinations,
         }
+        if kind == "thesis_review":
+            after = value.get("after_days", 30)
+            if not isinstance(after, int) or isinstance(after, bool) or not 1 <= after <= 365:
+                raise ValueError("after_days must be between 1 and 365")
+            daily["after_days"] = after
+        return daily
     raise ValueError("unsupported schedule kind")
 
 
@@ -374,7 +363,7 @@ class SchedulerService:
             return
         trigger = (
             IntervalTrigger(minutes=definition["interval_minutes"], timezone=UTC)
-            if definition["kind"] == "health_check"
+            if definition["kind"] == "market_watch"
             else CronTrigger(
                 hour=definition["hour"],
                 minute=definition["minute"],

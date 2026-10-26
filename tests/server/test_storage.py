@@ -27,25 +27,25 @@ async def test_action_claim_fails_closed_after_uncertain_outcome() -> None:
     await engine.dispose()
 
 
-async def test_retention_includes_chat_and_remediation_activity() -> None:
+async def test_retention_includes_chat_and_order_activity() -> None:
     engine = create_async_engine("sqlite+aiosqlite:///:memory:")
     async with engine.begin() as connection:
         await connection.run_sync(Base.metadata.create_all)
     storage = Storage(engine)
     await storage.touch_checkpoint_thread("chat-1", "chat")
-    await storage.touch_checkpoint_thread("rem-1", "remediation")
+    await storage.touch_checkpoint_thread("ord-1", "orders")
     await storage.create_run("run-1", "shared")
     await storage.touch_checkpoint_thread("shared", "chat")
     cutoff = datetime.now(UTC) + timedelta(days=1)
-    assert set(await storage.expired_threads(cutoff)) == {"chat-1", "rem-1", "shared"}
+    assert set(await storage.expired_threads(cutoff)) == {"chat-1", "ord-1", "shared"}
     assert await storage.delete_thread("chat-1", cutoff)
-    assert await storage.delete_thread("rem-1", cutoff)
+    assert await storage.delete_thread("ord-1", cutoff)
     assert await storage.delete_thread("shared", cutoff)
     assert await storage.expired_threads(cutoff) == []
     await engine.dispose()
 
 
-async def test_recent_chat_activity_keeps_older_investigation_thread() -> None:
+async def test_recent_chat_activity_keeps_older_analysis_thread() -> None:
     engine = create_async_engine("sqlite+aiosqlite:///:memory:")
     async with engine.begin() as connection:
         await connection.run_sync(Base.metadata.create_all)
@@ -70,7 +70,7 @@ async def test_approval_audit_records_actor_decision_without_raw_arguments() -> 
         await connection.run_sync(Base.metadata.create_all)
     storage = Storage(engine)
     await storage.record_approval(
-        "chat-1", "chat", "actor-hash", "approve", "execute_remediation", "a" * 64
+        "chat-1", "chat", "actor-hash", "approve", "propose_order", "a" * 64
     )
     records = await storage.approvals("chat-1")
     assert len(records) == 1
@@ -88,12 +88,21 @@ async def test_retention_deletes_only_expired_threads_action_results() -> None:
     await storage.touch_checkpoint_thread("old", "chat")
     await storage.touch_checkpoint_thread("new", "chat")
     assert await storage.claim_action("old-action", "a" * 64, thread_id="chat:old") == ("new", None)
+    assert await storage.claim_action("legacy-action", "c" * 64, thread_id="remediation:old") == (
+        "new",
+        None,
+    )
     assert await storage.claim_action("new-action", "b" * 64, thread_id="chat:new") == ("new", None)
     await storage.complete_action("old-action", {"ok": True})
+    await storage.complete_action("legacy-action", {"ok": True})
     await storage.complete_action("new-action", {"ok": True})
     cutoff = datetime.now(UTC) + timedelta(days=1)
     assert await storage.delete_thread("old", cutoff)
     assert await storage.claim_action("old-action", "a" * 64, thread_id="chat:old") == ("new", None)
+    assert await storage.claim_action("legacy-action", "c" * 64, thread_id="remediation:old") == (
+        "new",
+        None,
+    )
     assert await storage.claim_action("new-action", "b" * 64, thread_id="chat:new") == (
         "completed",
         {"ok": True},
@@ -115,12 +124,12 @@ async def test_run_event_dedupe_and_recovery() -> None:
     assert await storage.interrupt_stale_run("r1", cutoff)
     assert (await storage.get_run("r1"))["status"] == "interrupted"
     now = datetime.now(UTC)
-    assert await storage.claim_fingerprint("alertmanager", "abc", "t1", now, timedelta(minutes=5))
+    assert await storage.claim_fingerprint("tradingview", "abc", "t1", now, timedelta(minutes=5))
     assert not await storage.claim_fingerprint(
-        "alertmanager", "abc", "t2", now, timedelta(minutes=5)
+        "tradingview", "abc", "t2", now, timedelta(minutes=5)
     )
     assert await storage.claim_fingerprint(
-        "alertmanager", "abc", "t2", now + timedelta(minutes=6), timedelta(minutes=5)
+        "tradingview", "abc", "t2", now + timedelta(minutes=6), timedelta(minutes=5)
     )
     await engine.dispose()
 
@@ -167,11 +176,11 @@ async def test_webhook_claim_and_run_are_committed_together() -> None:
     storage = Storage(engine)
     now = datetime.now(UTC)
     assert await storage.claim_webhook_run(
-        "alertmanager", "f1", "t1", "r1", now, timedelta(minutes=5)
+        "tradingview", "f1", "t1", "r1", now, timedelta(minutes=5)
     ) == (True, "t1")
     assert (await storage.get_run("r1"))["thread_id"] == "t1"
     assert await storage.claim_webhook_run(
-        "alertmanager", "f1", "t2", "r2", now, timedelta(minutes=5)
+        "tradingview", "f1", "t2", "r2", now, timedelta(minutes=5)
     ) == (False, "t1")
     assert await storage.get_run("r2") is None
     await engine.dispose()

@@ -9,76 +9,68 @@ import pytest
 from langchain_core.messages import AIMessage, HumanMessage
 from langgraph.checkpoint.memory import InMemorySaver
 from langgraph.store.memory import InMemoryStore
-from pydantic import BaseModel
-from sqlalchemy.ext.asyncio import create_async_engine
+from tests.server.finance_app import (
+    REQUEST,
+    FixtureTools,
+    fixture_context,
+    make_storage,
+    paper_broker,
+)
+from tests.server.test_orders_api import ORDER
 
 from fin_graph.agents.testing.scripted_model import ScriptedChatModel, tool_call_message
 from fin_graph.graphs.analysis.services import UnavailableAnalysisServices
 from fin_graph.graphs.chat.graph import make_chat_graph
-from fin_graph.graphs.investigation.graph import make_investigation_graph
-from fin_graph.graphs.investigation.services import UnavailableServices
-from fin_graph.graphs.remediation.graph import ActionCatalog, ActionSpec, make_remediation_graph
+from fin_graph.graphs.orders.desk import OrderDesk
+from fin_graph.graphs.orders.graph import make_order_graph
 from fin_graph.harness.runtime import make_analysis_graph
-from fin_graph.integrations.context import RunContext
 from fin_graph.integrations.registry import IntegrationRegistry
 from fin_graph.memory.theses import ThesisMemory
 from fin_graph.safety.approval import ApprovalPolicy
 from fin_graph.server.app import _retention_cycle, create_app
 from fin_graph.server.manager import RunManager
-from fin_graph.server.storage import Base, Storage
+from fin_graph.server.storage import CheckpointThreadRow
 
 
 async def test_shared_saver_keeps_same_thread_id_separate_for_all_graphs(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    class Args(BaseModel):
-        replicas: int
-
-    async def prepare(args: Args, context: RunContext) -> dict[str, int]:
-        return {"replicas": args.replicas}
-
-    async def execute(args: Args, key: str, context: RunContext) -> dict[str, int]:
-        return {"replicas": args.replicas}
-
-    async def verify(args: Args, context: RunContext) -> bool:
-        return True
-
     thread_id = "00000000-0000-0000-0000-000000000001"
     monkeypatch.setattr("fin_graph.server.app.uuid4", lambda: UUID(thread_id))
-    engine = create_async_engine(f"sqlite+aiosqlite:///{tmp_path / 'namespaces.sqlite'}")
-    async with engine.begin() as connection:
-        await connection.run_sync(Base.metadata.create_all)
-    storage = Storage(engine)
-    await storage.put_key("operator-key", "operator")
+    engine, storage = await make_storage(tmp_path / "namespaces.sqlite")
     registry = IntegrationRegistry([], env_file=None)
     saver = InMemorySaver()
-    investigation = make_investigation_graph(UnavailableServices(), registry, checkpointer=saver)
-    manager = RunManager(investigation, storage, RunContext)
+    context = fixture_context()
+    analysis = make_analysis_graph(
+        UnavailableAnalysisServices(), FixtureTools(), checkpointer=saver
+    )
+    manager = RunManager(analysis, storage, context)
     policy = ApprovalPolicy(environment="prod")
     chat = make_chat_graph(
         ScriptedChatModel(responses=[AIMessage("Chat response")]),
         registry,
-        RunContext(),
+        context(),
         ThesisMemory(InMemoryStore()),
         policy=policy,
         checkpointer=saver,
     )
-    remediation = make_remediation_graph(
-        ActionCatalog([ActionSpec("scale", Args, prepare, execute, verify)]),
-        policy,
-        checkpointer=saver,
-    )
+    broker = paper_broker(engine)
+    orders = make_order_graph(OrderDesk(broker), policy, checkpointer=saver)
     app = create_app(
-        manager=manager, registry=registry, chat_graph=chat, remediation_graph=remediation
+        manager=manager,
+        registry=registry,
+        chat_graph=chat,
+        order_graph=orders,
+        paper=broker,
     )
     async with (
         app.router.lifespan_context(app),
         httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://test") as client,
     ):
-        run = await manager.submit("CPU high", None, thread_id=thread_id)
+        run = await manager.submit(REQUEST, "json", thread_id=thread_id)
         await manager.wait(run["run_id"])
-        investigation_before = await investigation.aget_state(manager._config(thread_id))
-        assert investigation_before.values.get("report")
+        analysis_before = await analysis.aget_state(manager._config(thread_id))
+        assert analysis_before.values.get("report")
 
         chat_response = await client.post(
             f"/v1/chat/threads/{thread_id}/messages",
@@ -88,58 +80,79 @@ async def test_shared_saver_keeps_same_thread_id_separate_for_all_graphs(
         assert chat_response.status_code == 200, chat_response.text
         assert "Chat response" in chat_response.text
 
-        remediation_response = await client.post(
-            "/v1/remediations",
-            json={"tool": "scale", "args": {"replicas": 2}},
+        order_response = await client.post(
+            "/v1/orders",
+            json=ORDER,
             headers={"x-api-key": "operator-key"},
         )
-        assert remediation_response.status_code == 202, remediation_response.text
-        assert remediation_response.json()["thread_id"] == thread_id
-        assert remediation_response.json()["status"] == "awaiting_approval"
+        assert order_response.status_code == 202, order_response.text
+        assert order_response.json()["thread_id"] == thread_id
+        assert order_response.json()["status"] == "awaiting_approval"
 
-        investigation_after = await investigation.aget_state(manager._config(thread_id))
+        analysis_after = await analysis.aget_state(manager._config(thread_id))
         chat_state = await chat.aget_state({"configurable": {"thread_id": f"chat:{thread_id}"}})
-        remediation_state = await remediation.aget_state(
-            {"configurable": {"thread_id": f"remediation:{thread_id}"}}
+        order_state = await orders.aget_state(
+            {"configurable": {"thread_id": f"orders:{thread_id}"}}
         )
-        assert investigation_after.values["report"] == investigation_before.values["report"]
-        assert investigation_after.values.get("messages") is None
+        assert analysis_after.values["report"] == analysis_before.values["report"]
+        assert analysis_after.values.get("messages") is None
         assert chat_state.values["messages"][-1].text == "Chat response"
         assert chat_state.values.get("tool") is None
-        assert remediation_state.values["tool"] == "scale"
-        assert remediation_state.values.get("messages") is None
-        await storage.record_health_result("cpu", "healthy", {}, datetime.now(UTC))
+        assert order_state.values["order"]["ticker"] == "DEEP"
+        assert order_state.values.get("messages") is None
+        legacy_id = f"remediation:{thread_id}"
+        await analysis.ainvoke(
+            {"raw_request": REQUEST, "source_hint": "json"},
+            {"configurable": {"thread_id": legacy_id}},
+            context=context(),
+        )
+        async with storage.sessions.begin() as session:
+            session.add(
+                CheckpointThreadRow(
+                    thread_id=thread_id,
+                    kind="remediation",
+                    touched_at=datetime.now(UTC),
+                )
+            )
+        await storage.record_watch_result("deep", "normal", {}, datetime.now(UTC))
         assert await storage.claim_gateway_event("slack", "retention-event")
         await _retention_cycle(
             manager,
             saver,
             datetime.now(UTC) + timedelta(days=1),
             app.state.chat_locks,
-            app.state.remediation_locks,
+            app.state.order_locks,
         )
-        for checkpoint_id in (thread_id, f"chat:{thread_id}", f"remediation:{thread_id}"):
+        for checkpoint_id in (
+            thread_id,
+            f"chat:{thread_id}",
+            f"orders:{thread_id}",
+            legacy_id,
+        ):
             assert await saver.aget_tuple({"configurable": {"thread_id": checkpoint_id}}) is None
         assert await storage.latest_run(thread_id) is None
-        assert await storage.recent_health_results(datetime.min.replace(tzinfo=UTC)) == []
+        assert await storage.recent_watch_results(datetime.min.replace(tzinfo=UTC)) == []
         assert await storage.claim_gateway_event("slack", "retention-event")
     await engine.dispose()
 
 
-async def test_chat_analyze_tool_does_not_replace_the_persisted_investigation() -> None:
+async def test_chat_analyze_tool_does_not_replace_the_persisted_analysis() -> None:
     registry = IntegrationRegistry([], env_file=None)
     saver = InMemorySaver()
-    services = UnavailableServices()
-    investigation = make_investigation_graph(services, registry, checkpointer=saver)
+    context = fixture_context()()
+    analysis = make_analysis_graph(
+        UnavailableAnalysisServices(), FixtureTools(), checkpointer=saver
+    )
     chat_analysis = make_analysis_graph(
         UnavailableAnalysisServices(),
-        registry,
+        FixtureTools(),
         checkpointer=False,
     )
     thread_id = "same-id"
     root_config = {"configurable": {"thread_id": thread_id}}
     chat_config = {"configurable": {"thread_id": f"chat:{thread_id}"}}
-    await investigation.ainvoke(
-        {"raw_alert": "CPU high", "user_requested": True}, root_config, context=RunContext()
+    await analysis.ainvoke(
+        {"raw_request": REQUEST, "source_hint": "json"}, root_config, context=context
     )
     before = await saver.aget_tuple(root_config)
     assert before is not None
@@ -152,7 +165,7 @@ async def test_chat_analyze_tool_does_not_replace_the_persisted_investigation() 
             ]
         ),
         registry,
-        RunContext(),
+        context,
         ThesisMemory(InMemoryStore()),
         policy=ApprovalPolicy(environment="prod"),
         analysis=chat_analysis,
@@ -161,7 +174,7 @@ async def test_chat_analyze_tool_does_not_replace_the_persisted_investigation() 
     await chat.ainvoke(
         {"messages": [HumanMessage("Analyze MSFT")]},
         chat_config,
-        context=RunContext(),
+        context=context,
     )
 
     after = await saver.aget_tuple(root_config)

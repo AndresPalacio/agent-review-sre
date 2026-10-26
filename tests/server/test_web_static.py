@@ -13,7 +13,7 @@ async def test_spa_fallback_protects_api_and_missing_assets(tmp_path: Path) -> N
     async with httpx.AsyncClient(
         transport=httpx.ASGITransport(app=app), base_url="http://test"
     ) as client:
-        for route in ("/", "/investigations/abc", "/chat", "/remediations", "/schedules"):
+        for route in ("/", "/analyses/abc", "/chat", "/orders", "/portfolio", "/schedules"):
             assert "console" in (await client.get(route)).text
         assert (await client.get("/assets/app.js")).status_code == 200
         for route in (

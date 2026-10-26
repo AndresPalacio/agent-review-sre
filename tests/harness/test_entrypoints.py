@@ -3,97 +3,77 @@
 from __future__ import annotations
 
 import json
+from datetime import UTC, datetime
 
-import httpx
 import pytest
-from langgraph.checkpoint.memory import InMemorySaver
-from sqlalchemy.ext.asyncio import create_async_engine
+from tests.server.finance_app import (
+    REQUEST,
+    analysis_manager,
+    client_for,
+    fixture_context,
+    make_storage,
+)
 from typer.testing import CliRunner
 
 from fin_graph.graphs.investigation.services import UnavailableServices
-from fin_graph.harness.runtime import make_investigation_graph
-from fin_graph.integrations.context import RunContext
 from fin_graph.integrations.registry import IntegrationRegistry
-from fin_graph.scheduler.jobs import HealthJobs
+from fin_graph.scheduler.market import MarketJobs
 from fin_graph.server.app import create_app
-from fin_graph.server.manager import RunManager
 from fin_graph.server.security import WebhookVerifier
-from fin_graph.server.storage import Base, Storage
 
 
 @pytest.mark.parametrize("source", ["api", "webhook", "scheduler"])
-async def test_api_webhook_and_scheduled_incidents_expose_same_runtime(tmp_path, source):
-    engine = create_async_engine(f"sqlite+aiosqlite:///{tmp_path / 'entrypoints.sqlite'}")
-    async with engine.begin() as connection:
-        await connection.run_sync(Base.metadata.create_all)
-    storage = Storage(engine)
-    await storage.put_key("operator", "operator")
-    registry = IntegrationRegistry([], env_file=None)
-    graph = make_investigation_graph(UnavailableServices(), registry, checkpointer=InMemorySaver())
-    manager = RunManager(graph, storage, RunContext)
+async def test_api_webhook_and_market_watch_expose_same_analysis_runtime(tmp_path, source):
+    engine, storage = await make_storage(tmp_path / "entrypoints.sqlite")
+    context = fixture_context()
+    manager = analysis_manager(storage, context)
     app = create_app(
         manager=manager,
-        registry=registry,
-        verifier=WebhookVerifier(tokens={"alertmanager": "webhook-key"}),
+        verifier=WebhookVerifier(tokens={"generic": "webhook-key"}),
     )
     try:
-        async with (
-            app.router.lifespan_context(app),
-            httpx.AsyncClient(
-                transport=httpx.ASGITransport(app=app), base_url="http://test"
-            ) as client,
-        ):
+        async with client_for(app) as client:
             if source == "api":
                 response = await client.post(
-                    "/v1/investigations",
-                    json={"alert": {"title": "API error"}},
-                    headers={"x-api-key": "operator"},
+                    "/v1/analyses",
+                    json={"request": REQUEST},
+                    headers={"x-api-key": "operator-key"},
                 )
                 assert response.status_code == 202
                 run = response.json()
             elif source == "webhook":
                 response = await client.post(
-                    "/v1/alerts/alertmanager",
-                    headers={"x-sre-webhook-token": "webhook-key"},
-                    json={
-                        "version": "4",
-                        "status": "firing",
-                        "groupKey": "g",
-                        "commonLabels": {"alertname": "API error"},
-                        "alerts": [{"status": "firing", "labels": {"alertname": "API error"}}],
-                    },
+                    "/v1/signals/generic",
+                    headers={"x-fin-webhook-token": "webhook-key"},
+                    json=REQUEST,
                 )
                 assert response.status_code == 202, response.text
                 run = response.json()
             else:
-
-                class Probe:
-                    async def query(self, expression):
-                        return {"resultType": "scalar", "result": [0, "0"]}
-
-                jobs = HealthJobs(
-                    storage, manager, lambda: RunContext(clients={"prometheus": Probe()})
+                jobs = MarketJobs(
+                    storage,
+                    manager,
+                    context,
+                    now=lambda: datetime(2024, 6, 28, 14, 0, tzinfo=UTC),
                 )
-                await jobs.health_check(
-                    "cluster",
+                await jobs.market_watch(
+                    "deep-watch",
                     {
-                        "kind": "health_check",
+                        "kind": "market_watch",
                         "interval_minutes": 5,
-                        "checks": [
-                            {"id": "up", "expression": "up", "operator": "lt", "threshold": 1}
-                        ],
+                        "rules": [{"ticker": "DEEP", "max_daily_move_pct": 0.01}],
                     },
                 )
                 run = (await storage.list_runs(10))[0]
             await manager.wait(run["run_id"])
             result = await client.get(
-                f"/v1/investigations/{run['thread_id']}", headers={"x-api-key": "operator"}
+                f"/v1/analyses/{run['thread_id']}", headers={"x-api-key": "operator-key"}
             )
             assert result.status_code == 200
             body = result.json()
             assert body["run"]["status"] == "completed"
             assert body["report"]
-            assert body.get("harness", {}).get("mode") == "incident"
+            assert body.get("harness", {}).get("mode") == "analysis"
             assert body["harness"]["variant"].startswith("sha256:")
             assert "harness_trace" not in body
     finally:

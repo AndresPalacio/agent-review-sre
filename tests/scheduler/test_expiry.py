@@ -71,17 +71,17 @@ class FakeGraph:
 def _run(
     storage: FakeStorage,
     chat_graph: FakeGraph,
-    remediation_graph: FakeGraph,
+    order_graph: FakeGraph,
     *,
     chat_locks: dict[str, asyncio.Lock] | None = None,
-    remediation_locks: dict[str, asyncio.Lock] | None = None,
+    order_locks: dict[str, asyncio.Lock] | None = None,
 ) -> Any:
     return expire_pending_approvals(
         storage=storage,
         chat_graph=chat_graph,
-        remediation_graph=remediation_graph,
+        order_graph=order_graph,
         chat_locks=chat_locks if chat_locks is not None else {},
-        remediation_locks=remediation_locks if remediation_locks is not None else {},
+        order_locks=order_locks if order_locks is not None else {},
         context_factory=lambda: RunContext(clients={"read_only": object()}),
         ttl=timedelta(hours=24),
         now=lambda: NOW,
@@ -89,9 +89,11 @@ def _run(
 
 
 @pytest.mark.asyncio
-async def test_expired_remediation_rejected_and_audited() -> None:
-    storage = FakeStorage({("remediation", "r1"): NOW - timedelta(hours=25)})
-    graph = FakeGraph([{"name": "restart", "arguments": {"pod": "web"}}])
+async def test_expired_paper_order_rejected_and_audited() -> None:
+    storage = FakeStorage({("orders", "r1"): NOW - timedelta(hours=25)})
+    graph = FakeGraph(
+        [{"name": "place_paper_order", "arguments": {"ticker": "DEEP", "quantity": 1}}]
+    )
 
     count = await _run(storage, FakeGraph([]), graph)
 
@@ -99,18 +101,18 @@ async def test_expired_remediation_rejected_and_audited() -> None:
     assert graph.requests == []
     command, config, context = graph.resumptions[0]
     assert command.resume == {"decisions": [{"type": "reject"}]}
-    assert config == {"configurable": {"thread_id": "remediation:r1"}}
+    assert config == {"configurable": {"thread_id": "orders:r1"}}
     assert context.actor == "scheduler:expiry"
     assert context.role == "internal_rejector"
     assert "read_only" in context.clients
     assert storage.records == [
         (
             "r1",
-            "remediation",
+            "orders",
             "scheduler:expiry",
             "reject",
-            "restart",
-            "eb025f40c119e6c311fb3bbbebf7efb549f5c4926359a4707205ff5ae33f6361",
+            "place_paper_order",
+            "60eec458a4569598b582ccd89a686a7d7798c406c834e3faba3e340cfd1161e5",
         )
     ]
 

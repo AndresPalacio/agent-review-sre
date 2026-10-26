@@ -42,7 +42,7 @@ async def test_server_lifespan_migrates_postgres_and_bootstraps_auth(postgres_ur
         thread = uuid4().hex
         run_id = uuid4().hex
         assert await storage.claim_webhook_run(
-            "alertmanager",
+            "tradingview",
             fingerprint,
             thread,
             run_id,
@@ -50,7 +50,7 @@ async def test_server_lifespan_migrates_postgres_and_bootstraps_auth(postgres_ur
             timedelta(minutes=5),
         ) == (True, thread)
         assert await storage.claim_webhook_run(
-            "alertmanager",
+            "tradingview",
             fingerprint,
             uuid4().hex,
             uuid4().hex,
@@ -137,7 +137,7 @@ async def test_gateway_replay_and_run_claim_are_atomic_across_connections(
     fingerprint = uuid4().hex
     cutoff = datetime.now(UTC) - timedelta(minutes=2)
     try:
-        assert await first.claim_gateway_event("slack", event_id, {"type": "alert"})
+        assert await first.claim_gateway_event("slack", event_id, {"type": "analysis"})
         async with first_engine.begin() as connection:
             await connection.execute(
                 update(GatewayEventRow)

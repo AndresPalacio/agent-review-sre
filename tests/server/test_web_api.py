@@ -5,20 +5,18 @@ from typing import Any
 
 import httpx
 from langchain_core.messages import AIMessage, HumanMessage, ToolMessage
-from langgraph.checkpoint.memory import InMemorySaver
-from pydantic import BaseModel
-from sqlalchemy.ext.asyncio import create_async_engine
+from tests.server.finance_app import (
+    analysis_manager,
+    client_for,
+    fixture_context,
+    make_storage,
+    order_graph,
+    paper_broker,
+)
+from tests.server.test_orders_api import OPERATOR, ORDER
 
-from fin_graph.graphs.investigation.graph import make_investigation_graph
-from fin_graph.graphs.investigation.services import UnavailableServices
-from fin_graph.graphs.remediation.graph import ActionCatalog, ActionSpec, make_remediation_graph
-from fin_graph.integrations.context import RunContext
-from fin_graph.integrations.registry import IntegrationRegistry
-from fin_graph.safety.approval import ApprovalPolicy
+from fin_graph.graphs.orders.desk import OrderDesk
 from fin_graph.server.app import create_app
-from fin_graph.server.manager import RunManager
-from fin_graph.server.storage import Base
-from fin_graph.server.storage import Storage as DatabaseStorage
 
 
 class Storage:
@@ -43,12 +41,16 @@ class Graph:
                 "plan": {"token": "private"},
                 "findings": [],
                 "evidence": [],
-                "diagnosis": {},
+                "theses": [],
                 "verification": {},
-                "actions": [],
+                "limits": {},
+                "decisions": {},
+                "orders": [],
+                "degraded": [],
                 "errors": [],
-                "result": {"password": "private"},
-                "rollback": "password=private",
+                "order": {"ticker": "DEEP", "password": "private"},
+                "preview": {"allowed": True, "password": "private"},
+                "execution": {"outcome": "filled", "password": "private"},
                 "messages": [
                     HumanMessage("hello"),
                     ToolMessage("private", tool_call_id="t"),
@@ -60,7 +62,8 @@ class Graph:
                 SimpleNamespace(
                     interrupts=[
                         SimpleNamespace(
-                            id="current", value={"action_requests": [{"name": "scale", "args": {}}]}
+                            id="current",
+                            value={"action_requests": [{"name": "place_paper_order", "args": {}}]},
                         )
                     ]
                 )
@@ -83,7 +86,7 @@ class Manager:
 
 
 async def test_web_contracts_and_stale_approvals() -> None:
-    app = create_app(manager=Manager(), chat_graph=Graph(), remediation_graph=Graph())
+    app = create_app(manager=Manager(), chat_graph=Graph(), order_graph=Graph())
     async with (
         app.router.lifespan_context(app),
         httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://test") as client,
@@ -92,9 +95,21 @@ async def test_web_contracts_and_stale_approvals() -> None:
         assert (await client.get("/v1/session", headers={"x-api-key": "viewer"})).json() == {
             "role": "viewer"
         }
-        detail = await client.get("/v1/investigations/t", headers={"x-api-key": "viewer"})
+        detail = await client.get("/v1/analyses/t", headers={"x-api-key": "viewer"})
         assert (
-            set(("plan", "findings", "evidence", "diagnosis", "verification", "actions", "errors"))
+            set(
+                (
+                    "plan",
+                    "findings",
+                    "evidence",
+                    "theses",
+                    "verification",
+                    "limits",
+                    "decisions",
+                    "orders",
+                    "errors",
+                )
+            )
             <= detail.json().keys()
         )
         assert "private" not in detail.text
@@ -102,15 +117,10 @@ async def test_web_contracts_and_stale_approvals() -> None:
         assert chat["approval_ids"] == ["current"]
         assert [m["role"] for m in chat["messages"]] == ["user", "assistant"]
         assert "private" not in str(chat["messages"])
-        remediation = await client.get("/v1/remediations/t", headers={"x-api-key": "viewer"})
-        assert "result" in remediation.json() and "rollback" in remediation.json()
-        assert "private" not in remediation.text
-        assert (
-            await client.get("/v1/remediations/actions", headers={"x-api-key": "viewer"})
-        ).status_code == 403
-        catalog = await client.get("/v1/remediations/actions", headers={"x-api-key": "operator"})
-        assert catalog.status_code == 200 and "schema" in catalog.json()[0]
-        for route in ("/v1/chat/threads/t/approve", "/v1/remediations/t/approve"):
+        order = await client.get("/v1/orders/t", headers={"x-api-key": "viewer"})
+        assert "preview" in order.json() and "execution" in order.json()
+        assert "private" not in order.text
+        for route in ("/v1/chat/threads/t/approve", "/v1/orders/t/approve"):
             response = await client.post(
                 route,
                 headers={"x-api-key": "approver"},
@@ -119,90 +129,57 @@ async def test_web_contracts_and_stale_approvals() -> None:
             assert response.status_code == 409
 
 
-async def test_rollback_replaces_approval_ids_and_catalog_is_injected(tmp_path: Path) -> None:
-    class Args(BaseModel):
-        replicas: int
+async def test_rollback_replaces_approval_ids(tmp_path: Path, monkeypatch: Any) -> None:
+    checks = iter([False, True])
 
-    writes: list[int] = []
+    async def flaky(self: OrderDesk, execution: Any) -> bool:
+        return next(checks)
 
-    async def prepare(args: Args, context: RunContext) -> dict[str, Any]:
-        return {"replicas": args.replicas}
-
-    async def execute(args: Args, key: str, context: RunContext) -> dict[str, Any]:
-        writes.append(args.replicas)
-        return {"replicas": args.replicas}
-
-    async def verify(args: Args, context: RunContext) -> bool:
-        return args.replicas == 1
-
-    def rollback(
-        args: Args, prepared: dict[str, Any], result: dict[str, Any]
-    ) -> tuple[str, dict[str, Any]]:
-        return "scale", {"replicas": 1}
-
-    engine = create_async_engine(f"sqlite+aiosqlite:///{tmp_path / 'web.sqlite'}")
-    async with engine.begin() as connection:
-        await connection.run_sync(Base.metadata.create_all)
-    storage = DatabaseStorage(engine)
-    await storage.put_key("operator", "operator")
-    await storage.put_key("approver", "approver")
-    registry = IntegrationRegistry([], env_file=None)
-    manager = RunManager(
-        make_investigation_graph(UnavailableServices(), registry, checkpointer=InMemorySaver()),
-        storage,
-        RunContext,
-    )
-    catalog = ActionCatalog(
-        [ActionSpec("scale", Args, prepare, execute, verify, rollback_action=rollback)]
-    )
+    monkeypatch.setattr(OrderDesk, "verify", flaky)
+    engine, storage = await make_storage(tmp_path / "web.sqlite")
+    broker = paper_broker(engine)
+    manager = analysis_manager(storage, fixture_context(broker))
     app = create_app(
         manager=manager,
-        action_catalog=catalog,
-        remediation_graph=make_remediation_graph(
-            catalog, ApprovalPolicy(environment="prod"), checkpointer=InMemorySaver()
-        ),
+        order_graph=order_graph(broker),
+        paper=broker,
     )
-    async with (
-        app.router.lifespan_context(app),
-        httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://test") as client,
-    ):
-        actions = (
-            await client.get("/v1/remediations/actions", headers={"x-api-key": "operator"})
-        ).json()
-        assert [a["name"] for a in actions] == ["scale"]
+    async with client_for(app) as client:
         queued = (
             await client.post(
-                "/v1/remediations",
-                headers={"x-api-key": "operator"},
-                json={"tool": "scale", "args": {"replicas": 2}},
+                "/v1/orders",
+                headers=OPERATOR,
+                json=ORDER,
             )
         ).json()
-        assert writes == [] and len(queued["approval_ids"]) == 1
-        path = f"/v1/remediations/{queued['thread_id']}/approve"
+        assert await broker.orders() == [] and len(queued["approval_ids"]) == 1
+        path = f"/v1/orders/{queued['thread_id']}/approve"
         stale = await client.post(
             path,
-            headers={"x-api-key": "approver"},
+            headers={"x-api-key": "approver-key"},
             json={"decisions": [{"type": "approve"}], "approval_ids": ["stale"]},
         )
         assert stale.status_code == 409
-        assert writes == [] and await storage.approvals(queued["thread_id"]) == []
+        assert await broker.orders() == [] and await storage.approvals(queued["thread_id"]) == []
         payload = {"decisions": [{"type": "approve"}], "approval_ids": queued["approval_ids"]}
-        approved = await client.post(path, headers={"x-api-key": "approver"}, json=payload)
+        approved = await client.post(path, headers={"x-api-key": "approver-key"}, json=payload)
         assert approved.status_code == 200
         assert approved.json()["approval_ids"] != queued["approval_ids"]
-        assert writes == [2]
-        replay = await client.post(path, headers={"x-api-key": "approver"}, json=payload)
-        assert replay.status_code == 409 and writes == [2]
+        assert (await broker.portfolio()).position("DEEP").long == 10
+        replay = await client.post(path, headers={"x-api-key": "approver-key"}, json=payload)
+        assert replay.status_code == 409
+        assert (await broker.portfolio()).position("DEEP").long == 10
         assert len(await storage.approvals(queued["thread_id"])) == 1
         malformed = await client.post(
             path,
-            headers={"x-api-key": "approver"},
+            headers={"x-api-key": "approver-key"},
             json={"decisions": [{"type": "approve"}], "approval_ids": "bad"},
         )
-        assert malformed.status_code == 422 and writes == [2]
+        assert malformed.status_code == 422
+        assert (await broker.portfolio()).position("DEEP").long == 10
         payload["approval_ids"] = approved.json()["approval_ids"]
-        current = await client.post(path, headers={"x-api-key": "approver"}, json=payload)
+        current = await client.post(path, headers={"x-api-key": "approver-key"}, json=payload)
         assert current.status_code == 200 and current.json()["approval_ids"] == []
-        assert writes == [2, 1]
+        assert (await broker.portfolio()).position("DEEP").long == 0
         assert len(await storage.approvals(queued["thread_id"])) == 2
     await engine.dispose()

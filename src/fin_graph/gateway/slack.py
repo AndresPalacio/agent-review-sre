@@ -1,4 +1,4 @@
-"""Signed Slack Bolt ingress and asynchronous investigation/approval dispatch."""
+"""Signed Slack Bolt ingress: messages start analyses, buttons decide paper orders."""
 
 from __future__ import annotations
 
@@ -23,7 +23,7 @@ from fin_graph.gateway import (
     GatewayLeaseLost,
     GatewayRunPending,
     GatewayStore,
-    SubmitAlert,
+    SubmitRequest,
 )
 from fin_graph.gateway.buttons import button_value, parse_button
 from fin_graph.gateway.settings import SlackGatewaySettings
@@ -37,7 +37,7 @@ class SlackGateway:
         self,
         settings: SlackGatewaySettings,
         store: GatewayStore,
-        submit_alert: SubmitAlert,
+        submit_request: SubmitRequest,
         decide: DecideApproval,
         *,
         web_client: AsyncWebClient | None = None,
@@ -47,7 +47,7 @@ class SlackGateway:
             raise ValueError("Slack gateway is not configured")
         self.settings = settings
         self.store = store
-        self.submit_alert = submit_alert
+        self.submit_request = submit_request
         self.decide = decide
         self._secret = settings.signing_secret.get_secret_value()
         self.web_client = web_client or AsyncWebClient(token=settings.bot_token.get_secret_value())
@@ -75,7 +75,7 @@ class SlackGateway:
                 return
             event_id = body["event_id"]
             payload = {
-                "type": "alert",
+                "type": "analysis",
                 "text": redact_secrets(event["text"]),
                 "destination": str(event["channel"]),
             }
@@ -83,7 +83,7 @@ class SlackGateway:
             if await self.store.claim_gateway_event("slack", event_id, payload, owner):
                 self._spawn(self._process_event(event_id, payload, owner))
 
-        @self.app.action(re.compile(r"^sre_(approve|reject)$"))
+        @self.app.action(re.compile(r"^fin_(approve|reject)$"))
         async def on_action(ack: Any, body: dict[str, Any]) -> None:
             item = await self._approval_event(body)
             if item is not None:
@@ -115,7 +115,7 @@ class SlackGateway:
         ):
             return None
         parsed = parse_button(self._secret, "slack", destination, remote_id, value)
-        if parsed is None or parsed[2] != action.get("action_id", "").removeprefix("sre_"):
+        if parsed is None or parsed[2] != action.get("action_id", "").removeprefix("fin_"):
             return None
         kind, thread_id, choice = parsed
         if await self.store.gateway_thread("slack", destination, remote_id) != thread_id:
@@ -139,8 +139,8 @@ class SlackGateway:
         worker = asyncio.current_task()
         heartbeat = asyncio.create_task(self._heartbeat(event_id, owner, worker))
         try:
-            if payload.get("type") == "alert":
-                await self._investigate(payload["text"], payload["destination"], event_id, owner)
+            if payload.get("type") == "analysis":
+                await self._analyze(payload["text"], payload["destination"], event_id, owner)
             elif payload.get("type") == "approval":
                 await self._require_owner(event_id, owner)
                 await self._apply_decision(
@@ -219,7 +219,7 @@ class SlackGateway:
         self, kind: str, thread_id: str, summary: str, approval_id: str
     ) -> str:
         """Post a separately approved action and bind its buttons to this message."""
-        if kind not in {"chat", "remediation"} or not 1 <= len(thread_id) <= 48 or not approval_id:
+        if kind not in {"chat", "orders"} or not 1 <= len(thread_id) <= 48 or not approval_id:
             raise ValueError("invalid approval notification")
         destination = self.settings.channel_id
         if destination is None:
@@ -234,12 +234,12 @@ class SlackGateway:
             {
                 "type": "button",
                 "text": {"type": "plain_text", "text": label},
-                "action_id": f"sre_{choice}",
+                "action_id": f"fin_{choice}",
                 "value": button_value(
                     self._secret, "slack", destination, remote_id, kind, thread_id, choice
                 ),
             }
-            for choice, label in (("approve", "Approve"), ("reject", "Reject"))
+            for choice, label in (("approve", "Aprobar"), ("reject", "Rechazar"))
         ]
         await self.web_client.chat_update(
             channel=destination,
@@ -262,15 +262,13 @@ class SlackGateway:
         if not task.cancelled() and task.exception() is not None:
             _LOG.error("Slack gateway task failed", exc_info=task.exception())
 
-    async def _investigate(self, text: str, destination: str, event_id: str, owner: str) -> None:
+    async def _analyze(self, text: str, destination: str, event_id: str, owner: str) -> None:
         await self._require_owner(event_id, owner)
-        response = await self.web_client.chat_postMessage(
-            channel=destination, text="Investigating alert…"
-        )
+        response = await self.web_client.chat_postMessage(channel=destination, text="Analizando…")
         remote_id = str(response["ts"])
         try:
             await self._require_owner(event_id, owner)
-            result = await self.submit_alert(text, "slack", destination, remote_id, event_id)
+            result = await self.submit_request(text, "slack", destination, remote_id, event_id)
             await self._require_owner(event_id, owner)
             await self.store.bind_gateway_thread(
                 "slack", destination, remote_id, result.thread_id, approval_id=result.approval_id
@@ -297,7 +295,7 @@ class SlackGateway:
                             {
                                 "type": "button",
                                 "text": {"type": "plain_text", "text": label},
-                                "action_id": f"sre_{choice}",
+                                "action_id": f"fin_{choice}",
                                 "value": button_value(
                                     self._secret,
                                     "slack",
@@ -308,7 +306,7 @@ class SlackGateway:
                                     choice,
                                 ),
                             }
-                            for choice, label in (("approve", "Approve"), ("reject", "Reject"))
+                            for choice, label in (("approve", "Aprobar"), ("reject", "Rechazar"))
                         ],
                     },
                 ]
@@ -317,12 +315,12 @@ class SlackGateway:
         except (GatewayRunPending, GatewayLeaseLost):
             raise
         except Exception:
-            _LOG.exception("Slack investigation failed")
+            _LOG.exception("Slack analysis failed")
             try:
                 await self.web_client.chat_update(
                     channel=destination,
                     ts=remote_id,
-                    text="Investigation failed. Please retry via the API.",
+                    text="El análisis falló; reinténtalo por la API.",
                 )
             except Exception:
                 _LOG.error("Slack failure notice could not be delivered")

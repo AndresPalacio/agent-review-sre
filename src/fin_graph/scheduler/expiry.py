@@ -1,4 +1,4 @@
-"""Expire pending chat and remediation approvals through their graph checkpoints."""
+"""Expire pending chat and paper-order approvals through their graph checkpoints."""
 
 from __future__ import annotations
 
@@ -67,10 +67,6 @@ def _approval_records(state: Any) -> list[tuple[str, str]]:
                 args = action.get("args", action.get("arguments"))
                 if not isinstance(name, str) or not name or not isinstance(args, dict):
                     return []
-                if name == "execute_remediation":
-                    name, args = args.get("name"), args.get("action_args")
-                    if not isinstance(name, str) or not name or not isinstance(args, dict):
-                        return []
                 digest = hashlib.sha256(json.dumps(args, sort_keys=True).encode()).hexdigest()
                 records.append((name, digest))
     return records
@@ -80,9 +76,9 @@ async def expire_pending_approvals(
     *,
     storage: ApprovalStorage,
     chat_graph: ApprovalGraph | None,
-    remediation_graph: ApprovalGraph | None,
+    order_graph: ApprovalGraph | None,
     chat_locks: dict[str, asyncio.Lock],
-    remediation_locks: dict[str, asyncio.Lock],
+    order_locks: dict[str, asyncio.Lock],
     context_factory: Callable[[], RunContext],
     ttl: timedelta,
     now: Callable[[], datetime] = _utc_now,
@@ -97,8 +93,8 @@ async def expire_pending_approvals(
     cutoff = now() - ttl
     if cutoff.tzinfo is None:
         raise ValueError("approval clock must be timezone-aware")
-    graphs = {"chat": chat_graph, "remediation": remediation_graph}
-    locks = {"chat": chat_locks, "remediation": remediation_locks}
+    graphs = {"chat": chat_graph, "orders": order_graph}
+    locks = {"chat": chat_locks, "orders": order_locks}
     expired = 0
     for kind, thread_id in await storage.list_approval_candidates(cutoff):
         if kind not in graphs or graphs[kind] is None:

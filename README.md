@@ -1,6 +1,8 @@
 # fin-graph
 
-Investigación multiagente de incidencias (RCA) construida de forma nativa sobre LangGraph.
+Análisis financiero multiagente con evidencia, cartera y órdenes paper, construido de
+forma nativa sobre LangGraph. El repositorio está migrando desde su dominio SRE original;
+los documentos de las fases 0–8 sin prefijo `F` conservan ese historial técnico.
 Diseño completo: [docs/specs/2026-10-07-fin-graph-design.md](docs/specs/2026-10-07-fin-graph-design.md).
 Guía de los patrones de agentes y del recorrido de una pregunta:
 [docs/arquitectura-agentes.md](docs/arquitectura-agentes.md).
@@ -10,17 +12,17 @@ Piloto optativo con supervisor, hijos asíncronos, Decisions y MCP:
 Arranca con `.venv\Scripts\python.exe examples/demo_supervisor_async.py --serve`;
 panel en `http://127.0.0.1:8012`, modelo offline y datos sintéticos explícitos.
 
-Las investigaciones del producto se ejecutan por defecto mediante el
+Los análisis del producto se ejecutan por defecto mediante el
 [runtime del harness](docs/better-harness.md#ejecución-predeterminada-del-producto):
-CLI, chat, API/UI, webhooks, gateways, tareas programadas y Studio comparten
+CLI, chat, API, señales, gateways, tareas programadas y Studio comparten
 configuración, identidad de variante y trazas. `uv run fin-graph harness runtime`
 muestra la variante instalada y sus límites. La optimización train/holdout/scorecard
 es una operación explícita aparte; la ejecución habitual no requiere el extra `harness`.
 
-> Estado: fases 0–7 y entregables concretos de fase 8 implementados y validados
-> localmente. El cierre incluye multi-réplica, límites de carga, 13 integraciones
-> adicionales, MCP conectado, setup y grabación/replay. La validación con LLM y
-> proveedores reales requiere credenciales todavía no disponibles.
+> Estado de la transformación financiera: F0–F6 implementadas y validadas localmente.
+> CLI, grafos, API, señales, órdenes paper, gateways y scheduler ya usan contratos
+> financieros. La consola web heredada se migra en F8 y los módulos SRE restantes se
+> retiran en F9. La validación con LLM y proveedores reales requiere credenciales.
 
 [Validación de fase 7](docs/progress/2026-10-08-fase-7.md) ·
 [Cierre y límites de fase 8](docs/progress/2026-10-08-fase-8.md).
@@ -74,9 +76,12 @@ de aprobación vinculados a checkpoints. [Plan de 6](docs/superpowers/plans/2026
 - Docker Desktop (solo para Postgres)
 - Node.js 22.12+ y npm para desarrollar o compilar la UI
 
-## Consola web
+## Consola web (legada hasta F8)
 
-La fase 7 añade `web/` (React, Vite, TypeScript y Tailwind) sobre la API existente.
+La fase 7 original añadió `web/` (React, Vite, TypeScript y Tailwind). Esa consola aún
+usa los contratos SRE antiguos y no es compatible con la API financiera de F6; su
+migración forma parte de F8. Las instrucciones siguientes documentan la consola
+legada mientras se completa esa fase.
 La consola incluye investigaciones con progreso en vivo, evidencia e informe;
 chat; preparación y aprobación de remediaciones; automatizaciones e integraciones.
 El rol de la API key determina las operaciones disponibles. La clave se mantiene
@@ -155,23 +160,22 @@ LANGGRAPH_CLI_NO_ANALYTICS=1 uv run langgraph dev --no-browser
 `LANGGRAPH_CLI_NO_ANALYTICS=1` evita que la CLI envíe estadísticas de uso (en PowerShell:
 `$env:LANGGRAPH_CLI_NO_ANALYTICS = "1"` antes del comando).
 
-Studio exporta `investigation`, el mismo grafo del CLI, sin checkpointer propio.
+Studio exporta `analysis`, el mismo grafo financiero del CLI, y mantiene
+`investigation` como grafo SRE legado hasta F9; ninguno lleva checkpointer propio.
 `http://127.0.0.1:2024/ok` responde `{"ok":true}` cuando el servidor está listo. Detén con Ctrl+C.
 
-## Investigación local
+## Análisis financiero local
 
 ```powershell
-uv run fin-graph investigate --file .\alert.json
-uv run fin-graph investigate --text "checkout muestra errores 5xx"
+uv run fin-graph analyze --text "analiza AAPL y MSFT"
+uv run fin-graph analyze --file .\solicitud.json --propose
 ```
 
-`--file` admite un objeto JSON de webhook o texto UTF-8 (máximo 1 MiB). Se puede
-añadir `--source alertmanager|grafana|datadog|cloudwatch|sentry|pagerduty|newrelic|generic`.
-El comando muestra las etapas y un reporte Markdown. Usa las integraciones activadas
-en `.env`; sin datos observables declara la causa `unknown`. No envía reportes a
-canales ni ejecuta remediaciones. Para analizar texto libre y producir un RCA con
-evidencia, configura el modelo en `.env` y credenciales de lectura de las fuentes.
-Un reporte verificado guarda un resumen compacto en la memoria de incidentes.
+`--file` admite una solicitud JSON o texto UTF-8 (máximo 1 MiB). El comando normaliza
+los tickers, consulta solo las fuentes de mercado habilitadas y produce un reporte con
+evidencia, tesis, riesgos y decisiones. `--propose` crea hilos separados de órdenes
+paper pendientes de aprobación; nunca opera una cuenta real. Un análisis verificado
+guarda su tesis para consultas y evaluación posteriores.
 
 ## API local
 
@@ -185,46 +189,43 @@ administrador puede generar claves viewer/operator/approver/admin con
 `POST /v1/api-keys`; el valor se devuelve una sola vez y se almacena únicamente su
 hash. `BOOTSTRAP_ADMIN_KEY` permite la provisión inicial.
 
-`POST /v1/investigations` recibe `{"text":"..."}` o `{"alert":{...},"source":"..."}`.
+`POST /v1/analyses` recibe `{"text":"..."}` o `{"request":{...}}`.
 Para entregar el reporte, añade `"destinations":{"slack":"C123"}` al cuerpo;
 se admiten `slack`, `telegram` y `pagerduty` con destinos de 1 a 128 caracteres.
 Devuelve `thread_id` y `run_id`; consulta el reporte en
-`GET /v1/investigations/{thread_id}`, el progreso en
+`GET /v1/analyses/{thread_id}`, el progreso en
 `GET /v1/threads/{thread_id}/stream` (SSE, con `Last-Event-ID`) y el historial en
 `GET /v1/threads/{thread_id}/history`. Una corrida interrumpida se reanuda con
 `POST /v1/threads/{thread_id}/resume`. Los eventos de progreso almacenan etapas,
-estado, tareas por dominio e IDs de evidencia, sin payload de alertas ni contenido
-de herramientas. `GET /v1/investigations/{thread_id}/explain` combina la topología
+estado, tareas por analista e IDs de evidencia, sin payload de señales ni contenido
+de herramientas. `GET /v1/analyses/{thread_id}/explain` combina la topología
 del grafo con los pasos observados y los resúmenes derivados del estado. Usa
-`X-API-Key` con rol viewer o superior; la consola lo muestra en «Cómo investigó».
+`X-API-Key` con rol viewer o superior.
 Cada corrida construye de nuevo los clientes de integración; el checkpoint guarda
 el reporte.
 El historial acepta `after_id` y `limit` (máximo 500) para paginar; SSE transmite
 todos los lotes pendientes y permite reanudar desde `Last-Event-ID`.
 
-`POST /v1/alerts/{source}` admite `alertmanager`, `grafana`, `datadog`,
-`cloudwatch`, `sentry`, `pagerduty`, `newrelic` y `generic`. Cada fuente necesita su
-propia entrada en `WEBHOOK_TOKENS` (header `X-Sre-Webhook-Token`) o en
-`WEBHOOK_HMAC_SECRETS` (header `X-Sre-Signature: sha256=<hex>` sobre el cuerpo bruto).
-Si hay HMAC configurado, no se acepta el token. Algunos vendors no permiten añadir
-ese header directamente; un proxy autenticado de entrada deberá hacerlo. SNS
-CloudWatch requiere además `SNS_TOPIC_ARN`, `SNS_CERT_URL` y
-`SNS_PUBLIC_KEY_PATH`: se verifica firma RSA-SHA256 con la clave pública fijada y
-el URL del certificado debe coincidir; no se siguen URLs del payload. Un webhook
-repetido durante 30 minutos devuelve el hilo original sin iniciar otra investigación.
+`POST /v1/signals/{source}` admite `tradingview`, `price_alert` y `generic`. Cada
+fuente necesita su propia entrada en `WEBHOOK_TOKENS` (header
+`X-Fin-Webhook-Token`) o en `WEBHOOK_HMAC_SECRETS` (header
+`X-Fin-Signature: sha256=<hex>` sobre el cuerpo bruto). Si hay HMAC configurado, no
+se acepta el token. TradingView, que no permite headers arbitrarios, puede incluir
+`"token"` en el JSON; el servidor lo elimina antes de analizar. Una señal repetida
+dentro de `SIGNAL_DEDUPE_MINUTES` devuelve el hilo original sin iniciar otro análisis.
 
 `GET /v1/integrations` muestra las integraciones registradas y
 `POST /v1/integrations/verify` hace una lectura de conectividad con los clientes
 configurados. `CORS_ORIGINS` es una lista de orígenes separados por coma. El
 `Dockerfile` empaqueta la API, pero no ejecuta ni despliega infraestructura.
-La UI corresponde a la fase 7. La validación con webhooks y
-credenciales de vendors reales está pendiente.
+La UI financiera corresponde a F8. La validación con webhooks y credenciales de
+proveedores reales está pendiente.
 
-## Chat y remediación (fase 5)
+## Chat y órdenes paper
 
-`uv run fin-graph ask "¿Qué ocurrió en checkout?"` hace una consulta local;
+`uv run fin-graph ask "¿Cómo ves AAPL?"` hace una consulta local;
 `uv run fin-graph chat` abre el REPL con `/new`, `/threads`, `/resume`,
-`/investigate`, `/approve`, `/integrations`, `/cost` y `/exit`. Los hilos locales
+`/analiza`, `/approve`, `/integrations`, `/cost` y `/exit`. Los hilos locales
 se guardan en SQLite bajo el directorio de datos del usuario. Para usar la API,
 añade `--server https://servidor.example --api-key <clave>` o configura
 `FIN_GRAPH_API_KEY`; `--thread-id` retoma un hilo remoto. El REPL muestra la
@@ -235,35 +236,34 @@ rechaza antes de ejecutar cambios.
 
 La API expone `POST /v1/chat/threads/{id}/messages` como SSE,
 `GET /v1/chat/threads/{id}` para recuperar una aprobación pendiente y
-`POST /v1/chat/threads/{id}/approve`. Para una acción explícita usa
-`POST /v1/remediations` con `{"tool":"k8s_scale_deployment","args":{...}}`;
-`GET /v1/remediations/{id}` muestra su estado y
-`POST /v1/remediations/{id}/approve` reanuda con
+`POST /v1/chat/threads/{id}/approve`. Para proponer una orden explícita usa
+`POST /v1/orders` con `{"ticker":"AAPL","action":"buy","quantity":2}`;
+`GET /v1/orders/{id}` muestra su estado y `POST /v1/orders/{id}/approve` reanuda con
 `{"decisions":[{"type":"approve"}]}`. `edit` recibe `edited_action` con el mismo
-nombre de herramienta y nuevos `args`; se valida y prepara de nuevo. Solo una API
+nombre de acción y solo una cantidad positiva nueva; se valida y prepara de nuevo.
+Solo una API
 key de rol approver/admin puede decidir; `APPROVER_IDS` restringe opcionalmente
 los aprobadores por hash SHA-256 de su clave. En producción toda mutación requiere
-aprobación. Tras una ejecución de resultado incierto, el ledger bloquea el reintento
-automático y exige reconciliación manual. Las decisiones se auditan con actor,
+aprobación. `GET /v1/portfolio`, `GET /v1/orders`, `GET /v1/orders/pending`,
+`POST /v1/orders/settle` y `POST /v1/orders/{client_order_id}/cancel` operan el libro
+paper persistido. Las decisiones se auditan con actor,
 tipo y hash de argumentos, sin almacenar los argumentos originales.
 
-El catálogo cubre scale/restart/undo/delete pod de Kubernetes, silencios de
-Alertmanager, anotaciones Grafana, mute de Datadog, estado de issue Sentry,
-creación de issue GitHub y ack/resolve de PagerDuty. Kubernetes prepara cambios
-con dry-run del API server; el resto lee sus precondiciones antes de interrumpir.
-Las pruebas usan clientes simulados: ningún vendor externo se ha validado con
-credenciales reales. El SSE de chat emite mensajes y eventos de aprobación; la
-expiración automática de aprobaciones la ejecuta el scheduler de fase 6.
+El grafo de órdenes vuelve a comprobar precio, horario de mercado, efectivo,
+posición y límites antes de llenar. Fuera de sesión una orden aprobada queda en cola;
+si el precio deriva demasiado se rechaza. El SSE de chat emite mensajes y eventos de
+aprobación; la expiración automática de aprobaciones la ejecuta el scheduler.
 `EMBEDDINGS_PROVIDER=openai` activa la búsqueda semántica en Postgres con pgvector;
-sin él, la memoria busca por metadatos y texto. El contexto recordado orienta
-hipótesis del RCA, pero no cuenta como evidencia del incidente actual.
+sin él, la memoria busca por metadatos y texto. El contexto recordado orienta el
+análisis, pero no cuenta como evidencia del mercado actual.
 
 ## Scheduler y bots (fase 6)
 
 El servidor Postgres inicia APScheduler con un único líder por advisory lock. Las
-definiciones se guardan en `schedules` y comienzan deshabilitadas. `health_check`
-consulta Prometheus en modo lectura, compara umbrales y escala anomalías a una
-investigación; `digest` resume los resultados recientes. Retención y rechazo de
+definiciones se guardan en `schedules` y comienzan deshabilitadas. `market_watch`
+evalúa movimiento diario, drawdown y picos de volatilidad y, si disparan, inicia un análisis
+deduplicado; `portfolio_digest`, `thesis_review` y `watch_digest` son resúmenes
+diarios de solo lectura. Ningún schedule coloca órdenes. Retención y rechazo de
 aprobaciones vencidas (`APPROVAL_TTL_HOURS`, 24 por defecto) son jobs internos.
 El scheduler detiene sus jobs si pierde la conexión que mantiene el lock y los
 standby intentan adquirir el liderazgo automáticamente. Los eventos SSE usan
@@ -284,23 +284,24 @@ de loopback:
 ```powershell
 uv run fin-graph schedules list --server http://localhost:8000 --api-key <clave>
 uv run fin-graph schedules create .\schedule.json --server http://localhost:8000 --api-key <clave>
-uv run fin-graph schedules run cpu --server http://localhost:8000 --api-key <clave>
+uv run fin-graph schedules run aapl-watch --server http://localhost:8000 --api-key <clave>
 ```
 
-Un `schedule.json` de salud contiene, por ejemplo,
-`{"id":"cpu","enabled":false,"definition":{"kind":"health_check","interval_minutes":5,"checks":[{"id":"up","expression":"up","operator":"lt","threshold":1}]}}`.
-Para digest se usan `kind=digest`, `hour`, `minute`, `timezone` IANA y destinos
-explícitos `{"slack":"C...","telegram":"-100..."}`. Cada canal de entrega debe
+Un `schedule.json` de mercado contiene, por ejemplo,
+`{"id":"aapl-watch","enabled":false,"definition":{"kind":"market_watch","interval_minutes":5,"rules":[{"ticker":"AAPL","max_daily_move_pct":3,"max_drawdown_pct":15,"volatility_spike_ratio":1.8}]}}`.
+Para tareas diarias se usan `kind=portfolio_digest|thesis_review|watch_digest`,
+`hour`, `minute`, `timezone` IANA y destinos explícitos
+`{"slack":"C...","telegram":"-100..."}`. Cada canal de entrega debe
 estar configurado por separado; los envíos con resultado incierto quedan bloqueados
 para evitar una repetición automática.
 
 `SLACK_GATEWAY_*` habilita eventos HTTP firmados por Bolt; `SOCKET_MODE=true` y
 `APP_TOKEN` activan Socket Mode optativo en desarrollo. `TELEGRAM_GATEWAY_*`
-habilita el webhook con cabecera secreta. Ambos aceptan alertas solo del canal/chat
-configurado y decisiones de usuarios en su allowlist; los botones reanudan el
+habilita el webhook con cabecera secreta. Ambos aceptan solicitudes financieras solo
+del canal/chat configurado y decisiones de usuarios en su allowlist; los botones reanudan el
 checkpoint bajo el mismo lock y auditoría de la API. El evento autenticado se guarda
 en un inbox Postgres antes de confirmar el webhook. El líder reintenta pendientes
-sin heartbeat; una alerta reintentada reutiliza su hilo. Las credenciales de entrada
+sin heartbeat; una solicitud reintentada reutiliza su hilo. Las credenciales de entrada
 son independientes de `SLACK_DELIVERY_*` y `TELEGRAM_DELIVERY_*`. La comprobación
 manual en un workspace sandbox queda pendiente de credenciales; no se hizo envío
 a servicios externos durante las pruebas.
@@ -419,12 +420,12 @@ canal y destino. Un envío confirmado no se repite al reanudar; un resultado
 incierto bloquea el reenvío automático. Otra ejecución del mismo fingerprint puede
 enviar su propio reporte. No se registran envíos como tools de investigación.
 
-Los webhooks usan `ALERT_DELIVERY_ROUTES`, un objeto JSON con rutas `default`,
-`critical`, `high`, `warning` e `info`. Una ruta de severidad sustituye `default`;
-una ruta vacía desactiva la entrega para esa severidad. Por ejemplo,
-`{"default":{"slack":"C123"},"critical":{"telegram":"42"}}`. Solo esta
+Las señales usan `SIGNAL_DELIVERY_ROUTES`, un objeto JSON con rutas `default`,
+`tradingview`, `price_alert` y `generic`. Una ruta por fuente sustituye `default`;
+una ruta vacía desactiva la entrega para esa fuente. Por ejemplo,
+`{"default":{"slack":"C123"},"tradingview":{"telegram":"42"}}`. Solo esta
 configuración del operador decide los destinos; los campos del payload no pueden
-cambiarlos. Los health checks usan `destinations` de su definición de schedule.
+cambiarlos. Los schedules usan `destinations` de su propia definición.
 
 Para MCP, copia [`mcp-servers.example.json`](mcp-servers.example.json) a un archivo
 local y mantén secretos en variables de entorno. `MCP_CONFIG` selecciona ese archivo;

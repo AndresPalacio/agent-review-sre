@@ -1,4 +1,4 @@
-"""Bounded in-process orchestration of persistent investigation threads."""
+"""Bounded in-process orchestration of persistent analysis threads."""
 
 from __future__ import annotations
 
@@ -118,7 +118,7 @@ class RunManager:
 
     async def submit(
         self,
-        raw_alert: str | dict[str, Any],
+        raw_request: str | dict[str, Any],
         source_hint: str | None,
         *,
         thread_id: str | None = None,
@@ -133,7 +133,7 @@ class RunManager:
                 return self.schedule_existing(
                     run_id,
                     thread,
-                    raw_alert,
+                    raw_request,
                     source_hint,
                     destinations=destinations,
                     user_requested=user_requested,
@@ -147,16 +147,16 @@ class RunManager:
         self,
         run_id: str,
         thread: str,
-        raw_alert: str | dict[str, Any],
+        raw_request: str | dict[str, Any],
         source_hint: str | None,
         *,
         destinations: dict[str, str] | None = None,
         user_requested: bool = True,
         reservation: RunReservation | None = None,
     ) -> dict[str, Any]:
-        """Schedule a run already committed together with a webhook fingerprint."""
+        """Schedule a run already committed together with a signal fingerprint."""
         value = {
-            "raw_alert": raw_alert,
+            "raw_request": raw_request,
             "source_hint": source_hint,
             "user_requested": user_requested,
             "destinations": dict(destinations or {}),
@@ -166,7 +166,7 @@ class RunManager:
         self._schedule(run_id, thread, value, reservation=reservation)
         return {"run_id": run_id, "thread_id": thread, "status": "queued"}
 
-    async def recover_existing(self, run_id: str, thread: str, raw_alert: str) -> bool:
+    async def recover_existing(self, run_id: str, thread: str, raw_request: str) -> bool:
         """Reclaim an abandoned gateway run and resume its checkpoint once."""
         with self.reserve() as reservation:
             if not await self.storage.claim_gateway_run_recovery(
@@ -180,7 +180,9 @@ class RunManager:
                 elif snapshot.values and snapshot.next:
                     self._schedule(run_id, thread, None, reservation=reservation)
                 else:
-                    self.schedule_existing(run_id, thread, raw_alert, None, reservation=reservation)
+                    self.schedule_existing(
+                        run_id, thread, raw_request, None, reservation=reservation
+                    )
             except (Exception, asyncio.CancelledError):
                 await self.storage.set_status_with_event(run_id, "failed", "recovery_failed")
                 raise
@@ -297,13 +299,13 @@ class RunManager:
                                 if isinstance(data.get(key), str)
                             }
                             await self.storage.add_event(run_id, "harness_trace", safe_trace)
-                        if kind in {"stage", "report", "done", "plan", "specialist"} and isinstance(
+                        if kind in {"stage", "report", "done", "plan", "analyst"} and isinstance(
                             data, dict
                         ):
                             stage = data.get("stage")
                             if isinstance(stage, str):
                                 safe: dict[str, Any] = {"stage": stage[:80]}
-                                if kind in {"plan", "specialist"}:
+                                if kind in {"plan", "analyst"}:
                                     wave = data.get("wave")
                                     if (
                                         isinstance(wave, int)
@@ -312,21 +314,13 @@ class RunManager:
                                     ):
                                         safe["wave"] = wave
                                 if kind == "plan" and isinstance(data.get("tasks"), list):
+                                    # The analysis plan names one analyst domain per task.
                                     safe["tasks"] = [
-                                        {
-                                            "domain": task["domain"][:64],
-                                            "hypothesis_ids": [
-                                                item[:128]
-                                                for item in task.get("hypothesis_ids", [])[:4]
-                                                if isinstance(item, str)
-                                            ],
-                                        }
-                                        for task in data["tasks"][:15]
-                                        if isinstance(task, dict)
-                                        and isinstance(task.get("domain"), str)
-                                        and isinstance(task.get("hypothesis_ids", []), list)
+                                        {"domain": task[:64]}
+                                        for task in data["tasks"][:18]
+                                        if isinstance(task, str)
                                     ]
-                                if kind == "specialist":
+                                if kind == "analyst":
                                     domain = data.get("domain")
                                     if isinstance(domain, str):
                                         safe["domain"] = domain[:64]
@@ -337,6 +331,12 @@ class RunManager:
                                             for item in evidence_ids[:30]
                                             if isinstance(item, str)
                                         ]
+                                    signals = data.get("signals")
+                                    if isinstance(signals, dict):
+                                        safe["signals"] = {
+                                            str(ticker)[:16]: str(signal)[:16]
+                                            for ticker, signal in list(signals.items())[:10]
+                                        }
                                 await self.storage.add_event(run_id, kind, safe)
                     elif mode == "values" and isinstance(event, dict):
                         report_ready = bool(event.get("report"))

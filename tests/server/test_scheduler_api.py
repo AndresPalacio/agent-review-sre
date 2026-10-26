@@ -55,9 +55,9 @@ async def test_schedule_api_requires_roles_and_syncs_enabled_definition(tmp_path
     scheduler = SchedulerStub()
     app = create_app(manager=manager, registry=registry, scheduler_service=scheduler)
     definition = {
-        "kind": "health_check",
+        "kind": "market_watch",
         "interval_minutes": 5,
-        "checks": [{"id": "up", "expression": "up", "operator": "lt", "threshold": 1}],
+        "rules": [{"ticker": "AAPL"}],
     }
     async with (
         app.router.lifespan_context(app),
@@ -114,7 +114,12 @@ async def test_schedule_api_rejects_invalid_definition_without_persisting(tmp_pa
             "/v1/schedules",
             json={
                 "id": "bad",
-                "definition": {"kind": "digest", "hour": 27, "minute": 0, "timezone": "UTC"},
+                "definition": {
+                    "kind": "portfolio_digest",
+                    "hour": 27,
+                    "minute": 0,
+                    "timezone": "UTC",
+                },
             },
             headers={"x-api-key": "admin"},
         )

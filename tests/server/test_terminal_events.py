@@ -67,7 +67,7 @@ async def test_surface_lock_maps_release_idle_threads(tmp_path: Path):
     async with engine.begin() as connection:
         await connection.run_sync(Base.metadata.create_all)
     app = create_app(manager=RunManager(ScriptedGraph(), Storage(engine), lambda: object()))
-    for mapping in (app.state.chat_locks, app.state.remediation_locks):
+    for mapping in (app.state.chat_locks, app.state.order_locks):
         assert isinstance(mapping, WeakValueDictionary)
         lock = asyncio.Lock()
         mapping["temporary-thread"] = lock
@@ -173,7 +173,7 @@ async def test_partial_production_startup_stops_manager_before_closing_storage(
         ),
         registry=IntegrationRegistry([], env_file=None),
         chat_graph=object(),
-        remediation_graph=object(),
+        order_graph=object(),
     )
     try:
         with pytest.raises(ValueError, match="invalid sandbox gateway"):

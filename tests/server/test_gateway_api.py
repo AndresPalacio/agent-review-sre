@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from datetime import date
 from pathlib import Path
 from typing import Any
 
@@ -9,18 +10,37 @@ from fastapi import Request
 from fastapi.responses import Response
 from langgraph.checkpoint.memory import InMemorySaver
 from langgraph.types import Command
-from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import create_async_engine
+from tests.server.finance_app import (
+    analysis_manager,
+    fixture_context,
+    make_storage,
+    paper_broker,
+)
 
+from fin_graph.domain.orders import OrderAction, ProposedOrder
 from fin_graph.graphs.investigation.graph import make_investigation_graph
 from fin_graph.graphs.investigation.services import UnavailableServices
-from fin_graph.graphs.remediation.graph import ActionCatalog, ActionSpec, make_remediation_graph
+from fin_graph.graphs.orders.desk import OrderDesk
+from fin_graph.graphs.orders.graph import make_order_graph
 from fin_graph.integrations.context import RunContext
 from fin_graph.integrations.registry import IntegrationRegistry
 from fin_graph.safety.approval import ApprovalPolicy
 from fin_graph.server.app import _gateway_decide, create_app
 from fin_graph.server.manager import RunManager
 from fin_graph.server.storage import Base, Storage
+
+
+def _order(client_order_id: str = "gateway-order") -> ProposedOrder:
+    return ProposedOrder(
+        client_order_id=client_order_id,
+        ticker="DEEP",
+        action=OrderAction.BUY,
+        quantity=2,
+        reference_price=8.0,
+        as_of=date(2024, 6, 28),
+        reasoning="margen de seguridad",
+    )
 
 
 class SlackStub:
@@ -74,141 +94,94 @@ async def test_gateway_routes_are_optional_and_delegate_verified_payloads(tmp_pa
 @pytest.mark.parametrize("actor", ["slack:U1", "telegram:U1"])
 @pytest.mark.parametrize("first_via_api", [False, True])
 async def test_old_gateway_approval_cannot_authorize_new_rollback(
-    actor: str, first_via_api: bool
+    actor: str,
+    first_via_api: bool,
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    class Args(BaseModel):
-        replicas: int
+    checks = iter([False, True])
 
-    writes: list[int] = []
+    async def flaky(self: OrderDesk, execution: Any) -> bool:
+        return next(checks)
 
-    async def prepare(args: Args, context: RunContext) -> dict[str, int]:
-        return {"previous_replicas": 1}
-
-    async def execute(args: Args, key: str, context: RunContext) -> dict[str, int]:
-        writes.append(args.replicas)
-        return {"replicas": args.replicas}
-
-    async def verify(args: Args, context: RunContext) -> bool:
-        return args.replicas == 1
-
-    def rollback(
-        args: Args, prepared: dict[str, Any], result: dict[str, Any]
-    ) -> tuple[str, dict[str, Any]]:
-        return "scale", {"replicas": prepared["previous_replicas"]}
-
-    engine = create_async_engine("sqlite+aiosqlite:///:memory:")
-    async with engine.begin() as connection:
-        await connection.run_sync(Base.metadata.create_all)
-    storage = Storage(engine)
-    registry = IntegrationRegistry([], env_file=None)
+    monkeypatch.setattr(OrderDesk, "verify", flaky)
+    engine, storage = await make_storage(tmp_path / "gateway-rollback.sqlite")
+    broker = paper_broker(engine)
     policy = ApprovalPolicy(environment="prod", allowed_approvers=frozenset({actor}))
-    graph = make_remediation_graph(
-        ActionCatalog(
-            [ActionSpec("scale", Args, prepare, execute, verify, rollback_action=rollback)]
-        ),
-        policy,
-        checkpointer=InMemorySaver(),
-    )
+    graph = make_order_graph(OrderDesk(broker), policy, checkpointer=InMemorySaver())
     app = create_app(
-        manager=RunManager(
-            make_investigation_graph(UnavailableServices(), registry), storage, RunContext
-        ),
-        registry=registry,
-        remediation_graph=graph,
+        manager=analysis_manager(storage, fixture_context(broker)),
+        order_graph=graph,
         approval_policy=policy,
+        paper=broker,
     )
     try:
         async with app.router.lifespan_context(app):
             first = await graph.ainvoke(
-                {"tool": "scale", "args": {"replicas": 2}, "action_id": "first"},
-                {"configurable": {"thread_id": "remediation:rollback-test"}},
+                {"order": _order().model_dump(mode="json")},
+                {"configurable": {"thread_id": "orders:rollback-test"}},
             )
             first_id = first["__interrupt__"][0].id
             if first_via_api:
                 await graph.ainvoke(
                     Command(resume={"decisions": [{"type": "approve"}]}),
-                    {"configurable": {"thread_id": "remediation:rollback-test"}},
+                    {"configurable": {"thread_id": "orders:rollback-test"}},
                     context=RunContext(actor=actor, role="approver"),
                 )
             else:
-                await _gateway_decide(
-                    app, "remediation", "rollback-test", "approve", actor, first_id
-                )
-            assert writes == [2]
+                await _gateway_decide(app, "orders", "rollback-test", "approve", actor, first_id)
+            assert (await broker.portfolio()).position("DEEP").long == 2
             result = await _gateway_decide(
-                app, "remediation", "rollback-test", "approve", actor, first_id
+                app, "orders", "rollback-test", "approve", actor, first_id
             )
             assert "replaced" in result
-            assert writes == [2], "the old button must not authorize the new rollback"
+            assert (await broker.portfolio()).position("DEEP").long == 2, (
+                "the old button must not authorize the new rollback"
+            )
             current = await graph.aget_state(
-                {"configurable": {"thread_id": "remediation:rollback-test"}}
+                {"configurable": {"thread_id": "orders:rollback-test"}}
             )
             await _gateway_decide(
                 app,
-                "remediation",
+                "orders",
                 "rollback-test",
                 "approve",
                 actor,
                 current.tasks[0].interrupts[0].id,
             )
-            assert writes == [2, 1]
+            assert (await broker.portfolio()).position("DEEP").long == 0
     finally:
         await engine.dispose()
 
 
 async def test_gateway_decision_uses_same_pending_checkpoint_and_audit(tmp_path: Path) -> None:
-    class Args(BaseModel):
-        replicas: int
-
-    writes: list[int] = []
-
-    async def prepare(args: Args, context: RunContext) -> dict[str, int]:
-        return {"replicas": args.replicas}
-
-    async def execute(args: Args, key: str, context: RunContext) -> dict[str, int]:
-        writes.append(args.replicas)
-        return {"replicas": args.replicas}
-
-    async def verify(args: Args, context: RunContext) -> bool:
-        return True
-
-    engine = create_async_engine(f"sqlite+aiosqlite:///{tmp_path / 'approval.sqlite'}")
-    async with engine.begin() as connection:
-        await connection.run_sync(Base.metadata.create_all)
-    storage = Storage(engine)
-    registry = IntegrationRegistry([], env_file=None)
-    investigation = make_investigation_graph(
-        UnavailableServices(), registry, checkpointer=InMemorySaver()
-    )
+    engine, storage = await make_storage(tmp_path / "approval.sqlite")
+    broker = paper_broker(engine)
     policy = ApprovalPolicy(environment="prod", allowed_approvers=frozenset({"slack:U1"}))
-    remediation = make_remediation_graph(
-        ActionCatalog([ActionSpec("scale", Args, prepare, execute, verify)]),
-        policy,
-        checkpointer=InMemorySaver(),
-    )
+    orders = make_order_graph(OrderDesk(broker), policy, checkpointer=InMemorySaver())
     app = create_app(
-        manager=RunManager(investigation, storage, RunContext),
-        registry=registry,
-        remediation_graph=remediation,
+        manager=analysis_manager(storage, fixture_context(broker)),
+        order_graph=orders,
         approval_policy=policy,
+        paper=broker,
     )
     async with app.router.lifespan_context(app):
         thread_id = "bot-approval"
-        first = await remediation.ainvoke(
-            {"tool": "scale", "args": {"replicas": 2}, "action_id": thread_id},
-            {"configurable": {"thread_id": f"remediation:{thread_id}"}},
+        first = await orders.ainvoke(
+            {"order": _order("reject-order").model_dump(mode="json")},
+            {"configurable": {"thread_id": f"orders:{thread_id}"}},
         )
-        assert "Rejected" in await _gateway_decide(
-            app, "remediation", thread_id, "reject", "slack:U1", first["__interrupt__"][0].id
+        assert "Rechazada" in await _gateway_decide(
+            app, "orders", thread_id, "reject", "slack:U1", first["__interrupt__"][0].id
         )
-        assert writes == []
+        assert await broker.orders() == []
         assert (await storage.approvals(thread_id))[0]["actor"] == "slack:U1"
         assert (
             "already resolved"
             in (
                 await _gateway_decide(
                     app,
-                    "remediation",
+                    "orders",
                     thread_id,
                     "approve",
                     "slack:U1",

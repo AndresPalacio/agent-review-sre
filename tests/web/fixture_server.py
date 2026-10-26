@@ -16,38 +16,25 @@ from fastapi import FastAPI
 from langchain_core.messages import AIMessage
 from langgraph.checkpoint.memory import InMemorySaver
 from langgraph.store.memory import InMemoryStore
-from pydantic import BaseModel, Field
 from sqlalchemy.ext.asyncio import AsyncEngine, create_async_engine
+from tests.server.finance_app import FixtureTools, fixture_context, paper_broker
 
 from fin_graph.agents.testing.scripted_model import ScriptedChatModel
 from fin_graph.config.settings import Settings
-from fin_graph.domain.alerts.noise import AlertExtraction
-from fin_graph.evals.fixtures import FixtureBackend
-from fin_graph.evals.runner import ScriptedServices
-from fin_graph.evals.scenarios import load_scenario
+from fin_graph.evals.market.scenarios import load_equity_scenario
+from fin_graph.graphs.analysis.services import UnavailableAnalysisServices
 from fin_graph.graphs.chat.graph import make_chat_graph
-from fin_graph.graphs.investigation.graph import make_investigation_graph
-from fin_graph.graphs.remediation.graph import ActionCatalog, ActionSpec, make_remediation_graph
-from fin_graph.integrations.context import RunContext
+from fin_graph.graphs.orders.desk import OrderDesk
+from fin_graph.graphs.orders.graph import make_order_graph
+from fin_graph.harness.runtime import make_analysis_graph
 from fin_graph.integrations.registry import IntegrationRegistry
 from fin_graph.memory.theses import ThesisMemory
+from fin_graph.persistence.paper_ledger import create_paper_tables
 from fin_graph.safety.approval import ApprovalPolicy
 from fin_graph.server.app import create_app
 from fin_graph.server.config import ServerConfig
 from fin_graph.server.manager import RunManager
 from fin_graph.server.storage import Base, Storage
-
-
-class ScaleArgs(BaseModel):
-    namespace: str = Field(default="production", min_length=1)
-    replicas: int = Field(default=2, ge=1, le=10)
-
-
-class BrowserServices(ScriptedServices):
-    """Structured offline reasoning; recorded tools still execute through an agent."""
-
-    async def extract(self, text: str) -> AlertExtraction:
-        return AlertExtraction(is_noise=False, alert_name=text[:120])
 
 
 async def create_fixture_app(database: Path) -> FastAPI:
@@ -66,51 +53,33 @@ async def _build_fixture_app(engine: AsyncEngine, ui_dir: Path) -> FastAPI:
     config = ServerConfig.model_construct()
     async with engine.begin() as connection:
         await connection.run_sync(Base.metadata.create_all)
+    await create_paper_tables(engine)
     storage = Storage(engine)
     for role in ("viewer", "operator", "approver", "admin"):
         await storage.put_key(f"{role}-key", role)
-    backend = FixtureBackend(load_scenario("eks", "001-oomkilled-crashloop"))
-    investigation = make_investigation_graph(
-        BrowserServices(backend.scenario),
-        backend.registry,
-        clock=lambda: backend.scenario.reference_time,
+    scenario = load_equity_scenario("001-deep-value")
+    broker = paper_broker(engine)
+    context = fixture_context(broker)
+    analysis = make_analysis_graph(
+        UnavailableAnalysisServices(),
+        FixtureTools(),
         checkpointer=InMemorySaver(),
+        settings=settings,
     )
-    manager = RunManager(investigation, storage, lambda: backend.context)
-    writes: list[dict[str, Any]] = []
-    preparations: list[dict[str, Any]] = []
-
-    async def prepare(args: ScaleArgs, context: RunContext) -> dict[str, Any]:
-        value = {**args.model_dump(), "description": "Simulación offline: escalar deployment"}
-        preparations.append(value)
-        return value
-
-    async def execute(args: ScaleArgs, key: str, context: RunContext) -> dict[str, Any]:
-        value = {**args.model_dump(), "idempotency_key": key, "actor": context.actor}
-        writes.append(value)
-        return value
-
-    async def verify(args: ScaleArgs, context: RunContext) -> bool:
-        return any(item["replicas"] == args.replicas for item in writes)
-
-    catalog = ActionCatalog(
-        [ActionSpec("fixture_scale", ScaleArgs, prepare, execute, verify, rollback="Escalar a 1")],
-        ledger=storage,
-    )
+    manager = RunManager(analysis, storage, context)
     policy = ApprovalPolicy(environment="prod")
-    remediation = make_remediation_graph(catalog, policy, checkpointer=InMemorySaver())
+    orders = make_order_graph(OrderDesk(broker), policy, checkpointer=InMemorySaver())
     store = InMemoryStore()
+    registry = IntegrationRegistry([], env_file=None)
     chat = make_chat_graph(
         ScriptedChatModel(
             responses=[
-                AIMessage(
-                    content="Consulta offline recibida; revisa la evidencia de la investigación."
-                )
+                AIMessage(content="Consulta offline recibida; revisa el análisis financiero.")
                 for _ in range(50)
             ]
         ),
-        backend.registry,
-        backend.context,
+        registry,
+        context(),
         ThesisMemory(store),
         policy=policy,
         checkpointer=InMemorySaver(),
@@ -121,22 +90,23 @@ async def _build_fixture_app(engine: AsyncEngine, ui_dir: Path) -> FastAPI:
         manager=manager,
         config=config,
         ui_dir=ui_dir,
-        registry=IntegrationRegistry([], env_file=None),
-        action_catalog=catalog,
+        registry=registry,
         chat_graph=chat,
-        remediation_graph=remediation,
+        order_graph=orders,
         approval_policy=policy,
+        paper=broker,
     )
     app.state.fixture_engine = engine
 
     @app.get("/__fixture/state")
     async def state(thread_id: str | None = None) -> dict[str, Any]:
+        portfolio = await broker.portfolio()
         return {
-            "writes": writes,
-            "preparations": preparations,
+            "portfolio": portfolio.model_dump(mode="json"),
+            "orders": [item.model_dump(mode="json") for item in await broker.orders()],
             "approvals": await storage.approvals(thread_id) if thread_id else [],
-            "scenario": backend.scenario.key,
-            "alert": backend.scenario.alert,
+            "scenario": scenario.key,
+            "request": scenario.request(),
         }
 
     return app

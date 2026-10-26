@@ -66,7 +66,7 @@ class RunEventRow(Base):
 
 
 class FingerprintRow(Base):
-    __tablename__ = "alert_fingerprints"
+    __tablename__ = "signal_fingerprints"
 
     source: Mapped[str] = mapped_column(String(30), primary_key=True)
     fingerprint: Mapped[str] = mapped_column(String(64), primary_key=True)
@@ -157,8 +157,8 @@ class ScheduleRow(Base):
     enabled: Mapped[bool] = mapped_column(default=False)
 
 
-class HealthResultRow(Base):
-    __tablename__ = "health_results"
+class WatchResultRow(Base):
+    __tablename__ = "watch_results"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     schedule_id: Mapped[str] = mapped_column(String(64), index=True)
@@ -192,7 +192,7 @@ class GatewayThreadRow(Base):
 
 
 class Storage:
-    """Transactional run and auth metadata. Alert/report content remains in checkpoints."""
+    """Transactional run and auth metadata. Requests and reports remain in checkpoints."""
 
     def __init__(
         self,
@@ -257,7 +257,7 @@ class Storage:
     @asynccontextmanager
     async def approval_lock(self, kind: str, thread_id: str) -> AsyncIterator[None]:
         """Serialize checkpoint decisions across Postgres server processes."""
-        if kind not in {"chat", "remediation"} or not 1 <= len(thread_id) <= 64:
+        if kind not in {"chat", "orders"} or not 1 <= len(thread_id) <= 64:
             raise ValueError("invalid approval lock key")
         if self.engine.dialect.name != "postgresql":
             yield
@@ -364,14 +364,15 @@ class Storage:
             await session.delete(row)
             return True
 
-    async def record_health_result(
+    async def record_watch_result(
         self, schedule_id: str, status: str, details: dict[str, Any], checked_at: datetime
     ) -> None:
-        if not 1 <= len(schedule_id) <= 64 or status not in {"healthy", "anomalous", "unknown"}:
-            raise ValueError("invalid health result")
+        """One market-watch check; ``triggered`` means it started an analysis."""
+        if not 1 <= len(schedule_id) <= 64 or status not in {"normal", "triggered", "unknown"}:
+            raise ValueError("invalid watch result")
         async with self.sessions.begin() as session:
             session.add(
-                HealthResultRow(
+                WatchResultRow(
                     schedule_id=schedule_id,
                     status=status,
                     details=details,
@@ -379,17 +380,17 @@ class Storage:
                 )
             )
 
-    async def recent_health_results(
+    async def recent_watch_results(
         self, since: datetime, *, limit: int = 100
     ) -> list[dict[str, Any]]:
         if not 1 <= limit <= 500:
-            raise ValueError("invalid health result limit")
+            raise ValueError("invalid watch result limit")
         async with self.sessions() as session:
             rows = (
                 await session.scalars(
-                    select(HealthResultRow)
-                    .where(HealthResultRow.checked_at >= since)
-                    .order_by(HealthResultRow.checked_at.desc(), HealthResultRow.id.desc())
+                    select(WatchResultRow)
+                    .where(WatchResultRow.checked_at >= since)
+                    .order_by(WatchResultRow.checked_at.desc(), WatchResultRow.id.desc())
                     .limit(limit)
                 )
             ).all()
@@ -575,6 +576,19 @@ class Storage:
             row = await session.get(GatewayThreadRow, (platform, destination, remote_id))
             return row.approval_id if row else None
 
+    async def checkpoint_threads(self, kind: str, *, limit: int = 100) -> list[str]:
+        """The most recently touched standalone threads of ``kind``, newest first."""
+        if kind not in {"chat", "orders"} or not 1 <= limit <= 500:
+            raise ValueError("invalid checkpoint thread query")
+        async with self.sessions() as session:
+            rows = await session.scalars(
+                select(CheckpointThreadRow.thread_id)
+                .where(CheckpointThreadRow.kind == kind)
+                .order_by(CheckpointThreadRow.touched_at.desc())
+                .limit(limit)
+            )
+            return list(rows.all())
+
     async def list_approval_candidates(self, cutoff: datetime) -> list[tuple[str, str]]:
         async with self.sessions() as session:
             rows = (
@@ -619,8 +633,8 @@ class Storage:
             row.status = "completed"
 
     async def touch_checkpoint_thread(self, thread_id: str, kind: str) -> None:
-        """Make standalone chat/remediation checkpoints visible to retention."""
-        if not 1 <= len(thread_id) <= 64 or kind not in {"chat", "remediation"}:
+        """Make standalone chat and order checkpoints visible to retention."""
+        if not 1 <= len(thread_id) <= 64 or kind not in {"chat", "orders"}:
             raise ValueError("invalid checkpoint thread")
         now = datetime.now(UTC)
         table = cast(Table, CheckpointThreadRow.__table__)
@@ -651,7 +665,7 @@ class Storage:
         """Audit a human decision without persisting raw tool arguments or credentials."""
         if (
             not 1 <= len(thread_id) <= 64
-            or kind not in {"chat", "remediation"}
+            or kind not in {"chat", "orders"}
             or not 1 <= len(actor) <= 128
             or decision not in {"approve", "edit", "reject"}
             or not 1 <= len(action_name) <= 100
@@ -1113,7 +1127,12 @@ class Storage:
             await session.execute(
                 delete(ActionExecutionRow).where(
                     ActionExecutionRow.thread_id.in_(
-                        (thread_id, f"chat:{thread_id}", f"remediation:{thread_id}")
+                        (
+                            thread_id,
+                            f"chat:{thread_id}",
+                            f"orders:{thread_id}",
+                            f"remediation:{thread_id}",
+                        )
                     )
                 )
             )
@@ -1137,9 +1156,7 @@ class Storage:
         """Purge independent metadata after checkpoint-aware thread cleanup."""
         async with self.sessions.begin() as session:
             await session.execute(delete(FingerprintRow).where(FingerprintRow.expires_at < cutoff))
-            await session.execute(
-                delete(HealthResultRow).where(HealthResultRow.checked_at < cutoff)
-            )
+            await session.execute(delete(WatchResultRow).where(WatchResultRow.checked_at < cutoff))
             await session.execute(
                 delete(GatewayEventRow).where(
                     GatewayEventRow.created_at < cutoff,

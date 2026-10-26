@@ -20,7 +20,7 @@ class SnapshotGraph:
                 "plan": {
                     "tasks": [
                         {
-                            "domain": "logs",
+                            "domain": "valuation",
                             "objective": "private agent prompt password=private",
                             "hypothesis_ids": ["H1"],
                         }
@@ -28,45 +28,66 @@ class SnapshotGraph:
                 },
                 "findings": [
                     {
-                        "domain": "metrics",
+                        "domain": "fundamentals",
                         "wave": 1,
-                        "summary": "CPU rose after deploy",
+                        "summary": "ROE and margins are strong",
                         "confidence": 0.8,
-                        "evidence_ids": ["ev_metric"],
+                        "signals": [{"ticker": "DEEP", "signal": "bullish"}],
+                        "evidence_ids": ["ev_fundamentals"],
                         "verdicts": [],
                     },
                     {
-                        "domain": "logs",
+                        "domain": "valuation",
                         "wave": 2,
-                        "summary": "Errors followed the deploy",
+                        "summary": "The stock trades below intrinsic value",
                         "confidence": 0.7,
-                        "evidence_ids": ["ev_log"],
+                        "signals": [{"ticker": "DEEP", "signal": "bullish"}],
+                        "evidence_ids": ["ev_valuation"],
                         "verdicts": [],
                     },
                 ],
                 "evidence": [
                     {
-                        "id": "ev_log",
-                        "integration": "loki",
-                        "tool": "query_logs",
-                        "summary": "5xx burst",
+                        "id": "ev_valuation",
+                        "integration": "financial_datasets",
+                        "tool": "get_financial_metrics",
+                        "summary": "undervalued",
                         "args": {"password": "private"},
-                        "data": {"raw": "sensitive log content"},
+                        "data": {"raw": "sensitive market payload"},
                     }
                 ],
                 "verification": {
-                    "passed": True,
-                    "score": 0.71,
-                    "missing_sections": [],
-                    "claims": [
-                        {"statement": "5xx errors rose", "status": "supported", "reason": "ok"}
-                    ],
+                    "DEEP": {
+                        "passed": True,
+                        "score": 0.71,
+                        "missing_sections": [],
+                        "claims": [
+                            {
+                                "statement": "DEEP has a margin of safety",
+                                "status": "supported",
+                                "reason": "ok",
+                            }
+                        ],
+                    }
                 },
-                "diagnosis": {
-                    "category": "application",
-                    "root_cause": "Bad deploy",
-                    "confidence": 0.8,
-                },
+                "theses": [
+                    {
+                        "ticker": "DEEP",
+                        "stance": "bullish",
+                        "category": "deep_value",
+                        "confidence": 80,
+                        "summary": "Balance sheet strength supports the thesis.",
+                    }
+                ],
+                "decisions": {"DEEP": {"action": "buy", "quantity": 10, "reasoning": "risk sized"}},
+                "orders": [
+                    {
+                        "client_order_id": "order-1",
+                        "ticker": "DEEP",
+                        "action": "buy",
+                        "quantity": 10,
+                    }
+                ],
             }
         )
 
@@ -87,19 +108,20 @@ async def test_explain_shows_observed_events_and_derived_checkpoint_without_tool
         {
             "stage": "plan",
             "wave": 1,
-            "tasks": [{"domain": "metrics", "hypothesis_ids": ["H1"]}],
+            "tasks": [{"domain": "fundamentals", "hypothesis_ids": ["H1"]}],
             "objective": "private agent prompt",
         },
     )
     await storage.add_event(
         "run-1",
-        "specialist",
+        "analyst",
         {
-            "stage": "metrics",
+            "stage": "fundamentals",
             "wave": 1,
-            "domain": "metrics",
-            "evidence_ids": ["ev_metric"],
-            "data": "sensitive raw metrics",
+            "domain": "fundamentals",
+            "evidence_ids": ["ev_fundamentals"],
+            "signals": {"DEEP": "bullish"},
+            "data": "sensitive raw market data",
         },
     )
     manager = RunManager(SnapshotGraph(), storage, lambda: object())
@@ -108,12 +130,10 @@ async def test_explain_shows_observed_events_and_derived_checkpoint_without_tool
         app.router.lifespan_context(app),
         httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://test") as client,
     ):
-        path = "/v1/investigations/thread-1/explain"
+        path = "/v1/analyses/thread-1/explain"
         assert (await client.get(path)).status_code == 401
         assert (
-            await client.get(
-                "/v1/investigations/missing/explain", headers={"x-api-key": "viewer-key"}
-            )
+            await client.get("/v1/analyses/missing/explain", headers={"x-api-key": "viewer-key"})
         ).status_code == 404
         response = await client.get(path, headers={"x-api-key": "viewer-key"})
         assert response.status_code == 200, response.text
@@ -132,40 +152,41 @@ async def test_explain_shows_observed_events_and_derived_checkpoint_without_tool
         assert [step["type"] for step in execution["steps"]] == [
             "stage",
             "plan",
-            "specialist",
+            "analyst",
         ]
         assert all(step["provenance"] == "observed" for step in execution["steps"])
         assert execution["waves"][0] == {
             "number": 1,
             "provenance": "observed",
-            "tasks": [{"domain": "metrics", "hypothesis_ids": ["H1"], "provenance": "observed"}],
-            "specialists": [
+            "tasks": [{"domain": "fundamentals", "provenance": "observed"}],
+            "analysts": [
                 {
-                    "domain": "metrics",
-                    "evidence_ids": ["ev_metric"],
+                    "domain": "fundamentals",
+                    "evidence_ids": ["ev_fundamentals"],
+                    "signals": {"DEEP": "bullish"},
                     "provenance": "observed",
                 }
             ],
         }
         assert execution["waves"][1]["number"] == 2
-        assert execution["waves"][1]["tasks"] == [
-            {"domain": "logs", "hypothesis_ids": ["H1"], "provenance": "derived"}
-        ]
-        assert execution["findings"][1]["evidence_ids"] == ["ev_log"]
+        assert execution["waves"][1]["tasks"] == []
+        assert execution["findings"][1]["evidence_ids"] == ["ev_valuation"]
         assert execution["findings"][1]["provenance"] == "derived"
         assert execution["evidence"][0] == {
-            "id": "ev_log",
-            "integration": "loki",
-            "tool": "query_logs",
+            "id": "ev_valuation",
+            "integration": "financial_datasets",
+            "tool": "get_financial_metrics",
             "provenance": "derived",
         }
-        assert execution["verification"]["passed"] is True
-        assert execution["verification"]["provenance"] == "derived"
+        assert execution["theses"][0]["ticker"] == "DEEP"
+        assert execution["theses"][0]["verified"] is True
+        assert execution["decisions"]["DEEP"]["action"] == "buy"
+        assert execution["orders"][0]["client_order_id"] == "order-1"
         for forbidden in (
             "private agent prompt",
-            "sensitive raw metrics",
-            "sensitive log content",
-            "5xx burst",
+            "sensitive raw market data",
+            "sensitive market payload",
+            "undervalued",
         ):
             assert forbidden not in response.text
     await engine.dispose()

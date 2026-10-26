@@ -5,7 +5,7 @@ from __future__ import annotations
 import hashlib
 import hmac
 
-_KIND = {"chat": "c", "remediation": "r"}
+_KIND = {"chat": "c", "orders": "o"}
 _DECISION = {"approve": "a", "reject": "x"}
 
 
@@ -35,7 +35,7 @@ def parse_button(
     parts = value.split(":")
     if len(parts) != 4:
         return None
-    kind = {"c": "chat", "r": "remediation"}.get(parts[0])
+    kind = {"c": "chat", "o": "orders"}.get(parts[0])
     choice = {"a": "approve", "x": "reject"}.get(parts[2])
     if kind is None or choice is None:
         return None

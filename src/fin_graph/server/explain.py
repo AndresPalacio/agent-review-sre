@@ -1,7 +1,8 @@
-"""A bounded, public explanation of an investigation's graph and recorded work.
+"""A bounded, public explanation of an analysis: the graph it ran and the work it recorded.
 
-This is an execution summary, not an LLM reasoning trace. Tool arguments, raw
-responses and private agent prompts are never copied into the response.
+This is an execution summary, not an LLM reasoning trace. Tool arguments, raw market data and
+private agent prompts are never copied into the response: only stages, analyst signals, the
+evidence ids, each ticker's thesis, its verification and the portfolio decision.
 """
 
 from __future__ import annotations
@@ -13,34 +14,36 @@ MAX_EXPLAIN_EVENTS = 500
 
 
 TOPOLOGY: dict[str, Any] = {
-    "patterns": ["workflow", "plan_and_execute", "parallel_specialists", "reflection"],
+    "patterns": ["workflow", "plan_and_execute", "parallel_analysts", "reflection"],
     "nodes": [
-        {"id": "start", "label": "Pregunta o alerta", "kind": "input"},
-        {"id": "intake", "label": "Normalizar entrada", "kind": "intake"},
-        {"id": "gather_context", "label": "Reunir contexto", "kind": "context"},
-        {"id": "plan", "label": "Planificar investigación", "kind": "planner"},
-        {"id": "specialist", "label": "Especialistas en paralelo", "kind": "specialists"},
-        {"id": "synthesize", "label": "Sintetizar hallazgos", "kind": "synthesis"},
+        {"id": "start", "label": "Petición o señal", "kind": "input"},
+        {"id": "intake", "label": "Normalizar petición", "kind": "intake"},
+        {"id": "gather_context", "label": "Contexto y tesis previas", "kind": "context"},
+        {"id": "plan", "label": "Planificar hipótesis", "kind": "planner"},
+        {"id": "analyst", "label": "Analistas en paralelo", "kind": "analysts"},
+        {"id": "synthesize", "label": "Sintetizar tesis", "kind": "synthesis"},
         {"id": "verify", "label": "Verificar afirmaciones", "kind": "critic"},
-        {"id": "refine", "label": "Ampliar y replantear", "kind": "loop"},
-        {"id": "propose_remediation", "label": "Proponer acciones", "kind": "proposal"},
+        {"id": "refine", "label": "Ampliar ventana y repetir", "kind": "loop"},
+        {"id": "risk", "label": "Límites de riesgo", "kind": "risk"},
+        {"id": "portfolio", "label": "Decisión de cartera", "kind": "decision"},
         {"id": "report", "label": "Construir informe", "kind": "report"},
         {"id": "deliver", "label": "Entregar informe", "kind": "delivery"},
         {"id": "end", "label": "Fin", "kind": "output"},
     ],
     "edges": [
         {"source": "start", "target": "intake"},
-        {"source": "intake", "target": "gather_context", "label": "signal"},
+        {"source": "intake", "target": "gather_context", "label": "tickers"},
         {"source": "intake", "target": "end", "label": "noise"},
         {"source": "gather_context", "target": "plan"},
-        {"source": "plan", "target": "specialist", "label": "tasks"},
+        {"source": "plan", "target": "analyst", "label": "tasks"},
         {"source": "plan", "target": "synthesize", "label": "no_tasks"},
-        {"source": "specialist", "target": "synthesize"},
+        {"source": "analyst", "target": "synthesize"},
         {"source": "synthesize", "target": "verify"},
         {"source": "verify", "target": "refine", "label": "needs_more_evidence"},
-        {"source": "verify", "target": "propose_remediation", "label": "verified_or_limit"},
+        {"source": "verify", "target": "risk", "label": "verified_or_limit"},
         {"source": "refine", "target": "plan"},
-        {"source": "propose_remediation", "target": "report"},
+        {"source": "risk", "target": "portfolio"},
+        {"source": "portfolio", "target": "report"},
         {"source": "report", "target": "deliver"},
         {"source": "deliver", "target": "end"},
     ],
@@ -69,14 +72,14 @@ def _wave(value: Any) -> int | None:
     return None
 
 
-def _task(value: Mapping[str, Any], provenance: str) -> dict[str, Any] | None:
-    domain = value.get("domain")
-    if not isinstance(domain, str) or not domain:
-        return None
+def _signals(value: Any) -> dict[str, str]:
+    """``{ticker: signal}`` from an event's map or a finding's signal list."""
+    if isinstance(value, Mapping):
+        return {str(k)[:16]: str(v)[:16] for k, v in list(value.items())[:10]}
     return {
-        "domain": domain[:64],
-        "hypothesis_ids": _strings(value.get("hypothesis_ids")),
-        "provenance": provenance,
+        str(item.get("ticker"))[:16]: str(item.get("signal"))[:16]
+        for item in _objects(value)[:10]
+        if item.get("ticker")
     }
 
 
@@ -87,8 +90,6 @@ def _step(event: Mapping[str, Any]) -> dict[str, Any]:
     status = data.get("status") if isinstance(data.get("status"), str) else None
     domain = data.get("domain") if isinstance(data.get("domain"), str) else None
     node = stage if stage in _NODE_IDS else kind if kind in _NODE_IDS else None
-    if kind == "specialist":
-        node = "specialist"
     result: dict[str, Any] = {
         "id": event.get("id"),
         "run_id": event.get("run_id"),
@@ -105,15 +106,38 @@ def _step(event: Mapping[str, Any]) -> dict[str, Any]:
         result["domain"] = domain[:64]
     if status:
         result["status"] = status[:64]
-    if kind == "specialist":
+    if kind == "analyst":
         result["evidence_ids"] = _strings(data.get("evidence_ids"))
+        result["signals"] = _signals(data.get("signals"))
     if kind == "plan":
         result["tasks"] = [
-            task
+            {"domain": str(item.get("domain"))[:64], "provenance": "observed"}
             for item in _objects(data.get("tasks"))
-            if (task := _task(item, "observed")) is not None
+            if isinstance(item.get("domain"), str)
         ]
     return result
+
+
+def _thesis(value: Mapping[str, Any], verification: Mapping[str, Any]) -> dict[str, Any]:
+    ticker = str(value.get("ticker", ""))[:16]
+    check = _object(verification.get(ticker))
+    return {
+        "ticker": ticker,
+        "stance": value.get("stance"),
+        "category": value.get("category"),
+        "confidence": value.get("confidence"),
+        "summary": str(value.get("summary", ""))[:1000],
+        "verified": check.get("passed"),
+        "claims": [
+            {
+                "statement": str(item.get("statement", ""))[:500],
+                "status": item.get("status"),
+                "reason": str(item.get("reason", ""))[:500],
+            }
+            for item in _objects(check.get("claims"))[:12]
+        ],
+        "provenance": "derived",
+    }
 
 
 def build_explanation(
@@ -130,8 +154,7 @@ def build_explanation(
 
     def get_wave(number: int) -> dict[str, Any]:
         return waves.setdefault(
-            number,
-            {"number": number, "provenance": "derived", "tasks": [], "specialists": []},
+            number, {"number": number, "provenance": "derived", "tasks": [], "analysts": []}
         )
 
     for step in steps:
@@ -142,25 +165,16 @@ def build_explanation(
         if step["type"] == "plan":
             wave["provenance"] = "observed"
             wave["tasks"] = step["tasks"]
-        elif step["type"] == "specialist" and step.get("domain"):
+        elif step["type"] == "analyst" and step.get("domain"):
             wave["provenance"] = "observed"
-            wave["specialists"].append(
+            wave["analysts"].append(
                 {
                     "domain": step["domain"],
                     "evidence_ids": step["evidence_ids"],
+                    "signals": step["signals"],
                     "provenance": "observed",
                 }
             )
-
-    latest_wave = _wave(values.get("wave"))
-    if latest_wave is not None:
-        latest = get_wave(latest_wave)
-        if not latest["tasks"]:
-            latest["tasks"] = [
-                task
-                for item in _objects(_object(values.get("plan")).get("tasks"))
-                if (task := _task(item, "derived")) is not None
-            ]
 
     findings: list[dict[str, Any]] = []
     for item in _objects(values.get("findings")):
@@ -168,21 +182,27 @@ def build_explanation(
         number = _wave(item.get("wave"))
         if not isinstance(domain, str) or not domain:
             continue
-        evidence_ids = _strings(item.get("evidence_ids"))
         finding = {
             "domain": domain[:64],
             "wave": number,
             "summary": str(item.get("summary", ""))[:1000],
             "confidence": item.get("confidence"),
-            "evidence_ids": evidence_ids,
+            "signals": _signals(item.get("signals")),
+            "evidence_ids": _strings(item.get("evidence_ids")),
+            "degraded": bool(item.get("degraded")),
             "provenance": "derived",
         }
         findings.append(finding)
         if number is not None:
             wave = get_wave(number)
-            if not any(specialist["domain"] == domain for specialist in wave["specialists"]):
-                wave["specialists"].append(
-                    {"domain": domain[:64], "evidence_ids": evidence_ids, "provenance": "derived"}
+            if not any(analyst["domain"] == domain for analyst in wave["analysts"]):
+                wave["analysts"].append(
+                    {
+                        "domain": domain[:64],
+                        "evidence_ids": finding["evidence_ids"],
+                        "signals": finding["signals"],
+                        "provenance": "derived",
+                    }
                 )
 
     evidence = [
@@ -196,7 +216,7 @@ def build_explanation(
         if isinstance(item.get("id"), str)
     ]
     verification = _object(values.get("verification"))
-    diagnosis = _object(values.get("diagnosis"))
+    decisions = _object(values.get("decisions"))
     return {
         "thread_id": thread_id,
         "run": dict(run),
@@ -210,25 +230,26 @@ def build_explanation(
             "waves": [waves[number] for number in sorted(waves)],
             "findings": findings,
             "evidence": evidence,
-            "verification": {
-                "passed": verification.get("passed"),
-                "score": verification.get("score"),
-                "missing_sections": _strings(verification.get("missing_sections")),
-                "claims": [
-                    {
-                        "statement": str(item.get("statement", ""))[:500],
-                        "status": item.get("status"),
-                        "reason": str(item.get("reason", ""))[:500],
-                    }
-                    for item in _objects(verification.get("claims"))
-                ],
-                "provenance": "derived",
+            "theses": [_thesis(item, verification) for item in _objects(values.get("theses"))],
+            "decisions": {
+                str(ticker)[:16]: {
+                    "action": _object(value).get("action"),
+                    "quantity": _object(value).get("quantity"),
+                    "reasoning": str(_object(value).get("reasoning", ""))[:500],
+                    "provenance": "derived",
+                }
+                for ticker, value in list(decisions.items())[:10]
             },
-            "diagnosis": {
-                "category": diagnosis.get("category"),
-                "root_cause": str(diagnosis.get("root_cause", ""))[:1000],
-                "confidence": diagnosis.get("confidence"),
-                "provenance": "derived",
-            },
+            "orders": [
+                {
+                    "client_order_id": item.get("client_order_id"),
+                    "ticker": item.get("ticker"),
+                    "action": item.get("action"),
+                    "quantity": item.get("quantity"),
+                    "provenance": "derived",
+                }
+                for item in _objects(values.get("orders"))[:10]
+            ],
+            "degraded": _strings(values.get("degraded")),
         },
     }

@@ -17,8 +17,6 @@ from langgraph.types import Command
 
 from fin_graph.domain.analysis_report import AnalysisReport
 from fin_graph.domain.rendering.analysis import render_analysis_markdown
-from fin_graph.domain.rendering.markdown import render_markdown
-from fin_graph.domain.report import Report
 from fin_graph.integrations.context import RunContext
 from fin_graph.integrations.registry import IntegrationRegistry
 from fin_graph.safety.secrets import redact_secrets, redact_value
@@ -356,8 +354,8 @@ class RemoteChatSession:
             if not isinstance(items, list):
                 raise ValueError("invalid server response")
             return "\n".join(f"{item['id']}: {item['status']}" for item in items)
-        if name == "/investigate":
-            return await self._investigate(argument)
+        if name == "/analiza":
+            return await self._analyze(argument)
         if name == "/cost":
             return "monetary cost unavailable from server"
         if name == "/exit":
@@ -393,14 +391,12 @@ class RemoteChatSession:
             return f"{reply}\nAprobación pendiente: {pending}".strip()
         return reply
 
-    async def _investigate(self, alert_text: str) -> str:
-        if not alert_text:
-            raise ValueError("/investigate requires alert text")
+    async def _analyze(self, text: str) -> str:
+        if not text:
+            raise ValueError("/analiza necesita tickers o una pregunta: /analiza AAPL MSFT")
         headers = {"X-API-Key": self.api_key}
         try:
-            response = await self.client.post(
-                "/v1/investigations", json={"text": alert_text}, headers=headers
-            )
+            response = await self.client.post("/v1/analyses", json={"text": text}, headers=headers)
         except httpx.RequestError as exc:
             raise ValueError(f"remote request failed ({type(exc).__name__})") from None
         payload = self._json_object(response)
@@ -411,24 +407,26 @@ class RemoteChatSession:
             if attempt:
                 await asyncio.sleep(0.25)
             try:
-                response = await self.client.get(f"/v1/investigations/{thread_id}", headers=headers)
+                response = await self.client.get(f"/v1/analyses/{thread_id}", headers=headers)
             except httpx.RequestError as exc:
                 raise ValueError(f"remote request failed ({type(exc).__name__})") from None
             current = self._json_object(response)
             report = current.get("report")
             if report:
                 try:
-                    return self._redact_text(render_markdown(Report.model_validate(report)))
+                    return self._redact_text(
+                        render_analysis_markdown(AnalysisReport.model_validate(report))
+                    )
                 except ValueError:
                     raise ValueError("invalid server report") from None
             run = current.get("run")
             if not isinstance(run, dict) or not isinstance(run.get("status"), str):
                 raise ValueError("invalid server response")
             if run["status"] == "completed":
-                return "no report"
+                return "sin reporte: el mensaje no nombra ninguna acción"
             if run["status"] in {"failed", "interrupted"}:
-                raise ValueError(f"remote investigation {run['status']}")
-        raise ValueError("remote investigation timed out")
+                raise ValueError(f"remote analysis {run['status']}")
+        raise ValueError("remote analysis timed out")
 
     def _redact_text(self, value: str) -> str:
         return redact_secrets(value).replace(self.api_key, "[REDACTED:api_key]")

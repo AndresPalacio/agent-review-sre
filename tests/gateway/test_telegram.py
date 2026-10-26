@@ -107,7 +107,7 @@ def setup() -> tuple[TelegramGateway, Store, list[httpx.Request], list[str], lis
     ) -> GatewayResult:
         submitted.append(text)
         assert (platform, destination, remote_id) == ("telegram", "-1001", "50")
-        return GatewayResult("thread-1", "<b>report</b>", "remediation", approval_id="request-1")
+        return GatewayResult("thread-1", "<b>report</b>", "orders", approval_id="request-1")
 
     async def decide(kind: str, thread_id: str, choice: str, actor: str, approval_id: str) -> str:
         assert approval_id == "request-1"
@@ -142,9 +142,9 @@ async def test_valid_message_acks_before_investigation_and_updates_report(setup:
         started.set()
         await release.wait()
         submitted.append(text)
-        return GatewayResult("thread-1", "<b>report</b>", "remediation", approval_id="request-1")
+        return GatewayResult("thread-1", "<b>report</b>", "orders", approval_id="request-1")
 
-    gateway.submit_alert = submit
+    gateway.submit_request = submit
     update = {
         "update_id": 1,
         "message": {"message_id": 2, "chat": {"id": -1001}, "from": {"id": 7}, "text": "CPU high"},
@@ -196,7 +196,7 @@ async def test_webhook_ack_requires_durable_event_claim(setup: Any) -> None:
 
 async def test_pending_alert_replays_after_claim_without_worker(setup: Any) -> None:
     gateway, store, _, submitted, _ = setup
-    payload = {"type": "alert", "text": "recover alert", "destination": "-1001"}
+    payload = {"type": "analysis", "text": "recover alert", "destination": "-1001"}
     assert await store.claim_gateway_event("telegram", "77", payload)
     await gateway.replay_pending()
     assert submitted == ["recover alert"]
@@ -212,8 +212,8 @@ async def test_active_run_defers_replay_without_marking_gateway_failure(setup: A
     ) -> GatewayResult:
         raise GatewayRunPending()
 
-    gateway.submit_alert = pending
-    payload = {"type": "alert", "text": "recover alert", "destination": "-1001"}
+    gateway.submit_request = pending
+    payload = {"type": "analysis", "text": "recover alert", "destination": "-1001"}
     assert await store.claim_gateway_event("telegram", "Ev-running", payload)
     await gateway.replay_pending()
     assert ("telegram", "Ev-running") in store.pending
@@ -227,7 +227,7 @@ async def test_pending_approval_replays_after_claim_without_worker(setup: Any) -
     payload = {
         "type": "approval",
         "approval_id": "request-1",
-        "kind": "remediation",
+        "kind": "orders",
         "thread_id": "thread-1",
         "choice": "reject",
         "user_id": "42",
@@ -237,7 +237,7 @@ async def test_pending_approval_replays_after_claim_without_worker(setup: Any) -
     }
     assert await store.claim_gateway_event("telegram", "88", payload)
     await gateway.replay_pending()
-    assert decisions == ["remediation:thread-1:reject:telegram:42"]
+    assert decisions == ["orders:thread-1:reject:telegram:42"]
     assert not store.pending
     await gateway.close()
 
@@ -263,7 +263,7 @@ async def test_bad_secret_wrong_chat_and_duplicate_update_have_no_extra_effect(s
 async def test_callback_requires_exact_user_and_link(setup: Any) -> None:
     gateway, store, requests, _, decisions = setup
     await store.bind_gateway_thread("telegram", "-1001", "50", "thread-1", approval_id="request-1")
-    prefix = "r:thread-1:x"
+    prefix = "o:thread-1:x"
     nonce = hmac.new(
         b"secret-token", f"telegram:-1001:50:{prefix}".encode(), hashlib.sha256
     ).hexdigest()[:8]
@@ -285,7 +285,7 @@ async def test_callback_requires_exact_user_and_link(setup: Any) -> None:
     callback["callback_query"]["message"]["message_id"] = 50
     assert await gateway.handle(callback, "secret-token") == 200
     await gateway.close()
-    assert decisions == ["remediation:thread-1:reject:telegram:42"]
+    assert decisions == ["orders:thread-1:reject:telegram:42"]
     assert [request.url.path for request in requests].count("/bot123:abc/answerCallbackQuery") == 3
 
 
@@ -308,7 +308,7 @@ async def test_bot_message_is_ignored(setup: Any) -> None:
 async def test_publish_approval_binds_message_and_keyboard(setup: Any) -> None:
     gateway, store, requests, _, _ = setup
     remote_id = await gateway.publish_approval(
-        "remediation", "thread-1", "Scale deployment?", "request-1"
+        "orders", "thread-1", "¿Comprar una acción?", "request-1"
     )
     assert remote_id == "50"
     assert store.links[("telegram", "-1001", remote_id)] == "thread-1"

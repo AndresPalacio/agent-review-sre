@@ -40,26 +40,22 @@ async def test_http_overload_precedes_webhook_claim(tmp_path: Path):
     storage = Storage(engine)
     await storage.put_key("operator", "operator")
     manager = RunManager(ScriptedGraph(), storage, lambda: None, max_pending=1)
-    app = create_app(manager=manager, verifier=WebhookVerifier(tokens={"alertmanager": "token"}))
-    alert = {
-        "version": "4",
-        "groupKey": "test",
-        "alerts": [{"status": "firing", "labels": {"alertname": "CPU"}}],
-    }
+    app = create_app(manager=manager, verifier=WebhookVerifier(tokens={"generic": "token"}))
+    signal = {"tickers": ["DEEP"], "as_of": "2024-06-28"}
     async with (
         app.router.lifespan_context(app),
         httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://test") as client,
     ):
         await manager.submit("busy", None)
         response = await client.post(
-            "/v1/alerts/alertmanager", json=alert, headers={"x-sre-webhook-token": "token"}
+            "/v1/signals/generic", json=signal, headers={"x-fin-webhook-token": "token"}
         )
         assert response.status_code == 429
         assert response.headers["Retry-After"] == "1"
         assert len(await storage.list_runs()) == 1
         await manager.stop()
         response = await client.post(
-            "/v1/alerts/alertmanager", json=alert, headers={"x-sre-webhook-token": "token"}
+            "/v1/signals/generic", json=signal, headers={"x-fin-webhook-token": "token"}
         )
         assert response.status_code == 202 and not response.json()["deduplicated"]
     await engine.dispose()
