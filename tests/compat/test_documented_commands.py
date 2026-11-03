@@ -83,6 +83,7 @@ def test_every_documented_cli_surface_has_working_help() -> None:
         ["integrations"],
         ["eval"],
         ["harness"],
+        ["agents"],
     )
     runner = CliRunner()
     for command in commands:

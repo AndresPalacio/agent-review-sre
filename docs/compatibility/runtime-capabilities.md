@@ -20,6 +20,16 @@ SQLite is the zero-configuration single-process desktop profile. PostgreSQL is t
 profile for multiple workers and replicas. These are deployment capability differences, not
 financial-result differences.
 
+The native multi-agent catalog can be inspected without loading a model:
+
+```powershell
+uv run fin-graph agents list
+uv run fin-graph agents describe analysis.persona_team
+```
+
+The optional optimizer and its `optimization/fin.toml` configuration are not required by either
+persistence profile. See [the agent architecture](../arquitectura-agentes.md).
+
 Run the local gate:
 
 ```powershell

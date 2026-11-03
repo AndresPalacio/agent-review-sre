@@ -52,6 +52,7 @@ FORBIDDEN_INTEGRATIONS = (
 )
 RETAINED_IMPORTS = (
     "fin_graph.cli.main",
+    "fin_graph.agents.catalog",
     "fin_graph.delivery.service",
     "fin_graph.gateway.slack",
     "fin_graph.workflows.analysis.graph",
@@ -84,7 +85,7 @@ def test_cli_exposes_finance_without_sre_commands() -> None:
     assert result.exit_code == 0
     assert "investigate" not in result.stdout.lower()
     assert "sre:" not in result.stdout.lower()
-    for command in ("analyze", "ask", "chat", "portfolio", "backtest", "serve"):
+    for command in ("agents", "analyze", "ask", "chat", "portfolio", "backtest", "serve"):
         assert command in result.stdout
 
 

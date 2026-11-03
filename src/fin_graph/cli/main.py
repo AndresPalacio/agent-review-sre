@@ -18,6 +18,7 @@ from prompt_toolkit import PromptSession
 from rich.console import Console
 
 from fin_graph.agents.chat.supervisor import make_chat_graph
+from fin_graph.cli.agents import app as agents_app
 from fin_graph.cli.chat import ChatSession, RemoteChatSession
 from fin_graph.cli.compat import register_compat_commands
 from fin_graph.cli.harness import app as harness_app
@@ -42,6 +43,7 @@ app = typer.Typer(
 )
 eval_app = typer.Typer(help="Evaluación reproducible del grafo de análisis.", no_args_is_help=True)
 app.add_typer(eval_app, name="eval")
+app.add_typer(agents_app, name="agents")
 app.add_typer(harness_app, name="harness")
 app.add_typer(schedules_app, name="schedules")
 app.add_typer(integrations_app, name="integrations")

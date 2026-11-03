@@ -92,10 +92,25 @@ uv run fin-graph orders --help
 uv run fin-graph chat
 uv run fin-graph eval run --suite smoke --model scripted
 uv run fin-graph harness runtime
+uv run fin-graph agents list
+uv run fin-graph agents describe analysis.persona_team
 ```
 
 `--propose` crea órdenes paper pendientes; una aprobación humana y los límites deterministas siguen
 siendo obligatorios antes del fill simulado.
+
+## Arquitectura multiagente
+
+El código separa agentes DeepAgents, workflows LangGraph, runtime productivo, trading determinista
+y optimización opcional. `fin-graph agents list` muestra el catálogo ejecutable —incluidas las 19
+personas financieras— sin construir modelos ni hacer llamadas externas. Consulta la
+[guía de arquitectura](docs/arquitectura-agentes.md) y los
+[README colocados junto a los agentes](src/fin_graph/agents/README.md).
+
+better-harness no es necesario para usar la aplicación. Vive bajo `fin_graph.optimization` y solo
+se carga al invocar los comandos opcionales documentados en
+[optimización](docs/better-harness.md); su configuración de desarrollo está en
+`optimization/fin.toml`.
 
 ## API y conexión de clientes existentes
 
