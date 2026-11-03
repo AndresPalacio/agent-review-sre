@@ -52,7 +52,6 @@ from fin_graph.gateway import GatewayResult, GatewayRunPending
 from fin_graph.gateway.settings import SlackGatewaySettings, TelegramGatewaySettings
 from fin_graph.gateway.slack import SlackGateway
 from fin_graph.gateway.telegram import TelegramGateway
-from fin_graph.graphs.analysis.snapshots import MarketSnapshotServices
 from fin_graph.graphs.orders.desk import OrderDesk
 from fin_graph.graphs.orders.graph import PLACE_ORDER, make_order_graph
 from fin_graph.harness.runtime import _analysis_services, make_analysis_graph
@@ -83,6 +82,7 @@ from fin_graph.server.manager import RunManager, RunOverloaded
 from fin_graph.server.migrate import upgrade
 from fin_graph.server.security import REQUEST_SOURCE, SignalSource, WebhookVerifier
 from fin_graph.server.storage import Storage
+from fin_graph.workflows.analysis.snapshots import MarketSnapshotServices
 
 _MAX_BODY = 1024 * 1024
 _ROLE_LEVEL = {"viewer": 0, "operator": 1, "approver": 2, "admin": 3}

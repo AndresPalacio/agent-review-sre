@@ -66,9 +66,6 @@ from fin_graph.domain.thesis_verification import (
 )
 from fin_graph.domain.tools import Domain, SideEffectLevel, read_tool_meta
 from fin_graph.domain.window import AnalysisWindow
-from fin_graph.graphs.analysis.evidence import for_ticker, scores_by_domain
-from fin_graph.graphs.analysis.services import AnalysisServices, SynthesisContext
-from fin_graph.graphs.analysis.state import AnalysisState, SanitizedRequestChannel, latest_findings
 from fin_graph.integrations.analytics.engine import AnalyticsEngine
 from fin_graph.integrations.base import IntegrationError
 from fin_graph.integrations.broker.paper.broker import PaperBroker
@@ -78,6 +75,13 @@ from fin_graph.memory.theses import ThesisMemory, thesis_key
 from fin_graph.playbooks.catalog import select_playbooks
 from fin_graph.safety.secrets import redact_secrets
 from fin_graph.safety.trading_limits import TradingLimits, limit_allowed_actions
+from fin_graph.workflows.analysis.evidence import for_ticker, scores_by_domain
+from fin_graph.workflows.analysis.services import AnalysisServices, SynthesisContext
+from fin_graph.workflows.analysis.state import (
+    AnalysisState,
+    SanitizedRequestChannel,
+    latest_findings,
+)
 
 #: Claims per ticker the judge reviews; the rest keep their deterministic status.
 MAX_JUDGED_CLAIMS = 4

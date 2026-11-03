@@ -26,7 +26,6 @@ from fin_graph.domain.analysts import analyst_catalog
 from fin_graph.domain.company import CompanySnapshot
 from fin_graph.domain.portfolio import Portfolio
 from fin_graph.domain.requests.model import AnalysisRequest
-from fin_graph.graphs.analysis.snapshots import MarketSnapshotServices
 from fin_graph.integrations.context import RunContext
 from fin_graph.server.compat.events import (
     EventEmitter,
@@ -34,6 +33,7 @@ from fin_graph.server.compat.events import (
     LegacyDialect,
     stream_legacy_run,
 )
+from fin_graph.workflows.analysis.snapshots import MarketSnapshotServices
 
 router = APIRouter(prefix="/hedge-fund")
 

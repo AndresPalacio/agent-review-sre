@@ -19,7 +19,6 @@ from tests.server.finance_app import (
 
 from fin_graph.delivery.client import SlackClient
 from fin_graph.delivery.service import DeliveryService, DeliveryStatus
-from fin_graph.graphs.analysis.services import UnavailableAnalysisServices
 from fin_graph.harness.runtime import make_analysis_graph
 from fin_graph.scheduler.market import MarketJobs
 from fin_graph.server.app import create_app
@@ -27,6 +26,7 @@ from fin_graph.server.config import ServerConfig
 from fin_graph.server.manager import RunManager
 from fin_graph.server.security import WebhookVerifier
 from fin_graph.server.storage import Storage
+from fin_graph.workflows.analysis.services import UnavailableAnalysisServices
 
 OPERATOR = {"x-api-key": "operator-key"}
 

@@ -14,19 +14,6 @@ from fin_graph.config.settings import Settings
 from fin_graph.config.tracing import disable_external_tracing
 from fin_graph.delivery.service import DeliveryService
 from fin_graph.domain.portfolio import Portfolio
-from fin_graph.graphs.analysis.graph import (
-    AnalysisDelivery,
-    AnalysisLimits,
-    _compile_analysis_graph,
-)
-from fin_graph.graphs.analysis.graph import ToolSource as AnalysisToolSource
-from fin_graph.graphs.analysis.services import (
-    AnalysisServices,
-    AnalystMode,
-    LangChainAnalysisServices,
-    UnavailableAnalysisServices,
-)
-from fin_graph.graphs.analysis.snapshots import MarketSnapshotServices
 from fin_graph.harness.observation import Observation
 from fin_graph.harness.profile import resolve_analysis_profile
 from fin_graph.harness.trace import ExecutionTrace, observe_analysis_services
@@ -38,6 +25,19 @@ from fin_graph.llm.models import ModelRole, get_model, missing_credentials
 from fin_graph.memory.theses import ThesisMemory
 from fin_graph.safety.masking import MaskingPolicy
 from fin_graph.safety.trading_limits import TradingLimits
+from fin_graph.workflows.analysis.graph import (
+    AnalysisDelivery,
+    AnalysisLimits,
+    _compile_analysis_graph,
+)
+from fin_graph.workflows.analysis.graph import ToolSource as AnalysisToolSource
+from fin_graph.workflows.analysis.services import (
+    AnalysisServices,
+    AnalystMode,
+    LangChainAnalysisServices,
+    UnavailableAnalysisServices,
+)
+from fin_graph.workflows.analysis.snapshots import MarketSnapshotServices
 
 
 def _sync_registry() -> IntegrationRegistry:

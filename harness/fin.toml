@@ -29,67 +29,67 @@ max_case_latency = 600
 
 [surfaces.tools]
 kind = "workspace_file"
-target = "src/fin_graph/graphs/analysis/strategy/tools.py"
+target = "src/fin_graph/workflows/analysis/strategy/tools.py"
 filename = "tools.py"
-base_file = "../src/fin_graph/graphs/analysis/strategy/tools.py"
+base_file = "../src/fin_graph/workflows/analysis/strategy/tools.py"
 
 [surfaces.skills]
 kind = "workspace_file"
-target = "src/fin_graph/graphs/analysis/strategy/skills.md"
+target = "src/fin_graph/workflows/analysis/strategy/skills.md"
 filename = "skills.md"
-base_file = "../src/fin_graph/graphs/analysis/strategy/skills.md"
+base_file = "../src/fin_graph/workflows/analysis/strategy/skills.md"
 
 [surfaces.planning]
 kind = "workspace_file"
-target = "src/fin_graph/graphs/analysis/strategy/planning.py"
+target = "src/fin_graph/workflows/analysis/strategy/planning.py"
 filename = "planning.py"
-base_file = "../src/fin_graph/graphs/analysis/strategy/planning.py"
+base_file = "../src/fin_graph/workflows/analysis/strategy/planning.py"
 
 [surfaces.middleware]
 kind = "workspace_file"
-target = "src/fin_graph/graphs/analysis/strategy/middleware.py"
+target = "src/fin_graph/workflows/analysis/strategy/middleware.py"
 filename = "middleware.py"
-base_file = "../src/fin_graph/graphs/analysis/strategy/middleware.py"
+base_file = "../src/fin_graph/workflows/analysis/strategy/middleware.py"
 
 [surfaces.middleware_registration]
 kind = "workspace_file"
-target = "src/fin_graph/graphs/analysis/strategy/registration.py"
+target = "src/fin_graph/workflows/analysis/strategy/registration.py"
 filename = "registration.py"
-base_file = "../src/fin_graph/graphs/analysis/strategy/registration.py"
+base_file = "../src/fin_graph/workflows/analysis/strategy/registration.py"
 
 [surfaces.plan]
 kind = "module_attr"
-target = "fin_graph.graphs.analysis.prompts:PLAN_PROMPT"
+target = "fin_graph.workflows.analysis.prompts:PLAN_PROMPT"
 filename = "plan.txt"
 base_value = "Propose 1-4 falsifiable investment hypotheses about the tickers and one task per useful available analyst. Each hypothesis says what would confirm it and what would refute it."
 
 [surfaces.analyst]
 kind = "module_attr"
-target = "fin_graph.graphs.analysis.prompts:ANALYST_PROMPT"
+target = "fin_graph.workflows.analysis.prompts:ANALYST_PROMPT"
 filename = "analyst.txt"
 base_value = "You receive scores already computed from market data. Do not recompute or invent numbers. Explain in two or three sentences what the scores show, and say for each hypothesis whether the evidence supports, refutes or leaves it inconclusive, citing evidence ids."
 
 [surfaces.synthesis]
 kind = "module_attr"
-target = "fin_graph.graphs.analysis.prompts:SYNTHESIS_PROMPT"
+target = "fin_graph.workflows.analysis.prompts:SYNTHESIS_PROMPT"
 filename = "synthesis.txt"
 base_value = "Write one investment thesis for the ticker from the analysts' signals and the evidence. Give the stance, a category from the taxonomy, the bull case, the bear case, the risks and factual claims. Every claim must cite the evidence ids it states. If the analysts disagree, say so. Never claim a price target."
 
 [surfaces.narrative]
 kind = "module_attr"
-target = "fin_graph.graphs.analysis.prompts:NARRATIVE_PROMPT"
+target = "fin_graph.workflows.analysis.prompts:NARRATIVE_PROMPT"
 filename = "narrative.txt"
 base_value = "The stance and the category were decided from the scores: do not change them. Write in Spanish: a two or three sentence summary, the bull case, the bear case, catalysts and risks, and up to three factual claims. Each claim states one number from an analyst's numbers and cites that analyst's evidence_id. Never claim a price target."
 
 [surfaces.judge]
 kind = "module_attr"
-target = "fin_graph.graphs.analysis.prompts:JUDGE_PROMPT"
+target = "fin_graph.workflows.analysis.prompts:JUDGE_PROMPT"
 filename = "judge.txt"
 base_value = "Decide whether the cited evidence supports this specific claim. Compare the numbers. Be skeptical: a claim the evidence does not state is not supported."
 
 [surfaces.portfolio]
 kind = "module_attr"
-target = "fin_graph.graphs.analysis.prompts:PORTFOLIO_PROMPT"
+target = "fin_graph.workflows.analysis.prompts:PORTFOLIO_PROMPT"
 filename = "portfolio.txt"
 base_value = "Pick exactly one of the allowed actions for the ticker and a quantity no larger than its maximum. Prefer hold when the thesis is weak, unverified or neutral. No cash or margin math: the limits are already applied. Reason in one short sentence."
 

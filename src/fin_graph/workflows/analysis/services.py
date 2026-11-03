@@ -52,19 +52,6 @@ from fin_graph.domain.thesis import (
 from fin_graph.domain.thesis_categories import normalize_category
 from fin_graph.domain.tools import Domain
 from fin_graph.domain.window import AnalysisWindow
-from fin_graph.graphs.analysis import prompts
-from fin_graph.graphs.analysis.evidence import (
-    collect_evidence,
-    evidence_from_message,
-    score_of,
-    scores_by_domain,
-)
-from fin_graph.graphs.analysis.extensions import (
-    analysis_skill,
-    configured_middleware,
-    configured_tools,
-)
-from fin_graph.graphs.analysis.strategy import planning
 from fin_graph.integrations.analytics.engine import summarize
 from fin_graph.integrations.context import RunContext
 from fin_graph.integrations.tooling import invoke_tool
@@ -72,6 +59,19 @@ from fin_graph.llm.models import ModelRole
 from fin_graph.llm.structured import structured_call
 from fin_graph.safety.masking import Masker, MaskingPolicy
 from fin_graph.safety.secrets import redact_value
+from fin_graph.workflows.analysis import prompts
+from fin_graph.workflows.analysis.evidence import (
+    collect_evidence,
+    evidence_from_message,
+    score_of,
+    scores_by_domain,
+)
+from fin_graph.workflows.analysis.extensions import (
+    analysis_skill,
+    configured_middleware,
+    configured_tools,
+)
+from fin_graph.workflows.analysis.strategy import planning
 
 type AnalystMode = Literal["react", "tool_plan"]
 

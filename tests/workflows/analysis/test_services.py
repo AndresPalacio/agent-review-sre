@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import pytest
 from langchain_core.messages import AIMessage
-from tests.graphs.analysis.conftest import AS_OF
+from tests.workflows.analysis.conftest import AS_OF
 
 from fin_graph.agents.common.testing.scripted_model import ScriptedChatModel, tool_call_message
 from fin_graph.config.settings import Settings
@@ -11,7 +11,11 @@ from fin_graph.domain.quant.common import Signal
 from fin_graph.domain.requests.model import AnalysisRequest
 from fin_graph.domain.tools import Domain
 from fin_graph.domain.window import AnalysisWindow
-from fin_graph.graphs.analysis.services import (
+from fin_graph.harness.runtime import analyst_mode
+from fin_graph.integrations.analytics.tools import ANALYTICS_TOOLS
+from fin_graph.integrations.context import RunContext
+from fin_graph.llm.models import ModelRole, missing_credentials
+from fin_graph.workflows.analysis.services import (
     LangChainAnalysisServices,
     ModelOutputError,
     SynthesisContext,
@@ -19,10 +23,6 @@ from fin_graph.graphs.analysis.services import (
     reconcile_signals,
     run_tool_plan,
 )
-from fin_graph.harness.runtime import analyst_mode
-from fin_graph.integrations.analytics.tools import ANALYTICS_TOOLS
-from fin_graph.integrations.context import RunContext
-from fin_graph.llm.models import ModelRole, missing_credentials
 
 REQUEST = AnalysisRequest(tickers=["DEEP"], as_of=AS_OF)
 WINDOW = AnalysisWindow(as_of=AS_OF)

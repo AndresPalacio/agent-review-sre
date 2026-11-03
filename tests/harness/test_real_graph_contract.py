@@ -9,17 +9,17 @@ from fin_graph.domain.tools import Domain
 from fin_graph.domain.window import AnalysisWindow
 from fin_graph.evals.market.runner import run_context, run_equity_suite
 from fin_graph.evals.market.scenarios import load_equity_scenario
-from fin_graph.graphs.analysis.services import LangChainAnalysisServices
 from fin_graph.integrations.analytics.tools import ANALYTICS_TOOLS
 from fin_graph.llm.models import ModelRole
+from fin_graph.workflows.analysis.services import LangChainAnalysisServices
 
 
 async def test_real_agent_tools_middleware_skill_and_grader_work_together(tmp_path, monkeypatch):
     from langchain.agents.middleware import AgentMiddleware
 
-    from fin_graph.graphs.analysis.extensions import analysis_skill
-    from fin_graph.graphs.analysis.strategy import registration
     from fin_graph.harness.quality import assess_record
+    from fin_graph.workflows.analysis.extensions import analysis_skill
+    from fin_graph.workflows.analysis.strategy import registration
 
     middleware_calls = []
 

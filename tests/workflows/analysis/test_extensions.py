@@ -8,8 +8,8 @@ from fin_graph.integrations.analytics.tools import COMPUTE_TOOLS
 
 
 def test_tool_extension_can_reorder_and_describe_but_not_replace_execution(monkeypatch):
-    from fin_graph.graphs.analysis.extensions import configured_tools
-    from fin_graph.graphs.analysis.strategy import tools as policy
+    from fin_graph.workflows.analysis.extensions import configured_tools
+    from fin_graph.workflows.analysis.strategy import tools as policy
 
     task = AnalystTask(domain=Domain.GRAHAM, objective="Inspect the margin of safety")
     original = COMPUTE_TOOLS[Domain.GRAHAM]
@@ -31,7 +31,7 @@ def test_tool_extension_can_reorder_and_describe_but_not_replace_execution(monke
 
 
 def test_middleware_registration_and_skill_are_consumed():
-    from fin_graph.graphs.analysis.extensions import analysis_skill, configured_middleware
+    from fin_graph.workflows.analysis.extensions import analysis_skill, configured_middleware
 
     task = AnalystTask(domain=Domain.GRAHAM, objective="Inspect the margin of safety")
     assert configured_middleware(task)[0].name == "AnalysisDiscipline"
@@ -43,9 +43,9 @@ async def test_planning_extension_is_consumed_by_real_service(monkeypatch):
     from fin_graph.domain.requests.model import AnalysisRequest
     from fin_graph.domain.window import AnalysisWindow
     from fin_graph.evals.market.scenarios import load_equity_scenario
-    from fin_graph.graphs.analysis.services import LangChainAnalysisServices
-    from fin_graph.graphs.analysis.strategy import planning
     from fin_graph.llm.models import ModelRole
+    from fin_graph.workflows.analysis.services import LangChainAnalysisServices
+    from fin_graph.workflows.analysis.strategy import planning
 
     model = ScriptedChatModel(
         responses=[tool_call_message("AnalysisPlan", {"hypotheses": [], "tasks": []}, "p")]

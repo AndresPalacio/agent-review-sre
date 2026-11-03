@@ -29,7 +29,7 @@ async def test_scripted_run_records_actual_delegation_tools_and_parentage(tmp_pa
 
 
 async def test_failed_run_keeps_partial_trace(tmp_path, monkeypatch):
-    from fin_graph.graphs.analysis.services import UnavailableAnalysisServices
+    from fin_graph.workflows.analysis.services import UnavailableAnalysisServices
 
     async def slow(*args, **kwargs):
         await asyncio.sleep(10)

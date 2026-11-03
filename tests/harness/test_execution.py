@@ -7,7 +7,7 @@ import pytest
 
 pytest.importorskip("better_harness")
 CONFIG = Path(__file__).resolve().parents[2] / "harness/fin.toml"
-PLANNING = "src/fin_graph/graphs/analysis/strategy/planning.py"
+PLANNING = "src/fin_graph/workflows/analysis/strategy/planning.py"
 CASE = "equities/000-no-edge"
 
 

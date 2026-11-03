@@ -11,7 +11,7 @@ from typing import Any
 from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-from fin_graph.graphs.analysis.graph import AnalysisLimits
+from fin_graph.workflows.analysis.graph import AnalysisLimits
 
 
 class AnalysisRuntimeSettings(BaseSettings):
@@ -51,9 +51,9 @@ class RuntimeProfile:
 
 def analysis_surface_values() -> dict[str, str]:
     """The analysis prompts and strategy files: the code a resumed run must match."""
-    from fin_graph.graphs.analysis import prompts as analysis_prompts
+    from fin_graph.workflows.analysis import prompts as analysis_prompts
 
-    strategy = Path(__file__).resolve().parents[1] / "graphs" / "analysis" / "strategy"
+    strategy = Path(__file__).resolve().parents[1] / "workflows" / "analysis" / "strategy"
     values = {
         name: str(value)
         for name, value in vars(analysis_prompts).items()

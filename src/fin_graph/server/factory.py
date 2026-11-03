@@ -149,8 +149,8 @@ def _local_model_graphs(
 
         from fin_graph.agents.analysis.persona_team import make_persona_analysis_supervisor
         from fin_graph.agents.chat.supervisor import make_chat_graph
-        from fin_graph.graphs.analysis.snapshots import MarketSnapshotServices
         from fin_graph.memory.theses import ThesisMemory
+        from fin_graph.workflows.analysis.snapshots import MarketSnapshotServices
 
         model = get_model(ModelRole.REASONING, settings)
         compatibility_graph = make_persona_analysis_supervisor(

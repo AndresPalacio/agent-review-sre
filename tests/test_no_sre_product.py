@@ -54,7 +54,7 @@ RETAINED_IMPORTS = (
     "fin_graph.cli.main",
     "fin_graph.delivery.service",
     "fin_graph.gateway.slack",
-    "fin_graph.graphs.analysis.graph",
+    "fin_graph.workflows.analysis.graph",
     "fin_graph.harness.runtime",
     "fin_graph.integrations.broker.paper.runtime",
     "fin_graph.integrations.financial_datasets.integration",

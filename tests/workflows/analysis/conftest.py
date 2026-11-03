@@ -21,11 +21,11 @@ from fin_graph.domain.analysis import AnalysisPlan
 from fin_graph.domain.orders import OrderAction, PortfolioDecision
 from fin_graph.domain.quant.risk import PositionLimit
 from fin_graph.domain.thesis import InvestmentThesis
-from fin_graph.graphs.analysis.services import UnavailableAnalysisServices
 from fin_graph.integrations.analytics.engine import AnalyticsEngine
 from fin_graph.integrations.analytics.tools import ANALYTICS_TOOLS
 from fin_graph.integrations.context import RunContext
 from fin_graph.integrations.market_data import StaticMarketData
+from fin_graph.workflows.analysis.services import UnavailableAnalysisServices
 
 AS_OF = date(2024, 11, 15)
 NOW = datetime(2024, 11, 16, 12, tzinfo=UTC)

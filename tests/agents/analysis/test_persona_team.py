@@ -34,10 +34,10 @@ from fin_graph.domain.tools import (
     attach_tool_meta,
     read_tool_meta,
 )
-from fin_graph.graphs.analysis.snapshots import MarketSnapshotServices
 from fin_graph.integrations.analytics.engine import AnalyticsEngine
 from fin_graph.integrations.context import RunContext
 from fin_graph.integrations.market_data import StaticMarketData
+from fin_graph.workflows.analysis.snapshots import MarketSnapshotServices
 
 
 @tool

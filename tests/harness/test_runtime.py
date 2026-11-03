@@ -10,11 +10,11 @@ from langgraph.checkpoint.memory import InMemorySaver
 from fin_graph.domain.tools import Domain
 from fin_graph.evals.market.runner import run_context
 from fin_graph.evals.market.scenarios import load_equity_scenario
-from fin_graph.graphs.analysis.graph import AnalysisLimits
-from fin_graph.graphs.analysis.services import UnavailableAnalysisServices
 from fin_graph.harness.runtime import make_analysis_graph
 from fin_graph.integrations.analytics.tools import ANALYTICS_TOOLS
 from fin_graph.integrations.context import RunContext
+from fin_graph.workflows.analysis.graph import AnalysisLimits
+from fin_graph.workflows.analysis.services import UnavailableAnalysisServices
 
 
 class FixtureTools:
@@ -222,7 +222,7 @@ async def test_resume_retains_trace_and_rejects_changed_analysis_profile(monkeyp
 
 
 async def test_resume_analysis_checkpoint_from_before_harness_migration():
-    from fin_graph.graphs.analysis.graph import _compile_analysis_graph
+    from fin_graph.workflows.analysis.graph import _compile_analysis_graph
 
     scenario = load_equity_scenario("001-deep-value")
     context = run_context(scenario)

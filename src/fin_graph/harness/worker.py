@@ -9,8 +9,8 @@ from pathlib import Path
 
 from fin_graph.evals.market.runner import run_equity_suite
 from fin_graph.evals.market.scenarios import load_equity_case
-from fin_graph.graphs.analysis.graph import AnalysisLimits
 from fin_graph.harness.surfaces import apply_surfaces
+from fin_graph.workflows.analysis.graph import AnalysisLimits
 
 
 def main() -> None:

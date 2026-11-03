@@ -43,17 +43,17 @@ def test_export_contains_reviewable_files_diff_and_qualification(tmp_path):
     result = export_variant(run, destination)
     assert result["promotable"] is False
     assert (
-        destination / "src/fin_graph/graphs/analysis/strategy/skills.md"
+        destination / "src/fin_graph/workflows/analysis/strategy/skills.md"
     ).read_text() == "Compare the price with the Graham Number.\n"
     diff = (destination / "changes.diff").read_text()
     assert "+Compare the price with the Graham Number." in diff
-    prompts = (destination / "src/fin_graph/graphs/analysis/prompts.py").read_text()
+    prompts = (destination / "src/fin_graph/workflows/analysis/prompts.py").read_text()
     assert "PLAN_PROMPT = 'Check the gap.'" in prompts and "EXTRACT_PROMPT = (" in prompts
     import hashlib
 
     for relative, digest in result["files"].items():
         assert hashlib.sha256((destination / relative).read_bytes()).hexdigest() == digest
-    tools = "src/fin_graph/graphs/analysis/strategy/tools.py"
+    tools = "src/fin_graph/workflows/analysis/strategy/tools.py"
     assert (destination / tools).read_bytes() == (run / "source-baseline" / tools).read_bytes()
     with pytest.raises(FileExistsError):
         export_variant(run, destination)

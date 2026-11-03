@@ -14,7 +14,7 @@ from typing import Any
 from pydantic import BaseModel
 
 from fin_graph.evals.market.scenarios import EquityScenario, TickerAnswer
-from fin_graph.graphs.analysis.graph import is_fallback_error
+from fin_graph.workflows.analysis.graph import is_fallback_error
 
 
 class TickerScore(BaseModel):

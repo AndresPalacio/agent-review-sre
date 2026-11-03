@@ -19,7 +19,6 @@ from sqlalchemy.ext.asyncio import AsyncEngine, create_async_engine
 
 from fin_graph.domain.portfolio import Portfolio
 from fin_graph.evals.market.scenarios import load_equity_scenario
-from fin_graph.graphs.analysis.services import UnavailableAnalysisServices
 from fin_graph.graphs.orders.desk import OrderDesk
 from fin_graph.graphs.orders.graph import make_order_graph
 from fin_graph.harness.runtime import make_analysis_graph
@@ -32,6 +31,7 @@ from fin_graph.safety.approval import ApprovalPolicy
 from fin_graph.safety.trading_limits import TradingLimits
 from fin_graph.server.manager import RunManager
 from fin_graph.server.storage import Base, Storage
+from fin_graph.workflows.analysis.services import UnavailableAnalysisServices
 
 AS_OF = "2024-06-28"
 REQUEST = {"tickers": ["DEEP"], "as_of": AS_OF, "horizon": "long"}

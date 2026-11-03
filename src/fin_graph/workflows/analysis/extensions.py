@@ -8,8 +8,8 @@ from langchain.agents.middleware import AgentMiddleware
 from langchain_core.tools import BaseTool
 
 from fin_graph.domain.analysis import AnalystTask
-from fin_graph.graphs.analysis.strategy import registration
-from fin_graph.graphs.analysis.strategy import tools as tool_policy
+from fin_graph.workflows.analysis.strategy import registration
+from fin_graph.workflows.analysis.strategy import tools as tool_policy
 
 FIXED_MIDDLEWARE = frozenset(
     {

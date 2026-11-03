@@ -28,25 +28,25 @@
       "status": "verified"
     },
     {
-      "candidate_digest": "2d6180904046b439ec76388200ad2d4ce612aeafe74893b7cfb479ea20ae72a9",
+      "candidate_digest": "1b48db83c9cde328e8c49cc2fbbe69c62dea8e7a94c1bfaefd47346b22b488b7",
       "comparison_rule": "semantic",
-      "evidence_command": "uv run pytest tests/graphs/analysis/test_persona_team.py::test_no_selection_runs_all_nineteen_in_catalog_order -q",
+      "evidence_command": "uv run pytest tests/agents/analysis/test_persona_team.py::test_no_selection_runs_all_nineteen_in_catalog_order -q",
       "id": "deepagents-nineteen-personas",
-      "owner": "tests/graphs/analysis/test_persona_team.py::test_no_selection_runs_all_nineteen_in_catalog_order",
+      "owner": "tests/agents/analysis/test_persona_team.py::test_no_selection_runs_all_nineteen_in_catalog_order",
       "reference_digest": "42cd3a84c47ccd9ca2a891146a2d818b2ea8c7908162ef107975239b7148a71f",
       "status": "verified"
     },
     {
-      "candidate_digest": "2d6180904046b439ec76388200ad2d4ce612aeafe74893b7cfb479ea20ae72a9",
+      "candidate_digest": "1b48db83c9cde328e8c49cc2fbbe69c62dea8e7a94c1bfaefd47346b22b488b7",
       "comparison_rule": "security-deviation",
-      "evidence_command": "uv run pytest tests/graphs/analysis/test_persona_team.py::test_data_failure_is_typed_and_does_not_expose_exception_text -q",
+      "evidence_command": "uv run pytest tests/agents/analysis/test_persona_team.py::test_data_failure_is_typed_and_does_not_expose_exception_text -q",
       "id": "persona-failure-visibility",
-      "owner": "tests/graphs/analysis/test_persona_team.py::test_data_failure_is_typed_and_does_not_expose_exception_text",
+      "owner": "tests/agents/analysis/test_persona_team.py::test_data_failure_is_typed_and_does_not_expose_exception_text",
       "reference_digest": "42cd3a84c47ccd9ca2a891146a2d818b2ea8c7908162ef107975239b7148a71f",
       "status": "verified"
     },
     {
-      "candidate_digest": "97441ec6470793fb8487b23005ad9937d76620d26c0f460e233750cab44f2331",
+      "candidate_digest": "248925256874c3f24098b1bdc5b5b649152fcc80883d37e33b1539ccaaebd887",
       "comparison_rule": "exact",
       "evidence_command": "uv run pytest tests/compat/v1/test_portfolio_parity.py::test_long_short_hold_decisions_match_recorded_fixture -q",
       "id": "v1-portfolio-decisions",
@@ -55,7 +55,7 @@
       "status": "verified"
     },
     {
-      "candidate_digest": "97441ec6470793fb8487b23005ad9937d76620d26c0f460e233750cab44f2331",
+      "candidate_digest": "248925256874c3f24098b1bdc5b5b649152fcc80883d37e33b1539ccaaebd887",
       "comparison_rule": "exact",
       "evidence_command": "uv run pytest tests/compat/v1/test_portfolio_parity.py::test_cash_shares_margin_and_mixed_positions_stay_inside_hard_limits -q",
       "id": "v1-risk-and-hard-limits",
@@ -82,7 +82,7 @@
       "status": "verified"
     },
     {
-      "candidate_digest": "7deab789eb08f4acfcdef2f8ff0358d6ac6a895010cb2ed801cef464e95a7d2c",
+      "candidate_digest": "4eccaa06ea5aa8a7ac256b451cc99bbc135db7453abef8685d09aca1bd15e0d2",
       "comparison_rule": "exact",
       "evidence_command": "uv run pytest tests/quant/signals/test_deterministic_models.py::test_registry_has_every_frozen_reference_key_without_eager_heavy_imports -q",
       "id": "v2-deterministic-alpha-catalog",

@@ -5,18 +5,18 @@ from typing import Any
 
 import pytest
 from langgraph.store.memory import InMemoryStore
-from tests.graphs.analysis.conftest import AS_OF, NOW, ScriptedServices, Tools
+from tests.workflows.analysis.conftest import AS_OF, NOW, ScriptedServices, Tools
 
 from fin_graph.domain.analysis_report import AnalysisReport
 from fin_graph.domain.evidence import EvidenceItem
 from fin_graph.domain.orders import OrderAction, PortfolioDecision
 from fin_graph.domain.quant.common import Signal
 from fin_graph.domain.thesis import InvestmentThesis, ThesisClaim
-from fin_graph.graphs.analysis.graph import AnalysisLimits, _compile_analysis_graph
 from fin_graph.harness.runtime import make_analysis_graph
 from fin_graph.integrations.context import RunContext
 from fin_graph.memory.theses import ThesisMemory
 from fin_graph.safety.trading_limits import TradingLimits
+from fin_graph.workflows.analysis.graph import AnalysisLimits, _compile_analysis_graph
 
 REQUEST = {"tickers": "DEEP,DIST", "as_of": AS_OF.isoformat()}
 
@@ -199,7 +199,7 @@ async def test_the_harness_traces_every_analyst(
 
 async def test_a_sound_but_weak_thesis_is_reported_and_never_traded(context: RunContext) -> None:
     from fin_graph.domain.thesis import fallback_thesis
-    from fin_graph.graphs.analysis.evidence import scores_by_domain
+    from fin_graph.workflows.analysis.evidence import scores_by_domain
 
     first = await run(graph(), context)
     evidence = [EvidenceItem.model_validate(item) for item in first["evidence"]]
@@ -219,7 +219,7 @@ async def test_a_sound_but_weak_thesis_is_reported_and_never_traded(context: Run
 
 async def test_failed_model_claims_are_dropped_and_the_prose_kept(context: RunContext) -> None:
     from fin_graph.domain.thesis import fallback_thesis
-    from fin_graph.graphs.analysis.evidence import scores_by_domain
+    from fin_graph.workflows.analysis.evidence import scores_by_domain
 
     first = await run(graph(), context)
     evidence = [EvidenceItem.model_validate(item) for item in first["evidence"]]

@@ -14,8 +14,8 @@ from fin_graph.domain.tools import Domain
 from fin_graph.domain.window import AnalysisWindow
 from fin_graph.evals.market.runner import run_equity_suite
 from fin_graph.evals.market.scenarios import load_equity_suite
-from fin_graph.graphs.analysis.services import LangChainAnalysisServices, SynthesisContext
 from fin_graph.llm.models import ModelRole
+from fin_graph.workflows.analysis.services import LangChainAnalysisServices, SynthesisContext
 
 
 class PromptRecorder(ScriptedChatModel):
@@ -27,8 +27,8 @@ class PromptRecorder(ScriptedChatModel):
 
 
 async def test_runtime_consumes_editable_prompt_and_keeps_guardrails():
-    from fin_graph.graphs.analysis import prompts
     from fin_graph.harness.surfaces import apply_surfaces
+    from fin_graph.workflows.analysis import prompts
 
     original = prompts.PLAN_PROMPT
     model = PromptRecorder(
@@ -129,7 +129,7 @@ async def test_runner_evaluates_only_selected_cases_and_persists_observations(tm
 
 
 async def test_case_timeout_is_recorded_without_losing_following_cases(tmp_path, monkeypatch):
-    from fin_graph.graphs.analysis.services import UnavailableAnalysisServices
+    from fin_graph.workflows.analysis.services import UnavailableAnalysisServices
 
     original = UnavailableAnalysisServices.plan
 

@@ -40,7 +40,6 @@ from fin_graph.compat.storage import (
 )
 from fin_graph.config.settings import Settings
 from fin_graph.evals.market.scenarios import load_equity_scenario
-from fin_graph.graphs.analysis.services import UnavailableAnalysisServices
 from fin_graph.graphs.orders.desk import OrderDesk
 from fin_graph.graphs.orders.graph import make_order_graph
 from fin_graph.harness.runtime import make_analysis_graph
@@ -53,6 +52,7 @@ from fin_graph.server.compat.events import InternalEvent
 from fin_graph.server.config import ServerConfig
 from fin_graph.server.manager import RunManager
 from fin_graph.server.storage import Base, Storage
+from fin_graph.workflows.analysis.services import UnavailableAnalysisServices
 
 
 class FixtureOllama:

@@ -7,7 +7,7 @@ from collections.abc import Iterator, Mapping
 from contextlib import contextmanager
 from pathlib import Path
 
-from fin_graph.graphs.analysis import prompts
+from fin_graph.workflows.analysis import prompts
 
 #: The analysis prompts better-harness may rewrite; ``narrative`` is what a 3B model uses.
 SURFACES = {
@@ -18,8 +18,8 @@ SURFACES = {
     "judge": "JUDGE_PROMPT",
     "portfolio": "PORTFOLIO_PROMPT",
 }
-PROMPT_MODULE = "fin_graph.graphs.analysis.prompts"
-_STRATEGY = "src/fin_graph/graphs/analysis/strategy/"
+PROMPT_MODULE = "fin_graph.workflows.analysis.prompts"
+_STRATEGY = "src/fin_graph/workflows/analysis/strategy/"
 FILE_SURFACES = {
     "tools": _STRATEGY + "tools.py",
     "skills": _STRATEGY + "skills.md",
