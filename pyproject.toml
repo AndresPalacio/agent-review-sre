@@ -122,7 +122,12 @@ markers = [
 line-length = 100
 target-version = "py312"
 src = ["src", "tests"]
-extend-exclude = ["**/.scratch/**", "**/.runs/**", ".harness-runs/**"]
+extend-exclude = [
+  "**/.scratch/**",
+  "**/.runs/**",
+  ".harness-runs/**",
+  "src/fin_graph/skills/finance/**",
+]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "B", "UP", "SIM", "RUF", "ASYNC"]
@@ -133,6 +138,7 @@ strict = true
 plugins = ["pydantic.mypy"]
 mypy_path = "src"
 packages = ["fin_graph"]
+exclude = ["^src/fin_graph/skills/finance/"]
 # The Kubernetes SDK types its API classes but not its kubeconfig loaders.
 untyped_calls_exclude = ["kubernetes.config"]
 

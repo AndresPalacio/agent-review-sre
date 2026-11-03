@@ -7,7 +7,16 @@ places an order or replaces the deterministic risk limits.
 
 from __future__ import annotations
 
-SKILLS = {
+from functools import lru_cache
+
+from fin_graph.skills.loader import (
+    bundled_finance_root,
+    load_skill_catalog,
+    read_skill_document,
+)
+from fin_graph.skills.models import SkillRecord
+
+_CURATED_SKILLS = {
     "analyzing-equities": (
         "Analiza acciones con scores deterministas, tesis falsables y evidencia citada.",
         "# Análisis de acciones\n"
@@ -85,6 +94,43 @@ SKILLS = {
 }
 
 
+@lru_cache(maxsize=1)
+def finance_skill_catalog() -> tuple[SkillRecord, ...]:
+    """Return validated bundled finance skills in stable identifier order."""
+
+    return load_skill_catalog(bundled_finance_root())
+
+
+def finance_skill_roots(skill_ids: tuple[str, ...] | None = None) -> list[str]:
+    """Filesystem roots suitable for Deep Agents' native Skills middleware."""
+
+    records = {item.id: item for item in finance_skill_catalog()}
+    selected = tuple(records) if skill_ids is None else skill_ids
+    unknown = sorted(set(selected) - set(records))
+    if unknown:
+        raise KeyError(f"Unknown finance skill(s): {unknown}")
+    return [records[skill_id].root for skill_id in selected]
+
+
+def _public_skills() -> dict[str, tuple[str, str]]:
+    combined = dict(_CURATED_SKILLS)
+    try:
+        for record in finance_skill_catalog():
+            combined.setdefault(record.id, (record.description, ""))
+    except FileNotFoundError:
+        pass
+    return combined
+
+
+SKILLS = _public_skills()
+
+
 def load_skill(skill_id: str, *, full: bool = False) -> str:
     """Reveal a short description first, then the full trusted guide on request."""
-    return SKILLS[skill_id][1 if full else 0]
+
+    summary, curated = SKILLS[skill_id]
+    if not full:
+        return summary
+    if curated:
+        return curated
+    return read_skill_document(skill_id)

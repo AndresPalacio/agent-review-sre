@@ -22,8 +22,9 @@ This product also includes material adapted from the following MIT licensed proj
 
 * Vibe-Trading - https://github.com/HKUDS/Vibe-Trading
   Copyright (c) 2026 Vibe-Trading Contributors
-  Finance skill documents and supporting resources, incorporated only after the
-  per-file license audit described by this project.
+  Finance skill documents, examples and supporting resources are bundled under
+  src/fin_graph/skills/finance/ after the project's per-file license audit. Python
+  examples in that catalog are exposed as inert resources and are not imported.
 
   The applicable MIT license terms follow:
 
