@@ -35,9 +35,9 @@ def _provider(value: str) -> str:
 
 def _public_id(record: ProviderKeyRecord) -> int:
     try:
-        return int(record.id[:15], 16)
+        return int(record.id[:13], 16)
     except ValueError:
-        return int.from_bytes(record.id.encode("utf-8")[:7], "big")
+        return int.from_bytes(record.id.encode("utf-8")[:6], "big")
 
 
 def _display_provider(record: ProviderKeyRecord) -> str:

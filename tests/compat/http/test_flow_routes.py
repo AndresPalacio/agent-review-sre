@@ -64,6 +64,7 @@ async def test_flow_crud_duplicate_search_and_revision_pinning(tmp_path: Path) -
         assert created.status_code == 200
         flow = created.json()
         flow_id = flow["id"]
+        assert flow_id <= 9_007_199_254_740_991
 
         listed = await client.get("/flows/", params={"include_templates": "false"})
         searched = await client.get("/flows/search/portfolio")

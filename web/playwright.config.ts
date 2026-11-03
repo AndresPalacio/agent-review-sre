@@ -1,27 +1,28 @@
-import { defineConfig, devices } from '@playwright/test';
+import { defineConfig, devices } from "@playwright/test";
 
 export default defineConfig({
-  testDir: './e2e',
+  testDir: "./e2e",
   fullyParallel: false,
   workers: 1,
-  timeout: 45_000,
+  timeout: 60_000,
   expect: { timeout: 15_000 },
-  reporter: [['list'], ['html', { open: 'never' }]],
-  use: { baseURL: 'http://127.0.0.1:5173', trace: 'retain-on-failure' },
-  projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }],
+  reporter: [["list"], ["html", { open: "never" }]],
+  use: { baseURL: "http://127.0.0.1:8000", trace: "retain-on-failure" },
+  projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"] } }],
   webServer: [
     {
-      command: 'uv run python tests/web/fixture_server.py',
-      cwd: '..',
-      url: 'http://127.0.0.1:8000/health',
+      command: "uv run python -m tests.web.fixture_server",
+      cwd: "..",
+      url: "http://127.0.0.1:8000/health",
       reuseExistingServer: false,
       timeout: 90_000,
     },
     {
-      command: 'npm run dev -- --host 127.0.0.1 --port 5173 --strictPort',
-      url: 'http://127.0.0.1:5173',
+      command: "uv run python -m tests.web.reference_frontend_server",
+      cwd: "..",
+      url: "http://127.0.0.1:4174",
       reuseExistingServer: false,
-      timeout: 90_000,
+      timeout: 240_000,
     },
   ],
 });

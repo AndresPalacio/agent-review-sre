@@ -285,7 +285,18 @@ export function BacktestWorkspace({
     const runId = job?.run_id ?? job?.id;
     if (mode === "algorithm" && runId) {
       try {
-        setJob(await client.algorithms.cancelBacktest(runId));
+        let latest = await client.algorithms.cancelBacktest(runId);
+        setJob(latest);
+        for (
+          let attempt = 0;
+          attempt < 40 &&
+          !["cancelled", "complete", "failed"].includes(latest.status);
+          attempt += 1
+        ) {
+          await new Promise((resolve) => window.setTimeout(resolve, 50));
+          latest = await client.algorithms.backtestStatus(runId);
+          setJob(latest);
+        }
       } catch {
         setError("No se pudo cancelar el backtest");
       }

@@ -35,12 +35,14 @@ def public_id(value: str) -> int:
     """Map opaque store ids to the positive integer surface used by the old app."""
 
     compact = value.replace("-", "")
-    if len(compact) >= 15:
+    # The frozen browser client stores ids as JavaScript numbers. Keep the
+    # deterministic public projection inside Number.MAX_SAFE_INTEGER.
+    if len(compact) >= 13:
         try:
-            return int(compact[:15], 16)
+            return int(compact[:13], 16)
         except ValueError:
             pass
-    return int.from_bytes(hashlib.sha256(value.encode()).digest()[:7], "big")
+    return int.from_bytes(hashlib.sha256(value.encode()).digest()[:6], "big")
 
 
 class FlowService:

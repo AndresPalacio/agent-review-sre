@@ -5,6 +5,7 @@ import {
   Landmark,
   Moon,
   Play,
+  Save,
   Settings,
   Sun,
 } from "lucide-react";
@@ -16,6 +17,7 @@ interface TopBarProps {
   page?: ProductPage;
   onPageChange?: (page: ProductPage) => void;
   onRun?: () => void;
+  onSave?: () => void;
   onSettings?: () => void;
 }
 
@@ -23,6 +25,7 @@ export function TopBar({
   page = "flows",
   onPageChange,
   onRun,
+  onSave,
   onSettings,
 }: TopBarProps) {
   const { theme, setTheme } = useLayout();
@@ -75,6 +78,15 @@ export function TopBar({
         >
           <Settings size={17} />
         </button>
+        {page === "flows" && (
+          <button
+            className="icon-button"
+            aria-label="Guardar flujo"
+            onClick={onSave}
+          >
+            <Save size={16} />
+          </button>
+        )}
         {page === "flows" && (
           <button className="run-button" onClick={onRun}>
             <Play size={15} fill="currentColor" /> Ejecutar

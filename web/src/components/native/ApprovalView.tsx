@@ -6,9 +6,11 @@ import type { JsonValue } from "../../types/compat";
 export function ApprovalView({
   client = apiClient,
   role = "viewer",
+  onDecision,
 }: {
   client?: ApiClient;
   role?: string;
+  onDecision?: () => void;
 }) {
   const [requests, setRequests] = useState<Array<Record<string, JsonValue>>>(
     [],
@@ -35,6 +37,7 @@ export function ApprovalView({
     try {
       await client.native.approveOrder(thread, ids, decision);
       await load();
+      onDecision?.();
     } catch {
       setError("La aprobación cambió o el rol no tiene permiso");
     }

@@ -1,5 +1,5 @@
 import { Component, useState, type ErrorInfo, type ReactNode } from "react";
-import { FilePlus2, LineChart } from "lucide-react";
+import { FilePlus2, Landmark, LineChart } from "lucide-react";
 import { LayoutProvider } from "./contexts/LayoutContext";
 import { NodeProvider } from "./contexts/NodeContext";
 import { FlowProvider, useFlows } from "./contexts/FlowContext";
@@ -112,6 +112,9 @@ function Workbench() {
       page={page}
       onPageChange={setPage}
       onSettings={() => setSettingsOpen(true)}
+      onSave={() => {
+        if (activeTab) void saveFlow(activeTab.flow.id);
+      }}
       onRun={() =>
         (
           document.querySelector(
@@ -159,6 +162,7 @@ function Workbench() {
 }
 
 function PaperWorkspace({ session }: { session: NativeSession }) {
+  const [revision, setRevision] = useState(0);
   return (
     <main className="product-page native-workspace">
       <header>
@@ -180,12 +184,26 @@ function PaperWorkspace({ session }: { session: NativeSession }) {
             : "Sesión no conectada"}
         </strong>
       </header>
-      <div className="native-grid">
-        <PortfolioView />
-        <OrdersView />
-        <ApprovalView role={session.role} />
-        <AnalysisExplainView />
-      </div>
+      {!session.connected ? (
+        <section className="native-connect-state">
+          <Landmark size={28} />
+          <h2>Conecta el acceso nativo</h2>
+          <p>
+            Abre ConfiguraciÃ³n e inicia una sesiÃ³n `/v1` para consultar la
+            cartera y las aprobaciones.
+          </p>
+        </section>
+      ) : (
+        <div className="native-grid" key={`${session.role}-${revision}`}>
+          <PortfolioView />
+          <OrdersView />
+          <ApprovalView
+            role={session.role}
+            onDecision={() => setRevision((value) => value + 1)}
+          />
+          <AnalysisExplainView />
+        </div>
+      )}
     </main>
   );
 }
