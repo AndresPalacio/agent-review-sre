@@ -2,10 +2,10 @@ from __future__ import annotations
 
 from langchain_core.messages import AIMessage, HumanMessage, ToolMessage
 
-from fin_graph.agents.factory import make_agent
-from fin_graph.agents.middleware.disclaimer import DISCLAIMER, DisclaimerMiddleware
-from fin_graph.agents.middleware.evidence_gate import EvidenceGateMiddleware
-from fin_graph.agents.testing.scripted_model import ScriptedChatModel
+from fin_graph.agents.common.factory import make_agent
+from fin_graph.agents.common.middleware.disclaimer import DISCLAIMER, DisclaimerMiddleware
+from fin_graph.agents.common.middleware.evidence_gate import EvidenceGateMiddleware
+from fin_graph.agents.common.testing.scripted_model import ScriptedChatModel
 
 
 def _agent(*responses: str, disclaimer: bool = False) -> tuple[object, ScriptedChatModel]:

@@ -4,7 +4,7 @@ from langchain_core.messages import AIMessage, HumanMessage
 from langchain_core.tools import BaseTool, tool
 from langgraph.store.memory import InMemoryStore
 
-from fin_graph.agents.testing.scripted_model import ScriptedChatModel, tool_call_message
+from fin_graph.agents.common.testing.scripted_model import ScriptedChatModel, tool_call_message
 from fin_graph.config.settings import Settings
 from fin_graph.domain.tools import Domain, EvidenceType, ToolMeta, attach_tool_meta
 from fin_graph.graphs.chat.graph import make_chat_graph

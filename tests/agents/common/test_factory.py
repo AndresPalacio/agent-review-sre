@@ -9,8 +9,8 @@ from langchain_core.messages import AIMessage, HumanMessage, ToolMessage
 from langchain_core.tools import tool
 from pydantic import BaseModel
 
-from fin_graph.agents.factory import make_agent
-from fin_graph.agents.testing.scripted_model import ScriptedChatModel, tool_call_message
+from fin_graph.agents.common.factory import make_agent
+from fin_graph.agents.common.testing.scripted_model import ScriptedChatModel, tool_call_message
 
 
 class Finding(BaseModel):

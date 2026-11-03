@@ -36,11 +36,11 @@ from langgraph.graph.state import CompiledStateGraph
 from langgraph.store.base import BaseStore
 from langgraph.types import Checkpointer
 
-from fin_graph.agents.middleware.disclaimer import DisclaimerMiddleware
-from fin_graph.agents.middleware.evidence_gate import EvidenceGateMiddleware
-from fin_graph.agents.middleware.guardrails import GuardrailsMiddleware
-from fin_graph.agents.middleware.masking import MaskingMiddleware
-from fin_graph.agents.middleware.tool_cache import ToolResultCacheMiddleware
+from fin_graph.agents.common.middleware.disclaimer import DisclaimerMiddleware
+from fin_graph.agents.common.middleware.evidence_gate import EvidenceGateMiddleware
+from fin_graph.agents.common.middleware.guardrails import GuardrailsMiddleware
+from fin_graph.agents.common.middleware.masking import MaskingMiddleware
+from fin_graph.agents.common.middleware.tool_cache import ToolResultCacheMiddleware
 from fin_graph.config.settings import Settings
 from fin_graph.domain.analysis_report import AnalysisReport
 from fin_graph.domain.orders import OrderAction, ProposedOrder, client_order_id

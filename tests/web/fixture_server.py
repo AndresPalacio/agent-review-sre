@@ -23,7 +23,7 @@ from langgraph.store.memory import InMemoryStore
 from sqlalchemy.ext.asyncio import AsyncEngine, create_async_engine
 from tests.server.finance_app import FixtureTools, fixture_context, paper_broker
 
-from fin_graph.agents.testing.scripted_model import ScriptedChatModel
+from fin_graph.agents.common.testing.scripted_model import ScriptedChatModel
 from fin_graph.backtesting import (
     BacktestArtifactStore,
     BacktestEvent,

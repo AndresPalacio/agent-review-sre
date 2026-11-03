@@ -7,7 +7,7 @@ import pytest
 from langchain_core.messages import SystemMessage
 from pydantic import Field
 
-from fin_graph.agents.testing.scripted_model import ScriptedChatModel, tool_call_message
+from fin_graph.agents.common.testing.scripted_model import ScriptedChatModel, tool_call_message
 from fin_graph.domain.analysis import AnalysisPlan
 from fin_graph.domain.requests.model import AnalysisRequest
 from fin_graph.domain.tools import Domain

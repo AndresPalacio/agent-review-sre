@@ -7,9 +7,9 @@ from langchain_core.messages import AIMessage, HumanMessage, ToolMessage
 from langchain_core.tools import tool
 from langgraph.checkpoint.memory import InMemorySaver
 
-from fin_graph.agents.factory import make_agent
-from fin_graph.agents.middleware.guardrails import GuardrailsMiddleware
-from fin_graph.agents.testing.scripted_model import ScriptedChatModel, tool_call_message
+from fin_graph.agents.common.factory import make_agent
+from fin_graph.agents.common.middleware.guardrails import GuardrailsMiddleware
+from fin_graph.agents.common.testing.scripted_model import ScriptedChatModel, tool_call_message
 
 # Built at runtime so this file holds no string that looks like a real credential.
 GITHUB_TOKEN = "ghp_" + "a1B2c3D4e5F6g7H8i9J0k1L2m3N4o5P6q7R8"

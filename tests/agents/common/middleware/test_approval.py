@@ -8,9 +8,9 @@ from langgraph.checkpoint.memory import InMemorySaver
 from langgraph.graph.state import CompiledStateGraph
 from langgraph.types import Command
 
-from fin_graph.agents.factory import make_agent
-from fin_graph.agents.middleware.approval import approval_middleware
-from fin_graph.agents.testing.scripted_model import ScriptedChatModel, tool_call_message
+from fin_graph.agents.common.factory import make_agent
+from fin_graph.agents.common.middleware.approval import approval_middleware
+from fin_graph.agents.common.testing.scripted_model import ScriptedChatModel, tool_call_message
 from fin_graph.domain.tools import Domain, EvidenceType, SideEffectLevel, ToolMeta, attach_tool_meta
 from fin_graph.safety.approval import ApprovalPolicy
 

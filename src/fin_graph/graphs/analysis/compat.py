@@ -20,7 +20,7 @@ from langgraph.graph.state import CompiledStateGraph
 from langgraph.types import Checkpointer
 from pydantic import BaseModel, ConfigDict
 
-from fin_graph.agents.middleware.masking import MaskingMiddleware
+from fin_graph.agents.common.middleware.masking import MaskingMiddleware
 from fin_graph.config.settings import Settings
 from fin_graph.domain.analysts import (
     AnalystDefinition,

@@ -11,7 +11,7 @@ from langchain_core.outputs import ChatResult
 from langchain_core.tools import BaseTool, tool
 from pydantic import PrivateAttr
 
-from fin_graph.agents.testing.scripted_model import ScriptedChatModel
+from fin_graph.agents.common.testing.scripted_model import ScriptedChatModel
 from fin_graph.compat.ai_hedge_fund.models import LegacyHedgeFundResult
 from fin_graph.domain.analysts import AnalystId, analyst_catalog, resolve_analysts
 from fin_graph.domain.company import CompanySnapshot

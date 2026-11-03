@@ -8,7 +8,7 @@ from pathlib import Path
 import pytest
 from langchain_core.messages import AIMessage
 
-from fin_graph.agents.testing.scripted_model import ScriptedChatModel
+from fin_graph.agents.common.testing.scripted_model import ScriptedChatModel
 from fin_graph.domain.market import CompanyNews, FinancialMetrics, Price
 from fin_graph.quant.signals import alpha_model_registry
 from fin_graph.quant.signals.base import Signal

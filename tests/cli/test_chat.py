@@ -11,7 +11,7 @@ from pytest import MonkeyPatch
 from tests.cli.paper_helpers import paper_context
 from typer.testing import CliRunner
 
-from fin_graph.agents.testing.scripted_model import ScriptedChatModel, tool_call_message
+from fin_graph.agents.common.testing.scripted_model import ScriptedChatModel, tool_call_message
 from fin_graph.cli.chat import ChatSession, RemoteChatSession
 from fin_graph.cli.main import app
 from fin_graph.graphs.chat.graph import make_chat_graph

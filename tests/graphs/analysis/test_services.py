@@ -4,7 +4,7 @@ import pytest
 from langchain_core.messages import AIMessage
 from tests.graphs.analysis.conftest import AS_OF
 
-from fin_graph.agents.testing.scripted_model import ScriptedChatModel, tool_call_message
+from fin_graph.agents.common.testing.scripted_model import ScriptedChatModel, tool_call_message
 from fin_graph.config.settings import Settings
 from fin_graph.domain.analysis import AnalystFinding, AnalystTask, ThesisHypothesis, TickerSignal
 from fin_graph.domain.quant.common import Signal

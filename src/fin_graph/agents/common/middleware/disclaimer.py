@@ -14,7 +14,7 @@ from langchain.agents.middleware import AgentMiddleware, AgentState
 from langchain_core.messages import AIMessage
 from langgraph.runtime import Runtime
 
-from fin_graph.agents.middleware.evidence_gate import is_recommendation
+from fin_graph.agents.common.middleware.evidence_gate import is_recommendation
 
 DISCLAIMER = (
     "Aviso: análisis educativo sobre una cartera simulada (paper). "

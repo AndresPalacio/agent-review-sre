@@ -39,7 +39,7 @@ def test_middleware_registration_and_skill_are_consumed():
 
 
 async def test_planning_extension_is_consumed_by_real_service(monkeypatch):
-    from fin_graph.agents.testing.scripted_model import ScriptedChatModel, tool_call_message
+    from fin_graph.agents.common.testing.scripted_model import ScriptedChatModel, tool_call_message
     from fin_graph.domain.requests.model import AnalysisRequest
     from fin_graph.domain.window import AnalysisWindow
     from fin_graph.evals.market.scenarios import load_equity_scenario

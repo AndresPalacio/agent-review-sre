@@ -17,7 +17,7 @@ from langgraph.store.base import BaseStore
 from langgraph.types import Checkpointer
 from pydantic import BaseModel, Field
 
-from fin_graph.agents.factory import make_agent
+from fin_graph.agents.common.factory import make_agent
 
 
 class SubagentTask(BaseModel):

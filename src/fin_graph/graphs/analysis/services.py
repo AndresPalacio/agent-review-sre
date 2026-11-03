@@ -23,9 +23,9 @@ from langchain_core.messages import HumanMessage
 from langchain_core.tools import BaseTool
 from pydantic import BaseModel, Field
 
-from fin_graph.agents.factory import make_agent
-from fin_graph.agents.middleware.guardrails import GuardrailsMiddleware
-from fin_graph.agents.middleware.masking import MaskingMiddleware
+from fin_graph.agents.common.factory import make_agent
+from fin_graph.agents.common.middleware.guardrails import GuardrailsMiddleware
+from fin_graph.agents.common.middleware.masking import MaskingMiddleware
 from fin_graph.domain.analysis import (
     AnalysisPlan,
     AnalystFinding,

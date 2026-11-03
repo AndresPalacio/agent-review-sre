@@ -7,7 +7,7 @@ from langchain_core.messages import AIMessage
 from langchain_ollama import ChatOllama
 from pydantic import BaseModel, Field
 
-from fin_graph.agents.testing.scripted_model import ScriptedChatModel, tool_call_message
+from fin_graph.agents.common.testing.scripted_model import ScriptedChatModel, tool_call_message
 from fin_graph.llm import structured
 from fin_graph.llm.structured import extract_json, structured_call
 

@@ -15,7 +15,7 @@ import pytest
 from langchain_core.messages import AIMessage, HumanMessage, ToolMessage
 from langgraph_sdk.client import LangGraphClient
 
-from fin_graph.agents.testing.scripted_model import ScriptedChatModel
+from fin_graph.agents.common.testing.scripted_model import ScriptedChatModel
 from fin_graph.work import graphs
 from fin_graph.work.store import WorkStore
 

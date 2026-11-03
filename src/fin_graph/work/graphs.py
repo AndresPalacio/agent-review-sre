@@ -30,7 +30,7 @@ from langgraph.runtime import Runtime
 from langgraph.types import Command
 from langgraph_sdk import get_client
 
-from fin_graph.agents.factory import make_agent
+from fin_graph.agents.common.factory import make_agent
 from fin_graph.config.settings import Settings
 from fin_graph.llm.models import build_chat_model, parse_model_spec
 from fin_graph.safety.secrets import redact_value

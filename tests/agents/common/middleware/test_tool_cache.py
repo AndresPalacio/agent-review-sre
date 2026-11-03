@@ -6,9 +6,9 @@ import pytest
 from langchain_core.messages import AIMessage, HumanMessage, ToolMessage
 from langchain_core.tools import BaseTool, ToolException, tool
 
-from fin_graph.agents.factory import make_agent
-from fin_graph.agents.middleware.tool_cache import CACHE_SCOPE_KEY, ToolResultCacheMiddleware
-from fin_graph.agents.testing.scripted_model import ScriptedChatModel, tool_call_message
+from fin_graph.agents.common.factory import make_agent
+from fin_graph.agents.common.middleware.tool_cache import CACHE_SCOPE_KEY, ToolResultCacheMiddleware
+from fin_graph.agents.common.testing.scripted_model import ScriptedChatModel, tool_call_message
 from fin_graph.domain.tools import Domain, EvidenceType, SideEffectLevel, ToolMeta, attach_tool_meta
 
 

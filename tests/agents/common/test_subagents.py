@@ -13,9 +13,9 @@ from langgraph.graph.state import CompiledStateGraph
 from langgraph.types import Command, interrupt
 from pydantic import BaseModel
 
-from fin_graph.agents.factory import make_agent
-from fin_graph.agents.subagents import SubagentSpec, make_supervisor, subagent_result_text
-from fin_graph.agents.testing.scripted_model import ScriptedChatModel, tool_call_message
+from fin_graph.agents.common.factory import make_agent
+from fin_graph.agents.common.subagents import SubagentSpec, make_supervisor, subagent_result_text
+from fin_graph.agents.common.testing.scripted_model import ScriptedChatModel, tool_call_message
 
 
 @tool

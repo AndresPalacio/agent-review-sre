@@ -11,7 +11,7 @@ from langgraph.store.memory import InMemoryStore
 from sqlalchemy.ext.asyncio import create_async_engine
 from tests.server.finance_app import analysis_manager, fixture_context
 
-from fin_graph.agents.testing.scripted_model import ScriptedChatModel, tool_call_message
+from fin_graph.agents.common.testing.scripted_model import ScriptedChatModel, tool_call_message
 from fin_graph.graphs.chat.graph import make_chat_graph
 from fin_graph.integrations.context import RunContext
 from fin_graph.integrations.registry import IntegrationRegistry

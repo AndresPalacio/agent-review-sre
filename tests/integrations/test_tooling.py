@@ -6,8 +6,8 @@ from langchain.tools import ToolRuntime
 from langchain_core.messages import AIMessage, HumanMessage, ToolMessage
 from langgraph.graph.state import CompiledStateGraph
 
-from fin_graph.agents.factory import make_agent
-from fin_graph.agents.testing.scripted_model import ScriptedChatModel, tool_call_message
+from fin_graph.agents.common.factory import make_agent
+from fin_graph.agents.common.testing.scripted_model import ScriptedChatModel, tool_call_message
 from fin_graph.domain.tools import Domain, EvidenceType, ToolMeta, read_tool_meta
 from fin_graph.integrations.base import IntegrationError
 from fin_graph.integrations.context import RunContext, require_client

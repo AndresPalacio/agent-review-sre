@@ -99,7 +99,7 @@ async def test_official_proposer_adapter_reads_only_allowed_text_edits(tmp_path,
     from langchain_core.messages import AIMessage
 
     import fin_graph.harness.proposer as outer
-    from fin_graph.agents.testing.scripted_model import ScriptedChatModel, tool_call_message
+    from fin_graph.agents.common.testing.scripted_model import ScriptedChatModel, tool_call_message
     from fin_graph.harness.configuration import load_config
     from fin_graph.harness.runner import evaluate_split
     from fin_graph.harness.surfaces import current_values

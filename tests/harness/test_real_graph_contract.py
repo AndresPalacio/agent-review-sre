@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from fin_graph.agents.testing.scripted_model import ScriptedChatModel, tool_call_message
+from fin_graph.agents.common.testing.scripted_model import ScriptedChatModel, tool_call_message
 from fin_graph.domain.analysis import AnalystTask, ThesisHypothesis
 from fin_graph.domain.requests.model import AnalysisRequest
 from fin_graph.domain.tools import Domain
