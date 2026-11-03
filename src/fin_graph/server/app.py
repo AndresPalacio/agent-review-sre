@@ -159,6 +159,7 @@ def create_app(
             app.state.scheduler = scheduler_service
             app.state.slack_gateway = slack_gateway
             app.state.telegram_gateway = telegram_gateway
+            app.state.compatibility_context_factory = getattr(manager, "context_factory", None)
             app.state.events = EventListener()
             await app.state.events.start()
             try:
@@ -210,6 +211,8 @@ def create_app(
                 context = delivery.extend_run_context(active_registry.run_context())
                 return replace(context, clients={**context.clients, "paper_broker": active_paper})
 
+            app.state.compatibility_context_factory = context_factory
+
             analysis_services = _analysis_services(settings)
             graph = make_analysis_graph(
                 analysis_services,
@@ -228,6 +231,7 @@ def create_app(
                     _LOGGER.warning("chat model unavailable at startup")
                     active_chat = None
                 else:
+                    app.state.compatibility_quant_llm = model
                     chat_analysis = make_compat_analysis_agent(
                         model,
                         active_registry,
@@ -446,6 +450,16 @@ def create_app(
     app.state.compatibility_hedge_fund = compatibility_hedge_fund
     app.state.compatibility_analysis_graph = None
     app.state.compatibility_backtest_runner = None
+    app.state.compatibility_context_factory = None
+    app.state.compatibility_quant_data = None
+    app.state.compatibility_quant_llm = None
+    app.state.compatibility_quant_artifact_dir = Path(
+        os.getenv("FIN_GRAPH_QUANT_ARTIFACT_DIR", ".v2_cache/models")
+    ).resolve()
+    app.state.compatibility_backtest_artifact_dir = Path(
+        os.getenv("FIN_GRAPH_BACKTEST_ARTIFACT_DIR", ".v2_cache/backtests")
+    ).resolve()
+    app.state.compatibility_backtest_manager = None
     app.state.compatibility_key_role = None
     from fin_graph.server.http_guards import install_http_guards
 
