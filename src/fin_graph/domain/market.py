@@ -34,6 +34,7 @@ class Price(BaseModel):
     high: float
     low: float
     close: float
+    adj_close: float | None = None
     volume: int
 
     @field_validator("time", mode="before")
@@ -50,6 +51,12 @@ class Price(BaseModel):
     def day(self) -> date:
         """The trading day the bar belongs to."""
         return self.time.astimezone(UTC).date()
+
+    @property
+    def effective_close(self) -> float:
+        """Split/dividend-adjusted close when available, otherwise the raw close."""
+
+        return self.adj_close if self.adj_close is not None else self.close
 
 
 class FinancialMetrics(BaseModel):
@@ -195,8 +202,8 @@ def prices_until(prices: Iterable[Price], as_of: date) -> list[Price]:
 
 
 def closes(prices: Sequence[Price]) -> list[float]:
-    """Closing prices in the order given."""
-    return [bar.close for bar in prices]
+    """Adjusted closing prices in order, with raw-close fallback."""
+    return [bar.effective_close for bar in prices]
 
 
 def latest_first[T: FinancialMetrics | LineItem](periods: Iterable[T], as_of: date) -> list[T]:

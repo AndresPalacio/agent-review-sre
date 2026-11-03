@@ -160,6 +160,9 @@ class YahooClient(MarketDataClient):
         chart = results[0]
         stamps = chart.get("timestamp") or []
         quote = ((chart.get("indicators") or {}).get("quote") or [{}])[0]
+        adjusted = ((chart.get("indicators") or {}).get("adjclose") or [{}])[0].get(
+            "adjclose"
+        ) or []
         columns = [quote.get(name) or [] for name in ("open", "high", "low", "close", "volume")]
         bars = []
         for index, stamp in enumerate(stamps):
@@ -177,6 +180,11 @@ class YahooClient(MarketDataClient):
                     high=float(high),
                     low=float(low),
                     close=float(close),
+                    adj_close=(
+                        float(adjusted[index])
+                        if index < len(adjusted) and adjusted[index] is not None
+                        else None
+                    ),
                     volume=int(volume or 0),
                 )
             )
