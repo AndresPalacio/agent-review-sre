@@ -91,6 +91,10 @@ entender y la documentación volvería a quedar expuesta a divergencias.
 
 ```text
 src/fin_graph/
+  trading/
+    __init__.py
+    order_desk.py
+
   agents/
     README.md
     catalog.py
@@ -110,7 +114,12 @@ src/fin_graph/
       supervisor.py
     solver/
       README.md
+      control.py
       supervisor.py
+      testing.py
+    optimizer/
+      README.md
+      proposer.py
 
   workflows/
     README.md
@@ -125,7 +134,6 @@ src/fin_graph/
       strategy/
     orders/
       graph.py
-      desk.py
     market_watch/
       graph.py
 
@@ -161,7 +169,9 @@ optimization/
 La dirección de dependencias será:
 
 ```text
-domain/integrations
+domain/safety/integrations
+       ↑
+trading
        ↑
 agents/common
        ↑
@@ -175,6 +185,10 @@ CLI / API / Studio
 
 optimization → runtime + evals, nunca al revés
 ```
+
+`trading/order_desk.py` será el servicio compartido de reglas y ejecución paper que consumen chat y
+el workflow de órdenes. El solver mantendrá sus helpers de control y su modelo offline dentro de
+`agents/solver`, por lo que ningún agente dependerá de `workflows` ni de `work`.
 
 Producción no importará `fin_graph.optimization`. La dependencia `better-harness` seguirá siendo un
 extra opcional. La app, la API y los evals normales no leerán `optimization/fin.toml`.
@@ -224,14 +238,19 @@ abrir la interfaz web y sin crear otra fuente de verdad.
 Contiene componentes que toman decisiones mediante un modelo o que se registran como subagentes.
 Cada llamada a `create_deep_agent` deberá vivir bajo este paquete. `agents/analysis/supervisor.py`
 ensamblará el supervisor compatible y sus diecinueve personas; `agents/chat/supervisor.py` el chat;
-`agents/solver/supervisor.py` el solver verificado. Middleware, fábricas y modelos guionados comunes
-vivirán en `agents/common`.
+`agents/solver/supervisor.py` el solver verificado; y `agents/optimizer/proposer.py` construirá el
+DeepAgent opcional que edita el workspace del optimizador. Middleware, fábricas y modelos guionados
+comunes vivirán en `agents/common`. La fábrica del proponente no importará `better_harness` ni
+`fin_graph.optimization`: recibirá el modelo, prompt y directorio ya resueltos para conservar la
+dirección de dependencias.
 
 ### `workflows`
 
 Contiene máquinas de estado y transiciones controladas por código. Un nodo puede invocar un agente,
 pero el workflow conserva límites, routing, paralelismo, verificación y cierre. El nombre deja claro
 que un `StateGraph` no es automáticamente un DeepAgent.
+La lógica compartida que también usan agentes, como `OrderDesk`, permanece en `trading` y no se
+duplica dentro del workflow.
 
 ### `runtime`
 
@@ -246,6 +265,10 @@ Contendrá exclusivamente el ciclo experimental `better-harness`: datasets, vari
 evaluación de splits, aceptación y exportación. `optimization/README.md` comenzará con una nota
 explícita: “opcional; no requerido para ejecutar fin-graph”. El TOML se moverá desde `harness/fin.toml`
 a `optimization/fin.toml`.
+
+La orquestación del proponente seguirá aquí, pero consumirá la fábrica explícita de
+`agents/optimizer/proposer.py`; así su DeepAgent aparece en el catálogo sin hacer que producción
+dependa del optimizador.
 
 `optimization/fin.toml` será un archivo de desarrollo del checkout y no se incluirá como configuración
 operativa del wheel. Los comandos del harness aceptarán una ruta explícita. Cuando no se proporcione,
@@ -275,8 +298,9 @@ un diagrama Mermaid que enlace estos READMEs en lugar de repetir detalles.
 - Los imports internos `fin_graph.graphs.*` y `fin_graph.harness.*` se actualizarán de forma mecánica.
 - Solo se conservarán shims para imports documentados o probados como superficies públicas. Cada shim
   tendrá una única importación y comentario de deprecación; no contendrá lógica.
-- El paquete experimental `fin_graph.work` conservará contratos, servicio y persistencia. Solo su
-  construcción DeepAgents se moverá a `agents/solver`; `work` lo consumirá como dependencia.
+- El paquete experimental `fin_graph.work` conservará contratos, servicio y persistencia. Su
+  construcción DeepAgents, lectura de control en proceso y modelo offline se moverán a
+  `agents/solver`; el shim público documentado de `work.graphs` lo consumirá como dependencia.
 - Los movimientos se harán por grupos pequeños con commits separados para mantener revisiones
   legibles y permitir `git bisect`.
 
@@ -287,7 +311,7 @@ un diagrama Mermaid que enlace estos READMEs en lugar de repetir detalles.
    producción.
 2. Crear `agents/common` y mover infraestructura compartida sin cambiar comportamiento.
 3. Crear `agents/analysis`, mover personas y supervisor compatible, y conectar el catálogo.
-4. Crear `agents/chat` y `agents/solver`.
+4. Crear `agents/chat`, `agents/solver` y la fábrica opcional `agents/optimizer`.
 5. Crear `workflows` y mover los grafos deterministas.
 6. Crear `runtime` y cambiar API, CLI, Studio y evals a sus fábricas.
 7. Crear `optimization/harness`, mover `fin.toml` y actualizar el CLI opcional.
@@ -302,6 +326,7 @@ un diagrama Mermaid que enlace estos READMEs en lugar de repetir detalles.
 - La aceptación SQLite conserva 14/14 y el mismo `public_digest`.
 - Las pruebas de importación del wheel siguen pasando desde un entorno extraído.
 - `fin-graph agents list` enumera supervisores y las diecinueve personas sin duplicados.
+- El proponente opcional aparece como agente de workspace y no se importa al arrancar producción.
 - Cada descriptor resuelve una fábrica real.
 - Los nodos deterministas se documentan como workflows y no aparecen como agentes en el catálogo.
 - Un test estático falla si aparece `create_deep_agent` fuera de `fin_graph/agents`.
