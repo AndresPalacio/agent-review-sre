@@ -1,0 +1,50 @@
+{
+  "long_only": {
+    "prices": {"AAPL": [100.0, 110.0, 90.0, 120.0]},
+    "plans": [
+      {"AAPL": ["buy", 10]},
+      {},
+      {"AAPL": ["sell", 5]},
+      {"AAPL": ["sell", 5]}
+    ],
+    "portfolio_values": [10000.0, 10100.0, 9900.0, 10050.0],
+    "final_value": 10050.0,
+    "sharpe_ratio": 1.1984945164625067,
+    "max_drawdown_pct": -1.9801980198019802,
+    "win_rate_pct": 50.0,
+    "total_return_pct": 0.49999999999998934
+  },
+  "short_only": {
+    "prices": {"AAPL": [100.0, 90.0, 110.0, 80.0]},
+    "plans": [
+      {"AAPL": ["short", 10]},
+      {},
+      {"AAPL": ["cover", 5]},
+      {"AAPL": ["cover", 5]}
+    ],
+    "portfolio_values": [10000.0, 10100.0, 9900.0, 10050.0],
+    "final_value": 10050.0,
+    "sharpe_ratio": 1.1984945164625067,
+    "max_drawdown_pct": -1.9801980198019802,
+    "win_rate_pct": 50.0,
+    "total_return_pct": 0.49999999999998934
+  },
+  "long_short": {
+    "prices": {
+      "AAPL": [100.0, 110.0, 90.0, 120.0],
+      "MSFT": [100.0, 90.0, 110.0, 80.0]
+    },
+    "plans": [
+      {"AAPL": ["buy", 5], "MSFT": ["short", 5]},
+      {},
+      {},
+      {"AAPL": ["sell", 5], "MSFT": ["cover", 5]}
+    ],
+    "portfolio_values": [10000.0, 10100.0, 9900.0, 10200.0],
+    "final_value": 10200.0,
+    "sharpe_ratio": 3.769419413386307,
+    "max_drawdown_pct": -1.9801980198019802,
+    "win_rate_pct": 100.0,
+    "total_return_pct": 2.0000000000000018
+  }
+}
