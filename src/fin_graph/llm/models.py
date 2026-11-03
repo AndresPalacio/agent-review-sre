@@ -57,9 +57,36 @@ def _role_override(role: ModelRole, settings: Settings) -> str | None:
 #: Environment variable each hosted provider reads its key from; local providers need none.
 PROVIDER_KEY_ENV = {
     "anthropic": "ANTHROPIC_API_KEY",
-    "openai": "OPENAI_API_KEY",
-    "google_genai": "GOOGLE_API_KEY",
+    "azure_openai": "AZURE_OPENAI_API_KEY",
+    "deepseek": "DEEPSEEK_API_KEY",
+    "gigachat": "GIGACHAT_API_KEY",
+    "groq": "GROQ_API_KEY",
+    "kimi": "MOONSHOT_API_KEY",
     "mistralai": "MISTRAL_API_KEY",
+    "openai": "OPENAI_API_KEY",
+    "openrouter": "OPENROUTER_API_KEY",
+    "google_genai": "GOOGLE_API_KEY",
+    "xai": "XAI_API_KEY",
+}
+
+_PROVIDER_ALIASES = {
+    "alibaba": "alibaba",
+    "anthropic": "anthropic",
+    "azure openai": "azure_openai",
+    "azure_openai": "azure_openai",
+    "deepseek": "deepseek",
+    "gigachat": "gigachat",
+    "google": "google_genai",
+    "google_genai": "google_genai",
+    "groq": "groq",
+    "kimi": "kimi",
+    "meta": "meta",
+    "mistral": "mistralai",
+    "mistralai": "mistralai",
+    "ollama": "ollama",
+    "openai": "openai",
+    "openrouter": "openrouter",
+    "xai": "xai",
 }
 
 
@@ -113,9 +140,14 @@ def build_chat_model(
 def parse_model_spec(value: str) -> ModelSpec:
     """Parse ``provider:model``; only the first colon splits, so ``ollama:llama3.2:3b`` works."""
     provider, separator, name = value.partition(":")
-    if not separator or not provider or not name:
+    provider_name = provider.strip().lower()
+    model_name = name.strip()
+    if not separator or not provider_name or not model_name:
         raise ValueError("model must be provider:model")
-    return ModelSpec(provider=provider.strip().lower(), model=name.strip())
+    canonical_provider = _PROVIDER_ALIASES.get(provider_name)
+    if canonical_provider is None:
+        raise ValueError(f"unsupported model provider: {provider.strip()}")
+    return ModelSpec(provider=canonical_provider, model=model_name)
 
 
 def get_model(role: ModelRole, settings: Settings) -> BaseChatModel:

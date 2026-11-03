@@ -2,11 +2,34 @@
 
 from __future__ import annotations
 
+import os
 from enum import StrEnum
-from typing import Annotated, Literal
+from typing import Annotated, Any, Literal, cast
 
-from pydantic import Field, SecretStr, field_validator
-from pydantic_settings import BaseSettings, NoDecode, SettingsConfigDict
+from pydantic import AliasChoices, Field, SecretStr, field_validator
+from pydantic_settings import (
+    BaseSettings,
+    NoDecode,
+    PydanticBaseSettingsSource,
+    SettingsConfigDict,
+)
+
+from fin_graph.compat.settings import resolve_alias
+
+_COMPATIBILITY_ENV_ALIASES = (
+    ("LLM_PROVIDER", ("DEFAULT_MODEL_PROVIDER",)),
+    ("LLM_MODEL_REASONING", ("DEFAULT_MODEL_NAME", "V2_LLM_MODEL")),
+    ("LLM_MODEL_WORKER", ("DEFAULT_MODEL_NAME",)),
+    ("LLM_MODEL_FAST", ("DEFAULT_MODEL_NAME",)),
+    ("LLM_MODEL_JUDGE", ("DEFAULT_MODEL_NAME",)),
+    ("MARKET_DATA_PROVIDER", ("DATA_PROVIDER",)),
+)
+
+
+def _validate_compatibility_environment() -> dict[str, Any]:
+    for modern, legacy in _COMPATIBILITY_ENV_ALIASES:
+        resolve_alias(os.environ, modern, legacy)
+    return {}
 
 
 class PersistenceBackend(StrEnum):
@@ -25,14 +48,33 @@ class Settings(BaseSettings):
     """
 
     model_config = SettingsConfigDict(
-        env_file=".env", env_file_encoding="utf-8", extra="ignore", env_ignore_empty=True
+        env_file=".env",
+        env_file_encoding="utf-8",
+        extra="ignore",
+        env_ignore_empty=True,
+        populate_by_name=True,
     )
 
-    llm_provider: str = "anthropic"
-    llm_model_reasoning: str | None = None
-    llm_model_worker: str | None = None
-    llm_model_fast: str | None = None
-    llm_model_judge: str | None = None
+    llm_provider: str = Field(
+        default="anthropic",
+        validation_alias=AliasChoices("LLM_PROVIDER", "DEFAULT_MODEL_PROVIDER"),
+    )
+    llm_model_reasoning: str | None = Field(
+        default=None,
+        validation_alias=AliasChoices("LLM_MODEL_REASONING", "DEFAULT_MODEL_NAME", "V2_LLM_MODEL"),
+    )
+    llm_model_worker: str | None = Field(
+        default=None,
+        validation_alias=AliasChoices("LLM_MODEL_WORKER", "DEFAULT_MODEL_NAME"),
+    )
+    llm_model_fast: str | None = Field(
+        default=None,
+        validation_alias=AliasChoices("LLM_MODEL_FAST", "DEFAULT_MODEL_NAME"),
+    )
+    llm_model_judge: str | None = Field(
+        default=None,
+        validation_alias=AliasChoices("LLM_MODEL_JUDGE", "DEFAULT_MODEL_NAME"),
+    )
     llm_fallback_models: Annotated[tuple[str, ...], NoDecode] = ()
     llm_temperature: float = 0.0
     llm_timeout_seconds: float = 120.0
@@ -59,7 +101,10 @@ class Settings(BaseSettings):
     initial_cash: float = Field(default=100_000.0, ge=0)
     margin_requirement: float = Field(default=0.5, ge=0, le=1)
     risk_free_rate: float = Field(default=0.045, ge=0, le=0.5)
-    market_data_provider: Literal["yahoo", "financial_datasets", "fixtures"] = "yahoo"
+    market_data_provider: Literal["yahoo", "financial_datasets", "fixtures"] = Field(
+        default="yahoo",
+        validation_alias=AliasChoices("MARKET_DATA_PROVIDER", "DATA_PROVIDER"),
+    )
     #: ``<dir>/<TICKER>/{prices,financial_metrics,line_items,insider_trades,news}.json`` offline.
     market_fixtures_dir: str | None = None
     fin_analyst_mode: Literal["auto", "react", "tool_plan"] = "auto"
@@ -77,6 +122,25 @@ class Settings(BaseSettings):
     paper_max_price_drift: float = Field(default=0.05, gt=0, le=1)
     #: Basis points a market order pays over (or receives under) the quote.
     paper_slippage_bps: float = Field(default=5.0, ge=0, le=500)
+
+    @classmethod
+    def settings_customise_sources(
+        cls,
+        settings_cls: type[BaseSettings],
+        init_settings: PydanticBaseSettingsSource,
+        env_settings: PydanticBaseSettingsSource,
+        dotenv_settings: PydanticBaseSettingsSource,
+        file_secret_settings: PydanticBaseSettingsSource,
+    ) -> tuple[PydanticBaseSettingsSource, ...]:
+        del settings_cls
+        validation_source = cast(PydanticBaseSettingsSource, _validate_compatibility_environment)
+        return (
+            init_settings,
+            validation_source,
+            env_settings,
+            dotenv_settings,
+            file_secret_settings,
+        )
 
     @field_validator("base_currency")
     @classmethod
@@ -98,6 +162,13 @@ class Settings(BaseSettings):
     @classmethod
     def _normalize_embeddings_provider(cls, value: str | None) -> str | None:
         return value.strip().lower() if value else None
+
+    @field_validator("market_data_provider", mode="before")
+    @classmethod
+    def _normalize_market_data_provider(cls, value: object) -> object:
+        if isinstance(value, str) and value.strip().lower() == "financialdatasets":
+            return "financial_datasets"
+        return value.strip().lower() if isinstance(value, str) else value
 
     @field_validator(
         "auto_approve_tools",

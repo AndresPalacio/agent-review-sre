@@ -88,6 +88,33 @@ def test_parse_model_spec_splits_on_the_first_colon_only() -> None:
         parse_model_spec("llama3.2")
 
 
+@pytest.mark.parametrize(
+    ("legacy_provider", "canonical_provider"),
+    [
+        ("Azure OpenAI", "azure_openai"),
+        ("DeepSeek", "deepseek"),
+        ("Google", "google_genai"),
+        ("Kimi", "kimi"),
+        ("Mistral", "mistralai"),
+        ("OpenRouter", "openrouter"),
+        ("xAI", "xai"),
+    ],
+)
+def test_parse_model_spec_normalizes_reference_provider_names(
+    legacy_provider: str,
+    canonical_provider: str,
+) -> None:
+    assert parse_model_spec(f"{legacy_provider}:reference-model") == ModelSpec(
+        canonical_provider,
+        "reference-model",
+    )
+
+
+def test_parse_model_spec_rejects_unknown_provider() -> None:
+    with pytest.raises(ValueError, match="unsupported model provider"):
+        parse_model_spec("unknown:model")
+
+
 def test_explicit_temperature_overrides_the_setting() -> None:
     spec = ModelSpec("ollama", "llama3.2:3b")
 
