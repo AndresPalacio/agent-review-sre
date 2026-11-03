@@ -3,16 +3,12 @@ from __future__ import annotations
 from pathlib import Path
 
 import httpx
-from langgraph.checkpoint.memory import InMemorySaver
 from sqlalchemy.ext.asyncio import create_async_engine
+from tests.server.finance_app import analysis_manager, fixture_context
 
-from fin_graph.graphs.investigation.graph import make_investigation_graph
-from fin_graph.graphs.investigation.services import UnavailableServices
-from fin_graph.integrations.context import RunContext
 from fin_graph.integrations.registry import IntegrationRegistry
 from fin_graph.server.app import create_app
 from fin_graph.server.config import ServerConfig
-from fin_graph.server.manager import RunManager
 from fin_graph.server.storage import Base, Storage
 
 
@@ -50,8 +46,7 @@ async def test_schedule_api_requires_roles_and_syncs_enabled_definition(tmp_path
     await storage.put_key("operator", "operator")
     await storage.put_key("admin", "admin")
     registry = IntegrationRegistry([], env_file=None)
-    graph = make_investigation_graph(UnavailableServices(), registry, checkpointer=InMemorySaver())
-    manager = RunManager(graph, storage, RunContext)
+    manager = analysis_manager(storage, fixture_context())
     scheduler = SchedulerStub()
     app = create_app(manager=manager, registry=registry, scheduler_service=scheduler)
     definition = {
@@ -100,9 +95,8 @@ async def test_schedule_api_rejects_invalid_definition_without_persisting(tmp_pa
     storage = Storage(engine)
     await storage.put_key("admin", "admin")
     registry = IntegrationRegistry([], env_file=None)
-    graph = make_investigation_graph(UnavailableServices(), registry, checkpointer=InMemorySaver())
     app = create_app(
-        manager=RunManager(graph, storage, RunContext),
+        manager=analysis_manager(storage, fixture_context()),
         registry=registry,
         scheduler_service=SchedulerStub(),
     )
@@ -134,9 +128,8 @@ async def test_schedule_write_auth_precedes_body_validation(tmp_path: Path) -> N
         await connection.run_sync(Base.metadata.create_all)
     storage = Storage(engine)
     registry = IntegrationRegistry([], env_file=None)
-    graph = make_investigation_graph(UnavailableServices(), registry, checkpointer=InMemorySaver())
     app = create_app(
-        manager=RunManager(graph, storage, RunContext),
+        manager=analysis_manager(storage, fixture_context()),
         registry=registry,
         scheduler_service=SchedulerStub(),
     )

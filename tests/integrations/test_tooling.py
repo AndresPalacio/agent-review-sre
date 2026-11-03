@@ -15,7 +15,7 @@ from fin_graph.integrations.tooling import integration_tool
 
 META = ToolMeta(
     integration="pager",
-    domains=frozenset({Domain.CHANGES}),
+    domains=frozenset({Domain.PORTFOLIO}),
     evidence_type=EvidenceType.CHANGES,
 )
 

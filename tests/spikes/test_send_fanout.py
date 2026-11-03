@@ -27,9 +27,11 @@ class InvestigationState(TypedDict, total=False):
 
 async def test_each_send_branch_runs_its_own_subagent_and_findings_merge() -> None:
     scripts = {
-        "logs": [tool_call_message("Finding", {"summary": "OOMKilled", "confidence": 0.8}, "l")],
-        "metrics": [
-            tool_call_message("Finding", {"summary": "memory 99%", "confidence": 0.7}, "m")
+        "fundamentals": [
+            tool_call_message("Finding", {"summary": "quality balance", "confidence": 0.8}, "f")
+        ],
+        "technicals": [
+            tool_call_message("Finding", {"summary": "trend strength", "confidence": 0.7}, "t")
         ],
     }
     specialists = {
@@ -42,7 +44,7 @@ async def test_each_send_branch_runs_its_own_subagent_and_findings_merge() -> No
     }
 
     def plan(state: InvestigationState) -> dict[str, Any]:
-        return {"domains": ["logs", "metrics"]}
+        return {"domains": ["fundamentals", "technicals"]}
 
     def dispatch(state: InvestigationState) -> list[Send]:
         return [Send("specialist", {"domain": domain}) for domain in state["domains"]]
@@ -50,7 +52,7 @@ async def test_each_send_branch_runs_its_own_subagent_and_findings_merge() -> No
     async def specialist(task: dict[str, Any]) -> dict[str, Any]:
         domain = task["domain"]
         result = await specialists[domain].ainvoke(
-            {"messages": [HumanMessage(f"investigate {domain}")]}
+            {"messages": [HumanMessage(f"analyze {domain}")]}
         )
         return {"findings": [result["structured_response"].model_dump()]}
 
@@ -65,4 +67,7 @@ async def test_each_send_branch_runs_its_own_subagent_and_findings_merge() -> No
 
     result = await graph.compile().ainvoke({})
 
-    assert sorted(f["summary"] for f in result["findings"]) == ["OOMKilled", "memory 99%"]
+    assert sorted(f["summary"] for f in result["findings"]) == [
+        "quality balance",
+        "trend strength",
+    ]

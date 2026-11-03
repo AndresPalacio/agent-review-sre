@@ -4,7 +4,7 @@ import httpx
 import pytest
 
 from fin_graph.integrations.base import IntegrationError
-from fin_graph.integrations.http import HttpJsonClient, prometheus_data, require_window
+from fin_graph.integrations.http import HttpJsonClient, require_window
 
 
 async def test_json_request_encodes_params_and_headers() -> None:
@@ -129,11 +129,6 @@ async def test_non_ascii_secret_header_is_a_safe_integration_error() -> None:
     with pytest.raises(IntegrationError) as caught:
         await client.request("GET", "/read")
     assert secret not in str(caught.value)
-
-
-def test_prometheus_rejects_error_envelope() -> None:
-    with pytest.raises(IntegrationError, match="Prometheus"):
-        prometheus_data({"status": "error", "error": "secret"}, "Prometheus")
 
 
 @pytest.mark.parametrize("start,end", [(10, 10), (20, 10), (1, 604803), (-1, 10)])

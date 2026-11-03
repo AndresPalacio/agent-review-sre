@@ -11,11 +11,7 @@ from langchain_core.tools import BaseTool
 
 
 class Domain(StrEnum):
-    """The specialist area a tool serves; each domain gets one specialist agent.
-
-    The analyst domains run the financial analysis. The SRE domains stay until their
-    investigation graph is retired, so both verticals share one evidence model.
-    """
+    """The financial analyst area a tool serves."""
 
     FUNDAMENTALS = "fundamentals"
     VALUATION = "valuation"
@@ -25,13 +21,6 @@ class Domain(StrEnum):
     GRAHAM = "graham"
     #: The paper portfolio and its orders: no analyst owns these tools.
     PORTFOLIO = "portfolio"
-    KUBERNETES = "kubernetes"
-    METRICS = "metrics"
-    LOGS = "logs"
-    TRACES = "traces"
-    CLOUD = "cloud"
-    CHANGES = "changes"
-    ERRORS = "errors"
 
 
 #: The financial analysts, in the order reports list them.

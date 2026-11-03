@@ -1,1 +1,1 @@
-"""fin-graph: multi-agent incident investigation built natively on LangGraph."""
+"""fin-graph: multi-agent financial analysis and paper trading on LangGraph."""

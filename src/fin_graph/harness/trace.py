@@ -12,7 +12,6 @@ from uuid import UUID, uuid4
 
 from langchain_core.callbacks import BaseCallbackHandler
 
-from fin_graph.graphs.investigation.services import InvestigationServices
 from fin_graph.safety.secrets import redact_value
 
 active_trace: ContextVar[ExecutionTrace | None] = ContextVar("harness_trace", default=None)
@@ -95,13 +94,6 @@ class ExecutionTrace(BaseCallbackHandler):
         )
 
 
-_AGENT_NAMES = {
-    "plan": "planner",
-    "extract": "extractor",
-    "judge": "judge",
-    "synthesize": "synthesizer",
-    "synthesize_with_context": "synthesizer",
-}
 _ANALYSIS_AGENT_NAMES = {
     "plan": "planner",
     "extract": "extractor",
@@ -120,7 +112,6 @@ class _Branch:
     window_index: int
 
 
-_INVESTIGATION_BRANCH = _Branch("investigate", "specialist", 2)
 _ANALYSIS_BRANCH = _Branch("analyze", "analyst", 3)
 
 
@@ -129,8 +120,8 @@ class _ObservedServices:
         self,
         delegate: Any,
         trace: ExecutionTrace | None,
-        names: Mapping[str, str] = _AGENT_NAMES,
-        branch: _Branch = _INVESTIGATION_BRANCH,
+        names: Mapping[str, str],
+        branch: _Branch,
     ) -> None:
         self.delegate, self.trace, self.names, self.branch = delegate, trace, names, branch
 
@@ -156,12 +147,6 @@ class _ObservedServices:
             return await trace.agent(name, lambda: target(*args, **kwargs), **details)
 
         return observed
-
-
-def observe_services(
-    services: InvestigationServices, trace: ExecutionTrace | None = None
-) -> InvestigationServices:
-    return cast(InvestigationServices, _ObservedServices(services, trace))
 
 
 def observe_analysis_services[ServicesT](

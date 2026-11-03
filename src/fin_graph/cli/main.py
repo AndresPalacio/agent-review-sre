@@ -1,4 +1,4 @@
-"""Local analysis, investigation, chat and server commands."""
+"""Local analysis, paper trading, chat and server commands."""
 
 from __future__ import annotations
 
@@ -19,19 +19,14 @@ from rich.console import Console
 
 from fin_graph.cli.chat import ChatSession, RemoteChatSession
 from fin_graph.cli.compat import register_compat_commands
-from fin_graph.cli.eval_tools import register_eval_tools
 from fin_graph.cli.harness import app as harness_app
 from fin_graph.cli.integrations import app as integrations_app
 from fin_graph.cli.orders import app as orders_app
 from fin_graph.cli.schedules import app as schedules_app
 from fin_graph.config.settings import PersistenceBackend, Settings
 from fin_graph.config.tracing import disable_external_tracing
-from fin_graph.delivery.service import DeliveryService
-from fin_graph.domain.alerts.model import AlertSource
-from fin_graph.domain.rendering.markdown import render_markdown
-from fin_graph.domain.report import Report
 from fin_graph.graphs.chat.graph import make_chat_graph
-from fin_graph.harness.runtime import _analysis_services, make_analysis_graph, make_runtime
+from fin_graph.harness.runtime import _analysis_services, make_analysis_graph
 from fin_graph.integrations.broker.paper.runtime import open_trading_context
 from fin_graph.integrations.catalog import default_registry
 from fin_graph.integrations.context import RunContext
@@ -51,7 +46,6 @@ app.add_typer(harness_app, name="harness")
 app.add_typer(schedules_app, name="schedules")
 app.add_typer(integrations_app, name="integrations")
 app.add_typer(orders_app, name="orders")
-register_eval_tools(eval_app)
 console = Console()
 register_compat_commands(app)
 
@@ -212,29 +206,6 @@ def portfolio(as_json: Annotated[bool, typer.Option("--json")] = False) -> None:
 
 
 @app.command()
-def investigate(
-    file: Annotated[Path | None, typer.Option("--file", help="Alerta JSON o texto UTF-8.")] = None,
-    text: Annotated[str | None, typer.Option("--text", help="Texto de la alerta.")] = None,
-    source: Annotated[str | None, typer.Option("--source", help="Fuente del webhook.")] = None,
-) -> None:
-    """Investiga una alerta local y muestra progreso y reporte Markdown."""
-    if (file is None) == (text is None):
-        raise typer.BadParameter("Indica exactamente uno de --file o --text")
-    if source is not None and source.lower() not in {item.value for item in AlertSource}:
-        raise typer.BadParameter("Fuente no reconocida", param_hint="--source")
-    try:
-        raw = text if text is not None else _read_file(file)
-        graph, context = make_runtime()
-        asyncio.run(_run(graph, context, raw, source))
-    except (OSError, UnicodeError, ValueError) as exc:
-        console.print(f"Error: {type(exc).__name__}: entrada o configuración inválida")
-        raise typer.Exit(code=1) from None
-    except Exception as exc:
-        console.print(f"Error: investigación fallida ({type(exc).__name__})")
-        raise typer.Exit(code=1) from None
-
-
-@app.command()
 def ask(
     text: Annotated[str, typer.Argument(help="Pregunta para el copiloto financiero.")],
     sqlite_path: Annotated[
@@ -378,7 +349,7 @@ async def _local_session(sqlite_path: Path | None) -> AsyncIterator[ChatSession]
     from fin_graph.integrations.mcp.runtime import with_configured_mcp
 
     registry = await with_configured_mcp(default_registry())
-    base = DeliveryService.from_env().extend_run_context(registry.run_context())
+    base = registry.run_context()
     async with (
         open_checkpointer(settings) as saver,
         open_store(settings) as store,
@@ -417,41 +388,6 @@ async def _local_session(sqlite_path: Path | None) -> AsyncIterator[ChatSession]
         yield session
 
 
-def _read_file(path: Path | None) -> str:
-    if path is None:
-        raise ValueError("missing file")
-    if path.stat().st_size > 1024 * 1024:
-        raise ValueError("alert file exceeds 1 MiB")
-    return path.read_text(encoding="utf-8")
-
-
-async def _run(graph: Any, context: RunContext, raw: str, source: str | None) -> None:
-    latest: dict[str, Any] = {}
-    run_id = str(uuid4())
-    async for mode, event in graph.astream(
-        {
-            "raw_alert": raw,
-            "source_hint": source,
-            "user_requested": True,
-            "destinations": {},
-            "thread_id": run_id,
-            "run_id": run_id,
-        },
-        context=context,
-        stream_mode=["custom", "values"],
-        config={"recursion_limit": 64},
-    ):
-        if mode == "custom" and isinstance(event, dict):
-            stage = event.get("data", {}).get("stage", "")
-            if stage:
-                console.print(f"[cyan]{stage}[/cyan]")
-        elif mode == "values" and isinstance(event, dict):
-            latest = event
-    if "report" not in latest:
-        raise ValueError("investigation produced no report")
-    console.print(render_markdown(Report.model_validate(latest["report"])), markup=False)
-
-
 def main() -> None:
     app()
 
@@ -462,32 +398,20 @@ def eval_run(
         str,
         typer.Option(
             "--suite",
-            help="smoke, all o un escenario de acciones; sre:smoke|eks|rds|all para el SRE.",
+            help="smoke, all o un escenario de acciones.",
         ),
     ] = "smoke",
     model: Annotated[str, typer.Option("--model", help="scripted o provider:model.")] = "scripted",
-    judge_model: Annotated[
-        str | None, typer.Option("--judge-model", help="Juez opcional provider:model (SRE).")
-    ] = None,
     repeat: Annotated[int, typer.Option("--repeat", help="Repeticiones por escenario.")] = 1,
     output_dir: Annotated[
         Path, typer.Option("--output-dir", help="Directorio de resultados.")
     ] = Path(".eval-results"),
 ) -> None:
-    """Ejecuta los escenarios de acciones (o los SRE con sre:) contra fixtures locales."""
+    """Ejecuta escenarios reproducibles de acciones contra fixtures locales."""
     try:
-        if suite.startswith("sre:"):
-            from fin_graph.evals.runner import run_suite
+        from fin_graph.evals.market.runner import run_equity_suite
 
-            result = asyncio.run(
-                run_suite(
-                    suite.removeprefix("sre:"), model, repeat, output_dir, judge_model=judge_model
-                )
-            )
-        else:
-            from fin_graph.evals.market.runner import run_equity_suite
-
-            result = asyncio.run(run_equity_suite(suite, model, repeat, output_dir))
+        result = asyncio.run(run_equity_suite(suite, model, repeat, output_dir))
     except (OSError, ValueError) as exc:
         console.print(f"Error: {type(exc).__name__}: {exc}")
         raise typer.Exit(code=2) from None

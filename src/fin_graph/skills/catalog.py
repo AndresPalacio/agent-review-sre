@@ -81,16 +81,6 @@ _CURATED_SKILLS = {
         "- Exceso de confianza: una confianza alta exige evidencia de varios analistas.\n"
         "- Recencia: una racha reciente no es una tendencia estructural.\n",
     ),
-    "investigating-incidents": (
-        "Investiga incidentes con evidencia verificable; usa un runbook solo como guía.",
-        "# Investigación de incidentes\n"
-        "1. Define la alerta, el servicio afectado y la ventana temporal.\n"
-        "2. Consulta métricas, logs, eventos y cambios con herramientas de solo lectura.\n"
-        "3. Contrasta hipótesis con evidencia y cita sus identificadores.\n"
-        "4. Expresa incertidumbre si la evidencia no sostiene una causa.\n"
-        "5. Propón remedios con riesgo, radio de impacto y rollback. "
-        "Toda acción mutante requiere aprobación humana.\n",
-    ),
 }
 
 

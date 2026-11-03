@@ -7,16 +7,9 @@ import pytest
 from langchain_core.tools import BaseTool, tool
 
 from fin_graph.domain.tools import Domain, EvidenceType, ToolMeta
-from fin_graph.integrations.alertmanager.integration import AlertmanagerIntegration
 from fin_graph.integrations.base import Integration, VerifyResult, VerifyStatus
 from fin_graph.integrations.context import RunContext
-from fin_graph.integrations.datadog.integration import DatadogIntegration
-from fin_graph.integrations.grafana.integration import GrafanaIntegration
-from fin_graph.integrations.loki.integration import LokiIntegration
-from fin_graph.integrations.newrelic.integration import NewRelicIntegration
-from fin_graph.integrations.prometheus.integration import MimirIntegration, PrometheusIntegration
 from fin_graph.integrations.registry import IntegrationRegistry
-from fin_graph.integrations.tempo.integration import TempoIntegration
 from fin_graph.integrations.tooling import integration_tool
 
 # Built at runtime so this file holds no string that looks like a real credential.
@@ -29,7 +22,7 @@ def _meta(integration: str, *domains: Domain) -> ToolMeta:
     )
 
 
-@integration_tool(_meta("logs", Domain.LOGS))
+@integration_tool(_meta("fundamentals", Domain.FUNDAMENTALS))
 async def logs_query(query: str) -> tuple[str, Any]:
     """Run a log query.
 
@@ -39,7 +32,7 @@ async def logs_query(query: str) -> tuple[str, Any]:
     return query, None
 
 
-@integration_tool(_meta("metrics", Domain.METRICS))
+@integration_tool(_meta("technicals", Domain.TECHNICALS))
 async def metrics_query(query: str) -> tuple[str, Any]:
     """Run a metrics query.
 
@@ -125,58 +118,6 @@ def test_an_integration_that_fails_to_build_is_unavailable_with_a_redacted_reaso
     assert context.unavailable == {"metrics": "RuntimeError: bad token [REDACTED:github_token]"}
 
 
-@pytest.mark.parametrize(
-    "integration,env,missing",
-    [
-        (PrometheusIntegration(), "PROMETHEUS", "url"),
-        (MimirIntegration(), "MIMIR", "url"),
-        (AlertmanagerIntegration(), "ALERTMANAGER", "url"),
-        (GrafanaIntegration(), "GRAFANA", "url"),
-        (LokiIntegration(), "LOKI", "url"),
-        (TempoIntegration(), "TEMPO", "url"),
-        (NewRelicIntegration(), "NEWRELIC", "account_id"),
-        (DatadogIntegration(), "DATADOG", "app_key"),
-    ],
-)
-async def test_settings_validation_never_exposes_configured_secrets(
-    monkeypatch: pytest.MonkeyPatch,
-    integration: Integration[Any, Any],
-    env: str,
-    missing: str,
-) -> None:
-    marker = "QwErTy1234567890"
-    secret = f"private-{env.lower()}-key-" + marker * 5
-    monkeypatch.setenv(f"{env}_ENABLED", "true")
-    monkeypatch.setenv(f"{env}_{'API_KEY' if env in ('NEWRELIC', 'DATADOG') else 'TOKEN'}", secret)
-    monkeypatch.delenv(f"{env}_{missing.upper()}", raising=False)
-    registry = IntegrationRegistry([integration], env_file=None)
-
-    context = registry.run_context()
-    [check] = await registry.verify_all(context)
-
-    assert integration.id in context.unavailable
-    assert "ValidationError" in context.unavailable[integration.id]
-    assert secret not in context.unavailable[integration.id]
-    assert marker not in context.unavailable[integration.id]
-    assert check.status is VerifyStatus.FAILED
-    assert secret not in check.detail
-    assert marker not in check.detail
-
-
-async def test_datadog_app_key_is_not_exposed_when_site_is_invalid(
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    marker = "AsDfGh1234567890"
-    monkeypatch.setenv("DATADOG_ENABLED", "true")
-    monkeypatch.setenv("DATADOG_SITE", "invalid.example")
-    monkeypatch.setenv("DATADOG_API_KEY", "api-" + marker * 5)
-    monkeypatch.setenv("DATADOG_APP_KEY", "app-" + marker * 5)
-    context = IntegrationRegistry([DatadogIntegration()], env_file=None).run_context()
-
-    assert "datadog" in context.unavailable
-    assert marker not in context.unavailable["datadog"]
-
-
 def test_tools_come_only_from_integrations_with_a_client() -> None:
     registry = IntegrationRegistry(
         [
@@ -197,7 +138,7 @@ def test_tools_can_be_filtered_by_domain() -> None:
         env_file=None,
     )
 
-    tools = registry.tools(registry.run_context(), domains={Domain.METRICS})
+    tools = registry.tools(registry.run_context(), domains={Domain.TECHNICALS})
 
     assert [candidate.name for candidate in tools] == ["metrics_query"]
 

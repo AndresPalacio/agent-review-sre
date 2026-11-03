@@ -100,7 +100,7 @@ def test_constrain_plan_merges_and_drops_unknowns() -> None:
                 hypothesis_ids=["H1", "H9"],
             ),
             AnalystTask(domain=Domain.VALUATION, objective="ev/ebitda", tickers=["MSFT"]),
-            AnalystTask(domain=Domain.LOGS, objective="not an analyst"),
+            AnalystTask(domain=Domain.PORTFOLIO, objective="not an analyst"),
         ],
     )
 

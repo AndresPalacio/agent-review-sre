@@ -43,7 +43,7 @@ def test_an_evidence_item_round_trips_through_json() -> None:
         integration="kubernetes",
         tool="k8s_list_pods",
         evidence_type=EvidenceType.TOPOLOGY,
-        domains=[Domain.KUBERNETES],
+        domains=[Domain.FUNDAMENTALS],
         summary="3 pods, 1 in CrashLoopBackOff",
         args={"namespace": "payments"},
         data=[{"name": "checkout-7d9f8b6c5-x2x9z"}],

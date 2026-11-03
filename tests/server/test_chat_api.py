@@ -9,17 +9,15 @@ from langchain_core.messages import AIMessage
 from langgraph.checkpoint.memory import InMemorySaver
 from langgraph.store.memory import InMemoryStore
 from sqlalchemy.ext.asyncio import create_async_engine
+from tests.server.finance_app import analysis_manager, fixture_context
 
 from fin_graph.agents.testing.scripted_model import ScriptedChatModel, tool_call_message
 from fin_graph.graphs.chat.graph import make_chat_graph
-from fin_graph.graphs.investigation.graph import make_investigation_graph
-from fin_graph.graphs.investigation.services import UnavailableServices
 from fin_graph.integrations.context import RunContext
 from fin_graph.integrations.registry import IntegrationRegistry
 from fin_graph.memory.theses import ThesisMemory
 from fin_graph.safety.approval import ApprovalPolicy
 from fin_graph.server.app import create_app
-from fin_graph.server.manager import RunManager
 from fin_graph.server.storage import Base, Storage
 
 
@@ -31,10 +29,7 @@ async def test_chat_sse_requires_operator_and_keeps_thread(tmp_path: Path) -> No
     await storage.put_key("viewer-key", "viewer")
     await storage.put_key("operator-key", "operator")
     registry = IntegrationRegistry([], env_file=None)
-    investigation = make_investigation_graph(
-        UnavailableServices(), registry, checkpointer=InMemorySaver()
-    )
-    manager = RunManager(investigation, storage, RunContext)
+    manager = analysis_manager(storage, fixture_context())
     chat = make_chat_graph(
         ScriptedChatModel(responses=[AIMessage("Hola, ¿qué falla?"), AIMessage("Entendido.")]),
         registry,
@@ -76,10 +71,7 @@ async def test_chat_approval_requires_approver_and_rejects_without_writing(tmp_p
     await storage.put_key("operator-key", "operator")
     await storage.put_key("approver-key", "approver")
     registry = IntegrationRegistry([], env_file=None)
-    investigation = make_investigation_graph(
-        UnavailableServices(), registry, checkpointer=InMemorySaver()
-    )
-    manager = RunManager(investigation, storage, RunContext)
+    manager = analysis_manager(storage, fixture_context())
     chat = make_chat_graph(
         ScriptedChatModel(
             responses=[

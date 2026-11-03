@@ -1,8 +1,8 @@
 """Model-backed reasoning for the analysis graph, behind a contract tests can replace.
 
 Two analyst modes. ``react`` gives the analyst its read-only tools and lets the model call them,
-as the incident specialists do. ``tool_plan`` runs the analyst's compute tool itself and asks the
-model only to explain the scores; on a 3B model that is the only mode that finishes reliably. In
+with strict evidence discipline. ``tool_plan`` runs the analyst's compute tool itself and asks
+the model only to explain the scores; on a 3B model that is the only mode that finishes reliably. In
 both modes a ticker's signal is the score's signal whenever a score exists: the model explains
 numbers, it never overrides them.
 

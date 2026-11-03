@@ -133,13 +133,6 @@ class HttpJsonClient:
         return payload
 
 
-def prometheus_data(payload: Any, vendor: str) -> Any:
-    """Extract a successful Prometheus-compatible response without echoing server errors."""
-    if not isinstance(payload, dict) or payload.get("status") != "success" or "data" not in payload:
-        raise IntegrationError(f"{vendor} API returned an error envelope")
-    return payload["data"]
-
-
 def require_window(start: int, end: int, max_seconds: int = MAX_WINDOW_SECONDS) -> None:
     """Bound a Unix-seconds query window before asking a provider to scan it."""
     if start < 0 or end <= start or end - start > max_seconds:

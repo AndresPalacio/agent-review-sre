@@ -49,7 +49,7 @@ def _run_config(scope: str | None, thread_id: str = "t1") -> dict[str, Any]:
 def _meta(level: SideEffectLevel) -> ToolMeta:
     return ToolMeta(
         integration="test",
-        domains=frozenset({Domain.KUBERNETES}),
+        domains=frozenset({Domain.FUNDAMENTALS}),
         evidence_type=EvidenceType.TOPOLOGY,
         side_effect_level=level,
     )

@@ -145,7 +145,7 @@ async def test_mcp_policy_sets_domains_and_read_only_effect(
                         "headers_from_env": {"Authorization": "MCP_RUNBOOK_AUTH"},
                         "tools": {
                             "lookup": {
-                                "domains": ["changes"],
+                                "domains": ["fundamentals"],
                                 "evidence_type": "changes",
                                 "side_effect_level": "read_only",
                                 "idempotent": True,
@@ -161,7 +161,7 @@ async def test_mcp_policy_sets_domains_and_read_only_effect(
 
     meta = read_tool_meta(result.tools[0])
     assert meta.integration == "mcp:runbooks"
-    assert meta.domains == frozenset({Domain.CHANGES})
+    assert meta.domains == frozenset({Domain.FUNDAMENTALS})
     assert meta.side_effect_level is SideEffectLevel.READ_ONLY
     assert connections[0]["runbooks"] == {
         "transport": "streamable_http",

@@ -1,6 +1,6 @@
 """Deterministic checks on a thesis before anyone sizes an order on it.
 
-The same engine as incident verification: every claim must cite evidence that exists, did not
+Every claim must cite evidence that exists, did not
 fail, and is of the kind the claim talks about (a claim about P/E cites metrics, one about RSI
 cites indicators). The thesis must be complete, and its category, stance and summary must agree.
 The hard conflict is a bullish stance against valuation evidence that puts intrinsic value below

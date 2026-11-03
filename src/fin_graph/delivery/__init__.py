@@ -1,1 +1,1 @@
-"""Explicit outbound report delivery, separate from investigation tools."""
+"""Explicit outbound financial-report delivery."""

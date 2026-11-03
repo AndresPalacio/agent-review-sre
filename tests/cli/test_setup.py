@@ -7,32 +7,37 @@ from fin_graph.integrations.setup import update_env
 
 def test_atomic_setup_preserves_and_hides(tmp_path):
     path = tmp_path / "custom.env"
-    path.write_text("# keep\nOTHER=value\nPROMETHEUS_ENABLED=false\n")
+    path.write_text("# keep\nOTHER=value\nFINANCIAL_DATASETS_ENABLED=false\n")
     summary = update_env(
-        "prometheus",
-        {"enabled": True, "url": "https://example.com", "token": "private-value"},
+        "financial_datasets",
+        {"enabled": True, "url": "https://example.com", "api_key": "private-value"},
         path,
         dry_run=True,
     )
     assert "private-value" not in str(summary)
-    assert "PROMETHEUS_TOKEN" not in path.read_text()
+    assert "FINANCIAL_DATASETS_API_KEY" not in path.read_text()
     update_env(
-        "prometheus",
-        {"enabled": True, "url": "https://example.com", "token": "private-value"},
+        "financial_datasets",
+        {"enabled": True, "url": "https://example.com", "api_key": "private-value"},
         path,
     )
     assert "# keep\nOTHER=value\n" in path.read_text()
-    assert "PROMETHEUS_ENABLED=true" in path.read_text()
+    assert "FINANCIAL_DATASETS_ENABLED=true" in path.read_text()
 
 
 def test_invalid_proposal_not_masked_by_environment(tmp_path, monkeypatch):
-    monkeypatch.setenv("PROMETHEUS_REQUEST_TIMEOUT_SECONDS", "20")
+    monkeypatch.setenv("FINANCIAL_DATASETS_REQUEST_TIMEOUT_SECONDS", "20")
     path = tmp_path / "env"
     path.write_text("OTHER=value\n")
     with pytest.raises(ValueError):
         update_env(
-            "prometheus",
-            {"enabled": True, "url": "https://example.com", "request_timeout_seconds": -1},
+            "financial_datasets",
+            {
+                "enabled": True,
+                "api_key": "key",
+                "url": "https://example.com",
+                "request_timeout_seconds": -1,
+            },
             path,
         )
     assert path.read_text() == "OTHER=value\n"
@@ -40,20 +45,22 @@ def test_invalid_proposal_not_masked_by_environment(tmp_path, monkeypatch):
 
 def test_setup_cli_dryrun(tmp_path):
     config = tmp_path / "input.json"
-    config.write_text('{"enabled":true,"url":"https://example.com"}')
-    result = CliRunner().invoke(
-        app,
-        [
-            "integrations",
-            "setup",
-            "prometheus",
-            "--env-file",
-            str(tmp_path / "env"),
-            "--input-file",
-            str(config),
-            "--dry-run",
-        ],
-    )
+    config.write_text('{"enabled":true,"url":"https://example.com","api_key":{"env":"SETUP_KEY"}}')
+    with pytest.MonkeyPatch.context() as monkeypatch:
+        monkeypatch.setenv("SETUP_KEY", "private")
+        result = CliRunner().invoke(
+            app,
+            [
+                "integrations",
+                "setup",
+                "financial_datasets",
+                "--env-file",
+                str(tmp_path / "env"),
+                "--input-file",
+                str(config),
+                "--dry-run",
+            ],
+        )
     assert result.exit_code == 0, result.output
     assert not (tmp_path / "env").exists()
 
@@ -61,14 +68,15 @@ def test_setup_cli_dryrun(tmp_path):
 def test_list_cli():
     result = CliRunner().invoke(app, ["integrations", "list", "--env-file", "nonexistent.env"])
     assert result.exit_code == 0, result.output
-    assert "prometheus" in result.output
+    assert "yahoo" in result.output
+    assert "financial_datasets" in result.output
 
 
 def test_missing_proposed_value_cannot_inherit_process_env(tmp_path, monkeypatch):
-    monkeypatch.setenv("PROMETHEUS_URL", "https://ambient.example")
-    monkeypatch.setenv("PROMETHEUS_ENABLED", "true")
+    monkeypatch.setenv("FINANCIAL_DATASETS_API_KEY", "ambient")
+    monkeypatch.setenv("FINANCIAL_DATASETS_ENABLED", "true")
     with pytest.raises(ValueError):
-        update_env("prometheus", {"enabled": True}, tmp_path / "env")
+        update_env("financial_datasets", {"enabled": True}, tmp_path / "env")
 
 
 def test_verify_failure_preserves_original(tmp_path):
@@ -76,8 +84,8 @@ def test_verify_failure_preserves_original(tmp_path):
     path.write_text("# preserved\n")
     with pytest.raises(ValueError):
         update_env(
-            "prometheus",
-            {"enabled": True, "url": "https://example.com"},
+            "financial_datasets",
+            {"enabled": True, "url": "https://example.com", "api_key": "private"},
             path,
             verify=lambda _: False,
         )
@@ -86,13 +94,13 @@ def test_verify_failure_preserves_original(tmp_path):
 
 def test_cli_refuses_literal_secret(tmp_path):
     config = tmp_path / "input.json"
-    config.write_text('{"enabled":true,"url":"https://example.com","token":"do-not-print"}')
+    config.write_text('{"enabled":true,"url":"https://example.com","api_key":"do-not-print"}')
     result = CliRunner().invoke(
         app,
         [
             "integrations",
             "setup",
-            "prometheus",
+            "financial_datasets",
             "--env-file",
             str(tmp_path / "env"),
             "--input-file",
@@ -107,13 +115,15 @@ def test_cli_refuses_literal_secret(tmp_path):
 def test_cli_env_reference_secret(tmp_path, monkeypatch):
     monkeypatch.setenv("SETUP_TOKEN", "do-not-print")
     config = tmp_path / "input.json"
-    config.write_text('{"enabled":true,"url":"https://example.com","token":{"env":"SETUP_TOKEN"}}')
+    config.write_text(
+        '{"enabled":true,"url":"https://example.com","api_key":{"env":"SETUP_TOKEN"}}'
+    )
     result = CliRunner().invoke(
         app,
         [
             "integrations",
             "setup",
-            "prometheus",
+            "financial_datasets",
             "--env-file",
             str(tmp_path / "env"),
             "--input-file",
@@ -122,23 +132,6 @@ def test_cli_env_reference_secret(tmp_path, monkeypatch):
     )
     assert result.exit_code == 0, result.output
     assert "do-not-print" not in result.output
-
-
-def test_wave2_setup_fields(tmp_path):
-    from fin_graph.integrations.setup import settings_models
-
-    assert "gitlab" in settings_models()
-    update_env(
-        "gitlab",
-        {
-            "enabled": True,
-            "url": "https://gitlab.example",
-            "token": "secret",
-            "project": "group/project",
-        },
-        tmp_path / "env",
-    )
-    assert "GITLAB_PROJECT" in (tmp_path / "env").read_text()
 
 
 def test_verification_cannot_overwrite_external_edit(tmp_path):
@@ -151,7 +144,10 @@ def test_verification_cannot_overwrite_external_edit(tmp_path):
 
     with pytest.raises(ValueError):
         update_env(
-            "prometheus", {"enabled": True, "url": "https://example.com"}, path, verify=verify
+            "financial_datasets",
+            {"enabled": True, "url": "https://example.com", "api_key": "private"},
+            path,
+            verify=verify,
         )
     assert path.read_text() == "OTHER=external\n"
 
@@ -161,8 +157,12 @@ def test_multiline_secret_roundtrip(tmp_path):
 
     path = tmp_path / "env"
     value = "first\nsecond'last\\suffix"
-    update_env("prometheus", {"enabled": True, "url": "https://example.com", "token": value}, path)
-    assert dotenv_values(path)["PROMETHEUS_TOKEN"] == value
+    update_env(
+        "financial_datasets",
+        {"enabled": True, "url": "https://example.com", "api_key": value},
+        path,
+    )
+    assert dotenv_values(path)["FINANCIAL_DATASETS_API_KEY"] == value
 
 
 def test_cli_setup_verify_failure_leaves_old_file(tmp_path, monkeypatch):
@@ -175,13 +175,14 @@ def test_cli_setup_verify_failure_leaves_old_file(tmp_path, monkeypatch):
     path = tmp_path / "env"
     path.write_text("# unchanged\n")
     config = tmp_path / "input.json"
-    config.write_text('{"enabled":true,"url":"https://example.com"}')
+    monkeypatch.setenv("SETUP_KEY", "private")
+    config.write_text('{"enabled":true,"url":"https://example.com","api_key":{"env":"SETUP_KEY"}}')
     result = CliRunner().invoke(
         app,
         [
             "integrations",
             "setup",
-            "prometheus",
+            "financial_datasets",
             "--env-file",
             str(path),
             "--input-file",
@@ -198,11 +199,11 @@ def test_replacing_multiline_binding_does_not_activate_continuations(tmp_path):
 
     path = tmp_path / "env"
     path.write_text(
-        '# keep\nPROMETHEUS_ENABLED=true\nPROMETHEUS_URL=https://example.com\nPROMETHEUS_TOKEN="old\nOTHER=must-not-activate"\nUNRELATED=preserve\n'
+        '# keep\nFINANCIAL_DATASETS_ENABLED=true\nFINANCIAL_DATASETS_URL=https://example.com\nFINANCIAL_DATASETS_API_KEY="old\nOTHER=must-not-activate"\nUNRELATED=preserve\n'
     )
-    update_env("prometheus", {"token": "new"}, path)
+    update_env("financial_datasets", {"api_key": "new"}, path)
     values = dotenv_values(path)
-    assert values["PROMETHEUS_TOKEN"] == "new"
+    assert values["FINANCIAL_DATASETS_API_KEY"] == "new"
     assert "OTHER" not in values
     assert values["UNRELATED"] == "preserve"
     assert "# keep" in path.read_text()

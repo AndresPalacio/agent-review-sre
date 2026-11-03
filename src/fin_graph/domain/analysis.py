@@ -1,6 +1,6 @@
 """The analysis plan (falsifiable theses and analyst tasks) and what each analyst reports back.
 
-Same shape as the incident investigation: the planner states hypotheses with what would confirm
+The planner states hypotheses with what would confirm
 or refute them, each analyst domain gets one task, and every finding cites evidence ids. A
 finding adds one signal per ticker, so the portfolio step can read the vote directly.
 """

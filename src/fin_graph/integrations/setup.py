@@ -18,18 +18,6 @@ from pydantic_settings import BaseSettings
 _BUILTINS = {
     "yahoo": ("yahoo", "YahooSettings"),
     "financial_datasets": ("financial_datasets", "FinancialDatasetsSettings"),
-    "kubernetes": ("kubernetes", "KubernetesSettings"),
-    "prometheus": ("prometheus", "PrometheusSettings"),
-    "mimir": ("prometheus", "MimirSettings"),
-    "alertmanager": ("alertmanager", "AlertmanagerSettings"),
-    "grafana": ("grafana", "GrafanaSettings"),
-    "loki": ("loki", "LokiSettings"),
-    "tempo": ("tempo", "TempoSettings"),
-    "datadog": ("datadog", "DatadogSettings"),
-    "newrelic": ("newrelic", "NewRelicSettings"),
-    "aws": ("aws", "AwsSettings"),
-    "sentry": ("sentry", "SentrySettings"),
-    "github": ("github", "GitHubSettings"),
 }
 
 
@@ -38,12 +26,6 @@ def settings_models() -> dict[str, type[BaseSettings]]:
         name: getattr(importlib.import_module(f"fin_graph.integrations.{module}.settings"), cls)
         for name, (module, cls) in _BUILTINS.items()
     }
-    try:
-        from fin_graph.integrations.wave2.settings import WAVE2_SETTINGS
-
-        models.update(WAVE2_SETTINGS)
-    except ImportError:
-        pass
     return models
 
 
@@ -145,16 +127,11 @@ async def verify_proposed(integration: str, settings: BaseSettings) -> bool:
 
     from fin_graph.integrations.base import VerifyStatus
 
-    if integration in _BUILTINS:
-        module, settings_name = _BUILTINS[integration]
-        adapter = getattr(
-            importlib.import_module(f"fin_graph.integrations.{module}.integration"),
-            settings_name.replace("Settings", "Integration"),
-        )()
-    else:
-        from fin_graph.integrations.wave2 import wave2_integrations
-
-        adapter = next(item for item in wave2_integrations() if item.id == integration)
+    module, settings_name = _BUILTINS[integration]
+    adapter = getattr(
+        importlib.import_module(f"fin_graph.integrations.{module}.integration"),
+        settings_name.replace("Settings", "Integration"),
+    )()
     client = adapter.build_client(settings)
     async with asyncio.timeout(20):
         result = await adapter.verify(client)

@@ -10,7 +10,6 @@ from langchain_core.messages import ToolMessage
 from langchain_core.tools import tool
 
 from fin_graph.domain.tools import Domain, EvidenceType, SideEffectLevel, ToolMeta, attach_tool_meta
-from fin_graph.graphs.investigation.specialists import read_tools
 from fin_graph.integrations.mcp.runtime import _bounded_tool, with_configured_mcp
 from fin_graph.integrations.registry import IntegrationRegistry
 
@@ -49,7 +48,7 @@ async def test_configured_mcp_routes_reads_and_sanitizes_artifacts(tmp_path: Pat
                         "command": "not-executed",
                         "tools": {
                             "logs": {
-                                "domains": ["logs"],
+                                "domains": ["fundamentals"],
                                 "evidence_type": "logs",
                                 "side_effect_level": "read_only",
                                 "idempotent": True,
@@ -73,7 +72,7 @@ async def test_configured_mcp_routes_reads_and_sanitizes_artifacts(tmp_path: Pat
     context = registry.run_context()
     assert registry.ids == ("mcp:logs", "mcp:broken", "mcp:disabled")
     assert "mcp:broken" in context.unavailable and "private" not in str(context.unavailable)
-    tools = read_tools(registry.tools(context), Domain.LOGS)
+    tools = registry.tools(context, domains={Domain.FUNDAMENTALS})
     assert [item.name for item in tools] == ["logs_logs"]
     result = await tools[0].ainvoke(
         {"name": "logs_logs", "id": "read1", "type": "tool_call", "args": {"service": "checkout"}}
@@ -107,7 +106,7 @@ async def test_mcp_bounds_are_reported_as_sanitized_tool_errors(behavior: str) -
         remote,
         ToolMeta(
             integration="mcp:test",
-            domains=frozenset({Domain.LOGS}),
+            domains=frozenset({Domain.FUNDAMENTALS}),
             evidence_type=EvidenceType.LOGS,
             side_effect_level=SideEffectLevel.READ_ONLY,
             idempotent=True,
@@ -149,7 +148,12 @@ async def test_configured_opaque_credentials_never_leave_mcp_boundary(tmp_path, 
                         "transport": "http",
                         "url": "https://mcp.test",
                         "headers_from_env": {"Authorization": "MCP_PROBE_SECRET"},
-                        "tools": {"echo": {"domains": ["logs"], "side_effect_level": "read_only"}},
+                        "tools": {
+                            "echo": {
+                                "domains": ["fundamentals"],
+                                "side_effect_level": "read_only",
+                            }
+                        },
                     }
                 ]
             }
@@ -182,7 +186,7 @@ async def test_mcp_normalizes_custom_artifacts_before_credential_redaction() -> 
         custom,
         ToolMeta(
             integration="mcp:test",
-            domains=frozenset({Domain.LOGS}),
+            domains=frozenset({Domain.FUNDAMENTALS}),
             evidence_type=EvidenceType.LOGS,
             side_effect_level=SideEffectLevel.READ_ONLY,
             idempotent=True,

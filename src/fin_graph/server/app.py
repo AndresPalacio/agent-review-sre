@@ -223,7 +223,7 @@ def create_app(
             app.state.paper_broker = active_paper
 
             def context_factory() -> RunContext:
-                context = delivery.extend_run_context(active_registry.run_context())
+                context = active_registry.run_context()
                 return replace(context, clients={**context.clients, "paper_broker": active_paper})
 
             app.state.compatibility_context_factory = context_factory

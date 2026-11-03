@@ -178,7 +178,7 @@ async def with_configured_mcp(
     Bad declarations fail startup instead of silently ignoring safety policy. A
     connection failure is isolated to its integration and shown as unavailable.
     Undeclared/mutating tools retain restrictive metadata and existing specialist
-    filters exclude them from investigation and chat read-tool sets.
+    filters exclude them from analysis and chat read-tool sets.
     """
     path = Path(config_path) if config_path is not None else configured_mcp_path(registry)
     if path is None:

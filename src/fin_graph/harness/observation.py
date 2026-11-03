@@ -101,8 +101,8 @@ def _profile_mismatch(stored: dict[str, Any], active: dict[str, Any]) -> str:
     fields = sorted(
         key for key in stored.keys() | active.keys() if stored.get(key) != active.get(key)
     )
-    environment = "FIN_ANALYSIS_*" if active.get("mode") == "analysis" else "FIN_HARNESS_*"
-    run_kind = "analysis" if active.get("mode") == "analysis" else "investigation"
+    environment = "FIN_ANALYSIS_*"
+    run_kind = "analysis"
     return (
         "checkpoint harness profile differs from the active runtime: "
         f"variant {str(stored.get('variant'))[:19]} -> {str(active.get('variant'))[:19]}; "

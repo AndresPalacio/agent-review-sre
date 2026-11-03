@@ -4,25 +4,20 @@ from __future__ import annotations
 
 import hashlib
 import json
-from dataclasses import dataclass, replace
+from dataclasses import dataclass
 from enum import StrEnum
 from typing import Any, Protocol, cast
 
 from pydantic import ValidationError
 
-from fin_graph.delivery.client import PagerDutyClient, SlackClient, TelegramClient
-from fin_graph.delivery.settings import PagerDutySettings, SlackSettings, TelegramSettings
+from fin_graph.delivery.client import SlackClient, TelegramClient
+from fin_graph.delivery.settings import SlackSettings, TelegramSettings
 from fin_graph.domain.analysis_report import AnalysisReport
 from fin_graph.domain.rendering.analysis import (
     render_analysis_slack,
     render_analysis_telegram,
 )
-from fin_graph.domain.rendering.pagerduty import render_pagerduty_note
-from fin_graph.domain.rendering.slack import render_slack
-from fin_graph.domain.rendering.telegram import render_telegram
-from fin_graph.domain.report import Report
 from fin_graph.integrations.base import VerifyResult, VerifyStatus
-from fin_graph.integrations.context import RunContext
 from fin_graph.safety.secrets import redact_secrets, redact_value
 
 
@@ -53,23 +48,14 @@ class DeliveryService:
         self,
         slack: SlackClient | None = None,
         telegram: TelegramClient | None = None,
-        pagerduty: PagerDutyClient | None = None,
         *,
         ledger: DeliveryLedger | None = None,
     ) -> None:
         self.ledger = ledger
-        self.clients: dict[str, SlackClient | TelegramClient | PagerDutyClient | None] = {
+        self.clients: dict[str, SlackClient | TelegramClient | None] = {
             "slack": slack,
             "telegram": telegram,
-            "pagerduty": pagerduty,
         }
-
-    def extend_run_context(self, base: RunContext) -> RunContext:
-        """Expose PagerDuty to approved actions without checkpointing credentials."""
-        pagerduty = self.clients["pagerduty"]
-        if pagerduty is None:
-            return base
-        return replace(base, clients={**base.clients, "pagerduty": pagerduty})
 
     @classmethod
     def from_env(
@@ -78,7 +64,6 @@ class DeliveryService:
         try:
             slack = SlackSettings(_env_file=env_file)
             telegram = TelegramSettings(_env_file=env_file)
-            pagerduty = PagerDutySettings(_env_file=env_file)
         except ValidationError:
             raise ValueError("delivery settings are invalid") from None
         return cls(
@@ -91,13 +76,6 @@ class DeliveryService:
                 telegram.token.get_secret_value(), timeout_seconds=telegram.request_timeout_seconds
             )
             if telegram.enabled and telegram.token
-            else None,
-            PagerDutyClient(
-                pagerduty.token.get_secret_value(),
-                pagerduty.from_email,
-                timeout_seconds=pagerduty.request_timeout_seconds,
-            )
-            if pagerduty.enabled and pagerduty.token and pagerduty.from_email
             else None,
             ledger=ledger,
         )
@@ -122,21 +100,10 @@ class DeliveryService:
                 )
         return results
 
-    async def send_report(
-        self, report: Report, destinations: dict[str, str], idempotency_key: str
-    ) -> list[DeliveryResult]:
-        """Send once per run/channel/destination when a durable ledger is configured."""
-        payloads: dict[str, Any] = {
-            "slack": cast(dict[str, Any], redact_value(render_slack(report))),
-            "telegram": redact_secrets(render_telegram(report)),
-            "pagerduty": redact_secrets(render_pagerduty_note(report)),
-        }
-        return await self._send("report", payloads, destinations, idempotency_key)
-
     async def send_analysis(
         self, report: AnalysisReport, destinations: dict[str, str], idempotency_key: str
     ) -> list[DeliveryResult]:
-        """Send an analysis report to Slack or Telegram; PagerDuty carries no analyses."""
+        """Send an analysis report to Slack or Telegram."""
         payloads: dict[str, Any] = {
             "slack": cast(dict[str, Any], redact_value(render_analysis_slack(report))),
             "telegram": redact_secrets(render_analysis_telegram(report)),

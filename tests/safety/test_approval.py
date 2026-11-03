@@ -10,7 +10,7 @@ from fin_graph.safety.approval import ApprovalPolicy
 def _meta(level: SideEffectLevel) -> ToolMeta:
     return ToolMeta(
         integration="kubernetes",
-        domains=frozenset({Domain.KUBERNETES}),
+        domains=frozenset({Domain.PORTFOLIO}),
         evidence_type=EvidenceType.TOPOLOGY,
         side_effect_level=level,
     )

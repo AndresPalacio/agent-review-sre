@@ -21,7 +21,7 @@ UNDO_API = tool_call_message("k8s_rollout_undo", {"deployment": "api"}, "c1")
 def _meta(level: SideEffectLevel) -> ToolMeta:
     return ToolMeta(
         integration="kubernetes",
-        domains=frozenset({Domain.KUBERNETES}),
+        domains=frozenset({Domain.PORTFOLIO}),
         evidence_type=EvidenceType.TOPOLOGY,
         side_effect_level=level,
     )

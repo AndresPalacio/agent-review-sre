@@ -1,4 +1,4 @@
-"""Canonical production harnesses (analysis and incident); optimization is a separate command."""
+"""Canonical production financial-analysis harness."""
 
 from __future__ import annotations
 
@@ -13,9 +13,7 @@ from langgraph.graph.state import CompiledStateGraph
 from fin_graph.config.settings import Settings
 from fin_graph.config.tracing import disable_external_tracing
 from fin_graph.delivery.service import DeliveryService
-from fin_graph.domain.alerts.model import NormalizedAlert
 from fin_graph.domain.portfolio import Portfolio
-from fin_graph.domain.window import IncidentWindow
 from fin_graph.graphs.analysis.graph import (
     AnalysisDelivery,
     AnalysisLimits,
@@ -29,75 +27,17 @@ from fin_graph.graphs.analysis.services import (
     UnavailableAnalysisServices,
 )
 from fin_graph.graphs.analysis.snapshots import MarketSnapshotServices
-from fin_graph.graphs.investigation.graph import (
-    InvestigationLimits,
-    ReportDelivery,
-    ToolSource,
-    _compile_investigation_graph,
-)
-from fin_graph.graphs.investigation.services import (
-    InvestigationServices,
-    LangChainServices,
-    UnavailableServices,
-)
 from fin_graph.harness.observation import Observation
-from fin_graph.harness.profile import resolve_analysis_profile, resolve_profile
-from fin_graph.harness.trace import ExecutionTrace, observe_analysis_services, observe_services
+from fin_graph.harness.profile import resolve_analysis_profile
+from fin_graph.harness.trace import ExecutionTrace, observe_analysis_services
 from fin_graph.integrations.catalog import default_registry
 from fin_graph.integrations.context import RunContext
 from fin_graph.integrations.mcp.runtime import configured_mcp_path, with_configured_mcp
 from fin_graph.integrations.registry import IntegrationRegistry
 from fin_graph.llm.models import ModelRole, get_model, missing_credentials
-from fin_graph.memory.service import IncidentMemory
 from fin_graph.memory.theses import ThesisMemory
 from fin_graph.safety.masking import MaskingPolicy
 from fin_graph.safety.trading_limits import TradingLimits
-
-
-def make_investigation_graph(
-    services: InvestigationServices,
-    registry: ToolSource,
-    *,
-    delivery: ReportDelivery | None = None,
-    clock: Callable[[], datetime] = lambda: datetime.now(UTC),
-    limits: InvestigationLimits | None = None,
-    checkpointer: BaseCheckpointSaver[Any] | Literal[False] | None = None,
-    memory: IncidentMemory | None = None,
-    replay_intake: tuple[NormalizedAlert, IncidentWindow] | None = None,
-    trace: ExecutionTrace | None = None,
-    verify_variant_pin: bool = True,
-) -> CompiledStateGraph[Any, Any, Any, Any]:
-    profile = resolve_profile(limits=limits, verify_variant_pin=verify_variant_pin)
-    assert isinstance(profile.limits, InvestigationLimits)
-    return _compile_investigation_graph(
-        observe_services(services),
-        registry,
-        delivery=delivery,
-        clock=clock,
-        limits=profile.limits,
-        checkpointer=checkpointer,
-        memory=memory,
-        replay_intake=replay_intake,
-        instrument=Observation(profile, trace).wrap,
-    )
-
-
-def make_runtime() -> tuple[CompiledStateGraph[Any, Any, Any, Any], RunContext]:
-    """Create a graph and fresh clients; credentials stay in RunContext, not graph state."""
-    disable_external_tracing()
-    settings = Settings()
-    registry = _sync_registry()
-    services = _services(settings)
-    graph = make_investigation_graph(services, registry, delivery=DeliveryService.from_env())
-    return graph, registry.run_context()
-
-
-def make_runtime_graph() -> CompiledStateGraph[Any, Any, Any, Any]:
-    """Studio target, compiled without a checkpointer or prebuilt provider clients."""
-    disable_external_tracing()
-    settings = Settings()
-    services = _services(settings)
-    return make_investigation_graph(services, _sync_registry(), delivery=DeliveryService.from_env())
 
 
 def _sync_registry() -> IntegrationRegistry:
@@ -109,33 +49,6 @@ def _sync_registry() -> IntegrationRegistry:
     except RuntimeError:
         return asyncio.run(with_configured_mcp(registry))
     raise RuntimeError("Configured MCP requires await make_runtime_async() in an async caller")
-
-
-async def make_runtime_async() -> tuple[CompiledStateGraph[Any, Any, Any, Any], RunContext]:
-    """Async entry point for callers already running an event loop."""
-    disable_external_tracing()
-    registry = await with_configured_mcp(default_registry())
-    graph = make_investigation_graph(
-        _services(Settings()), registry, delivery=DeliveryService.from_env()
-    )
-    return graph, registry.run_context()
-
-
-async def make_runtime_graph_async() -> CompiledStateGraph[Any, Any, Any, Any]:
-    """Studio discovers MCP asynchronously; the graph opens native clients per run."""
-    disable_external_tracing()
-    registry = await with_configured_mcp(default_registry())
-    return make_investigation_graph(
-        _services(Settings()), registry, delivery=DeliveryService.from_env()
-    )
-
-
-def _services(settings: Settings) -> InvestigationServices:
-    try:
-        models = {role: get_model(role, settings) for role in ModelRole}
-    except Exception:
-        return UnavailableServices()
-    return LangChainServices(models, masking_policy=MaskingPolicy.from_settings(settings))
 
 
 def analyst_mode(settings: Settings) -> AnalystMode:

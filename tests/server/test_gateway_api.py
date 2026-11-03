@@ -19,15 +19,12 @@ from tests.server.finance_app import (
 )
 
 from fin_graph.domain.orders import OrderAction, ProposedOrder
-from fin_graph.graphs.investigation.graph import make_investigation_graph
-from fin_graph.graphs.investigation.services import UnavailableServices
 from fin_graph.graphs.orders.desk import OrderDesk
 from fin_graph.graphs.orders.graph import make_order_graph
 from fin_graph.integrations.context import RunContext
 from fin_graph.integrations.registry import IntegrationRegistry
 from fin_graph.safety.approval import ApprovalPolicy
 from fin_graph.server.app import _gateway_decide, create_app
-from fin_graph.server.manager import RunManager
 from fin_graph.server.storage import Base, Storage
 
 
@@ -66,10 +63,9 @@ async def test_gateway_routes_are_optional_and_delegate_verified_payloads(tmp_pa
     async with engine.begin() as connection:
         await connection.run_sync(Base.metadata.create_all)
     registry = IntegrationRegistry([], env_file=None)
-    graph = make_investigation_graph(UnavailableServices(), registry, checkpointer=InMemorySaver())
     slack, telegram = SlackStub(), TelegramStub()
     app = create_app(
-        manager=RunManager(graph, Storage(engine), RunContext),
+        manager=analysis_manager(Storage(engine), fixture_context()),
         registry=registry,
         slack_gateway=slack,
         telegram_gateway=telegram,

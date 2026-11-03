@@ -15,8 +15,6 @@ from tests.server.finance_app import (
 )
 from typer.testing import CliRunner
 
-from fin_graph.graphs.investigation.services import UnavailableServices
-from fin_graph.integrations.registry import IntegrationRegistry
 from fin_graph.scheduler.market import MarketJobs
 from fin_graph.server.app import create_app
 from fin_graph.server.security import WebhookVerifier
@@ -96,18 +94,3 @@ def test_cli_runtime_is_machine_readable_and_needs_no_optimizer(monkeypatch):
     result = CliRunner().invoke(app, ["harness", "runtime"])
     assert result.exit_code == 0, result.output
     assert json.loads(result.output)["mode"] == "analysis"
-
-
-def test_cli_default_investigation_uses_harness_variant_pin(monkeypatch):
-    from fin_graph.cli.main import app
-    from fin_graph.harness import runtime
-
-    monkeypatch.setattr(runtime, "default_registry", lambda: IntegrationRegistry([], env_file=None))
-    monkeypatch.setattr(runtime, "_services", lambda settings: UnavailableServices())
-    runner = CliRunner()
-    passed = runner.invoke(app, ["investigate", "--text", '{"title":"API error"}'])
-    assert passed.exit_code == 0, passed.output
-    assert "API error" in passed.output
-    monkeypatch.setenv("FIN_HARNESS_EXPECTED_VARIANT", "wrong")
-    rejected = runner.invoke(app, ["investigate", "--text", '{"title":"API error"}'])
-    assert rejected.exit_code == 1

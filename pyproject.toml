@@ -17,10 +17,8 @@ dependencies = [
     "aiosqlite>=0.22.1",
     "pydantic>=2.13",
     "pydantic-settings>=2.15",
-    "kubernetes>=37.0.0",
     "urllib3>=2.8,<3",
     "httpx>=0.28,<0.29",
-    "boto3>=1.40,<2",
     "langchain-mcp-adapters>=0.3.2,<0.4",
     "typer>=0.27.3",
     "rich>=15.0.0",
@@ -139,8 +137,6 @@ plugins = ["pydantic.mypy"]
 mypy_path = "src"
 packages = ["fin_graph"]
 exclude = ["^src/fin_graph/skills/finance/"]
-# The Kubernetes SDK types its API classes but not its kubeconfig loaders.
-untyped_calls_exclude = ["kubernetes.config"]
 
 [[tool.mypy.overrides]]
 module = ["apscheduler.*"]

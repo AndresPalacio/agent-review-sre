@@ -24,7 +24,7 @@ def list_pods(namespace: str) -> str:
 def _meta(**overrides: Any) -> ToolMeta:
     values: dict[str, Any] = {
         "integration": "kubernetes",
-        "domains": frozenset({Domain.KUBERNETES, Domain.LOGS}),
+        "domains": frozenset({Domain.FUNDAMENTALS, Domain.TECHNICALS}),
         "evidence_type": EvidenceType.TOPOLOGY,
     }
     values.update(overrides)
@@ -34,7 +34,7 @@ def _meta(**overrides: Any) -> ToolMeta:
 def test_metadata_is_flat_and_json_friendly() -> None:
     assert _meta().as_metadata() == {
         "integration": "kubernetes",
-        "domains": ["kubernetes", "logs"],
+        "domains": ["fundamentals", "technicals"],
         "evidence_type": "topology",
         "side_effect_level": "read_only",
         "idempotent": True,

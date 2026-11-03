@@ -1,1 +1,1 @@
-"""Long-term incident memory."""
+"""Long-term financial thesis memory."""

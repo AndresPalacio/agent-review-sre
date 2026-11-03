@@ -1,4 +1,4 @@
-"""Validated, progressively disclosed SRE and finance skills."""
+"""Validated, progressively disclosed finance skills."""
 
 from fin_graph.skills.catalog import (
     SKILLS,
