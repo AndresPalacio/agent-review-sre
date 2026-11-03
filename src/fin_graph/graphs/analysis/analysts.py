@@ -7,6 +7,7 @@ from dataclasses import dataclass
 
 from langchain_core.tools import BaseTool
 
+from fin_graph.domain.analysts import AnalystId
 from fin_graph.domain.tools import ANALYST_DOMAINS, Domain, SideEffectLevel, read_tool_meta
 
 
@@ -16,6 +17,7 @@ class AnalystSpec:
     description: str
     prompt: str
     compute_tool: str
+    analyst_id: AnalystId
     max_tool_calls: int = 8
     max_model_calls: int = 8
 
@@ -26,36 +28,42 @@ ANALYSTS: dict[Domain, AnalystSpec] = {
         "Profitability, growth, financial health and price ratios",
         "You are the fundamentals analyst.",
         "compute_fundamentals",
+        AnalystId.FUNDAMENTALS_ANALYST,
     ),
     Domain.VALUATION: AnalystSpec(
         Domain.VALUATION,
         "Intrinsic value by DCF, owner earnings, EV/EBITDA and residual income",
         "You are the valuation analyst. Compare intrinsic value with the market cap.",
         "compute_valuation",
+        AnalystId.VALUATION_ANALYST,
     ),
     Domain.TECHNICALS: AnalystSpec(
         Domain.TECHNICALS,
         "Trend, mean reversion, momentum and volatility from prices",
         "You are the technical analyst. Prices describe timing, not value.",
         "compute_technicals",
+        AnalystId.TECHNICAL_ANALYST,
     ),
     Domain.SENTIMENT: AnalystSpec(
         Domain.SENTIMENT,
         "Insider activity and headline tone",
         "You are the sentiment analyst. Headlines are noisy; persistence matters.",
         "compute_sentiment",
+        AnalystId.SENTIMENT_ANALYST,
     ),
     Domain.BUFFETT: AnalystSpec(
         Domain.BUFFETT,
         "Moat, consistency, pricing power, management and owner-earnings value",
         "You apply Warren Buffett's principles: quality at a sensible price.",
         "compute_buffett",
+        AnalystId.WARREN_BUFFETT,
     ),
     Domain.GRAHAM: AnalystSpec(
         Domain.GRAHAM,
         "Earnings stability, balance-sheet strength, net-net and Graham Number",
         "You apply Benjamin Graham's principles: a margin of safety first.",
         "compute_graham",
+        AnalystId.BEN_GRAHAM,
     ),
 }
 assert tuple(ANALYSTS) == ANALYST_DOMAINS
