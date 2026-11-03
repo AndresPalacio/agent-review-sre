@@ -8,7 +8,7 @@ import pytest
 
 pytest.importorskip("better_harness")
 
-CONFIG = Path(__file__).resolve().parents[2] / "harness" / "fin.toml"
+CONFIG = Path(__file__).resolve().parents[3] / "optimization" / "fin.toml"
 
 
 @pytest.mark.parametrize(
@@ -20,8 +20,8 @@ async def test_loop_keeps_train_gain_but_rejects_paired_holdout_regression(
     from better_harness.core import CaseOutcome, Proposal, SplitResult
     from better_harness.patching import build_variant
 
-    import fin_graph.harness.experiment as loop
-    from fin_graph.harness.runner import SplitEvaluation
+    import fin_graph.optimization.harness.experiment as loop
+    from fin_graph.optimization.harness.runner import SplitEvaluation
 
     calls = []
 
@@ -97,11 +97,11 @@ async def test_official_proposer_adapter_reads_only_allowed_text_edits(tmp_path,
     from better_harness.patching import build_baseline_variant
     from langchain_core.messages import AIMessage
 
-    import fin_graph.harness.proposer as outer
+    import fin_graph.optimization.harness.proposer as outer
     from fin_graph.agents.common.testing.scripted_model import ScriptedChatModel, tool_call_message
-    from fin_graph.harness.configuration import load_config
-    from fin_graph.harness.runner import evaluate_split
-    from fin_graph.harness.surfaces import current_values
+    from fin_graph.optimization.harness.configuration import load_config
+    from fin_graph.optimization.harness.runner import evaluate_split
+    from fin_graph.optimization.harness.surfaces import current_values
 
     config = load_config(CONFIG, model="scripted", repeat=1)
     layout = RunLayout(tmp_path)
@@ -141,8 +141,8 @@ async def test_proposer_rejects_a_surface_symlink_outside_workspace(tmp_path, mo
     from better_harness.core import RunLayout, SplitResult
     from better_harness.patching import build_baseline_variant
 
-    import fin_graph.harness.proposer as outer
-    from fin_graph.harness.configuration import load_config
+    import fin_graph.optimization.harness.proposer as outer
+    from fin_graph.optimization.harness.configuration import load_config
 
     target = tmp_path / "outside.txt"
     target.write_text("must not be used", encoding="utf-8")
@@ -174,8 +174,8 @@ def test_proposer_enforces_timeout_without_materializing_candidate(tmp_path, mon
     from better_harness.core import RunLayout, SplitResult
     from better_harness.patching import build_baseline_variant
 
-    from fin_graph.harness.configuration import load_config
-    from fin_graph.harness.proposer import propose_candidate
+    from fin_graph.optimization.harness.configuration import load_config
+    from fin_graph.optimization.harness.proposer import propose_candidate
 
     config = load_config(CONFIG)
     layout = RunLayout(tmp_path)
@@ -186,7 +186,7 @@ def test_proposer_enforces_timeout_without_materializing_candidate(tmp_path, mon
         assert kwargs["timeout"] == config.options.proposer_timeout == 1800
         raise subprocess.TimeoutExpired(command, kwargs["timeout"])
 
-    monkeypatch.setattr("fin_graph.harness.proposer.subprocess.run", timed_out)
+    monkeypatch.setattr("fin_graph.optimization.harness.proposer.subprocess.run", timed_out)
     with pytest.raises(subprocess.TimeoutExpired):
         propose_candidate(config, baseline, train, layout, 1)
     assert not list(tmp_path.rglob("candidate.json"))
@@ -195,7 +195,7 @@ def test_proposer_enforces_timeout_without_materializing_candidate(tmp_path, mon
 def test_config_rejects_external_proposer_checkout():
     from dataclasses import replace
 
-    from fin_graph.harness.configuration import load_config, validate_config
+    from fin_graph.optimization.harness.configuration import load_config, validate_config
 
     config = load_config(CONFIG)
     config = replace(

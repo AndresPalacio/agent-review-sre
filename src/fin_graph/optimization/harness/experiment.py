@@ -24,14 +24,14 @@ from better_harness.patching import build_baseline_variant
 from fin_graph.evals.market.runner import services_for
 from fin_graph.evals.market.scenarios import load_equity_suite
 from fin_graph.evals.market.trajectory import contract_for
-from fin_graph.harness.artifacts import save_source_baseline
-from fin_graph.harness.configuration import HarnessConfig, load_config
-from fin_graph.harness.dataset import SPLITS, Split
-from fin_graph.harness.proposer import propose_candidate
-from fin_graph.harness.quality import acceptance_decision
-from fin_graph.harness.runner import SplitEvaluation, evaluate_split, write_json
-from fin_graph.harness.surfaces import validate_values
 from fin_graph.llm.models import missing_credentials, parse_model_spec
+from fin_graph.optimization.harness.artifacts import save_source_baseline
+from fin_graph.optimization.harness.configuration import HarnessConfig, load_config
+from fin_graph.optimization.harness.dataset import SPLITS, Split
+from fin_graph.optimization.harness.proposer import propose_candidate
+from fin_graph.optimization.harness.quality import acceptance_decision
+from fin_graph.optimization.harness.runner import SplitEvaluation, evaluate_split, write_json
+from fin_graph.optimization.harness.surfaces import validate_values
 from fin_graph.safety.secrets import redact_secrets
 
 Proposer = Callable[[HarnessConfig, Variant, SplitResult, RunLayout, int], tuple[Proposal, Variant]]

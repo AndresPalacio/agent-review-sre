@@ -6,7 +6,7 @@ import pytest
 
 
 def test_manifest_covers_corpus_and_keeps_related_cases_together():
-    from fin_graph.harness.dataset import load_manifest
+    from fin_graph.optimization.harness.dataset import load_manifest
 
     manifest = load_manifest()
     assert len(manifest.cases) == 16
@@ -27,7 +27,7 @@ def test_manifest_covers_corpus_and_keeps_related_cases_together():
 
 
 def test_manifest_rejects_leakage_duplicates_and_stale_corpus():
-    from fin_graph.harness.dataset import load_manifest, validate_manifest
+    from fin_graph.optimization.harness.dataset import load_manifest, validate_manifest
 
     manifest = load_manifest()
     changes = (
@@ -93,7 +93,7 @@ def good_record():
     ],
 )
 def test_quality_gate_rejects_wrong_or_unsupported_theses(field, value, reason):
-    from fin_graph.harness.quality import assess_record
+    from fin_graph.optimization.harness.quality import assess_record
 
     record = good_record()
     assert assess_record(record) == []
@@ -112,7 +112,7 @@ def test_quality_gate_rejects_wrong_or_unsupported_theses(field, value, reason):
     ],
 )
 def test_quality_gate_rejects_unsupported_runs(field, value):
-    from fin_graph.harness.quality import assess_record
+    from fin_graph.optimization.harness.quality import assess_record
 
     record = good_record()
     record["score"][field] = value
@@ -120,7 +120,7 @@ def test_quality_gate_rejects_unsupported_runs(field, value):
 
 
 def test_quality_gate_rejects_failed_execution_and_external_effects():
-    from fin_graph.harness.quality import assess_record
+    from fin_graph.optimization.harness.quality import assess_record
 
     for patch in (
         {"status": "blocked"},
@@ -133,7 +133,7 @@ def test_quality_gate_rejects_failed_execution_and_external_effects():
 
 
 def test_acceptance_requires_train_gain_and_each_previous_holdout_pass():
-    from fin_graph.harness.quality import acceptance_decision
+    from fin_graph.optimization.harness.quality import acceptance_decision
 
     current = {"train": {"a": False, "b": False}, "holdout": {"c": True, "d": False}}
     candidate = copy.deepcopy(current)

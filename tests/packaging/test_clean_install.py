@@ -33,6 +33,7 @@ def test_wheel_contains_app_static_and_every_compatibility_namespace(tmp_path: P
         for namespace in ("fin_graph/", "src/", "v2/", "app/"):
             assert any(name.startswith(namespace) for name in names)
         assert not any("ai-hedge-fund" in name.lower() for name in names)
+        assert not any(name.endswith("optimization/fin.toml") for name in names)
         assert not any(name.endswith((".sqlite", ".db", ".env", ".key")) for name in names)
 
 
@@ -42,7 +43,7 @@ def test_extracted_wheel_imports_without_repository_on_pythonpath(tmp_path: Path
     with zipfile.ZipFile(wheel) as archive:
         archive.extractall(extracted)
     code = """
-import pathlib, sys
+import builtins, pathlib, sys
 root = pathlib.Path(sys.argv[1]).resolve()
 repository = pathlib.Path.cwd().resolve()
 outside_repository = [
@@ -50,8 +51,15 @@ outside_repository = [
     if item and pathlib.Path(item).resolve() != repository
 ]
 sys.path[:] = [str(root), *outside_repository]
+original_import = builtins.__import__
+def guarded_import(name, *args, **kwargs):
+    if name == 'better_harness' or name.startswith('better_harness.'):
+        raise AssertionError(f'production import attempted optional dependency: {name}')
+    return original_import(name, *args, **kwargs)
+builtins.__import__ = guarded_import
 import fin_graph
 from fin_graph.cli.main import app
+from fin_graph.evals.market import runner as market_runner
 from fin_graph.server.factory import RuntimeProfile
 from src.main import run_hedge_fund
 from app.backend.main import app as legacy_app
@@ -60,6 +68,7 @@ assert callable(run_hedge_fund)
 assert legacy_app.title
 assert RuntimeProfile.local(data_dir=root / 'data').backend == 'sqlite'
 assert app.info.help
+assert market_runner.run_equity_suite
 """
     environment = os.environ.copy()
     environment.pop("PYTHONPATH", None)

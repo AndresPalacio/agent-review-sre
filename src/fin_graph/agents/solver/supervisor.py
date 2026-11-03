@@ -354,7 +354,7 @@ def _supervisor() -> CompiledStateGraph[Any, Any, Any, Any]:
     )
 
 
-def make_solver_child(
+def _make_solver_child(
     role: Literal["fundamentals", "technicals"],
 ) -> CompiledStateGraph[Any, Any, Any, Any]:
     model = _model(role)
@@ -385,12 +385,12 @@ async def supervisor(config: RunnableConfig) -> CompiledStateGraph[Any, Any, Any
 
 async def fundamentals(config: RunnableConfig) -> CompiledStateGraph[Any, Any, Any, Any]:
     """Build the fundamentals child with native Deep Agents parent notification."""
-    return await asyncio.to_thread(make_solver_child, "fundamentals")
+    return await asyncio.to_thread(_make_solver_child, "fundamentals")
 
 
 async def technicals(config: RunnableConfig) -> CompiledStateGraph[Any, Any, Any, Any]:
     """Build the technicals child with native Deep Agents parent notification."""
-    return await asyncio.to_thread(make_solver_child, "technicals")
+    return await asyncio.to_thread(_make_solver_child, "technicals")
 
 
 SOLVER_AGENT_DESCRIPTORS = (

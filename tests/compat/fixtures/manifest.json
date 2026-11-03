@@ -307,7 +307,7 @@
       "status": "verified"
     },
     {
-      "candidate_digest": "c2c0a15db4bbb29dcb8643250741c5775d1988fb151f6e32f4c674fb8039333b",
+      "candidate_digest": "290199720731524d7ff97e827fd92336f8fad9e4edca80ffc810b3b5cb5977e8",
       "comparison_rule": "exact",
       "evidence_command": "uv run pytest tests/packaging/test_clean_install.py::test_extracted_wheel_imports_without_repository_on_pythonpath -q",
       "id": "clean-wheel-imports-and-static-ui",

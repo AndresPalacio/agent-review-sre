@@ -155,14 +155,34 @@ root_package = "fin_graph"
 name = "fin-graph layers (dependencies point downward only)"
 type = "layers"
 layers = [
-    "fin_graph.graphs",
+    "fin_graph.runtime",
+    "fin_graph.workflows",
     "fin_graph.agents",
+    "fin_graph.trading",
     "fin_graph.integrations",
     "fin_graph.safety",
     "fin_graph.domain",
     "fin_graph.llm | fin_graph.persistence",
     "fin_graph.config",
 ]
+
+[[tool.importlinter.contracts]]
+name = "product runtime cannot import optional optimization"
+type = "forbidden"
+source_modules = [
+    "fin_graph.agents",
+    "fin_graph.domain",
+    "fin_graph.evals",
+    "fin_graph.integrations",
+    "fin_graph.llm",
+    "fin_graph.persistence",
+    "fin_graph.runtime",
+    "fin_graph.safety",
+    "fin_graph.server",
+    "fin_graph.trading",
+    "fin_graph.workflows",
+]
+forbidden_modules = ["fin_graph.optimization"]
 
 [tool.uv.sources]
 better-harness = { git = "https://github.com/langchain-ai/deepagents.git", subdirectory = "examples/better-harness", rev = "be75459c444b53d21d633ef2ab997a01d0739c71" }

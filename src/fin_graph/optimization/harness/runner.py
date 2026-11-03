@@ -10,10 +10,10 @@ from typing import Any
 
 from better_harness.core import CaseOutcome, RunLayout, SplitResult, Variant
 
-from fin_graph.harness.configuration import HarnessConfig
-from fin_graph.harness.dataset import Split
-from fin_graph.harness.execution import execute_variant
-from fin_graph.harness.quality import assess_record
+from fin_graph.optimization.harness.configuration import HarnessConfig
+from fin_graph.optimization.harness.dataset import Split
+from fin_graph.optimization.harness.execution import execute_variant
+from fin_graph.optimization.harness.quality import assess_record
 from fin_graph.safety.secrets import redact_secrets
 
 

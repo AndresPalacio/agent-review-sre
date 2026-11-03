@@ -15,8 +15,8 @@ from typing import Any
 
 from better_harness.core import Variant
 
-from fin_graph.harness.configuration import HarnessConfig
-from fin_graph.harness.surfaces import FILE_SURFACES, SURFACES, validate_values
+from fin_graph.optimization.harness.configuration import HarnessConfig
+from fin_graph.optimization.harness.surfaces import FILE_SURFACES, SURFACES, validate_values
 from fin_graph.runtime.profile import resolve_analysis_profile
 from fin_graph.safety.secrets import redact_secrets
 
@@ -59,7 +59,7 @@ def execute_variant(
             LANGSMITH_TRACING="false",
         )
         env.pop("BETTER_HARNESS_VARIANT_FILE", None)
-        command = [sys.executable, "-m", "fin_graph.harness.worker", str(request)]
+        command = [sys.executable, "-m", "fin_graph.optimization.harness.worker", str(request)]
         with subprocess.Popen(
             command,
             cwd=root,

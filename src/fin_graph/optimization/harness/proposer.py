@@ -26,10 +26,10 @@ from fin_graph.agents.optimizer.proposer import make_optimizer_agent
 from fin_graph.config.settings import Settings
 from fin_graph.evals.market.scenarios import load_equity_case
 from fin_graph.evals.market.trajectory import contract_for
-from fin_graph.harness.configuration import HarnessConfig, load_config
-from fin_graph.harness.runner import write_json
-from fin_graph.harness.surfaces import validate_values
 from fin_graph.llm.models import build_chat_model, parse_model_spec
+from fin_graph.optimization.harness.configuration import HarnessConfig, load_config
+from fin_graph.optimization.harness.runner import write_json
+from fin_graph.optimization.harness.surfaces import validate_values
 from fin_graph.safety.secrets import redact_secrets
 
 #: Room for the system prompt, task file and the surface files a proposer reads and rewrites.
@@ -178,7 +178,7 @@ def propose_candidate(
     command = [
         sys.executable,
         "-m",
-        "fin_graph.harness.proposer",
+        "fin_graph.optimization.harness.proposer",
         str(config.experiment.path),
         "--root",
         str(layout.root),

@@ -12,10 +12,12 @@ def make_run(tmp_path):
     from better_harness.core import RunLayout
     from better_harness.patching import build_baseline_variant, build_variant
 
-    from fin_graph.harness.artifacts import save_source_baseline
-    from fin_graph.harness.configuration import load_config
+    from fin_graph.optimization.harness.artifacts import save_source_baseline
+    from fin_graph.optimization.harness.configuration import load_config
 
-    config = load_config(Path(__file__).resolve().parents[2] / "harness/fin.toml", model="scripted")
+    config = load_config(
+        Path(__file__).resolve().parents[3] / "optimization/fin.toml", model="scripted"
+    )
     layout = RunLayout(tmp_path / "run")
     layout.root.mkdir()
     save_source_baseline(config.experiment.workspace_root, layout.root)
@@ -36,7 +38,7 @@ def make_run(tmp_path):
 
 
 def test_export_contains_reviewable_files_diff_and_qualification(tmp_path):
-    from fin_graph.harness.artifacts import export_variant
+    from fin_graph.optimization.harness.artifacts import export_variant
 
     run = make_run(tmp_path)
     destination = tmp_path / "review"
@@ -60,7 +62,7 @@ def test_export_contains_reviewable_files_diff_and_qualification(tmp_path):
 
 
 def test_inspection_rejects_variant_path_traversal(tmp_path):
-    from fin_graph.harness.artifacts import inspect_run
+    from fin_graph.optimization.harness.artifacts import inspect_run
 
     run = make_run(tmp_path)
     (run / "summary.json").write_text(json.dumps({"selected_variant": "../../secret"}))
@@ -72,7 +74,7 @@ def test_exported_patch_applies_to_the_captured_source(tmp_path):
     import shutil
     import subprocess
 
-    from fin_graph.harness.artifacts import export_variant
+    from fin_graph.optimization.harness.artifacts import export_variant
 
     run = make_run(tmp_path)
     export = tmp_path / "review"

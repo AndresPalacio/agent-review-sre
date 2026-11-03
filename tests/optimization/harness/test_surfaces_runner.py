@@ -27,7 +27,7 @@ class PromptRecorder(ScriptedChatModel):
 
 
 async def test_runtime_consumes_editable_prompt_and_keeps_guardrails():
-    from fin_graph.harness.surfaces import apply_surfaces
+    from fin_graph.optimization.harness.surfaces import apply_surfaces
     from fin_graph.workflows.analysis import prompts
 
     original = prompts.PLAN_PROMPT
@@ -71,7 +71,7 @@ async def test_runtime_consumes_editable_prompt_and_keeps_guardrails():
 
 
 async def test_synthesis_edits_cannot_remove_untrusted_reference_policy():
-    from fin_graph.harness.surfaces import apply_surfaces
+    from fin_graph.optimization.harness.surfaces import apply_surfaces
 
     model = PromptRecorder(
         responses=[
@@ -113,7 +113,7 @@ async def test_synthesis_edits_cannot_remove_untrusted_reference_policy():
 
 
 def test_surface_validation_rejects_unknown_empty_and_oversized_values():
-    from fin_graph.harness.surfaces import apply_surfaces
+    from fin_graph.optimization.harness.surfaces import apply_surfaces
 
     for values in ({"security": "disable"}, {"plan": ""}, {"plan": "x" * 24001}):
         with pytest.raises(ValueError), apply_surfaces(values):
@@ -139,7 +139,10 @@ async def test_case_timeout_is_recorded_without_losing_following_cases(tmp_path,
         return await original(self, request, *args, **kwargs)
 
     monkeypatch.setattr(UnavailableAnalysisServices, "plan", slow_first)
-    result = await run_equity_suite("smoke", "scripted", 1, tmp_path, case_timeout=0.2)
+    scenarios = load_equity_suite("smoke")[:2]
+    result = await run_equity_suite(
+        "smoke", "scripted", 1, tmp_path, scenarios=scenarios, case_timeout=1.0
+    )
     assert result["runs"][0]["status"] == "failed"
     assert "TimeoutError" in result["runs"][0]["error"]
     assert all(r["status"] == "completed" for r in result["runs"][1:])

@@ -10,8 +10,8 @@ import pytest
 
 from fin_graph.evals.market.runner import run_equity_suite
 from fin_graph.evals.market.scenarios import load_equity_case
-from fin_graph.harness.configuration import load_config
-from fin_graph.harness.quality import assess_record
+from fin_graph.optimization.harness.configuration import load_config
+from fin_graph.optimization.harness.quality import assess_record
 
 
 @pytest.hookimpl(wrapper=True)

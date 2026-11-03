@@ -9,8 +9,8 @@ from pathlib import Path
 from better_harness.core import Experiment, load_experiment
 from pydantic import BaseModel, ConfigDict, Field
 
-from fin_graph.harness.dataset import DatasetManifest, load_manifest
-from fin_graph.harness.surfaces import (
+from fin_graph.optimization.harness.dataset import DatasetManifest, load_manifest
+from fin_graph.optimization.harness.surfaces import (
     FILE_SURFACES,
     PROMPT_MODULE,
     SURFACES,

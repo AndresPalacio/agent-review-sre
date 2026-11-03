@@ -17,7 +17,7 @@ from fin_graph.workflows.analysis.services import LangChainAnalysisServices
 async def test_real_agent_tools_middleware_skill_and_grader_work_together(tmp_path, monkeypatch):
     from langchain.agents.middleware import AgentMiddleware
 
-    from fin_graph.harness.quality import assess_record
+    from fin_graph.optimization.harness.quality import assess_record
     from fin_graph.workflows.analysis.extensions import analysis_skill
     from fin_graph.workflows.analysis.strategy import registration
 

@@ -46,7 +46,7 @@ def validate_values(values: Mapping[str, str], *, complete: bool = False) -> Non
 
 
 def current_values() -> dict[str, str]:
-    root = Path(__file__).resolve().parents[1]
+    root = Path(__file__).resolve().parents[2]
     return {name: str(getattr(prompts, attribute)) for name, attribute in SURFACES.items()} | {
         name: (root / target.removeprefix("src/fin_graph/")).read_text(encoding="utf-8")
         for name, target in FILE_SURFACES.items()
