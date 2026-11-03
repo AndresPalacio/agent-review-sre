@@ -18,7 +18,7 @@ def _fixture(tmp_path: Path) -> tuple[Path, dict[str, Any]]:
     owner_file = tmp_path / "tests" / "test_owner.py"
     owner_file.parent.mkdir(parents=True)
     owner_file.write_text("def test_contract():\n    assert True\n", encoding="utf-8")
-    candidate_digest = hashlib.sha256(owner_file.read_bytes()).hexdigest()
+    candidate_digest = hashlib.sha256(b"def test_contract():\n    assert True\n").hexdigest()
     manifest = {
         "schema_version": 1,
         "snapshot_digest": "a" * 64,
@@ -137,3 +137,13 @@ def test_candidate_digest_tracks_owning_test_file(tmp_path: Path) -> None:
 
     assert completed.returncode != 0
     assert "stale candidate digest" in completed.stderr
+
+
+def test_candidate_digest_is_stable_across_platform_line_endings(tmp_path: Path) -> None:
+    _path, manifest = _fixture(tmp_path)
+    owner = tmp_path / "tests" / "test_owner.py"
+    owner.write_bytes(b"def test_contract():\n    assert True\n")
+
+    completed = _run(tmp_path, manifest)
+
+    assert completed.returncode == 0, completed.stderr

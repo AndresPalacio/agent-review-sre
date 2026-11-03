@@ -65,6 +65,11 @@ def _text(value: object) -> str:
     return value if isinstance(value, str) else ""
 
 
+def _candidate_digest(path: Path) -> str:
+    normalized = path.read_bytes().replace(b"\r\n", b"\n").replace(b"\r", b"\n")
+    return hashlib.sha256(normalized).hexdigest()
+
+
 def validate_manifest(manifest: dict[str, Any], root: Path) -> list[str]:
     """Return all closure errors; an empty list means the manifest is releasable."""
 
@@ -134,7 +139,7 @@ def validate_manifest(manifest: dict[str, Any], root: Path) -> list[str]:
         if not _DIGEST.fullmatch(candidate):
             errors.append(f"{label} candidate_digest must be SHA-256")
         elif owner_path is not None and owner_path.is_file():
-            actual = hashlib.sha256(owner_path.read_bytes()).hexdigest()
+            actual = _candidate_digest(owner_path)
             if candidate != actual:
                 errors.append(f"{label} has a stale candidate digest")
 
