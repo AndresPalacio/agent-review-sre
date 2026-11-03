@@ -103,7 +103,7 @@ requires = ["hatchling>=1.27"]
 build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/fin_graph"]
+packages = ["src/fin_graph", "src/src", "src/v2", "src/app"]
 
 [tool.hatch.build]
 artifacts = ["src/fin_graph/server/static/**"]

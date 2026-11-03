@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import math
 from collections.abc import Mapping, Sequence
+from typing import TYPE_CHECKING
 
 from fin_graph.compat.ai_hedge_fund.models import (
     LegacyAnalystSignal,
@@ -33,7 +34,9 @@ from fin_graph.domain.quant.risk import (
     position_limits,
     volatility_limit_pct,
 )
-from fin_graph.graphs.analysis.compat import PersonaFinding
+
+if TYPE_CHECKING:
+    from fin_graph.graphs.analysis.compat import PersonaFinding
 
 _DIRECTION = {Signal.BULLISH: 1.0, Signal.NEUTRAL: 0.0, Signal.BEARISH: -1.0}
 

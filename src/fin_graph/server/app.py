@@ -47,9 +47,7 @@ from fin_graph.gateway import GatewayResult, GatewayRunPending
 from fin_graph.gateway.settings import SlackGatewaySettings, TelegramGatewaySettings
 from fin_graph.gateway.slack import SlackGateway
 from fin_graph.gateway.telegram import TelegramGateway
-from fin_graph.graphs.analysis.compat import make_compat_analysis_agent
 from fin_graph.graphs.analysis.snapshots import MarketSnapshotServices
-from fin_graph.graphs.chat.graph import make_chat_graph
 from fin_graph.graphs.orders.desk import OrderDesk
 from fin_graph.graphs.orders.graph import PLACE_ORDER, make_order_graph
 from fin_graph.harness.runtime import _analysis_services, make_analysis_graph
@@ -232,6 +230,8 @@ def create_app(
                     active_chat = None
                 else:
                     app.state.compatibility_quant_llm = model
+                    from fin_graph.graphs.analysis.compat import make_compat_analysis_agent
+
                     chat_analysis = make_compat_analysis_agent(
                         model,
                         active_registry,
@@ -243,6 +243,8 @@ def create_app(
                     app.state.compatibility_backtest_runner = make_v1_backtest_runner(
                         chat_analysis, context_factory
                     )
+                    from fin_graph.graphs.chat.graph import make_chat_graph
+
                     active_chat = make_chat_graph(
                         model,
                         active_registry,

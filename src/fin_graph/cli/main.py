@@ -18,6 +18,7 @@ from prompt_toolkit import PromptSession
 from rich.console import Console
 
 from fin_graph.cli.chat import ChatSession, RemoteChatSession
+from fin_graph.cli.compat import register_compat_commands
 from fin_graph.cli.eval_tools import register_eval_tools
 from fin_graph.cli.harness import app as harness_app
 from fin_graph.cli.integrations import app as integrations_app
@@ -52,6 +53,7 @@ app.add_typer(integrations_app, name="integrations")
 app.add_typer(orders_app, name="orders")
 register_eval_tools(eval_app)
 console = Console()
+register_compat_commands(app)
 
 
 @app.callback()

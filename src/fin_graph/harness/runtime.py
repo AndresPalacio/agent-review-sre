@@ -16,7 +16,6 @@ from fin_graph.delivery.service import DeliveryService
 from fin_graph.domain.alerts.model import NormalizedAlert
 from fin_graph.domain.portfolio import Portfolio
 from fin_graph.domain.window import IncidentWindow
-from fin_graph.graphs.analysis.compat import make_compat_analysis_agent
 from fin_graph.graphs.analysis.graph import (
     AnalysisDelivery,
     AnalysisLimits,
@@ -244,6 +243,8 @@ async def make_analysis_graph_async() -> CompiledStateGraph[Any, Any, Any, Any]:
 
 def make_compat_analysis_runtime() -> tuple[CompiledStateGraph[Any, Any, Any, Any], RunContext]:
     """Create the nineteen-persona DeepAgents replacement runtime."""
+    from fin_graph.graphs.analysis.compat import make_compat_analysis_agent
+
     disable_external_tracing()
     settings = Settings()
     registry = _sync_registry()
@@ -262,6 +263,8 @@ async def make_compat_analysis_runtime_async() -> tuple[
     CompiledStateGraph[Any, Any, Any, Any], RunContext
 ]:
     """Async compatibility runtime with configured MCP discovery."""
+    from fin_graph.graphs.analysis.compat import make_compat_analysis_agent
+
     disable_external_tracing()
     settings = Settings()
     registry = await with_configured_mcp(default_registry())
