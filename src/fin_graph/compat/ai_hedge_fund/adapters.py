@@ -102,7 +102,11 @@ def to_native_analysis_request(request: HedgeFundRequest) -> AnalysisRequest:
     if request.end_date is None:
         raise CompatibilityAdapterError("end_date cannot be null")
     end = _date(request.end_date, "end_date")
-    start = _date(request.get_start_date(), "start_date")
+    try:
+        start_value = request.get_start_date()
+    except ValueError as exc:
+        raise CompatibilityAdapterError("start_date must be a valid YYYY-MM-DD date") from exc
+    start = _date(start_value, "start_date")
     if start > end:
         raise CompatibilityAdapterError("start_date must not be after end_date")
     return AnalysisRequest(

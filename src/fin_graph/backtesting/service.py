@@ -151,6 +151,7 @@ async def run_v1_backtest(
     *,
     event_sink: EventSink | None,
     cancellation: Cancellation | None,
+    initial_portfolio: Portfolio | None = None,
 ) -> BacktestResult:
     """Run every business date, cap all data at that date, and emit one terminal event."""
 
@@ -188,7 +189,7 @@ async def run_v1_backtest(
     def cancelled() -> bool:
         return cancellation is not None and cancellation.is_set()
 
-    portfolio = Portfolio(
+    portfolio = initial_portfolio or Portfolio(
         cash=request.initial_capital,
         margin_requirement=request.margin_requirement,
     )

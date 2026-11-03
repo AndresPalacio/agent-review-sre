@@ -71,6 +71,7 @@ from fin_graph.scheduler.expiry import ApprovalGraph, expire_pending_approvals
 from fin_graph.scheduler.market import MarketJobs
 from fin_graph.scheduler.service import SchedulerService, validate_schedule
 from fin_graph.server.compat import compatibility_router
+from fin_graph.server.compat.hedge_fund import make_v1_backtest_runner
 from fin_graph.server.compat.ollama import OllamaCompatibilityService
 from fin_graph.server.config import ServerConfig
 from fin_graph.server.events import EventListener
@@ -139,6 +140,7 @@ def create_app(
     compatibility_profile: CompatibilityProfile | None = None,
     compatibility_export_dir: Path | None = None,
     compatibility_ollama: Any | None = None,
+    compatibility_hedge_fund: Any | None = None,
 ) -> FastAPI:
     """Create a production Postgres server or an injected offline ASGI test app."""
     disable_external_tracing()
@@ -232,6 +234,10 @@ def create_app(
                         context_factory(),
                         MarketSnapshotServices(),
                         checkpointer=False,  # Disable the inherited chat saver.
+                    )
+                    app.state.compatibility_analysis_graph = chat_analysis
+                    app.state.compatibility_backtest_runner = make_v1_backtest_runner(
+                        chat_analysis, context_factory
                     )
                     active_chat = make_chat_graph(
                         model,
@@ -437,6 +443,9 @@ def create_app(
     app.state.compatibility_ollama = compatibility_ollama or OllamaCompatibilityService(
         Settings(_env_file=None).ollama_base_url
     )
+    app.state.compatibility_hedge_fund = compatibility_hedge_fund
+    app.state.compatibility_analysis_graph = None
+    app.state.compatibility_backtest_runner = None
     app.state.compatibility_key_role = None
     from fin_graph.server.http_guards import install_http_guards
 
