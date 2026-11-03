@@ -1,0 +1,104 @@
+name: workflow-library
+
+on:
+  push:
+    paths:
+      - "packages/workflow/**"
+      - ".github/workflows/workflow-library.yml"
+  pull_request:
+    paths:
+      - "packages/workflow/**"
+      - ".github/workflows/workflow-library.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  library:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        python: ["3.12", "3.14"]
+    runs-on: ${{ matrix.os }}
+    env:
+      PYTHONUTF8: "1"
+      LANGSMITH_TRACING: "false"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          python-version: ${{ matrix.python }}
+      - name: Install isolated library environment
+        run: uv sync --project packages/workflow --locked --python ${{ matrix.python }}
+      - run: uv run --project packages/workflow --locked ruff check packages/workflow
+      - run: uv run --project packages/workflow --locked ruff format --check packages/workflow
+      - name: Run offline library contracts
+        working-directory: packages/workflow
+        run: uv run --locked pytest
+      - name: Run documented example
+        run: uv run --project packages/workflow --locked python packages/workflow/examples/quickstart.py
+      - name: Install optional native agent integration
+        run: uv sync --project packages/workflow --locked --extra agents
+      - name: Check public library types with native agent SDK
+        working-directory: packages/workflow
+        run: uv run --locked --extra agents mypy
+      - name: Run native agent and library contracts offline
+        working-directory: packages/workflow
+        run: uv run --locked --extra agents pytest
+      - name: Run verified solution example
+        run: uv run --project packages/workflow --locked --extra agents python packages/workflow/examples/solver_offline.py
+      - name: Run native specialist delegation example
+        run: uv run --project packages/workflow --locked --extra agents python packages/workflow/examples/solver_team.py
+      - name: Compare offline agent contracts
+        run: uv run --project packages/workflow --locked --extra agents python packages/workflow/examples/solver_benchmark.py
+      - name: Build standalone wheel
+        run: uv build --project packages/workflow --wheel --out-dir dist/workflow
+      - uses: actions/upload-artifact@v4
+        with:
+          name: bm-workflow-${{ matrix.os }}-py${{ matrix.python }}
+          path: dist/workflow/*.whl
+      - name: Install wheel without optional dependencies
+        if: runner.os == 'Linux'
+        shell: bash
+        run: |
+          uv venv --python 3.12 .wheel-smoke
+          uv pip install --python .wheel-smoke/bin/python dist/workflow/*.whl
+          cd "${RUNNER_TEMP}"
+          "${GITHUB_WORKSPACE}/.wheel-smoke/bin/python" - <<'PY'
+          import importlib.util
+          from importlib.metadata import version
+          from pydantic import BaseModel
+          from bm_workflow import RunStatus, WorkflowRegistry, compile_workflow, typed_step, workflow
+          from bm_workflow.agents import ProblemSpec, build_solver_agent
+
+          class Number(BaseModel):
+              value: int
+
+          def increment(number: Number) -> Number:
+              return Number(value=number.value + 1)
+
+          compiled = compile_workflow(
+              workflow(name="wheel", version="1", input=Number, output=Number).flow(
+                  typed_step("increment", increment, input_schema=Number,
+                             output_schema=Number, artifact_version="1")
+              )
+          )
+          result = WorkflowRegistry([compiled]).run(
+              name="wheel", version="1", input_data={"value": 2}
+          )
+          assert result.status == RunStatus.COMPLETE
+          assert result.output.value == 3
+          assert importlib.util.find_spec("fin_graph") is None
+          assert importlib.util.find_spec("deepagents") is None
+          assert ProblemSpec(id="smoke", goal="Check optional import",
+                             acceptance_criteria={"ok": "Import works"}).id == "smoke"
+          try:
+              build_solver_agent(model=object(), tools=[], solution_schema=Number,
+                                 verifier=lambda *args: None)
+          except ImportError as error:
+              assert "bm-workflow[agents]" in str(error)
+          else:
+              raise AssertionError("Building a solver without the extra must fail clearly")
+          print("Installed standalone bm-workflow", version("bm-workflow"))
+          PY

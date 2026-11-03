@@ -1,0 +1,42 @@
+[project]
+name = "bm-workflow"
+version = "0.2.0"
+description = "Typed, versioned workflows on LangGraph with optional host integrations"
+readme = "README.md"
+requires-python = ">=3.12"
+license = "Apache-2.0"
+license-files = ["LICENSE"]
+dependencies = ["pydantic>=2.13,<3", "langgraph>=1.2.14,<2", "langsmith>=0.14,<1"]
+
+[project.optional-dependencies]
+agents = ["deepagents>=0.7.32,<0.8"]
+
+[dependency-groups]
+dev = ["pytest>=9.1,<10", "pytest-asyncio>=1.4,<2", "ruff>=0.16,<1", "mypy>=2.4,<3"]
+
+[build-system]
+requires = ["hatchling>=1.27"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/bm_workflow"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src", "."]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+addopts = "-ra --import-mode=importlib -p no:langsmith_plugin"
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "SIM", "RUF", "ASYNC"]
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+packages = ["bm_workflow"]
+mypy_path = "src"

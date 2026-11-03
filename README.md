@@ -1,5 +1,8 @@
 # fin-graph
 
+Biblioteca reutilizable e independiente de workflows:
+[bm-workflow: API, ejemplo offline y límites](packages/workflow/README.md).
+
 Análisis financiero multiagente con evidencia, cartera y órdenes paper, construido de
 forma nativa sobre LangGraph. El repositorio está migrando desde su dominio SRE original;
 los documentos de las fases 0–8 sin prefijo `F` conservan ese historial técnico.
