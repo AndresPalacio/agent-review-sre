@@ -4,8 +4,7 @@
     "."
   ],
   "graphs": {
-    "analysis": "./src/fin_graph/harness/runtime.py:make_analysis_graph_async",
-    "investigation": "./src/fin_graph/harness/runtime.py:make_runtime_graph_async"
+    "analysis": "./src/fin_graph/harness/runtime.py:make_analysis_graph_async"
   },
   "env": ".env"
 }

@@ -5,8 +5,9 @@ This product includes material adapted from the following Apache-2.0 licensed pr
 
 * OpenSRE - https://github.com/Tracer-Cloud/opensre
   Copyright 2026 Tracer Cloud
-  Investigation prompts, heuristics, domain rules and synthetic evaluation scenarios,
-  adapted from its git history as they are ported. Nothing is imported at runtime.
+  Generic security, redaction and integration infrastructure retained from the original
+  repository lineage. The incident-response product is not distributed. Nothing is imported
+  from OpenSRE at runtime.
 
 * LangGraph Starter Kit - https://github.com/ac12644/langgraph-starter-kit
   Copyright 2025 Abhishek Chauhan
@@ -16,9 +17,9 @@ This product also includes material adapted from the following MIT licensed proj
 
 * AI Hedge Fund - https://github.com/virattt/ai-hedge-fund
   Copyright (c) 2024 Virat Singh
-  Deterministic analyst scoring, valuation models, risk limits, the Yahoo data provider,
-  the backtester and JSON extraction for small models, ported to typed Python as they are
-  adapted. Nothing is imported at runtime.
+  Public HTTP, Python and CLI compatibility contracts; analyst personas; deterministic scoring;
+  valuation models; risk limits; Yahoo data access; backtesting; and small-model JSON extraction,
+  reimplemented in typed Python. Nothing is imported from AI Hedge Fund at runtime.
 
 * Vibe-Trading - https://github.com/HKUDS/Vibe-Trading
   Copyright (c) 2026 Vibe-Trading Contributors
