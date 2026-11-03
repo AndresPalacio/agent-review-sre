@@ -20,10 +20,10 @@ from rich.console import Console
 from fin_graph.agents.chat.supervisor import make_chat_graph
 from fin_graph.cli.agents import app as agents_app
 from fin_graph.cli.chat import ChatSession, RemoteChatSession
-from fin_graph.cli.compat import register_compat_commands
 from fin_graph.cli.harness import app as harness_app
 from fin_graph.cli.integrations import app as integrations_app
 from fin_graph.cli.orders import app as orders_app
+from fin_graph.cli.reference_app import register_reference_app_commands
 from fin_graph.cli.schedules import app as schedules_app
 from fin_graph.config.settings import PersistenceBackend, Settings
 from fin_graph.config.tracing import disable_external_tracing
@@ -49,7 +49,7 @@ app.add_typer(schedules_app, name="schedules")
 app.add_typer(integrations_app, name="integrations")
 app.add_typer(orders_app, name="orders")
 console = Console()
-register_compat_commands(app)
+register_reference_app_commands(app)
 
 
 @app.callback()

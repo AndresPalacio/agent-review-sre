@@ -7,29 +7,14 @@ from pathlib import Path
 import pytest
 from pydantic import ValidationError
 
-from fin_graph.backtesting.models import (
-    BacktestMetrics as NativeBacktestMetrics,
-)
-from fin_graph.backtesting.models import (
-    BacktestRequest as NativeBacktestRequest,
-)
-from fin_graph.backtesting.models import (
-    BacktestResult as NativeBacktestResult,
-)
-from fin_graph.backtesting.models import (
-    BacktestSnapshot as NativeBacktestSnapshot,
-)
-from fin_graph.backtesting.models import (
-    BacktestStatus,
-)
-from fin_graph.compat.ai_hedge_fund.adapters import (
-    CompatibilityAdapterError,
+from fin_graph.adapters.reference_app.mapping import (
+    ReferenceAdapterError,
     from_native_backtest_result,
     from_native_signal,
     to_native_analysis_request,
     to_native_backtest_request,
 )
-from fin_graph.compat.ai_hedge_fund.schemas import (
+from fin_graph.adapters.reference_app.schemas import (
     ActionResponse,
     AlgorithmBacktestConfig,
     ApiKeyCreateRequest,
@@ -47,6 +32,21 @@ from fin_graph.compat.ai_hedge_fund.schemas import (
     StartEvent,
     TrainRequest,
     VaRResponse,
+)
+from fin_graph.backtesting.models import (
+    BacktestMetrics as NativeBacktestMetrics,
+)
+from fin_graph.backtesting.models import (
+    BacktestRequest as NativeBacktestRequest,
+)
+from fin_graph.backtesting.models import (
+    BacktestResult as NativeBacktestResult,
+)
+from fin_graph.backtesting.models import (
+    BacktestSnapshot as NativeBacktestSnapshot,
+)
+from fin_graph.backtesting.models import (
+    BacktestStatus,
 )
 from fin_graph.domain.orders import OrderAction
 from fin_graph.domain.portfolio import Portfolio, Position, RealizedGains
@@ -119,7 +119,7 @@ def test_backtest_request_adapter_rejects_bad_dates_and_fractional_shares() -> N
         "end_date": "2025-01-01",
         "portfolio_positions": [],
     }
-    with pytest.raises(CompatibilityAdapterError, match="start_date"):
+    with pytest.raises(ReferenceAdapterError, match="start_date"):
         to_native_backtest_request(BacktestRequest.model_validate(payload))
 
     payload.update(
@@ -127,7 +127,7 @@ def test_backtest_request_adapter_rejects_bad_dates_and_fractional_shares() -> N
         end_date="2025-02-01",
         portfolio_positions=[{"ticker": "AAPL", "quantity": 1.5, "trade_price": 100}],
     )
-    with pytest.raises(CompatibilityAdapterError, match="whole shares"):
+    with pytest.raises(ReferenceAdapterError, match="whole shares"):
         to_native_backtest_request(BacktestRequest.model_validate(payload))
 
 

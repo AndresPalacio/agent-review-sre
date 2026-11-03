@@ -8,9 +8,9 @@ import httpx
 from cryptography.fernet import Fernet
 from fastapi import FastAPI
 
-from fin_graph.compat.settings import CompatibilityProfile
-from fin_graph.compat.storage import FernetSecretCipher, open_compat_sqlite
-from fin_graph.server.compat import compatibility_router
+from fin_graph.adapters.reference_app.http import reference_app_router
+from fin_graph.adapters.reference_app.settings import ReferenceAppProfile
+from fin_graph.persistence.reference_app import FernetSecretCipher, open_reference_sqlite
 
 
 class FakeOllama:
@@ -67,14 +67,14 @@ class FakeOllama:
 @asynccontextmanager
 async def configured_client(tmp_path: Path) -> AsyncIterator[tuple[httpx.AsyncClient, Path]]:
     database = tmp_path / "compat.sqlite"
-    async with open_compat_sqlite(database, FernetSecretCipher(Fernet.generate_key())) as store:
+    async with open_reference_sqlite(database, FernetSecretCipher(Fernet.generate_key())) as store:
         app = FastAPI()
-        app.state.compatibility_profile = CompatibilityProfile()
-        app.state.compatibility_store = store
-        app.state.compatibility_export_dir = tmp_path / "outputs"
-        app.state.compatibility_ollama = FakeOllama()
-        app.state.compatibility_key_role = None
-        app.include_router(compatibility_router())
+        app.state.reference_app_profile = ReferenceAppProfile()
+        app.state.reference_app_store = store
+        app.state.reference_app_export_dir = tmp_path / "outputs"
+        app.state.reference_app_ollama = FakeOllama()
+        app.state.reference_app_key_role = None
+        app.include_router(reference_app_router())
         async with httpx.AsyncClient(
             transport=httpx.ASGITransport(app=app, client=("127.0.0.1", 1234)),
             base_url="http://test",

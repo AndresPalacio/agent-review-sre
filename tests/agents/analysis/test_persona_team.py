@@ -11,6 +11,8 @@ from langchain_core.outputs import ChatResult
 from langchain_core.tools import BaseTool, tool
 from pydantic import PrivateAttr
 
+from fin_graph.adapters.reference_app.models import ReferenceHedgeFundResult
+from fin_graph.adapters.reference_app.portfolio import build_reference_portfolio_result
 from fin_graph.agents.analysis.persona_team import (
     PersonaAnalysisBundle,
     PersonaFailureCode,
@@ -20,7 +22,6 @@ from fin_graph.agents.analysis.persona_team import (
 )
 from fin_graph.agents.analysis.personas import build_persona_subagents
 from fin_graph.agents.common.testing.scripted_model import ScriptedChatModel
-from fin_graph.compat.ai_hedge_fund.models import LegacyHedgeFundResult
 from fin_graph.domain.analysts import AnalystId, analyst_catalog, resolve_analysts
 from fin_graph.domain.company import CompanySnapshot
 from fin_graph.domain.market import FinancialMetrics, LineItem, Price
@@ -330,6 +331,7 @@ async def test_explicit_selection_preserves_scores_and_child_failure(
         RunContext(),
         services,
         checkpointer=False,
+        result_builder=build_reference_portfolio_result,
     )
     request = AnalysisRequest(
         tickers=["CASE"],
@@ -339,7 +341,7 @@ async def test_explicit_selection_preserves_scores_and_child_failure(
 
     result = await graph.ainvoke({"request": request.model_dump(mode="json")})
     bundle = PersonaAnalysisBundle.model_validate(result["bundle"])
-    legacy_result = LegacyHedgeFundResult.model_validate(result["result"])
+    legacy_result = ReferenceHedgeFundResult.model_validate(result["result"])
 
     assert [finding.analyst_id for finding in bundle.findings] == list(request.analysts or ())
     growth, failed = bundle.findings

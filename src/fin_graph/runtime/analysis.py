@@ -37,7 +37,6 @@ from fin_graph.workflows.analysis.services import (
     LangChainAnalysisServices,
     UnavailableAnalysisServices,
 )
-from fin_graph.workflows.analysis.snapshots import MarketSnapshotServices
 
 
 def _sync_registry() -> IntegrationRegistry:
@@ -152,43 +151,3 @@ async def make_analysis_graph_async() -> CompiledStateGraph[Any, Any, Any, Any]:
         delivery=DeliveryService.from_env(),
         settings=settings,
     )
-
-
-def make_reference_analysis_runtime() -> tuple[
-    CompiledStateGraph[Any, Any, Any, Any], RunContext
-]:
-    """Create the nineteen-persona DeepAgents replacement runtime."""
-    from fin_graph.agents.analysis.persona_team import make_persona_analysis_supervisor
-
-    disable_external_tracing()
-    settings = Settings()
-    registry = _sync_registry()
-    context = registry.run_context()
-    model = get_model(ModelRole.REASONING, settings)
-    graph = make_persona_analysis_supervisor(
-        model,
-        registry,
-        context,
-        MarketSnapshotServices(),
-    )
-    return graph, context
-
-
-async def make_reference_analysis_runtime_async() -> tuple[
-    CompiledStateGraph[Any, Any, Any, Any], RunContext
-]:
-    """Async reference-app runtime with configured MCP discovery."""
-    from fin_graph.agents.analysis.persona_team import make_persona_analysis_supervisor
-
-    disable_external_tracing()
-    settings = Settings()
-    registry = await with_configured_mcp(default_registry())
-    context = registry.run_context()
-    model = get_model(ModelRole.REASONING, settings)
-    graph = make_persona_analysis_supervisor(
-        model,
-        registry,
-        context,
-        MarketSnapshotServices(),
-    )
-    return graph, context

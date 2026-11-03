@@ -10,10 +10,10 @@ from typing import Any
 import httpx
 from fastapi import FastAPI
 
-from fin_graph.compat.settings import CompatibilityProfile
+from fin_graph.adapters.reference_app.http import reference_app_router
+from fin_graph.adapters.reference_app.settings import ReferenceAppProfile
 from fin_graph.domain.market import Price
 from fin_graph.quant.signals.base import Signal
-from fin_graph.server.compat import compatibility_router
 
 
 class FakeData:
@@ -72,12 +72,12 @@ class FakeModel:
 @asynccontextmanager
 async def client_for(tmp_path: Path) -> AsyncIterator[httpx.AsyncClient]:
     app = FastAPI()
-    app.state.compatibility_profile = CompatibilityProfile()
-    app.state.compatibility_store = None
-    app.state.compatibility_quant_data = FakeData()
-    app.state.compatibility_signal_models = {"technical_ml": FakeModel()}
-    app.state.compatibility_quant_artifact_dir = tmp_path / "models"
-    app.include_router(compatibility_router())
+    app.state.reference_app_profile = ReferenceAppProfile()
+    app.state.reference_app_store = None
+    app.state.reference_app_quant_data = FakeData()
+    app.state.reference_app_signal_models = {"technical_ml": FakeModel()}
+    app.state.reference_app_quant_artifact_dir = tmp_path / "models"
+    app.include_router(reference_app_router())
     async with httpx.AsyncClient(
         transport=httpx.ASGITransport(app=app), base_url="http://test"
     ) as client:

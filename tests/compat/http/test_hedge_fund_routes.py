@@ -8,10 +8,10 @@ from typing import Any
 import httpx
 from fastapi import FastAPI
 
-from fin_graph.compat.ai_hedge_fund.schemas import BacktestRequest, HedgeFundRequest
-from fin_graph.compat.settings import CompatibilityProfile
-from fin_graph.server.compat import compatibility_router
-from fin_graph.server.compat.events import InternalEvent
+from fin_graph.adapters.reference_app.http import reference_app_router
+from fin_graph.adapters.reference_app.http.events import InternalEvent
+from fin_graph.adapters.reference_app.schemas import BacktestRequest, HedgeFundRequest
+from fin_graph.adapters.reference_app.settings import ReferenceAppProfile
 
 
 def request_body() -> dict[str, Any]:
@@ -68,10 +68,10 @@ class FakeRunner:
 @asynccontextmanager
 async def client_for(runner: object) -> AsyncIterator[httpx.AsyncClient]:
     app = FastAPI()
-    app.state.compatibility_profile = CompatibilityProfile()
-    app.state.compatibility_store = None
-    app.state.compatibility_hedge_fund = runner
-    app.include_router(compatibility_router())
+    app.state.reference_app_profile = ReferenceAppProfile()
+    app.state.reference_app_store = None
+    app.state.reference_app_hedge_fund = runner
+    app.include_router(reference_app_router())
     async with httpx.AsyncClient(
         transport=httpx.ASGITransport(app=app), base_url="http://test"
     ) as client:

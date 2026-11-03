@@ -10,7 +10,7 @@ from typing import Any
 from langchain.chat_models import init_chat_model
 from langchain_core.language_models import BaseChatModel
 
-from fin_graph.compat.settings import normalize_model_provider
+from fin_graph.config.aliases import normalize_model_provider
 from fin_graph.config.settings import Settings
 
 

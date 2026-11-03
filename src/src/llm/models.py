@@ -4,11 +4,11 @@ from __future__ import annotations
 
 from typing import Any
 
-from fin_graph.compat.ai_hedge_fund.schemas import ModelProvider
+from fin_graph.adapters.reference_app.http.models import CLOUD_MODELS
+from fin_graph.adapters.reference_app.schemas import ModelProvider
 from fin_graph.config.settings import Settings
 from fin_graph.llm.models import ModelRole
 from fin_graph.llm.models import get_model as _native_get_model
-from fin_graph.server.compat.models import CLOUD_MODELS
 
 
 def get_default_model_config() -> tuple[str, str]:

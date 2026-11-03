@@ -23,6 +23,8 @@ from langgraph.store.memory import InMemoryStore
 from sqlalchemy.ext.asyncio import AsyncEngine, create_async_engine
 from tests.server.finance_app import FixtureTools, fixture_context, paper_broker
 
+from fin_graph.adapters.reference_app.http.events import InternalEvent
+from fin_graph.adapters.reference_app.settings import ReferenceAppProfile
 from fin_graph.agents.chat.supervisor import make_chat_graph
 from fin_graph.agents.common.testing.scripted_model import ScriptedChatModel
 from fin_graph.backtesting import (
@@ -32,21 +34,19 @@ from fin_graph.backtesting import (
     BacktestJobManager,
     BacktestRunOutput,
 )
-from fin_graph.compat.settings import CompatibilityProfile
-from fin_graph.compat.storage import (
-    CompatibilityStore,
-    FernetSecretCipher,
-    open_compat_sqlite,
-)
 from fin_graph.config.settings import Settings
 from fin_graph.evals.market.scenarios import load_equity_scenario
 from fin_graph.integrations.registry import IntegrationRegistry
 from fin_graph.memory.theses import ThesisMemory
 from fin_graph.persistence.paper_ledger import create_paper_tables
+from fin_graph.persistence.reference_app import (
+    FernetSecretCipher,
+    ReferenceStore,
+    open_reference_sqlite,
+)
 from fin_graph.runtime.analysis import make_analysis_graph
 from fin_graph.safety.approval import ApprovalPolicy
 from fin_graph.server.app import create_app
-from fin_graph.server.compat.events import InternalEvent
 from fin_graph.server.config import ServerConfig
 from fin_graph.server.manager import RunManager
 from fin_graph.server.storage import Base, Storage
@@ -227,24 +227,24 @@ async def _algorithm_runner(
 
 async def create_fixture_app(
     database: Path,
-    compatibility_store: CompatibilityStore | None = None,
+    reference_app_store: ReferenceStore | None = None,
     artifact_root: Path | None = None,
 ) -> FastAPI:
     engine = create_async_engine(f"sqlite+aiosqlite:///{database.as_posix()}")
-    compatibility_context: Any = None
+    reference_app_context: Any = None
     try:
-        if compatibility_store is None:
+        if reference_app_store is None:
             cipher = FernetSecretCipher(Fernet.generate_key())
-            compatibility_context = open_compat_sqlite(
+            reference_app_context = open_reference_sqlite(
                 database.with_name("compatibility.sqlite"), cipher
             )
-            compatibility_store = await compatibility_context.__aenter__()
+            reference_app_store = await reference_app_context.__aenter__()
         app = await _build_fixture_app(
             engine,
-            compatibility_store,
+            reference_app_store,
             artifact_root or database.parent / "artifacts",
         )
-        if compatibility_context is not None:
+        if reference_app_context is not None:
             inherited_lifespan = app.router.lifespan_context
 
             @asynccontextmanager
@@ -253,20 +253,20 @@ async def create_fixture_app(
                     async with inherited_lifespan(application):
                         yield
                 finally:
-                    await compatibility_context.__aexit__(None, None, None)
+                    await reference_app_context.__aexit__(None, None, None)
 
             app.router.lifespan_context = lifespan
         return app
     except BaseException:
-        if compatibility_context is not None:
-            await compatibility_context.__aexit__(None, None, None)
+        if reference_app_context is not None:
+            await reference_app_context.__aexit__(None, None, None)
         await engine.dispose()
         raise
 
 
 async def _build_fixture_app(
     engine: AsyncEngine,
-    compatibility_store: CompatibilityStore,
+    reference_app_store: ReferenceStore,
     artifact_root: Path,
 ) -> FastAPI:
     settings = Settings.model_construct(llm_fallback_models=(), mask_enabled=False)
@@ -316,14 +316,14 @@ async def _build_fixture_app(
         order_graph=orders,
         approval_policy=policy,
         paper=broker,
-        compatibility_store=compatibility_store,
-        compatibility_profile=CompatibilityProfile(local=True),
-        compatibility_export_dir=artifact_root / "exports",
-        compatibility_ollama=FixtureOllama(),
-        compatibility_hedge_fund=FixtureHedgeFund(),
+        reference_app_store=reference_app_store,
+        reference_app_profile=ReferenceAppProfile(local=True),
+        reference_app_export_dir=artifact_root / "exports",
+        reference_app_ollama=FixtureOllama(),
+        reference_app_hedge_fund=FixtureHedgeFund(),
     )
-    app.state.compatibility_backtest_manager = BacktestJobManager(
-        compatibility_store,
+    app.state.reference_app_backtest_manager = BacktestJobManager(
+        reference_app_store,
         BacktestArtifactStore(artifact_root / "backtests"),
         {"strategy": _algorithm_runner},
     )
@@ -352,7 +352,7 @@ async def main() -> None:
     with TemporaryDirectory(prefix="fin-graph-browser-") as directory:
         root = Path(directory)
         cipher = FernetSecretCipher(Fernet.generate_key())
-        async with open_compat_sqlite(root / "compatibility.sqlite", cipher) as compatibility:
+        async with open_reference_sqlite(root / "compatibility.sqlite", cipher) as compatibility:
             app = await create_fixture_app(
                 root / "fixture.sqlite",
                 compatibility,

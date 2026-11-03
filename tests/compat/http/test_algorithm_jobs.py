@@ -9,11 +9,11 @@ import httpx
 from cryptography.fernet import Fernet
 from fastapi import FastAPI
 
+from fin_graph.adapters.reference_app.http import reference_app_router
+from fin_graph.adapters.reference_app.settings import ReferenceAppProfile
 from fin_graph.backtesting import BacktestArtifactStore, BacktestJobManager, BacktestRunOutput
 from fin_graph.backtesting.models import BacktestEvent, BacktestEventKind
-from fin_graph.compat.settings import CompatibilityProfile
-from fin_graph.compat.storage import FernetSecretCipher, open_compat_sqlite
-from fin_graph.server.compat import compatibility_router
+from fin_graph.persistence.reference_app import FernetSecretCipher, open_reference_sqlite
 
 
 def config(symbol: str = "AAPL") -> dict[str, object]:
@@ -70,13 +70,13 @@ async def client_for(
     database: Path, artifacts: Path
 ) -> AsyncIterator[tuple[httpx.AsyncClient, BacktestJobManager]]:
     cipher = FernetSecretCipher(Fernet.generate_key())
-    async with open_compat_sqlite(database, cipher) as store:
+    async with open_reference_sqlite(database, cipher) as store:
         manager = BacktestJobManager(store, BacktestArtifactStore(artifacts), {"strategy": runner})
         app = FastAPI()
-        app.state.compatibility_profile = CompatibilityProfile()
-        app.state.compatibility_store = store
-        app.state.compatibility_backtest_manager = manager
-        app.include_router(compatibility_router())
+        app.state.reference_app_profile = ReferenceAppProfile()
+        app.state.reference_app_store = store
+        app.state.reference_app_backtest_manager = manager
+        app.include_router(reference_app_router())
         async with httpx.AsyncClient(
             transport=httpx.ASGITransport(app=app), base_url="http://test"
         ) as client:

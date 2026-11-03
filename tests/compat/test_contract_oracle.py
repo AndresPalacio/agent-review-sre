@@ -8,12 +8,12 @@ from pathlib import Path
 import pytest
 from tests.compat.oracle import assert_fixture_provenance
 
-from fin_graph.compat.contracts import (
+from fin_graph.conformance.contracts import (
     ComparisonRule,
     compare_contract,
     normalize_contract,
 )
-from fin_graph.compat.reference import ReferenceFile, ReferenceSnapshot
+from fin_graph.conformance.reference_app.snapshot import ReferenceFile, ReferenceSnapshot
 
 
 def _write_json(path: Path, value: object) -> None:

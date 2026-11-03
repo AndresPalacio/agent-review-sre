@@ -5,7 +5,7 @@ from __future__ import annotations
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 
-from fin_graph.compat.ai_hedge_fund.models import LegacyHedgeFundResult
+from fin_graph.adapters.reference_app.models import ReferenceHedgeFundResult
 from fin_graph.domain.fills import apply_fill
 from fin_graph.domain.orders import OrderAction
 from fin_graph.domain.portfolio import Portfolio
@@ -29,7 +29,7 @@ def execute_day(
     portfolio: Portfolio,
     tickers: Sequence[str],
     prices: Mapping[str, float],
-    result: LegacyHedgeFundResult,
+    result: ReferenceHedgeFundResult,
 ) -> DayExecution:
     """Execute decisions in request order, partially filling only what the book can support."""
 

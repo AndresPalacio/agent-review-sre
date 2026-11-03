@@ -6,7 +6,7 @@ from typing import Annotated, Any
 
 from pydantic import AliasChoices, BaseModel, ConfigDict, Field, StringConstraints
 
-from fin_graph.compat.contracts import JsonObject
+from fin_graph.conformance.contracts import JsonObject
 
 NodeId = Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=128)]
 

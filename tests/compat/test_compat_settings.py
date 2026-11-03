@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import pytest
 
-from fin_graph.compat.settings import CompatibilityProfile, resolve_alias
+from fin_graph.adapters.reference_app.settings import ReferenceAppProfile, resolve_alias
 from fin_graph.config.settings import Settings
 
 
@@ -72,14 +72,14 @@ def test_settings_reject_conflicting_modern_and_legacy_environment(
 
 
 def test_untrusted_forwarded_header_cannot_turn_remote_peer_into_loopback() -> None:
-    profile = CompatibilityProfile(trusted_proxies=("10.0.0.0/8",))
+    profile = ReferenceAppProfile(trusted_proxies=("10.0.0.0/8",))
 
     assert profile.resolve_client_host("203.0.113.9", "127.0.0.1") == "203.0.113.9"
     assert profile.resolve_client_host("10.2.3.4", "198.51.100.7, 10.2.3.4") == "198.51.100.7"
 
 
 def test_local_profile_binds_loopback_and_rejects_insecure_remote_legacy_api() -> None:
-    profile = CompatibilityProfile()
+    profile = ReferenceAppProfile()
 
     assert profile.default_bind_host == "127.0.0.1"
     profile.validate_bind("127.0.0.1")
@@ -88,7 +88,7 @@ def test_local_profile_binds_loopback_and_rejects_insecure_remote_legacy_api() -
 
 
 def test_explicit_insecure_opt_in_allows_remote_legacy_bind() -> None:
-    profile = CompatibilityProfile(local=False, allow_insecure_remote=True)
+    profile = ReferenceAppProfile(local=False, allow_insecure_remote=True)
 
     assert profile.default_bind_host == "0.0.0.0"
     profile.validate_bind("0.0.0.0")

@@ -17,7 +17,7 @@ ToolFunction = Callable[..., Awaitable[tuple[str, Any]]]
 def integration_tool(meta: ToolMeta) -> Callable[[ToolFunction], BaseTool]:
     """Decorate an async function into a tool tagged with ``meta``.
 
-    The function returns ``(content, artifact)``: compact text for the model
+    The function returns ``(content, artifact)``: bounded text for the model
     and the full (capped) data kept on the ``ToolMessage``. Its docstring needs
     a Google-style ``Args:`` section; those lines become the argument
     descriptions the model sees. Raising ``IntegrationError`` gives the model

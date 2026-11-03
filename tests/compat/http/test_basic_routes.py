@@ -8,8 +8,8 @@ from pathlib import Path
 import httpx
 from fastapi import FastAPI
 
-from fin_graph.compat.settings import CompatibilityProfile
-from fin_graph.server.compat import compatibility_router
+from fin_graph.adapters.reference_app.http import reference_app_router
+from fin_graph.adapters.reference_app.settings import ReferenceAppProfile
 
 
 class FakeOllama:
@@ -26,19 +26,19 @@ class FakeOllama:
 def app_for(
     tmp_path: Path,
     *,
-    profile: CompatibilityProfile | None = None,
+    profile: ReferenceAppProfile | None = None,
 ) -> FastAPI:
     app = FastAPI()
-    app.state.compatibility_profile = profile or CompatibilityProfile()
-    app.state.compatibility_store = None
-    app.state.compatibility_export_dir = tmp_path / "outputs"
-    app.state.compatibility_ollama = FakeOllama()
+    app.state.reference_app_profile = profile or ReferenceAppProfile()
+    app.state.reference_app_store = None
+    app.state.reference_app_export_dir = tmp_path / "outputs"
+    app.state.reference_app_ollama = FakeOllama()
 
     async def key_role(key: str) -> str | None:
         return "viewer" if key == "valid-key" else None
 
-    app.state.compatibility_key_role = key_role
-    app.include_router(compatibility_router())
+    app.state.reference_app_key_role = key_role
+    app.include_router(reference_app_router())
     return app
 
 
@@ -148,7 +148,7 @@ async def test_loopback_is_seamless_but_remote_clients_require_native_auth(tmp_p
 
 
 async def test_only_configured_proxies_may_supply_the_client_address(tmp_path: Path) -> None:
-    profile = CompatibilityProfile(trusted_proxies=("10.0.0.0/8",))
+    profile = ReferenceAppProfile(trusted_proxies=("10.0.0.0/8",))
     app = app_for(tmp_path, profile=profile)
 
     async with client_for(app, host="10.1.2.3") as proxy:
@@ -160,7 +160,7 @@ async def test_only_configured_proxies_may_supply_the_client_address(tmp_path: P
 
 
 async def test_explicit_insecure_opt_in_allows_remote_legacy_requests(tmp_path: Path) -> None:
-    app = app_for(tmp_path, profile=CompatibilityProfile(allow_insecure_remote=True))
+    app = app_for(tmp_path, profile=ReferenceAppProfile(allow_insecure_remote=True))
 
     async with client_for(app, host="203.0.113.10") as client:
         response = await client.get("/language-models/")

@@ -6,8 +6,8 @@ import pytest
 from cryptography.fernet import Fernet
 from sqlalchemy.ext.asyncio import create_async_engine
 
-from fin_graph.compat.storage import FernetSecretCipher, RunStatus
-from fin_graph.compat.storage.postgres import open_compat_postgres
+from fin_graph.persistence.reference_app import FernetSecretCipher, RunStatus
+from fin_graph.persistence.reference_app.postgres import open_reference_postgres
 from fin_graph.server.migrate import upgrade
 
 
@@ -17,7 +17,7 @@ async def test_postgres_store_persists_and_enforces_compare_and_swap(postgres_ur
     engine = create_async_engine(postgres_url)
     cipher = FernetSecretCipher(Fernet.generate_key())
     try:
-        async with open_compat_postgres(engine, cipher=cipher) as store:
+        async with open_reference_postgres(engine, cipher=cipher) as store:
             flow, revision = await store.create_flow("postgres-compat", {"nodes": []})
             run = await store.create_flow_run(flow.id, revision.revision, {})
             first, second = await asyncio.gather(
@@ -47,8 +47,8 @@ async def test_postgres_cycle_sequence_is_gapless_across_store_instances(
     cipher = FernetSecretCipher(Fernet.generate_key())
     try:
         async with (
-            open_compat_postgres(first_engine, cipher=cipher) as first,
-            open_compat_postgres(second_engine, cipher=cipher) as second,
+            open_reference_postgres(first_engine, cipher=cipher) as first,
+            open_reference_postgres(second_engine, cipher=cipher) as second,
         ):
             flow, revision = await first.create_flow("postgres-cycles", {"nodes": []})
             run = await first.create_flow_run(flow.id, revision.revision, {})

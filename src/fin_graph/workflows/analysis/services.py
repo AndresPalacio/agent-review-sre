@@ -597,7 +597,11 @@ class LangChainAnalysisServices:
             {
                 "claim": claim.model_dump(mode="json"),
                 "evidence": [
-                    {"id": item.id, "summary": item.summary[:600], "data": _compact(item.data)}
+                    {
+                        "id": item.id,
+                        "summary": item.summary[:600],
+                        "data": _bounded_evidence_payload(item.data),
+                    }
                     for item in evidence
                 ],
             },
@@ -630,7 +634,7 @@ def _as_json(value: Any) -> str:
     return json.dumps(redact_value(value), ensure_ascii=False, default=str, separators=(",", ":"))
 
 
-def _compact(data: Any) -> Any:
+def _bounded_evidence_payload(data: Any) -> Any:
     """Enough of an artifact for the judge: scores keep their summary, lists their head."""
     if isinstance(data, dict) and "components" in data and "analyst" in data:
         try:

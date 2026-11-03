@@ -16,7 +16,7 @@ from pydantic_settings import (
     SettingsConfigDict,
 )
 
-from fin_graph.compat.settings import normalize_model_provider, resolve_alias
+from fin_graph.config.aliases import normalize_model_provider, resolve_alias
 
 _COMPATIBILITY_ENV_ALIASES = (
     ("LLM_PROVIDER", ("DEFAULT_MODEL_PROVIDER",)),
@@ -45,7 +45,7 @@ def _dotenv_environment(source: PydanticBaseSettingsSource) -> dict[str, str]:
     return values
 
 
-def _validate_compatibility_environment(
+def _validate_environment_aliases(
     dotenv_settings: PydanticBaseSettingsSource,
 ) -> dict[str, Any]:
     dotenv_environment = _dotenv_environment(dotenv_settings)
@@ -160,10 +160,10 @@ class Settings(BaseSettings):
     ) -> tuple[PydanticBaseSettingsSource, ...]:
         del settings_cls
 
-        def validate_compatibility_environment() -> dict[str, Any]:
-            return _validate_compatibility_environment(dotenv_settings)
+        def validate_environment_aliases() -> dict[str, Any]:
+            return _validate_environment_aliases(dotenv_settings)
 
-        validation_source = cast(PydanticBaseSettingsSource, validate_compatibility_environment)
+        validation_source = cast(PydanticBaseSettingsSource, validate_environment_aliases)
         return (
             init_settings,
             validation_source,

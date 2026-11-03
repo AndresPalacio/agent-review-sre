@@ -8,10 +8,10 @@ from typing import Self
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
-from fin_graph.compat.ai_hedge_fund.models import (
-    LegacyAnalystSignal,
-    LegacyPortfolioDecision,
-    LegacyRiskAnalysis,
+from fin_graph.adapters.reference_app.models import (
+    ReferenceAnalystSignal,
+    ReferencePortfolioDecision,
+    ReferenceRiskAnalysis,
 )
 from fin_graph.domain.analysts import AnalystId, resolve_analysts
 from fin_graph.domain.portfolio import Portfolio
@@ -75,10 +75,10 @@ class BacktestSnapshot(BaseModel):
     date: Date
     portfolio: Portfolio
     portfolio_value: float = Field(allow_inf_nan=False)
-    decisions: dict[str, LegacyPortfolioDecision]
+    decisions: dict[str, ReferencePortfolioDecision]
     executed_trades: dict[str, int]
     realized_pnl: dict[str, float]
-    analyst_signals: dict[str, dict[str, LegacyAnalystSignal | LegacyRiskAnalysis]]
+    analyst_signals: dict[str, dict[str, ReferenceAnalystSignal | ReferenceRiskAnalysis]]
     current_prices: dict[str, float]
     benchmark_return_pct: float | None = None
     long_exposure: float = 0

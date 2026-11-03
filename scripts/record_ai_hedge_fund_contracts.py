@@ -9,8 +9,8 @@ from collections.abc import Sequence
 from pathlib import Path
 from typing import Any, NoReturn
 
-from fin_graph.compat.licensing import AssetInventory
-from fin_graph.compat.reference import ReferenceSnapshot
+from fin_graph.conformance.reference_app.licensing import AssetInventory
+from fin_graph.conformance.reference_app.snapshot import ReferenceSnapshot
 
 RECORDER_VERSION = "1"
 _FIXTURES_ROOT = Path("tests/compat/fixtures")

@@ -7,7 +7,7 @@ from pathlib import Path
 
 import pytest
 
-from fin_graph.compat.reference import build_reference_snapshot
+from fin_graph.conformance.reference_app.snapshot import build_reference_snapshot
 
 
 def _write(path: Path, value: str) -> None:

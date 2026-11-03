@@ -10,6 +10,7 @@ from dataclasses import dataclass
 from datetime import date, timedelta
 from typing import Protocol
 
+from fin_graph.adapters.reference_app.models import ReferenceHedgeFundResult
 from fin_graph.backtesting.engine import execute_day
 from fin_graph.backtesting.metrics import benchmark_return_pct, calculate_metrics
 from fin_graph.backtesting.models import (
@@ -20,7 +21,6 @@ from fin_graph.backtesting.models import (
     BacktestSnapshot,
     BacktestStatus,
 )
-from fin_graph.compat.ai_hedge_fund.models import LegacyHedgeFundResult
 from fin_graph.domain.company import CompanySnapshot
 from fin_graph.domain.market import Price
 from fin_graph.domain.portfolio import Portfolio
@@ -45,7 +45,7 @@ class AnalysisRunner(Protocol):
         data: PointInTimeDataView,
         *,
         model: str,
-    ) -> LegacyHedgeFundResult: ...
+    ) -> ReferenceHedgeFundResult: ...
 
 
 class Cancellation(Protocol):
@@ -269,7 +269,7 @@ async def run_v1_backtest(
                 portfolio=portfolio,
                 analysts=request.analysts,
             )
-            analysis = LegacyHedgeFundResult.model_validate(
+            analysis = ReferenceHedgeFundResult.model_validate(
                 await analysis_runner(analysis_request, portfolio, view, model=request.model)
             )
             execution = execute_day(portfolio, request.tickers, current_prices, analysis)

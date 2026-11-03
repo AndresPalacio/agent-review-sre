@@ -18,8 +18,7 @@ from pydantic import SecretStr
 from sqlalchemy.engine import URL
 from sqlalchemy.ext.asyncio import create_async_engine
 
-from fin_graph.compat.settings import CompatibilityProfile
-from fin_graph.compat.storage import FernetSecretCipher, open_compat_sqlite
+from fin_graph.adapters.reference_app.settings import ReferenceAppProfile
 from fin_graph.config.settings import PersistenceBackend, Settings
 from fin_graph.integrations.analytics.engine import AnalyticsEngine
 from fin_graph.integrations.broker.paper.runtime import context_quotes, paper_broker
@@ -28,6 +27,7 @@ from fin_graph.integrations.context import RunContext
 from fin_graph.integrations.market_data import MarketDataClient
 from fin_graph.integrations.registry import IntegrationRegistry
 from fin_graph.persistence.paper_ledger import PaperLedgerStore, create_paper_tables
+from fin_graph.persistence.reference_app import FernetSecretCipher, open_reference_sqlite
 from fin_graph.runtime.analysis import _analysis_services, make_analysis_graph
 from fin_graph.safety.approval import ApprovalPolicy
 from fin_graph.server.app import create_app as create_native_app
@@ -47,7 +47,7 @@ class RuntimeProfile:
     data_dir: Path | None = None
     database_url: str | None = None
     bootstrap_admin_key: str | None = None
-    compatibility: CompatibilityProfile = field(default_factory=CompatibilityProfile)
+    reference_app: ReferenceAppProfile = field(default_factory=ReferenceAppProfile)
 
     @classmethod
     def local(
@@ -57,19 +57,19 @@ class RuntimeProfile:
         host: str = "127.0.0.1",
         allow_insecure_remote: bool | None = None,
     ) -> RuntimeProfile:
-        environment = CompatibilityProfile.from_env(os.environ)
+        environment = ReferenceAppProfile.from_env(os.environ)
         allow_remote = (
             environment.allow_insecure_remote
             if allow_insecure_remote is None
             else allow_insecure_remote
         )
-        compatibility = CompatibilityProfile(
+        reference_app = ReferenceAppProfile(
             local=True,
-            legacy_api=environment.legacy_api,
+            enabled=environment.enabled,
             allow_insecure_remote=allow_remote,
             trusted_proxies=environment.trusted_proxies,
         )
-        compatibility.validate_bind(host)
+        reference_app.validate_bind(host)
         root = Path(
             data_dir or os.getenv("FIN_GRAPH_DATA_DIR") or user_data_dir("fin-graph", "fin-graph")
         ).expanduser()
@@ -77,7 +77,7 @@ class RuntimeProfile:
             backend="sqlite",
             host=host,
             data_dir=root.resolve(),
-            compatibility=compatibility,
+            reference_app=reference_app,
         )
 
     @classmethod
@@ -97,9 +97,9 @@ class RuntimeProfile:
             host=host,
             database_url=database_url,
             bootstrap_admin_key=bootstrap_admin_key,
-            compatibility=CompatibilityProfile(
+            reference_app=ReferenceAppProfile(
                 local=False,
-                legacy_api=True,
+                enabled=True,
                 allow_insecure_remote=False,
             ),
         )
@@ -147,13 +147,13 @@ def _local_model_graphs(
     try:
         from langgraph.store.memory import InMemoryStore
 
-        from fin_graph.agents.analysis.persona_team import make_persona_analysis_supervisor
+        from fin_graph.adapters.reference_app.runtime import make_reference_analysis_supervisor
         from fin_graph.agents.chat.supervisor import make_chat_graph
         from fin_graph.memory.theses import ThesisMemory
         from fin_graph.workflows.analysis.snapshots import MarketSnapshotServices
 
         model = get_model(ModelRole.REASONING, settings)
-        compatibility_graph = make_persona_analysis_supervisor(
+        reference_app_graph = make_reference_analysis_supervisor(
             model,
             registry,
             context,
@@ -167,12 +167,12 @@ def _local_model_graphs(
             context,
             ThesisMemory(memory_store),
             policy=ApprovalPolicy.from_settings(settings),
-            analysis=compatibility_graph,
+            analysis=reference_app_graph,
             checkpointer=InMemorySaver(),
             store=memory_store,
             settings=settings,
         )
-        return compatibility_graph, chat, model
+        return reference_app_graph, chat, model
     except (ImportError, TypeError, ValueError):
         _LOGGER.warning("optional local chat/DeepAgents runtime is unavailable")
         return None, None, None
@@ -182,7 +182,7 @@ def _create_local_app(profile: RuntimeProfile) -> FastAPI:
     assert profile.data_dir is not None
     root = profile.data_dir
     runtime_database = root / "runtime.sqlite"
-    compatibility_database = root / "compatibility.sqlite"
+    reference_app_database = root / "compatibility.sqlite"
     engine = create_async_engine(
         URL.create("sqlite+aiosqlite", database=str(runtime_database)),
         connect_args={"timeout": 30},
@@ -214,7 +214,7 @@ def _create_local_app(profile: RuntimeProfile) -> FastAPI:
         settings=settings,
     )
     manager = RunManager(graph, storage, context_factory)
-    compatibility_graph, chat_graph, model = _local_model_graphs(
+    reference_app_graph, chat_graph, model = _local_model_graphs(
         settings, registry, context_factory()
     )
     application = create_native_app(
@@ -223,8 +223,8 @@ def _create_local_app(profile: RuntimeProfile) -> FastAPI:
         chat_graph=chat_graph,
         approval_policy=ApprovalPolicy.from_settings(settings),
         paper=broker,
-        compatibility_profile=profile.compatibility,
-        compatibility_export_dir=root / "outputs",
+        reference_app_profile=profile.reference_app,
+        reference_app_export_dir=root / "outputs",
         config=ServerConfig(_env_file=None),
     )
     application.state.runtime_profile = profile
@@ -233,21 +233,21 @@ def _create_local_app(profile: RuntimeProfile) -> FastAPI:
         "distributed_locks": False,
         "multi_worker": False,
     }
-    application.state.compatibility_analysis_graph = compatibility_graph
-    application.state.compatibility_quant_llm = model
-    application.state.compatibility_quant_artifact_dir = root / "models"
-    application.state.compatibility_backtest_artifact_dir = root / "backtests"
-    if compatibility_graph is not None:
-        from fin_graph.server.compat.hedge_fund import make_v1_backtest_runner
+    application.state.reference_app_analysis_graph = reference_app_graph
+    application.state.reference_app_quant_llm = model
+    application.state.reference_app_quant_artifact_dir = root / "models"
+    application.state.reference_app_backtest_artifact_dir = root / "backtests"
+    if reference_app_graph is not None:
+        from fin_graph.adapters.reference_app.http.hedge_fund import make_v1_backtest_runner
 
-        application.state.compatibility_backtest_runner = make_v1_backtest_runner(
-            compatibility_graph, context_factory
+        application.state.reference_app_backtest_runner = make_v1_backtest_runner(
+            reference_app_graph, context_factory
         )
     analytics = base_context.clients.get("analytics")
     if isinstance(analytics, AnalyticsEngine):
         candidate = base_context.clients.get(analytics.data_integration)
         if isinstance(candidate, MarketDataClient):
-            application.state.compatibility_quant_data = candidate
+            application.state.reference_app_quant_data = candidate
 
     inherited_lifespan = application.router.lifespan_context
 
@@ -263,15 +263,15 @@ def _create_local_app(profile: RuntimeProfile) -> FastAPI:
             root / "compatibility.key", lambda: Fernet.generate_key().decode("ascii")
         )
         try:
-            async with open_compat_sqlite(
-                compatibility_database, FernetSecretCipher(cipher_key)
-            ) as compatibility_store:
-                app.state.compatibility_store = compatibility_store
+            async with open_reference_sqlite(
+                reference_app_database, FernetSecretCipher(cipher_key)
+            ) as reference_app_store:
+                app.state.reference_app_store = reference_app_store
                 app.state.local_api_key_path = root / "local-api.key"
                 async with inherited_lifespan(app):
                     yield
         finally:
-            backtests = getattr(app.state, "compatibility_backtest_manager", None)
+            backtests = getattr(app.state, "reference_app_backtest_manager", None)
             if backtests is not None:
                 await backtests.close()
             await engine.dispose()
@@ -293,7 +293,7 @@ def create_app(runtime: RuntimeProfile) -> FastAPI:
             database_url=SecretStr(runtime.database_url),
             bootstrap_admin_key=SecretStr(runtime.bootstrap_admin_key or ""),
         ),
-        compatibility_profile=runtime.compatibility,
+        reference_app_profile=runtime.reference_app,
     )
     application.state.runtime_profile = runtime
     application.state.runtime_capabilities = {

@@ -6,7 +6,7 @@ import argparse
 from collections.abc import Sequence
 from pathlib import Path
 
-from fin_graph.compat.reference import build_reference_snapshot
+from fin_graph.conformance.reference_app.snapshot import build_reference_snapshot
 
 
 def _parser() -> argparse.ArgumentParser:

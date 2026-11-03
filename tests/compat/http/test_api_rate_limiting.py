@@ -4,20 +4,20 @@ import httpx
 from fastapi import FastAPI
 from tests.compat.http.test_hedge_fund_routes import FakeRunner, request_body
 
-from fin_graph.compat.settings import CompatibilityProfile
-from fin_graph.server.compat import compatibility_router
-from fin_graph.server.compat.hedge_fund import LegacyRunLimiter
+from fin_graph.adapters.reference_app.http import reference_app_router
+from fin_graph.adapters.reference_app.http.hedge_fund import ReferenceRunLimiter
+from fin_graph.adapters.reference_app.settings import ReferenceAppProfile
 
 
 async def test_legacy_stream_capacity_returns_retryable_429() -> None:
     app = FastAPI()
-    app.state.compatibility_profile = CompatibilityProfile()
-    app.state.compatibility_store = None
-    app.state.compatibility_hedge_fund = FakeRunner()
-    limiter = LegacyRunLimiter(1)
+    app.state.reference_app_profile = ReferenceAppProfile()
+    app.state.reference_app_store = None
+    app.state.reference_app_hedge_fund = FakeRunner()
+    limiter = ReferenceRunLimiter(1)
     assert limiter.try_acquire()
-    app.state.compatibility_run_limiter = limiter
-    app.include_router(compatibility_router())
+    app.state.reference_app_run_limiter = limiter
+    app.include_router(reference_app_router())
 
     async with httpx.AsyncClient(
         transport=httpx.ASGITransport(app=app), base_url="http://test"

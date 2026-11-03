@@ -10,7 +10,7 @@ from typing import Annotated, Any, TypedDict
 from langgraph.graph import END, START, StateGraph
 from langgraph.graph.state import CompiledStateGraph
 
-from fin_graph.compat.contracts import JsonObject, JsonValue
+from fin_graph.conformance.contracts import JsonObject, JsonValue
 from fin_graph.flows.models import FlowGraph, FlowNode
 
 _KINDS = {

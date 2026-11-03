@@ -3,7 +3,7 @@
 - **Subagents**: one per available analyst (fundamentals, valuation, technicals, sentiment,
   Buffett, Graham), each with only its read-only tools, reached through the ``task`` tool.
 - **analyze** runs the full analysis graph (plan, analysts, verified thesis, risk limits,
-  portfolio decision) and returns a compact summary.
+  portfolio decision) and returns a bounded summary.
 - **Memory**: verified theses and their track record, curated playbooks and skills.
 - **Orders**: ``preview_order`` shows the limits verdict and the simulated fill;
   ``propose_order`` (and ``cancel_paper_order``) pause for a human approval, then go through

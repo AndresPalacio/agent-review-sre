@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from fin_graph.compat.ai_hedge_fund.python_api import (
+from fin_graph.adapters.reference_app.python_api import (
     create_workflow,
     parse_hedge_fund_response,
     run_hedge_fund_sync,

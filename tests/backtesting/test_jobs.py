@@ -7,7 +7,7 @@ from cryptography.fernet import Fernet
 
 from fin_graph.backtesting.artifacts import BacktestArtifactStore, BacktestRunOutput
 from fin_graph.backtesting.jobs import BacktestJobManager
-from fin_graph.compat.storage import FernetSecretCipher, JobStatus, open_compat_sqlite
+from fin_graph.persistence.reference_app import FernetSecretCipher, JobStatus, open_reference_sqlite
 
 
 def _cipher() -> FernetSecretCipher:
@@ -41,7 +41,7 @@ async def test_jobs_bound_concurrency_publish_success_and_page_signals(tmp_path:
         finally:
             active -= 1
 
-    async with open_compat_sqlite(tmp_path / "jobs.sqlite", _cipher()) as store:
+    async with open_reference_sqlite(tmp_path / "jobs.sqlite", _cipher()) as store:
         manager = BacktestJobManager(
             store,
             BacktestArtifactStore(tmp_path / "artifacts"),
@@ -82,7 +82,7 @@ async def test_cancel_wins_race_and_never_publishes_partial_success(tmp_path: Pa
         await finish.wait()
         return BacktestRunOutput(result={"should": "not-publish"}, signals=({"x": 1},))
 
-    async with open_compat_sqlite(tmp_path / "cancel.sqlite", _cipher()) as store:
+    async with open_reference_sqlite(tmp_path / "cancel.sqlite", _cipher()) as store:
         artifacts = BacktestArtifactStore(tmp_path / "artifacts")
         manager = BacktestJobManager(store, artifacts, {"alpha": slow_runner})
         job = await manager.start("alpha", {})
@@ -105,7 +105,7 @@ async def test_failure_details_are_persisted_with_one_terminal_event(tmp_path: P
     async def broken(request, *, event_sink, cancellation):
         raise RuntimeError("provider exploded")
 
-    async with open_compat_sqlite(tmp_path / "failed.sqlite", _cipher()) as store:
+    async with open_reference_sqlite(tmp_path / "failed.sqlite", _cipher()) as store:
         manager = BacktestJobManager(
             store, BacktestArtifactStore(tmp_path / "artifacts"), {"alpha": broken}
         )
@@ -126,10 +126,10 @@ async def test_restart_recovers_persisted_queued_job_and_replays_events(tmp_path
     async def runner(request, *, event_sink, cancellation):
         return BacktestRunOutput(result={"recovered": request["value"]}, signals=())
 
-    async with open_compat_sqlite(database, _cipher()) as store:
+    async with open_reference_sqlite(database, _cipher()) as store:
         queued = await store.create_backtest_job("alpha", {"value": 7})
 
-    async with open_compat_sqlite(database, _cipher()) as reopened:
+    async with open_reference_sqlite(database, _cipher()) as reopened:
         manager = BacktestJobManager(
             reopened, BacktestArtifactStore(artifact_root), {"alpha": runner}
         )
@@ -137,7 +137,7 @@ async def test_restart_recovers_persisted_queued_job_and_replays_events(tmp_path
         record = await _wait_for(manager, queued.id, JobStatus.SUCCEEDED)
         await manager.close()
 
-    async with open_compat_sqlite(database, _cipher()) as final_store:
+    async with open_reference_sqlite(database, _cipher()) as final_store:
         replay_manager = BacktestJobManager(
             final_store, BacktestArtifactStore(artifact_root), {"alpha": runner}
         )

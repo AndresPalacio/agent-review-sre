@@ -8,12 +8,12 @@ from typing import Any
 
 import pytest
 
+from fin_graph.adapters.reference_app.models import (
+    ReferenceHedgeFundResult,
+    ReferencePortfolioDecision,
+)
 from fin_graph.backtesting.models import BacktestEvent, BacktestRequest, BacktestStatus
 from fin_graph.backtesting.service import PointInTimeDataView, run_v1_backtest
-from fin_graph.compat.ai_hedge_fund.models import (
-    LegacyHedgeFundResult,
-    LegacyPortfolioDecision,
-)
 from fin_graph.domain.company import CompanySnapshot
 from fin_graph.domain.market import Price
 from fin_graph.domain.orders import OrderAction
@@ -65,20 +65,20 @@ class ScenarioRunner:
         data: PointInTimeDataView,
         *,
         model: str,
-    ) -> LegacyHedgeFundResult:
+    ) -> ReferenceHedgeFundResult:
         assert model == "gpt-4.1"
         plan = self.plans[self.calls]
         self.calls += 1
-        decisions: dict[str, LegacyPortfolioDecision] = {}
+        decisions: dict[str, ReferencePortfolioDecision] = {}
         for ticker in request.tickers:
             action, quantity = plan.get(ticker, ["hold", 0])
-            decisions[ticker] = LegacyPortfolioDecision(
+            decisions[ticker] = ReferencePortfolioDecision(
                 action=OrderAction(action),
                 quantity=quantity,
                 confidence=80,
                 reasoning="fixture",
             )
-        return LegacyHedgeFundResult(decisions=decisions, analyst_signals={})
+        return ReferenceHedgeFundResult(decisions=decisions, analyst_signals={})
 
 
 @pytest.mark.parametrize("case_name", CASES)
@@ -154,7 +154,7 @@ async def test_task_cancellation_propagates_and_emits_one_terminal_event() -> No
             data: PointInTimeDataView,
             *,
             model: str,
-        ) -> LegacyHedgeFundResult:
+        ) -> ReferenceHedgeFundResult:
             started.set()
             await asyncio.Event().wait()
             raise AssertionError("unreachable")

@@ -6,7 +6,7 @@ import asyncio
 import hashlib
 import json
 import re
-from collections.abc import Mapping
+from collections.abc import Mapping, Sequence
 from datetime import date
 from enum import StrEnum
 from typing import Any, Protocol, TypedDict
@@ -36,6 +36,7 @@ from fin_graph.domain.analysts import (
     resolve_analysts,
 )
 from fin_graph.domain.company import CompanySnapshot
+from fin_graph.domain.portfolio import Portfolio
 from fin_graph.domain.quant.common import QuantScore
 from fin_graph.domain.quant.personas.registry import scorer_for
 from fin_graph.domain.requests.model import AnalysisRequest
@@ -51,6 +52,17 @@ class PersonaSnapshotServices(Protocol):
     async def company_snapshot(
         self, ticker: str, as_of: date, context: RunContext
     ) -> CompanySnapshot: ...
+
+
+class PersonaResultBuilder(Protocol):
+    def __call__(
+        self,
+        findings: Sequence[PersonaFinding],
+        portfolio: Portfolio,
+        prices: Mapping[str, float],
+        *,
+        price_histories: Mapping[str, Sequence[Any]] | None = None,
+    ) -> Any: ...
 
 
 class PersonaFinding(BaseModel):
@@ -216,6 +228,7 @@ def make_persona_analysis_supervisor(
     services: PersonaSnapshotServices,
     *,
     checkpointer: Checkpointer = None,
+    result_builder: PersonaResultBuilder | None = None,
 ) -> CompiledStateGraph[Any, Any, Any, Any]:
     """Compile the full nineteen-persona analysis graph."""
 
@@ -332,8 +345,12 @@ def make_persona_analysis_supervisor(
             )
         )
         bundle = PersonaAnalysisBundle(request=request, findings=tuple(findings))
-        from fin_graph.compat.ai_hedge_fund.portfolio import build_legacy_portfolio_result
-        from fin_graph.domain.portfolio import Portfolio
+        output: dict[str, Any] = {
+            "bundle": bundle.model_dump(mode="json"),
+            "errors": [],
+        }
+        if result_builder is None:
+            return output
 
         portfolio = (
             Portfolio.model_validate(portfolio_payload)
@@ -354,17 +371,16 @@ def make_persona_analysis_supervisor(
             price_histories[ticker] = history
             if history:
                 prices[ticker] = history[-1].effective_close
-        result = build_legacy_portfolio_result(
+        result = result_builder(
             findings,
             portfolio,
             prices,
             price_histories=price_histories,
         )
-        return {
-            "bundle": bundle.model_dump(mode="json"),
-            "result": result.model_dump(mode="json"),
-            "errors": [],
-        }
+        output["result"] = (
+            result.model_dump(mode="json") if isinstance(result, BaseModel) else result
+        )
+        return output
 
     builder = StateGraph(_PersonaTeamState)
     builder.add_node("analyze_personas", analyze)

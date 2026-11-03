@@ -8,10 +8,10 @@ import httpx
 from cryptography.fernet import Fernet
 from fastapi import FastAPI
 
-from fin_graph.compat.settings import CompatibilityProfile
-from fin_graph.compat.storage import FernetSecretCipher, open_compat_sqlite
+from fin_graph.adapters.reference_app.http import reference_app_router
+from fin_graph.adapters.reference_app.settings import ReferenceAppProfile
 from fin_graph.flows.service import FlowService, FlowServices
-from fin_graph.server.compat import compatibility_router
+from fin_graph.persistence.reference_app import FernetSecretCipher, open_reference_sqlite
 
 
 def definition(name: str = "Portfolio flow") -> dict[str, object]:
@@ -37,7 +37,7 @@ def definition(name: str = "Portfolio flow") -> dict[str, object]:
 @asynccontextmanager
 async def client_for(database: Path) -> AsyncIterator[httpx.AsyncClient]:
     cipher = FernetSecretCipher(Fernet.generate_key())
-    async with open_compat_sqlite(database, cipher) as store:
+    async with open_reference_sqlite(database, cipher) as store:
 
         async def execute(
             node: object, inputs: dict[str, object], request: dict[str, object]
@@ -45,12 +45,12 @@ async def client_for(database: Path) -> AsyncIterator[httpx.AsyncClient]:
             return {"signal": "neutral", "inputs": list(inputs), "request": request}
 
         app = FastAPI()
-        app.state.compatibility_profile = CompatibilityProfile()
-        app.state.compatibility_store = store
-        app.state.compatibility_flow_service = FlowService(
+        app.state.reference_app_profile = ReferenceAppProfile()
+        app.state.reference_app_store = store
+        app.state.reference_app_flow_service = FlowService(
             store, FlowServices(execute=execute), schedule_runs=False
         )
-        app.include_router(compatibility_router())
+        app.include_router(reference_app_router())
         async with httpx.AsyncClient(
             transport=httpx.ASGITransport(app=app), base_url="http://test"
         ) as client:
@@ -81,7 +81,7 @@ async def test_flow_crud_duplicate_search_and_revision_pinning(tmp_path: Path) -
         assert updated.json()["nodes"] == flow["nodes"]
         assert run.status_code == 200 and run.json()["run_number"] == 1
 
-        service = client._transport.app.state.compatibility_flow_service  # type: ignore[attr-defined]
+        service = client._transport.app.state.reference_app_flow_service  # type: ignore[attr-defined]
         stored = await service.get_run(flow_id, run.json()["id"])
         assert stored.flow_revision == 2
 
@@ -99,7 +99,7 @@ async def test_flow_run_history_cycles_pagination_and_idempotent_cancel(tmp_path
             )
         ).json()
         await client.post(f"/flows/{flow_id}/runs/", json={"request_data": {"tickers": ["MSFT"]}})
-        service = client._transport.app.state.compatibility_flow_service  # type: ignore[attr-defined]
+        service = client._transport.app.state.reference_app_flow_service  # type: ignore[attr-defined]
         await service.append_cycle(first["id"], "analyst.started", {"agent": "valuation"})
 
         page = await client.get(f"/flows/{flow_id}/runs/", params={"limit": 1, "offset": 1})

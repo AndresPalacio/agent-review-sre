@@ -10,8 +10,8 @@ from pathlib import Path
 from packaging.requirements import Requirement
 from packaging.utils import canonicalize_name
 
-from fin_graph.compat.licensing import AssetInventory, audit_assets
-from fin_graph.compat.reference import ReferenceSnapshot, build_reference_snapshot
+from fin_graph.conformance.reference_app.licensing import AssetInventory, audit_assets
+from fin_graph.conformance.reference_app.snapshot import ReferenceSnapshot, build_reference_snapshot
 
 ROOT = Path(__file__).resolve().parents[2]
 MIT = """MIT License

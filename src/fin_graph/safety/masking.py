@@ -148,10 +148,10 @@ def card_number_valid(raw: str) -> bool:
 
 def iban_valid(raw: str) -> bool:
     """ISO 13616 mod-97 check on an IBAN with or without spaces."""
-    compact = raw.replace(" ", "").upper()
-    if not 15 <= len(compact) <= 34:
+    normalized_iban = raw.replace(" ", "").upper()
+    if not 15 <= len(normalized_iban) <= 34:
         return False
-    rearranged = compact[4:] + compact[:4]
+    rearranged = normalized_iban[4:] + normalized_iban[:4]
     numeric = "".join(str(int(char, 36)) for char in rearranged)
     return int(numeric) % 97 == 1
 

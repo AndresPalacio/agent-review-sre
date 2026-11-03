@@ -7,12 +7,12 @@ import pytest
 from cryptography.fernet import Fernet
 from pydantic import ValidationError
 
-from fin_graph.compat.storage import (
+from fin_graph.persistence.reference_app import (
     DuplicateNameError,
     FernetSecretCipher,
     JobStatus,
     RunStatus,
-    open_compat_sqlite,
+    open_reference_sqlite,
 )
 
 
@@ -26,7 +26,7 @@ async def test_clean_initialization_and_restart_preserve_immutable_flow_revision
     database = tmp_path / "compat.sqlite"
     cipher = _cipher()
 
-    async with open_compat_sqlite(database, cipher) as store:
+    async with open_reference_sqlite(database, cipher) as store:
         assert await store.list_flows() == ()
         flow, first_revision = await store.create_flow(
             "quality-flow",
@@ -47,7 +47,7 @@ async def test_clean_initialization_and_restart_preserve_immutable_flow_revision
         with pytest.raises(ValidationError):
             first_revision.revision = 9  # type: ignore[misc]
 
-    async with open_compat_sqlite(database, cipher) as reopened:
+    async with open_reference_sqlite(database, cipher) as reopened:
         persisted = await reopened.get_flow(flow.id)
         revisions = await reopened.list_flow_revisions(flow.id)
 
@@ -60,7 +60,7 @@ async def test_clean_initialization_and_restart_preserve_immutable_flow_revision
 
 
 async def test_duplicate_flow_names_are_rejected(tmp_path: Path) -> None:
-    async with open_compat_sqlite(tmp_path / "compat.sqlite", _cipher()) as store:
+    async with open_reference_sqlite(tmp_path / "compat.sqlite", _cipher()) as store:
         await store.create_flow("same-name", {"nodes": []})
 
         with pytest.raises(DuplicateNameError, match="same-name"):
@@ -68,7 +68,7 @@ async def test_duplicate_flow_names_are_rejected(tmp_path: Path) -> None:
 
 
 async def test_runs_and_cycles_are_returned_in_creation_order(tmp_path: Path) -> None:
-    async with open_compat_sqlite(tmp_path / "compat.sqlite", _cipher()) as store:
+    async with open_reference_sqlite(tmp_path / "compat.sqlite", _cipher()) as store:
         flow, revision = await store.create_flow("ordered", {"nodes": []})
         run = await store.create_flow_run(
             flow.id,
@@ -100,7 +100,7 @@ async def test_runs_and_cycles_are_returned_in_creation_order(tmp_path: Path) ->
 
 
 async def test_concurrent_cycle_appends_receive_gapless_sequences(tmp_path: Path) -> None:
-    async with open_compat_sqlite(tmp_path / "compat.sqlite", _cipher()) as store:
+    async with open_reference_sqlite(tmp_path / "compat.sqlite", _cipher()) as store:
         flow, revision = await store.create_flow("concurrent-cycles", {"nodes": []})
         run = await store.create_flow_run(flow.id, revision.revision, {})
 
@@ -120,7 +120,7 @@ async def test_provider_secrets_are_encrypted_and_never_returned_by_list(
     cipher = _cipher()
     secret = "provider-key-that-must-not-appear"
 
-    async with open_compat_sqlite(database, cipher) as store:
+    async with open_reference_sqlite(database, cipher) as store:
         record = await store.put_provider_key("openai", secret)
         listed = await store.list_provider_keys()
         recovered = await store.get_provider_secret("openai")
@@ -130,13 +130,13 @@ async def test_provider_secrets_are_encrypted_and_never_returned_by_list(
     assert recovered == secret
     assert secret.encode() not in database.read_bytes()
 
-    async with open_compat_sqlite(database, cipher) as reopened:
+    async with open_reference_sqlite(database, cipher) as reopened:
         assert await reopened.get_provider_secret("openai") == secret
 
 
 async def test_concurrent_provider_key_updates_increment_every_version(tmp_path: Path) -> None:
     secrets = [f"provider-secret-{index}" for index in range(10)]
-    async with open_compat_sqlite(tmp_path / "compat.sqlite", _cipher()) as store:
+    async with open_reference_sqlite(tmp_path / "compat.sqlite", _cipher()) as store:
         updated = await asyncio.gather(
             *(store.put_provider_key("openai", secret) for secret in secrets)
         )
@@ -151,7 +151,7 @@ async def test_concurrent_provider_key_updates_increment_every_version(tmp_path:
 async def test_only_one_concurrent_backtest_transition_wins_compare_and_swap(
     tmp_path: Path,
 ) -> None:
-    async with open_compat_sqlite(tmp_path / "compat.sqlite", _cipher()) as store:
+    async with open_reference_sqlite(tmp_path / "compat.sqlite", _cipher()) as store:
         job = await store.create_backtest_job("alpha", {"ticker": "AAPL"})
 
         running, cancelled = await asyncio.gather(
@@ -179,7 +179,7 @@ async def test_artifacts_persist_with_stable_public_ids(tmp_path: Path) -> None:
     database = tmp_path / "compat.sqlite"
     cipher = _cipher()
 
-    async with open_compat_sqlite(database, cipher) as store:
+    async with open_reference_sqlite(database, cipher) as store:
         job = await store.create_backtest_job("strategy", {"strategy": "momentum"})
         artifact = await store.create_artifact(
             job.id,
@@ -188,7 +188,7 @@ async def test_artifacts_persist_with_stable_public_ids(tmp_path: Path) -> None:
             {"sha256": "a" * 64},
         )
 
-    async with open_compat_sqlite(database, cipher) as reopened:
+    async with open_reference_sqlite(database, cipher) as reopened:
         artifacts = await reopened.list_artifacts(job.id)
 
     assert artifacts == (artifact,)
@@ -197,7 +197,7 @@ async def test_artifacts_persist_with_stable_public_ids(tmp_path: Path) -> None:
 
 
 async def test_invalid_text_fields_never_leave_corrupt_rows(tmp_path: Path) -> None:
-    async with open_compat_sqlite(tmp_path / "compat.sqlite", _cipher()) as store:
+    async with open_reference_sqlite(tmp_path / "compat.sqlite", _cipher()) as store:
         flow, revision = await store.create_flow("validated", {"nodes": []})
         run = await store.create_flow_run(flow.id, revision.revision, {})
         job = await store.create_backtest_job("valid", {})

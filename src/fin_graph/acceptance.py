@@ -16,14 +16,14 @@ from uuid import uuid4
 
 import httpx
 
+from fin_graph.adapters.reference_app.http.events import InternalEvent
+from fin_graph.adapters.reference_app.schemas import BacktestRequest, HedgeFundRequest
 from fin_graph.backtesting import BacktestArtifactStore, BacktestJobManager, BacktestRunOutput
 from fin_graph.backtesting.models import BacktestEvent, BacktestEventKind
-from fin_graph.compat.ai_hedge_fund.schemas import BacktestRequest, HedgeFundRequest
-from fin_graph.compat.contracts import JsonObject
-from fin_graph.compat.storage import CompatibilityStore, ConcurrentUpdateError, RunStatus
+from fin_graph.conformance.contracts import JsonObject
 from fin_graph.domain.fills import OrderStatus
 from fin_graph.domain.orders import OrderAction, ProposedOrder
-from fin_graph.server.compat.events import InternalEvent
+from fin_graph.persistence.reference_app import ConcurrentUpdateError, ReferenceStore, RunStatus
 from fin_graph.server.factory import RuntimeProfile, create_app
 
 REQUIRED_CHECKS = (
@@ -237,9 +237,9 @@ async def _run_profile(
     flow_version = 0
 
     async with app.router.lifespan_context(app):
-        store = cast(CompatibilityStore, app.state.compatibility_store)
-        app.state.compatibility_hedge_fund = _FixtureHedgeFundRunner()
-        app.state.compatibility_backtest_manager = BacktestJobManager(
+        store = cast(ReferenceStore, app.state.reference_app_store)
+        app.state.reference_app_hedge_fund = _FixtureHedgeFundRunner()
+        app.state.reference_app_backtest_manager = BacktestJobManager(
             store,
             BacktestArtifactStore(artifact_dir),
             {"strategy": _strategy_runner},
@@ -412,7 +412,7 @@ async def _run_profile(
 
     restarted = create_app(profile)
     async with restarted.router.lifespan_context(restarted):
-        restarted_store = cast(CompatibilityStore, restarted.state.compatibility_store)
+        restarted_store = cast(ReferenceStore, restarted.state.reference_app_store)
         persisted_flow = await restarted_store.get_flow(flow_store_id)
         persisted_order = await restarted.state.paper_broker.execution(order_id)
         checks["restart_persistence"] = (

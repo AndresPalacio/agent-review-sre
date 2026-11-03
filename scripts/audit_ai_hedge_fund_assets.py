@@ -7,8 +7,8 @@ import json
 from collections.abc import Sequence
 from pathlib import Path
 
-from fin_graph.compat.licensing import AssetInventory, audit_assets
-from fin_graph.compat.reference import ReferenceSnapshot
+from fin_graph.conformance.reference_app.licensing import AssetInventory, audit_assets
+from fin_graph.conformance.reference_app.snapshot import ReferenceSnapshot
 
 
 def _parser() -> argparse.ArgumentParser:

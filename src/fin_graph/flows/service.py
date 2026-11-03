@@ -7,18 +7,18 @@ import hashlib
 from collections.abc import Awaitable, Callable
 from dataclasses import dataclass
 
-from fin_graph.compat.contracts import JsonObject, JsonValue
-from fin_graph.compat.storage import (
-    CompatibilityStore,
+from fin_graph.conformance.contracts import JsonObject, JsonValue
+from fin_graph.flows.compiler import compile_flow
+from fin_graph.flows.models import FlowGraph, FlowNode
+from fin_graph.persistence.reference_app import (
     FlowRecord,
     FlowRevision,
     FlowRunRecord,
     RecordNotFoundError,
+    ReferenceStore,
     RunCycleRecord,
     RunStatus,
 )
-from fin_graph.flows.compiler import compile_flow
-from fin_graph.flows.models import FlowGraph, FlowNode
 
 FlowExecutor = Callable[
     [FlowNode, dict[str, JsonValue], JsonObject],
@@ -34,12 +34,12 @@ class FlowServices:
 def public_id(value: str) -> int:
     """Map opaque store ids to the positive integer surface used by the old app."""
 
-    compact = value.replace("-", "")
+    normalized_hex = value.replace("-", "")
     # The frozen browser client stores ids as JavaScript numbers. Keep the
     # deterministic public projection inside Number.MAX_SAFE_INTEGER.
-    if len(compact) >= 13:
+    if len(normalized_hex) >= 13:
         try:
-            return int(compact[:13], 16)
+            return int(normalized_hex[:13], 16)
         except ValueError:
             pass
     return int.from_bytes(hashlib.sha256(value.encode()).digest()[:6], "big")
@@ -48,7 +48,7 @@ def public_id(value: str) -> int:
 class FlowService:
     def __init__(
         self,
-        store: CompatibilityStore,
+        store: ReferenceStore,
         services: FlowServices | None = None,
         *,
         schedule_runs: bool = True,

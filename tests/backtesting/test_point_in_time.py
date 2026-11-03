@@ -2,12 +2,12 @@ from __future__ import annotations
 
 from datetime import UTC, date, datetime
 
+from fin_graph.adapters.reference_app.models import (
+    ReferenceHedgeFundResult,
+    ReferencePortfolioDecision,
+)
 from fin_graph.backtesting.models import BacktestEvent, BacktestRequest
 from fin_graph.backtesting.service import PointInTimeDataView, run_v1_backtest
-from fin_graph.compat.ai_hedge_fund.models import (
-    LegacyHedgeFundResult,
-    LegacyPortfolioDecision,
-)
 from fin_graph.domain.company import CompanySnapshot
 from fin_graph.domain.market import FinancialMetrics, Price
 from fin_graph.domain.orders import OrderAction
@@ -77,7 +77,7 @@ class InspectingRunner:
         data: PointInTimeDataView,
         *,
         model: str,
-    ) -> LegacyHedgeFundResult:
+    ) -> ReferenceHedgeFundResult:
         snapshot = data.company_snapshot("AAPL")
         assert snapshot.as_of == request.as_of == data.as_of
         assert all(item.day <= request.as_of for item in data.price_history("AAPL"))
@@ -87,9 +87,9 @@ class InspectingRunner:
         latest_growth = snapshot.metrics[0].revenue_growth if snapshot.metrics else None
         self.growth_seen.append(latest_growth)
         action = OrderAction.BUY if latest_growth and latest_growth > 0 else OrderAction.HOLD
-        return LegacyHedgeFundResult(
+        return ReferenceHedgeFundResult(
             decisions={
-                "AAPL": LegacyPortfolioDecision(
+                "AAPL": ReferencePortfolioDecision(
                     action=action,
                     quantity=1 if action is OrderAction.BUY else 0,
                     confidence=80,

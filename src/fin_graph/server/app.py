@@ -27,12 +27,10 @@ from pydantic import BaseModel, Field, ValidationError
 from sqlalchemy import text as sql_text
 from sqlalchemy.ext.asyncio import create_async_engine
 
-from fin_graph.compat.settings import CompatibilityProfile
-from fin_graph.compat.storage import (
-    CompatibilityStore,
-    FernetSecretCipher,
-    open_compat_postgres,
-)
+from fin_graph.adapters.reference_app.http import reference_app_router
+from fin_graph.adapters.reference_app.http.hedge_fund import make_v1_backtest_runner
+from fin_graph.adapters.reference_app.http.ollama import OllamaReferenceService
+from fin_graph.adapters.reference_app.settings import ReferenceAppProfile
 from fin_graph.config.settings import PersistenceBackend, Settings
 from fin_graph.config.tracing import disable_external_tracing
 from fin_graph.delivery.service import DeliveryService
@@ -62,6 +60,11 @@ from fin_graph.llm.models import ModelRole, get_model
 from fin_graph.memory.theses import ThesisMemory
 from fin_graph.persistence.checkpointer import open_checkpointer
 from fin_graph.persistence.paper_ledger import PaperLedgerStore
+from fin_graph.persistence.reference_app import (
+    FernetSecretCipher,
+    ReferenceStore,
+    open_reference_postgres,
+)
 from fin_graph.persistence.store import open_store
 from fin_graph.runtime.analysis import _analysis_services, make_analysis_graph
 from fin_graph.safety.approval import ApprovalPolicy
@@ -70,9 +73,6 @@ from fin_graph.scheduler.delivery import send_digest_text
 from fin_graph.scheduler.expiry import ApprovalGraph, expire_pending_approvals
 from fin_graph.scheduler.market import MarketJobs
 from fin_graph.scheduler.service import SchedulerService, validate_schedule
-from fin_graph.server.compat import compatibility_router
-from fin_graph.server.compat.hedge_fund import make_v1_backtest_runner
-from fin_graph.server.compat.ollama import OllamaCompatibilityService
 from fin_graph.server.config import ServerConfig
 from fin_graph.server.events import EventListener
 from fin_graph.server.explain import MAX_EXPLAIN_EVENTS, build_explanation
@@ -139,11 +139,11 @@ def create_app(
     telegram_gateway: Any | None = None,
     paper: PaperBroker | None = None,
     ui_dir: Path | None = None,
-    compatibility_store: CompatibilityStore | None = None,
-    compatibility_profile: CompatibilityProfile | None = None,
-    compatibility_export_dir: Path | None = None,
-    compatibility_ollama: Any | None = None,
-    compatibility_hedge_fund: Any | None = None,
+    reference_app_store: ReferenceStore | None = None,
+    reference_app_profile: ReferenceAppProfile | None = None,
+    reference_app_export_dir: Path | None = None,
+    reference_app_ollama: Any | None = None,
+    reference_app_hedge_fund: Any | None = None,
 ) -> FastAPI:
     """Create a production Postgres server or an injected offline ASGI test app."""
     disable_external_tracing()
@@ -162,14 +162,14 @@ def create_app(
             app.state.scheduler = scheduler_service
             app.state.slack_gateway = slack_gateway
             app.state.telegram_gateway = telegram_gateway
-            app.state.compatibility_context_factory = getattr(manager, "context_factory", None)
+            app.state.reference_app_context_factory = getattr(manager, "context_factory", None)
             app.state.events = EventListener()
             await app.state.events.start()
             try:
                 await manager.start()
                 yield
             finally:
-                backtests = getattr(app.state, "compatibility_backtest_manager", None)
+                backtests = getattr(app.state, "reference_app_backtest_manager", None)
                 if backtests is not None:
                     await backtests.close()
                 await app.state.events.stop()
@@ -189,14 +189,14 @@ def create_app(
             stack.push_async_callback(engine.dispose)
             stack.push_async_callback(storage.close)
             stack.push_async_callback(listener.stop)
-            if compatibility_store is None and engine.dialect.name == "postgresql":
+            if reference_app_store is None and engine.dialect.name == "postgresql":
                 derived_key = base64.urlsafe_b64encode(
                     hashlib.sha256(
                         f"fin-graph-compatibility:{bootstrap.get_secret_value()}".encode()
                     ).digest()
                 )
-                app.state.compatibility_store = await stack.enter_async_context(
-                    open_compat_postgres(engine, cipher=FernetSecretCipher(derived_key))
+                app.state.reference_app_store = await stack.enter_async_context(
+                    open_reference_postgres(engine, cipher=FernetSecretCipher(derived_key))
                 )
             settings = Settings(
                 persistence_backend=PersistenceBackend.POSTGRES,
@@ -226,7 +226,7 @@ def create_app(
                 context = active_registry.run_context()
                 return replace(context, clients={**context.clients, "paper_broker": active_paper})
 
-            app.state.compatibility_context_factory = context_factory
+            app.state.reference_app_context_factory = context_factory
 
             analysis_services = _analysis_services(settings)
             graph = make_analysis_graph(
@@ -246,20 +246,20 @@ def create_app(
                     _LOGGER.warning("chat model unavailable at startup")
                     active_chat = None
                 else:
-                    app.state.compatibility_quant_llm = model
-                    from fin_graph.agents.analysis.persona_team import (
-                        make_persona_analysis_supervisor,
+                    app.state.reference_app_quant_llm = model
+                    from fin_graph.adapters.reference_app.runtime import (
+                        make_reference_analysis_supervisor,
                     )
 
-                    chat_analysis = make_persona_analysis_supervisor(
+                    chat_analysis = make_reference_analysis_supervisor(
                         model,
                         active_registry,
                         context_factory(),
                         MarketSnapshotServices(),
                         checkpointer=False,  # Disable the inherited chat saver.
                     )
-                    app.state.compatibility_analysis_graph = chat_analysis
-                    app.state.compatibility_backtest_runner = make_v1_backtest_runner(
+                    app.state.reference_app_analysis_graph = chat_analysis
+                    app.state.reference_app_backtest_runner = make_v1_backtest_runner(
                         chat_analysis, context_factory
                     )
                     from fin_graph.agents.chat.supervisor import make_chat_graph
@@ -458,35 +458,35 @@ def create_app(
             try:
                 yield
             finally:
-                backtests = getattr(app.state, "compatibility_backtest_manager", None)
+                backtests = getattr(app.state, "reference_app_backtest_manager", None)
                 if backtests is not None:
                     await backtests.close()
 
     app = FastAPI(title="fin-graph", lifespan=lifespan)
-    app.state.compatibility_store = compatibility_store
-    app.state.compatibility_profile = compatibility_profile or CompatibilityProfile.from_env(
+    app.state.reference_app_store = reference_app_store
+    app.state.reference_app_profile = reference_app_profile or ReferenceAppProfile.from_env(
         os.environ
     )
-    app.state.compatibility_export_dir = (
-        compatibility_export_dir or Path(os.getenv("AI_HEDGE_FUND_OUTPUT_DIR", "outputs"))
+    app.state.reference_app_export_dir = (
+        reference_app_export_dir or Path(os.getenv("AI_HEDGE_FUND_OUTPUT_DIR", "outputs"))
     ).resolve()
-    app.state.compatibility_ollama = compatibility_ollama or OllamaCompatibilityService(
+    app.state.reference_app_ollama = reference_app_ollama or OllamaReferenceService(
         Settings(_env_file=None).ollama_base_url
     )
-    app.state.compatibility_hedge_fund = compatibility_hedge_fund
-    app.state.compatibility_analysis_graph = None
-    app.state.compatibility_backtest_runner = None
-    app.state.compatibility_context_factory = None
-    app.state.compatibility_quant_data = None
-    app.state.compatibility_quant_llm = None
-    app.state.compatibility_quant_artifact_dir = Path(
+    app.state.reference_app_hedge_fund = reference_app_hedge_fund
+    app.state.reference_app_analysis_graph = None
+    app.state.reference_app_backtest_runner = None
+    app.state.reference_app_context_factory = None
+    app.state.reference_app_quant_data = None
+    app.state.reference_app_quant_llm = None
+    app.state.reference_app_quant_artifact_dir = Path(
         os.getenv("FIN_GRAPH_QUANT_ARTIFACT_DIR", ".v2_cache/models")
     ).resolve()
-    app.state.compatibility_backtest_artifact_dir = Path(
+    app.state.reference_app_backtest_artifact_dir = Path(
         os.getenv("FIN_GRAPH_BACKTEST_ARTIFACT_DIR", ".v2_cache/backtests")
     ).resolve()
-    app.state.compatibility_backtest_manager = None
-    app.state.compatibility_key_role = None
+    app.state.reference_app_backtest_manager = None
+    app.state.reference_app_key_role = None
     from fin_graph.server.http_guards import install_http_guards
 
     install_http_guards(
@@ -1301,7 +1301,7 @@ def create_app(
 
     static_root = (ui_dir if ui_dir is not None else Path(__file__).parent / "static").resolve()
     app.include_router(
-        compatibility_router(
+        reference_app_router(
             include_root=ui_dir is None and not static_root.is_dir(),
             include_health=False,
         )

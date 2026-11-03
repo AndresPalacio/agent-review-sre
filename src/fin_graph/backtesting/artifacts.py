@@ -12,7 +12,7 @@ from pathlib import Path
 from pydantic import BaseModel, ConfigDict, Field
 
 from fin_graph.backtesting.models import BacktestEvent
-from fin_graph.compat.contracts import JsonObject
+from fin_graph.conformance.contracts import JsonObject
 
 
 class BacktestRunOutput(BaseModel):

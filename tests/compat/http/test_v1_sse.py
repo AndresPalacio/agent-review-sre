@@ -10,15 +10,15 @@ import httpx
 from fastapi import FastAPI
 from tests.compat.http.test_hedge_fund_routes import events, request_body
 
-from fin_graph.compat.ai_hedge_fund.schemas import BacktestRequest, HedgeFundRequest
-from fin_graph.compat.settings import CompatibilityProfile
-from fin_graph.server.compat import compatibility_router
-from fin_graph.server.compat.events import (
+from fin_graph.adapters.reference_app.http import reference_app_router
+from fin_graph.adapters.reference_app.http.events import (
     InternalEvent,
-    LegacyDialect,
-    legacy_sse,
-    stream_legacy_run,
+    ReferenceDialect,
+    reference_sse,
+    stream_reference_run,
 )
+from fin_graph.adapters.reference_app.schemas import BacktestRequest, HedgeFundRequest
+from fin_graph.adapters.reference_app.settings import ReferenceAppProfile
 
 
 class BacktestRunner:
@@ -53,10 +53,10 @@ class BacktestRunner:
 @asynccontextmanager
 async def client_for(runner: object) -> AsyncIterator[httpx.AsyncClient]:
     app = FastAPI()
-    app.state.compatibility_profile = CompatibilityProfile()
-    app.state.compatibility_store = None
-    app.state.compatibility_hedge_fund = runner
-    app.include_router(compatibility_router())
+    app.state.reference_app_profile = ReferenceAppProfile()
+    app.state.reference_app_store = None
+    app.state.reference_app_hedge_fund = runner
+    app.include_router(reference_app_router())
     async with httpx.AsyncClient(
         transport=httpx.ASGITransport(app=app), base_url="http://test"
     ) as client:
@@ -88,7 +88,7 @@ async def test_event_adapter_emits_only_one_terminal_event() -> None:
         yield InternalEvent(kind="error", payload={"message": "failed", "code": "internal_error"})
         yield InternalEvent(kind="complete", payload={"data": {"must": "not appear"}})
 
-    frames = [value async for value in legacy_sse(source(), LegacyDialect.HEDGE_FUND)]
+    frames = [value async for value in reference_sse(source(), ReferenceDialect.HEDGE_FUND)]
     assert b"event: start" in frames[0]
     assert b"event: error" in frames[1]
     assert len(frames) == 2
@@ -106,7 +106,7 @@ async def test_closing_stream_cancels_child_run() -> None:
             cancelled.set()
             raise
 
-    stream = stream_legacy_run(child, LegacyDialect.HEDGE_FUND)
+    stream = stream_reference_run(child, ReferenceDialect.HEDGE_FUND)
     first = await anext(stream)
     assert b"event: start" in first
     await started.wait()

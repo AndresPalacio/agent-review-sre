@@ -5,7 +5,7 @@ from pathlib import Path
 import httpx
 import pytest
 
-from fin_graph.compat.storage import CompatibilityStore
+from fin_graph.persistence.reference_app import ReferenceStore
 from fin_graph.server.factory import RuntimeProfile, create_app
 
 
@@ -24,7 +24,7 @@ async def test_clean_local_startup_needs_neither_postgres_nor_admin_key(
         assert (await client.get("/health")).json() == {"status": "ok"}
         assert (await client.get("/ready")).json() == {"status": "ready"}
         assert (await client.get("/language-models/")).status_code == 200
-        assert isinstance(app.state.compatibility_store, CompatibilityStore)
+        assert isinstance(app.state.reference_app_store, ReferenceStore)
         assert app.state.runtime_capabilities == {
             "backend": "sqlite",
             "distributed_locks": False,
@@ -37,13 +37,13 @@ async def test_clean_local_startup_needs_neither_postgres_nor_admin_key(
 async def test_local_compatibility_data_survives_restart(tmp_path: Path) -> None:
     first = create_app(RuntimeProfile.local(data_dir=tmp_path))
     async with first.router.lifespan_context(first):
-        flow, _revision = await first.state.compatibility_store.create_flow(
+        flow, _revision = await first.state.reference_app_store.create_flow(
             "persistent-flow", {"nodes": []}
         )
 
     second = create_app(RuntimeProfile.local(data_dir=tmp_path))
     async with second.router.lifespan_context(second):
-        persisted = await second.state.compatibility_store.get_flow(flow.id)
+        persisted = await second.state.reference_app_store.get_flow(flow.id)
 
     assert persisted is not None
     assert persisted.name == "persistent-flow"

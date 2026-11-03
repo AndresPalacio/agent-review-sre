@@ -13,8 +13,8 @@ from fin_graph.backtesting.artifacts import (
     SignalPage,
 )
 from fin_graph.backtesting.models import BacktestEvent, BacktestEventKind
-from fin_graph.compat.contracts import JsonObject
-from fin_graph.compat.storage import BacktestJobRecord, CompatibilityStore, JobStatus
+from fin_graph.conformance.contracts import JsonObject
+from fin_graph.persistence.reference_app import BacktestJobRecord, JobStatus, ReferenceStore
 
 
 class Cancellation(Protocol):
@@ -33,7 +33,7 @@ class BacktestJobManager:
 
     def __init__(
         self,
-        store: CompatibilityStore,
+        store: ReferenceStore,
         artifacts: BacktestArtifactStore,
         runners: Mapping[str, BacktestRunner],
         *,

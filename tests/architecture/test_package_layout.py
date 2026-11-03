@@ -32,6 +32,13 @@ import pytest
         "fin_graph.runtime.observation",
         "fin_graph.runtime.profile",
         "fin_graph.runtime.trace",
+        "fin_graph.adapters.reference_app.mapping",
+        "fin_graph.adapters.reference_app.python_api",
+        "fin_graph.adapters.reference_app.runtime",
+        "fin_graph.adapters.reference_app.http",
+        "fin_graph.persistence.reference_app",
+        "fin_graph.conformance.contracts",
+        "fin_graph.conformance.reference_app.snapshot",
     ],
 )
 def test_target_module_imports(module: str) -> None:

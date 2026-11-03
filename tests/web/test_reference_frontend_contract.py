@@ -8,7 +8,7 @@ from cryptography.fernet import Fernet
 from tests.web.fixture_server import create_fixture_app
 from tests.web.reference_frontend_server import resolve_reference_frontend
 
-from fin_graph.compat.storage import FernetSecretCipher, open_compat_sqlite
+from fin_graph.persistence.reference_app import FernetSecretCipher, open_reference_sqlite
 
 
 def test_frozen_reference_frontend_is_discovered_without_source_changes() -> None:
@@ -26,7 +26,7 @@ def test_frozen_reference_frontend_is_discovered_without_source_changes() -> Non
 
 async def test_fixture_serves_the_reference_flow_and_stream_contract(tmp_path: Path) -> None:
     cipher = FernetSecretCipher(Fernet.generate_key())
-    async with open_compat_sqlite(tmp_path / "compatibility.sqlite", cipher) as store:
+    async with open_reference_sqlite(tmp_path / "compatibility.sqlite", cipher) as store:
         app = await create_fixture_app(tmp_path / "native.sqlite", store, tmp_path / "artifacts")
         try:
             async with (
