@@ -1,0 +1,71 @@
+{
+  "candlestick": {
+    "components": {},
+    "date": "2025-01-10",
+    "metadata": {
+      "patterns": [
+        "Bullish Engulfing"
+      ]
+    },
+    "model_name": "candlestick",
+    "reasoning": "Bullish Engulfing (bullish)",
+    "ticker": "CASE",
+    "value": 0.8
+  },
+  "montecarlo": {
+    "components": {
+      "expected_return": 0.0014251028662522751
+    },
+    "date": "2024-08-07",
+    "metadata": {
+      "confidence_label": "no signal",
+      "edge_vs_baseline": -0.00104,
+      "expected_return": 0.001425,
+      "forecast_horizon_days": 5,
+      "forecast_path": [
+        111.2469,
+        111.2876,
+        111.3224,
+        111.3496,
+        111.3816
+      ],
+      "historical_avg_return": 0.002465,
+      "last_close": 111.22306724859955,
+      "n_test_rows": 44,
+      "n_training_rows": 176,
+      "reliable": false,
+      "rmse": 4.6638225550969175,
+      "trained_through": "2024-08-07"
+    },
+    "model_name": "montecarlo",
+    "reasoning": "[no signal] 5-day forecast 111.25 -> 111.38 (+0.14% vs last close 111.22, baseline +0.25%, edge -0.10%); trained on 176 rows through 2024-08-07, holdout RMSE 4.66 -- high forecast uncertainty (holdout error 4.2% of price)",
+    "ticker": "CASE",
+    "value": 0.03561250499709769
+  },
+  "news_sentiment": {
+    "components": {},
+    "date": "2025-01-11",
+    "metadata": {
+      "avg_compound": 0.6124,
+      "n_articles": 1
+    },
+    "model_name": "news_sentiment",
+    "reasoning": "Avg VADER compound +0.61 across 1 headlines in the last 7d (most polarizing: \"Company crushes expectations with outstanding record profit\")",
+    "ticker": "CASE",
+    "value": 0.6124
+  },
+  "pead": {
+    "components": {},
+    "date": "2025-08-02",
+    "metadata": {
+      "eps_surprise": "BEAT",
+      "filing_date": "2025-08-01",
+      "report_period": "2025-06-30",
+      "source_type": "8-K"
+    },
+    "model_name": "pead",
+    "reasoning": "BEAT on 2025-06-30 earnings (filed 2025-08-01, 8-K)",
+    "ticker": "CASE",
+    "value": 1.0
+  }
+}

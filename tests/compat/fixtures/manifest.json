@@ -59,6 +59,25 @@
         "src/agents/portfolio_manager.py": "580f7a65c6c60b35ec033cc8f9b08c3d3014ec2dc997137ea68a9e8e38ed8580",
         "src/agents/risk_manager.py": "be64b10f1ed37d68a2b4cd70b6d421eaf023e9244aed4b8d562a8e422a2623f5"
       }
+    },
+    {
+      "fixture": "v2/signals/deterministic/reference.json",
+      "license": "MIT",
+      "name": "v2-deterministic-alpha-models",
+      "origin": "AI Hedge Fund",
+      "recorder_version": "1",
+      "snapshot_digest": "42cd3a84c47ccd9ca2a891146a2d818b2ea8c7908162ef107975239b7148a71f",
+      "source_file": "v2/signals/base.py",
+      "source_hashes": {
+        "v2/signals/__init__.py": "c1f6d2b7e9d075c7c2edf9d2d559293dd3eab4a34663b2b79d32d23e27b771c4",
+        "v2/signals/base.py": "b8c8462c8742ae7b10bf070e028d3c8244811cd3da26a783a076c3247410209e",
+        "v2/signals/buffett.py": "0244a0cb76eaa55918f931c1ea4a2fc22173326616395e364ab6e6ed5144055a",
+        "v2/signals/candlestick.py": "a420d16f5a87d0fe3f3353e8844d3cb7d61c62c70f66dc948ccbfbf0422294fd",
+        "v2/signals/llm_agent.py": "8cfcf8d51211847eac8013668daea633fe853e8d202470a3581e5284a1628a3d",
+        "v2/signals/montecarlo_forecast.py": "c65c9be1af2bd7f554e29f897f9e86fc5e924c4852d4fd1dd85fac77570f0a94",
+        "v2/signals/news_sentiment.py": "fb0004d4373ae021118fe5804201780e306b28e4d0ec6445114b9e922637962b",
+        "v2/signals/pead.py": "65766d61c4d855921491643d861c3c2457a2b4c2ff20377ea0d1e4bac5a1ea94"
+      }
     }
   ],
   "recorder_version": "1",

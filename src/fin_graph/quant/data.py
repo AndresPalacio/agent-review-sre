@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import hashlib
 from collections.abc import Sequence
 from datetime import date
 from typing import Protocol, runtime_checkable
@@ -70,6 +71,10 @@ class FundamentalSnapshot(BaseModel):
     book_value_per_share_cagr: float | None = None
     debt_to_equity_latest: float | None = None
     market_cap_latest: float | None = None
+
+    @property
+    def content_hash(self) -> str:
+        return hashlib.sha256(self.model_dump_json().encode()).hexdigest()[:24]
 
 
 class TechnicalSnapshot(BaseModel):
