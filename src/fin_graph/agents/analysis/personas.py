@@ -1,4 +1,4 @@
-"""DeepAgents subagent specifications for the nineteen compatibility personas."""
+"""DeepAgents subagent specifications for the nineteen analysis personas."""
 
 from __future__ import annotations
 
@@ -16,11 +16,11 @@ from langchain_core.messages import ToolMessage
 from langchain_core.tools import BaseTool
 from langgraph.types import Command
 
+from fin_graph.agents.analysis.persona_prompts import persona_prompt
 from fin_graph.agents.common.middleware.disclaimer import DisclaimerMiddleware
 from fin_graph.agents.common.middleware.evidence_gate import EvidenceGateMiddleware
 from fin_graph.domain.analysts import AnalystDefinition
 from fin_graph.domain.tools import SideEffectLevel, read_tool_meta
-from fin_graph.graphs.analysis.persona_prompts import persona_prompt
 
 
 @dataclass(frozen=True)

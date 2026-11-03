@@ -12,6 +12,10 @@ import pytest
         "fin_graph.agents.common.subagents",
         "fin_graph.agents.common.middleware.guardrails",
         "fin_graph.agents.common.testing.scripted_model",
+        "fin_graph.agents.analysis.catalog",
+        "fin_graph.agents.analysis.personas",
+        "fin_graph.agents.analysis.persona_prompts",
+        "fin_graph.agents.analysis.persona_team",
     ],
 )
 def test_target_module_imports(module: str) -> None:

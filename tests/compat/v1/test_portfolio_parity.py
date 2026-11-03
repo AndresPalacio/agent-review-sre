@@ -7,6 +7,7 @@ from typing import Any
 
 import pytest
 
+from fin_graph.agents.analysis.persona_team import PersonaFinding
 from fin_graph.compat.ai_hedge_fund.models import (
     LegacyHedgeFundRequest,
     LegacyPortfolio,
@@ -20,7 +21,6 @@ from fin_graph.domain.orders import OrderAction
 from fin_graph.domain.portfolio import Portfolio, Position
 from fin_graph.domain.quant.common import QuantScore, Signal
 from fin_graph.domain.tools import Domain
-from fin_graph.graphs.analysis.compat import PersonaFinding
 
 FIXTURE = Path(__file__).parents[1] / "fixtures" / "v1" / "portfolio" / "decisions.json"
 

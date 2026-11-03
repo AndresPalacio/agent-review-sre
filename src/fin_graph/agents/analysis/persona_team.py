@@ -1,4 +1,4 @@
-"""Deterministic compatibility supervisor over isolated DeepAgents personas."""
+"""Deterministic supervisor over nineteen isolated DeepAgents personas."""
 
 from __future__ import annotations
 
@@ -12,6 +12,7 @@ from enum import StrEnum
 from typing import Any, Protocol, TypedDict
 
 from deepagents import create_deep_agent
+from deepagents.middleware.subagents import SubAgent
 from langchain_core.language_models import BaseChatModel
 from langchain_core.messages import HumanMessage
 from langchain_core.tools import BaseTool
@@ -20,6 +21,11 @@ from langgraph.graph.state import CompiledStateGraph
 from langgraph.types import Checkpointer
 from pydantic import BaseModel, ConfigDict
 
+from fin_graph.agents.analysis.personas import (
+    PERSONA_TOOL_SCOPE,
+    PersonaToolScope,
+    build_persona_subagents,
+)
 from fin_graph.agents.common.middleware.masking import MaskingMiddleware
 from fin_graph.config.settings import Settings
 from fin_graph.domain.analysts import (
@@ -32,11 +38,6 @@ from fin_graph.domain.company import CompanySnapshot
 from fin_graph.domain.quant.common import QuantScore
 from fin_graph.domain.quant.personas.registry import scorer_for
 from fin_graph.domain.requests.model import AnalysisRequest
-from fin_graph.graphs.analysis.personas import (
-    PERSONA_TOOL_SCOPE,
-    PersonaToolScope,
-    build_persona_subagents,
-)
 from fin_graph.integrations.context import RunContext
 from fin_graph.safety.masking import MaskingPolicy
 
@@ -80,8 +81,8 @@ class PersonaError(BaseModel):
     correlation_id: str
 
 
-class LegacyAnalysisBundle(BaseModel):
-    """Typed result consumed by compatibility transports."""
+class PersonaAnalysisBundle(BaseModel):
+    """Typed result shared by product and external adapters."""
 
     model_config = ConfigDict(frozen=True, extra="forbid")
 
@@ -89,7 +90,7 @@ class LegacyAnalysisBundle(BaseModel):
     findings: tuple[PersonaFinding, ...]
 
 
-class _CompatState(TypedDict, total=False):
+class _PersonaTeamState(TypedDict, total=False):
     request: dict[str, Any] | AnalysisRequest
     raw_request: dict[str, Any]
     portfolio: dict[str, Any]
@@ -185,7 +186,29 @@ def _authoritative_reasoning(text: str, score: QuantScore) -> str:
     return cleaned
 
 
-def make_compat_analysis_agent(
+def make_persona_agent(
+    model: BaseChatModel,
+    spec: SubAgent,
+    *,
+    masking: MaskingPolicy | None = None,
+) -> CompiledStateGraph[Any, Any, Any, Any]:
+    """Build one isolated persona from its declared tools, prompt, and middleware."""
+
+    middleware = list(spec.get("middleware", ()))
+    if masking is not None:
+        middleware.append(MaskingMiddleware(masking))
+    return create_deep_agent(
+        model=model,
+        tools=list(spec.get("tools", ())),
+        system_prompt=spec.get("system_prompt"),
+        middleware=middleware,
+        context_schema=RunContext,
+        name=spec["name"],
+        checkpointer=False,
+    )
+
+
+def make_persona_analysis_supervisor(
     model: BaseChatModel,
     registry: ToolSource,
     context: RunContext,
@@ -193,7 +216,7 @@ def make_compat_analysis_agent(
     *,
     checkpointer: Checkpointer = None,
 ) -> CompiledStateGraph[Any, Any, Any, Any]:
-    """Compile the full nineteen-persona compatibility analysis graph."""
+    """Compile the full nineteen-persona analysis graph."""
 
     definitions = analyst_catalog()
     specs = build_persona_subagents(model, definitions, registry.tools(context))
@@ -201,20 +224,9 @@ def make_compat_analysis_agent(
     masking = MaskingPolicy.from_settings(options) if options.mask_enabled else None
     agents: dict[AnalystId, Any] = {}
     for definition, spec in zip(definitions, specs, strict=True):
-        middleware = list(spec.get("middleware", ()))
-        if masking is not None:
-            middleware.append(MaskingMiddleware(masking))
-        agents[definition.id] = create_deep_agent(
-            model=model,
-            tools=list(spec.get("tools", ())),
-            system_prompt=spec.get("system_prompt"),
-            middleware=middleware,
-            context_schema=RunContext,
-            name=spec["name"],
-            checkpointer=False,
-        )
+        agents[definition.id] = make_persona_agent(model, spec, masking=masking)
 
-    async def analyze(state: _CompatState) -> dict[str, Any]:
+    async def analyze(state: _PersonaTeamState) -> dict[str, Any]:
         request_payload = state.get("request")
         portfolio_payload: object | None = state.get("portfolio")
         if request_payload is None:
@@ -318,7 +330,7 @@ def make_compat_analysis_agent(
                 for definition in selected
             )
         )
-        bundle = LegacyAnalysisBundle(request=request, findings=tuple(findings))
+        bundle = PersonaAnalysisBundle(request=request, findings=tuple(findings))
         from fin_graph.compat.ai_hedge_fund.portfolio import build_legacy_portfolio_result
         from fin_graph.domain.portfolio import Portfolio
 
@@ -353,7 +365,7 @@ def make_compat_analysis_agent(
             "errors": [],
         }
 
-    builder = StateGraph(_CompatState)
+    builder = StateGraph(_PersonaTeamState)
     builder.add_node("analyze_personas", analyze)
     builder.add_edge(START, "analyze_personas")
     builder.add_edge("analyze_personas", END)

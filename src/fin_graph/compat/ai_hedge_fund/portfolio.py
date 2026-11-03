@@ -36,7 +36,7 @@ from fin_graph.domain.quant.risk import (
 )
 
 if TYPE_CHECKING:
-    from fin_graph.graphs.analysis.compat import PersonaFinding
+    from fin_graph.agents.analysis.persona_team import PersonaFinding
 
 _DIRECTION = {Signal.BULLISH: 1.0, Signal.NEUTRAL: 0.0, Signal.BEARISH: -1.0}
 

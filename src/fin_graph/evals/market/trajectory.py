@@ -17,10 +17,10 @@ from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from fin_graph.agents.analysis.catalog import ANALYSTS
 from fin_graph.domain.analysis import HORIZON_ANALYSTS
 from fin_graph.domain.requests.model import Horizon
 from fin_graph.evals.market.scenarios import EquityScenario
-from fin_graph.graphs.analysis.analysts import ANALYSTS
 from fin_graph.integrations.analytics.tools import ANALYTICS_TOOLS
 
 

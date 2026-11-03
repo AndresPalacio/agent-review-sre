@@ -30,6 +30,7 @@ from langgraph.graph.state import CompiledStateGraph
 from langgraph.runtime import Runtime
 from langgraph.types import Overwrite, Send
 
+from fin_graph.agents.analysis.catalog import available_analysts, read_tools
 from fin_graph.domain.analysis import (
     AnalysisPlan,
     AnalystFinding,
@@ -65,7 +66,6 @@ from fin_graph.domain.thesis_verification import (
 )
 from fin_graph.domain.tools import Domain, SideEffectLevel, read_tool_meta
 from fin_graph.domain.window import AnalysisWindow
-from fin_graph.graphs.analysis.analysts import available_analysts, read_tools
 from fin_graph.graphs.analysis.evidence import for_ticker, scores_by_domain
 from fin_graph.graphs.analysis.services import AnalysisServices, SynthesisContext
 from fin_graph.graphs.analysis.state import AnalysisState, SanitizedRequestChannel, latest_findings

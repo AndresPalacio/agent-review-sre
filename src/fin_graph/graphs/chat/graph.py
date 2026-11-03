@@ -36,6 +36,8 @@ from langgraph.graph.state import CompiledStateGraph
 from langgraph.store.base import BaseStore
 from langgraph.types import Checkpointer
 
+from fin_graph.agents.analysis.catalog import available_analysts, read_tools
+from fin_graph.agents.analysis.persona_team import PersonaAnalysisBundle
 from fin_graph.agents.common.middleware.disclaimer import DisclaimerMiddleware
 from fin_graph.agents.common.middleware.evidence_gate import EvidenceGateMiddleware
 from fin_graph.agents.common.middleware.guardrails import GuardrailsMiddleware
@@ -53,8 +55,6 @@ from fin_graph.domain.tools import (
     attach_tool_meta,
     read_tool_meta,
 )
-from fin_graph.graphs.analysis.analysts import available_analysts, read_tools
-from fin_graph.graphs.analysis.compat import LegacyAnalysisBundle
 from fin_graph.graphs.orders.desk import OrderDesk
 from fin_graph.integrations.broker.paper.broker import PaperBroker
 from fin_graph.integrations.broker.paper.tools import PAPER_BROKER_TOOLS
@@ -126,8 +126,8 @@ def report_summary(report: AnalysisReport) -> dict[str, Any]:
     }
 
 
-def compatibility_summary(bundle: LegacyAnalysisBundle) -> dict[str, Any]:
-    """Compact, stable view of the authoritative compatibility persona results."""
+def persona_summary(bundle: PersonaAnalysisBundle) -> dict[str, Any]:
+    """Bounded, stable view of the authoritative persona results."""
     tickers = []
     for ticker in bundle.request.tickers:
         findings = [item for item in bundle.findings if item.ticker == ticker]
@@ -407,8 +407,8 @@ def make_chat_graph(
                 request["portfolio"] = (await broker.portfolio()).model_dump(mode="json")
             result = await analysis.ainvoke(request, context=runtime.context)
             if result.get("bundle"):
-                bundle = LegacyAnalysisBundle.model_validate(result["bundle"])
-                return json.dumps(compatibility_summary(bundle), ensure_ascii=False, default=str)
+                bundle = PersonaAnalysisBundle.model_validate(result["bundle"])
+                return json.dumps(persona_summary(bundle), ensure_ascii=False, default=str)
             if not result.get("report"):
                 return json.dumps({"error": result.get("errors") or "no report"})
             report = AnalysisReport.model_validate(result["report"])

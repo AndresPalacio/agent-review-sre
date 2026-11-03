@@ -192,13 +192,13 @@ async def test_analyze_runs_the_analysis_with_the_live_paper_book(broker: PaperB
 
 
 async def test_analyze_accepts_the_compatibility_persona_bundle(broker: PaperBroker) -> None:
+    from fin_graph.agents.analysis.persona_team import PersonaAnalysisBundle, PersonaFinding
     from fin_graph.domain.analysts import AnalystId
     from fin_graph.domain.quant.common import QuantScore, Signal
     from fin_graph.domain.requests.model import AnalysisRequest
     from fin_graph.domain.tools import Domain
-    from fin_graph.graphs.analysis.compat import LegacyAnalysisBundle, PersonaFinding
 
-    bundle = LegacyAnalysisBundle(
+    bundle = PersonaAnalysisBundle(
         request=AnalysisRequest(tickers=["MSFT"], as_of=date(2026, 1, 1)),
         findings=(
             PersonaFinding(

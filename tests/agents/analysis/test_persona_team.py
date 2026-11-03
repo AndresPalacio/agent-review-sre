@@ -11,6 +11,14 @@ from langchain_core.outputs import ChatResult
 from langchain_core.tools import BaseTool, tool
 from pydantic import PrivateAttr
 
+from fin_graph.agents.analysis.persona_team import (
+    PersonaAnalysisBundle,
+    PersonaFailureCode,
+    _authoritative_reasoning,
+    make_persona_agent,
+    make_persona_analysis_supervisor,
+)
+from fin_graph.agents.analysis.personas import build_persona_subagents
 from fin_graph.agents.common.testing.scripted_model import ScriptedChatModel
 from fin_graph.compat.ai_hedge_fund.models import LegacyHedgeFundResult
 from fin_graph.domain.analysts import AnalystId, analyst_catalog, resolve_analysts
@@ -26,13 +34,6 @@ from fin_graph.domain.tools import (
     attach_tool_meta,
     read_tool_meta,
 )
-from fin_graph.graphs.analysis.compat import (
-    LegacyAnalysisBundle,
-    PersonaFailureCode,
-    _authoritative_reasoning,
-    make_compat_analysis_agent,
-)
-from fin_graph.graphs.analysis.personas import build_persona_subagents
 from fin_graph.graphs.analysis.snapshots import MarketSnapshotServices
 from fin_graph.integrations.analytics.engine import AnalyticsEngine
 from fin_graph.integrations.context import RunContext
@@ -189,9 +190,37 @@ def test_subagent_specs_isolate_domains_and_never_expose_trade_tools() -> None:
         )
 
 
+def test_make_persona_agent_builds_the_declared_deepagent(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    model = ScriptedChatModel(responses=[])
+    spec = build_persona_subagents(
+        model,
+        resolve_analysts([AnalystId.FUNDAMENTALS_ANALYST]),
+        [READ_FUNDAMENTALS, READ_PRICES, PLACE_TRADE],
+    )[0]
+    captured: dict[str, Any] = {}
+    sentinel = cast(Any, object())
+
+    def fake_create_deep_agent(**kwargs: Any) -> Any:
+        captured.update(kwargs)
+        return sentinel
+
+    monkeypatch.setattr(
+        "fin_graph.agents.analysis.persona_team.create_deep_agent",
+        fake_create_deep_agent,
+    )
+
+    assert make_persona_agent(model, spec) is sentinel
+    assert captured["name"] == "analyst_fundamentals_analyst"
+    assert captured["context_schema"] is RunContext
+    assert captured["checkpointer"] is False
+    assert PLACE_TRADE not in captured["tools"]
+
+
 async def test_compiled_persona_exposes_only_selected_read_tools() -> None:
     model = CapturingModel(responses=[AIMessage("Deterministic score acknowledged.")])
-    graph = make_compat_analysis_agent(
+    graph = make_persona_analysis_supervisor(
         model, Registry(), RunContext(), Services(), checkpointer=False
     )
 
@@ -258,7 +287,7 @@ async def test_persona_tool_calls_are_forced_to_request_ticker_and_as_of() -> No
             AIMessage("done"),
         ]
     )
-    graph = make_compat_analysis_agent(
+    graph = make_persona_analysis_supervisor(
         model, DatedRegistry(), RunContext(), Services(), checkpointer=False
     )
 
@@ -291,11 +320,11 @@ async def test_explicit_selection_preserves_scores_and_child_failure(
             return {"messages": [AIMessage("Sell CASE or open a short position.")]}
 
     monkeypatch.setattr(
-        "fin_graph.graphs.analysis.compat.create_deep_agent",
+        "fin_graph.agents.analysis.persona_team.create_deep_agent",
         lambda **kwargs: FakeAgent(str(kwargs["name"])),
     )
     services = Services()
-    graph = make_compat_analysis_agent(
+    graph = make_persona_analysis_supervisor(
         ScriptedChatModel(responses=[]),
         Registry(),
         RunContext(),
@@ -309,7 +338,7 @@ async def test_explicit_selection_preserves_scores_and_child_failure(
     )
 
     result = await graph.ainvoke({"request": request.model_dump(mode="json")})
-    bundle = LegacyAnalysisBundle.model_validate(result["bundle"])
+    bundle = PersonaAnalysisBundle.model_validate(result["bundle"])
     legacy_result = LegacyHedgeFundResult.model_validate(result["result"])
 
     assert [finding.analyst_id for finding in bundle.findings] == list(request.analysts or ())
@@ -357,10 +386,10 @@ async def test_no_selection_runs_all_nineteen_in_catalog_order(
             return {"messages": [AIMessage("Deterministic score acknowledged.")]}
 
     monkeypatch.setattr(
-        "fin_graph.graphs.analysis.compat.create_deep_agent",
+        "fin_graph.agents.analysis.persona_team.create_deep_agent",
         lambda **kwargs: FakeAgent(),
     )
-    graph = make_compat_analysis_agent(
+    graph = make_persona_analysis_supervisor(
         ScriptedChatModel(responses=[]), Registry(), RunContext(), Services(), checkpointer=False
     )
 
@@ -371,7 +400,7 @@ async def test_no_selection_runs_all_nineteen_in_catalog_order(
             )
         }
     )
-    bundle = LegacyAnalysisBundle.model_validate(result["bundle"])
+    bundle = PersonaAnalysisBundle.model_validate(result["bundle"])
 
     assert [finding.analyst_id for finding in bundle.findings] == [
         definition.id for definition in analyst_catalog()
@@ -392,9 +421,9 @@ async def test_data_failure_is_typed_and_does_not_expose_exception_text(
             raise AssertionError("narration must not run without data")
 
     monkeypatch.setattr(
-        "fin_graph.graphs.analysis.compat.create_deep_agent", lambda **kwargs: FakeAgent()
+        "fin_graph.agents.analysis.persona_team.create_deep_agent", lambda **kwargs: FakeAgent()
     )
-    graph = make_compat_analysis_agent(
+    graph = make_persona_analysis_supervisor(
         ScriptedChatModel(responses=[]),
         Registry(),
         RunContext(),
@@ -411,7 +440,7 @@ async def test_data_failure_is_typed_and_does_not_expose_exception_text(
         }
     )
 
-    finding = LegacyAnalysisBundle.model_validate(result["bundle"]).findings[0]
+    finding = PersonaAnalysisBundle.model_validate(result["bundle"]).findings[0]
     assert finding.score is None
     assert finding.error is not None
     assert finding.error.code is PersonaFailureCode.DATA_UNAVAILABLE
@@ -432,10 +461,10 @@ async def test_cancellation_propagates_from_persona_team(
             return {}
 
     monkeypatch.setattr(
-        "fin_graph.graphs.analysis.compat.create_deep_agent",
+        "fin_graph.agents.analysis.persona_team.create_deep_agent",
         lambda **kwargs: BlockingAgent(),
     )
-    graph = make_compat_analysis_agent(
+    graph = make_persona_analysis_supervisor(
         ScriptedChatModel(responses=[]), Registry(), RunContext(), Services(), checkpointer=False
     )
     request = AnalysisRequest(

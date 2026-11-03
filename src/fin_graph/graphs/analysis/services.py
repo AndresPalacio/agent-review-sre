@@ -23,6 +23,7 @@ from langchain_core.messages import HumanMessage
 from langchain_core.tools import BaseTool
 from pydantic import BaseModel, Field
 
+from fin_graph.agents.analysis.catalog import ANALYSTS
 from fin_graph.agents.common.factory import make_agent
 from fin_graph.agents.common.middleware.guardrails import GuardrailsMiddleware
 from fin_graph.agents.common.middleware.masking import MaskingMiddleware
@@ -52,7 +53,6 @@ from fin_graph.domain.thesis_categories import normalize_category
 from fin_graph.domain.tools import Domain
 from fin_graph.domain.window import AnalysisWindow
 from fin_graph.graphs.analysis import prompts
-from fin_graph.graphs.analysis.analysts import ANALYSTS
 from fin_graph.graphs.analysis.evidence import (
     collect_evidence,
     evidence_from_message,

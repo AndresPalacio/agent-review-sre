@@ -247,9 +247,11 @@ def create_app(
                     active_chat = None
                 else:
                     app.state.compatibility_quant_llm = model
-                    from fin_graph.graphs.analysis.compat import make_compat_analysis_agent
+                    from fin_graph.agents.analysis.persona_team import (
+                        make_persona_analysis_supervisor,
+                    )
 
-                    chat_analysis = make_compat_analysis_agent(
+                    chat_analysis = make_persona_analysis_supervisor(
                         model,
                         active_registry,
                         context_factory(),
