@@ -60,22 +60,31 @@ export class ApiClient {
     return `${this.baseUrl}${path.startsWith("/") ? path : `/${path}`}`;
   }
 
-  private async request<T>(path: string, options: RequestOptions = {}): Promise<T> {
+  private async request<T>(
+    path: string,
+    options: RequestOptions = {},
+  ): Promise<T> {
     const response = await fetch(this.url(path), {
       method: options.method ?? "GET",
       headers: {
-        ...(options.body === undefined ? {} : { "Content-Type": "application/json" }),
+        ...(options.body === undefined
+          ? {}
+          : { "Content-Type": "application/json" }),
         ...(options.native && this.nativeApiKey
           ? { "X-API-Key": this.nativeApiKey }
           : {}),
       },
-      body: options.body === undefined ? undefined : JSON.stringify(options.body),
+      body:
+        options.body === undefined ? undefined : JSON.stringify(options.body),
       signal: options.signal,
     });
     if (!response.ok) {
       let detail = `La operación falló (${response.status})`;
       try {
-        const value = (await response.json()) as { detail?: unknown; message?: unknown };
+        const value = (await response.json()) as {
+          detail?: unknown;
+          message?: unknown;
+        };
         const candidate = value.detail ?? value.message;
         if (typeof candidate === "string") detail = candidate.slice(0, 500);
       } catch {
@@ -94,7 +103,9 @@ export class ApiClient {
     list: (signal?: AbortSignal) =>
       this.request<FlowSummary[]>("/flows/", { signal }),
     search: (name: string, signal?: AbortSignal) =>
-      this.request<FlowSummary[]>(`/flows/search/${encodeURIComponent(name)}`, { signal }),
+      this.request<FlowSummary[]>(`/flows/search/${encodeURIComponent(name)}`, {
+        signal,
+      }),
     get: (id: number, signal?: AbortSignal) =>
       this.request<Flow>(`/flows/${id}`, { signal }),
     create: (body: FlowInput, signal?: AbortSignal) =>
@@ -102,7 +113,10 @@ export class ApiClient {
     update: (id: number, body: FlowUpdate, signal?: AbortSignal) =>
       this.request<Flow>(`/flows/${id}`, { method: "PUT", body, signal }),
     delete: (id: number, signal?: AbortSignal) =>
-      this.request<{ message: string }>(`/flows/${id}`, { method: "DELETE", signal }),
+      this.request<{ message: string }>(`/flows/${id}`, {
+        method: "DELETE",
+        signal,
+      }),
     duplicate: (id: number, newName?: string, signal?: AbortSignal) =>
       this.request<Flow>(
         `/flows/${id}/duplicate${newName ? `?new_name=${encodeURIComponent(newName)}` : ""}`,
@@ -114,9 +128,13 @@ export class ApiClient {
       get: (flowId: number, runId: number, signal?: AbortSignal) =>
         this.request<FlowRun>(`/flows/${flowId}/runs/${runId}`, { signal }),
       active: (flowId: number, signal?: AbortSignal) =>
-        this.request<FlowRun | null>(`/flows/${flowId}/runs/active`, { signal }),
+        this.request<FlowRun | null>(`/flows/${flowId}/runs/active`, {
+          signal,
+        }),
       latest: (flowId: number, signal?: AbortSignal) =>
-        this.request<FlowRun | null>(`/flows/${flowId}/runs/latest`, { signal }),
+        this.request<FlowRun | null>(`/flows/${flowId}/runs/latest`, {
+          signal,
+        }),
       create: (
         flowId: number,
         requestData: Record<string, JsonValue>,
@@ -142,9 +160,12 @@ export class ApiClient {
 
   hedgeFund = {
     agents: (signal?: AbortSignal) =>
-      this.request<{ agents: Array<Record<string, JsonValue>> }>("/hedge-fund/agents", {
-        signal,
-      }),
+      this.request<{ agents: Array<Record<string, JsonValue>> }>(
+        "/hedge-fund/agents",
+        {
+          signal,
+        },
+      ),
     run: (
       body: HedgeFundRequest,
       handlers: StreamHandlers,
@@ -171,8 +192,11 @@ export class ApiClient {
 
   models = {
     list: async (signal?: AbortSignal) =>
-      (await this.request<{ models: LanguageModel[] }>("/language-models/", { signal }))
-        .models,
+      (
+        await this.request<{ models: LanguageModel[] }>("/language-models/", {
+          signal,
+        })
+      ).models,
     providers: (signal?: AbortSignal) =>
       this.request<{ providers: Array<Record<string, JsonValue>> }>(
         "/language-models/providers",
@@ -181,22 +205,36 @@ export class ApiClient {
   };
 
   providerKeys = {
-    list: (signal?: AbortSignal) => this.request<ApiKeySummary[]>("/api-keys/", { signal }),
+    list: (signal?: AbortSignal) =>
+      this.request<ApiKeySummary[]>("/api-keys/", { signal }),
     get: (provider: string, signal?: AbortSignal) =>
-      this.request<ApiKeySummary>(`/api-keys/${encodeURIComponent(provider)}`, { signal }),
+      this.request<ApiKeySummary>(`/api-keys/${encodeURIComponent(provider)}`, {
+        signal,
+      }),
     create: (body: Record<string, JsonValue>, signal?: AbortSignal) =>
-      this.request<ApiKeySummary>("/api-keys/", { method: "POST", body, signal }),
-    update: (provider: string, body: Record<string, JsonValue>, signal?: AbortSignal) =>
+      this.request<ApiKeySummary>("/api-keys/", {
+        method: "POST",
+        body,
+        signal,
+      }),
+    update: (
+      provider: string,
+      body: Record<string, JsonValue>,
+      signal?: AbortSignal,
+    ) =>
       this.request<ApiKeySummary>(`/api-keys/${encodeURIComponent(provider)}`, {
         method: "PUT",
         body,
         signal,
       }),
     deactivate: (provider: string, signal?: AbortSignal) =>
-      this.request<ApiKeySummary>(`/api-keys/${encodeURIComponent(provider)}/deactivate`, {
-        method: "PATCH",
-        signal,
-      }),
+      this.request<ApiKeySummary>(
+        `/api-keys/${encodeURIComponent(provider)}/deactivate`,
+        {
+          method: "PATCH",
+          signal,
+        },
+      ),
     delete: (provider: string, signal?: AbortSignal) =>
       this.request<void>(`/api-keys/${encodeURIComponent(provider)}`, {
         method: "DELETE",
@@ -218,11 +256,14 @@ export class ApiClient {
         signal,
       }),
     download: (modelName: string, signal?: AbortSignal) =>
-      this.request<{ success: boolean; message: string }>("/ollama/models/download", {
-        method: "POST",
-        body: { model_name: modelName },
-        signal,
-      }),
+      this.request<{ success: boolean; message: string }>(
+        "/ollama/models/download",
+        {
+          method: "POST",
+          body: { model_name: modelName },
+          signal,
+        },
+      ),
     progress: (modelName: string, signal?: AbortSignal) =>
       this.request<Record<string, JsonValue>>(
         `/ollama/models/download/progress/${encodeURIComponent(modelName)}`,
@@ -239,9 +280,12 @@ export class ApiClient {
     list: (signal?: AbortSignal) =>
       this.request<AlgorithmSummary[]>("/v2/algorithms", { signal }),
     get: (key: string, signal?: AbortSignal) =>
-      this.request<Record<string, JsonValue>>(`/v2/algorithms/${encodeURIComponent(key)}`, {
-        signal,
-      }),
+      this.request<Record<string, JsonValue>>(
+        `/v2/algorithms/${encodeURIComponent(key)}`,
+        {
+          signal,
+        },
+      ),
     backtest: (body: Record<string, JsonValue>, signal?: AbortSignal) =>
       this.request<AlgorithmBacktestJob>("/v2/backtests", {
         method: "POST",
@@ -249,13 +293,28 @@ export class ApiClient {
         signal,
       }),
     backtestStatus: (runId: string, signal?: AbortSignal) =>
-      this.request<AlgorithmBacktestJob>(`/v2/backtests/${encodeURIComponent(runId)}`, {
-        signal,
-      }),
+      this.request<AlgorithmBacktestJob>(
+        `/v2/backtests/${encodeURIComponent(runId)}`,
+        {
+          signal,
+        },
+      ),
     cancelBacktest: (runId: string, signal?: AbortSignal) =>
       this.request<AlgorithmBacktestJob>(
         `/v2/backtests/${encodeURIComponent(runId)}/cancel`,
         { method: "POST", signal },
+      ),
+    signals: (runId: string, signal?: AbortSignal) =>
+      this.request<Record<string, JsonValue>>(
+        `/v2/backtests/${encodeURIComponent(runId)}/signals`,
+        { signal },
+      ),
+    events: (runId: string, handlers: StreamHandlers, signal?: AbortSignal) =>
+      streamEvents(
+        this.url(`/v2/backtests/${encodeURIComponent(runId)}/events`),
+        { method: "GET" },
+        handlers,
+        signal,
       ),
   };
 
@@ -263,14 +322,40 @@ export class ApiClient {
     session: (signal?: AbortSignal) =>
       this.request<{ role: string }>("/v1/session", { native: true, signal }),
     portfolio: (signal?: AbortSignal) =>
-      this.request<Record<string, JsonValue>>("/v1/portfolio", { native: true, signal }),
+      this.request<Record<string, JsonValue>>("/v1/portfolio", {
+        native: true,
+        signal,
+      }),
     orders: (signal?: AbortSignal) =>
-      this.request<Array<Record<string, JsonValue>>>("/v1/orders", { native: true, signal }),
+      this.request<Array<Record<string, JsonValue>>>("/v1/orders", {
+        native: true,
+        signal,
+      }),
     pendingOrders: (signal?: AbortSignal) =>
       this.request<Array<Record<string, JsonValue>>>("/v1/orders/pending", {
         native: true,
         signal,
       }),
+    approveOrder: (
+      threadId: string,
+      approvalIds: string[],
+      decision: "approve" | "reject",
+      signal?: AbortSignal,
+    ) =>
+      this.request<Record<string, JsonValue>>(
+        `/v1/orders/${encodeURIComponent(threadId)}/approve`,
+        {
+          method: "POST",
+          body: { decisions: [{ type: decision }], approval_ids: approvalIds },
+          native: true,
+          signal,
+        },
+      ),
+    explainAnalysis: (threadId: string, signal?: AbortSignal) =>
+      this.request<Record<string, JsonValue>>(
+        `/v1/analyses/${encodeURIComponent(threadId)}/explain`,
+        { native: true, signal },
+      ),
   };
 }
 

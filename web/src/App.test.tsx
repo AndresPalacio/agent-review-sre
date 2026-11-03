@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, expect, it, vi } from "vitest";
 import { App, AppErrorBoundary } from "./App";
 
@@ -21,7 +21,9 @@ it("renders the responsive financial workbench landmarks", async () => {
   expect(screen.getByRole("banner")).toHaveTextContent("Fin Graph");
   expect(screen.getByRole("navigation", { name: "Flujos" })).toBeVisible();
   expect(screen.getByRole("main")).toBeVisible();
-  expect(screen.getByRole("complementary", { name: "Componentes" })).toBeVisible();
+  expect(
+    screen.getByRole("complementary", { name: "Componentes" }),
+  ).toBeVisible();
   expect(screen.getByRole("region", { name: "Resultados" })).toBeVisible();
 });
 
@@ -31,6 +33,40 @@ it("persists only the selected theme", () => {
   fireEvent.click(screen.getByRole("button", { name: "Cambiar a tema claro" }));
   expect(write).toHaveBeenCalledWith("fin-graph-theme", "light");
   expect(write).toHaveBeenCalledTimes(1);
+});
+
+it("navigates to backtests, paper trading and settings from the product bar", async () => {
+  vi.stubGlobal(
+    "fetch",
+    vi.fn(async (input: unknown) => {
+      const url = String(input);
+      if (url.endsWith("/flows/")) return new Response("[]");
+      if (url.endsWith("/v2/algorithms")) return Response.json([]);
+      if (url.endsWith("/v1/portfolio"))
+        return Response.json({ paper: true, positions: [] });
+      if (url.endsWith("/v1/orders")) return Response.json([]);
+      if (url.endsWith("/v1/orders/pending")) return Response.json([]);
+      if (url.endsWith("/language-models/"))
+        return Response.json({ models: [] });
+      return Response.json({});
+    }),
+  );
+  render(<App />);
+
+  fireEvent.click(screen.getByRole("button", { name: "Backtests" }));
+  expect(
+    await screen.findByRole("heading", { name: "Backtests" }),
+  ).toBeVisible();
+
+  fireEvent.click(screen.getByRole("button", { name: "Paper trading" }));
+  expect(
+    await screen.findByRole("heading", { name: "Mesa de inversión" }),
+  ).toBeVisible();
+
+  fireEvent.click(screen.getByRole("button", { name: "Configuración" }));
+  await waitFor(() =>
+    expect(screen.getByRole("dialog", { name: "Configuración" })).toBeVisible(),
+  );
 });
 
 it("contains rendering failures in a recoverable boundary", () => {
@@ -46,5 +82,7 @@ it("contains rendering failures in a recoverable boundary", () => {
   expect(screen.getByRole("alert")).toHaveTextContent(
     "No pudimos mostrar el espacio de trabajo",
   );
-  expect(document.body).not.toHaveTextContent("provider-secret-must-not-render");
+  expect(document.body).not.toHaveTextContent(
+    "provider-secret-must-not-render",
+  );
 });
