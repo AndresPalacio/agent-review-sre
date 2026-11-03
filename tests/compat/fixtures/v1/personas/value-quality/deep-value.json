@@ -1,0 +1,41 @@
+{
+  "ackman": {
+    "components": {
+      "activism_potential": 0.0,
+      "business_quality": 4.0,
+      "financial_discipline": 3.0,
+      "valuation": 3.0
+    },
+    "score": 10.0,
+    "signal": "neutral"
+  },
+  "burry": {
+    "components": {
+      "balance_sheet": 2.0,
+      "contrarian_sentiment": 0.0,
+      "insider_activity": 0.0,
+      "value": 4.0
+    },
+    "score": 6.0,
+    "signal": "neutral"
+  },
+  "damodaran": {
+    "components": {
+      "growth_and_reinvestment": 2.0,
+      "relative_valuation": 0.0,
+      "risk_profile": 2.0
+    },
+    "intrinsic_value": 1454270925.6202254,
+    "score": 4.0,
+    "signal": "bullish"
+  },
+  "pabrai": {
+    "components": {
+      "double_potential": 5.0,
+      "downside_protection": 9.0,
+      "valuation": 6.0
+    },
+    "score": 7.15,
+    "signal": "neutral"
+  }
+}
