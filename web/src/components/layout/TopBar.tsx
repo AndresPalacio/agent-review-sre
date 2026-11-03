@@ -1,7 +1,7 @@
 import { BarChart3, Moon, Play, Settings, Sun } from "lucide-react";
 import { useLayout } from "../../contexts/LayoutContext";
 
-export function TopBar() {
+export function TopBar({ onRun }: { onRun?: () => void }) {
   const { theme, setTheme } = useLayout();
   const next = theme === "dark" ? "light" : "dark";
   return (
@@ -17,7 +17,7 @@ export function TopBar() {
           {theme === "dark" ? <Sun size={17} /> : <Moon size={17} />}
         </button>
         <button className="icon-button" aria-label="Configuración"><Settings size={17} /></button>
-        <button className="run-button"><Play size={15} fill="currentColor" /> Ejecutar</button>
+        <button className="run-button" onClick={onRun}><Play size={15} fill="currentColor" /> Ejecutar</button>
       </div>
     </header>
   );

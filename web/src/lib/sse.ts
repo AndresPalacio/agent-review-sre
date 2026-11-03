@@ -100,10 +100,14 @@ export async function streamEvents(
   if (!response.body) throw new Error("El navegador no entregó el stream");
 
   const ids = new Set<string>();
+  const fingerprints = new Set<string>();
   let terminal = false;
   const parser = new SSEParser((raw) => {
     if (raw.id && ids.has(raw.id)) return;
+    const fingerprint = `${raw.event}\u0000${raw.data}`;
+    if (!raw.id && fingerprints.has(fingerprint)) return;
     if (raw.id) ids.add(raw.id);
+    else fingerprints.add(fingerprint);
     const event: TypedSSEEvent = {
       id: raw.id,
       event: raw.event,
@@ -120,6 +124,8 @@ export async function streamEvents(
   });
 
   const reader = response.body.getReader();
+  const abort = () => { void reader.cancel(); };
+  signal?.addEventListener("abort", abort, { once: true });
   try {
     while (true) {
       const { done, value } = await reader.read();
@@ -128,6 +134,7 @@ export async function streamEvents(
     }
     parser.finish();
   } finally {
+    signal?.removeEventListener("abort", abort);
     await reader.cancel().catch(() => undefined);
     reader.releaseLock();
   }
