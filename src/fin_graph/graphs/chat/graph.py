@@ -347,6 +347,7 @@ def make_chat_graph(
             runtime: ToolRuntime[RunContext],
             horizon: str = "medium",
             question: str = "",
+            analysts: str = "",
         ) -> str:
             """Run the full verified analysis of up to five tickers and summarize it.
 
@@ -354,6 +355,7 @@ def make_chat_graph(
                 tickers: Comma-separated symbols, for example "AAPL, MSFT".
                 horizon: short, medium or long.
                 question: The user's question, if any.
+                analysts: Optional comma-separated canonical analyst ids; blank runs all.
             """
             symbols = [item.strip() for item in tickers.split(",") if item.strip()][:5]
             request: dict[str, Any] = {
@@ -361,6 +363,9 @@ def make_chat_graph(
                 "source_hint": "json",
                 "user_requested": True,
             }
+            selected = [item.strip() for item in analysts.split(",") if item.strip()]
+            if selected:
+                request["raw_request"]["analysts"] = selected
             broker = _context(runtime).clients.get("paper_broker")
             if isinstance(broker, PaperBroker):
                 # Size against the paper book as it is now, not the starting one.

@@ -165,7 +165,15 @@ async def test_analyze_runs_the_analysis_with_the_live_paper_book(broker: PaperB
     analysis = Analysis()
     model = ScriptedChatModel(
         responses=[
-            tool_call_message("analyze", {"tickers": "DEEP, DIST", "horizon": "long"}, "a1"),
+            tool_call_message(
+                "analyze",
+                {
+                    "tickers": "DEEP, DIST",
+                    "horizon": "long",
+                    "analysts": "ben_graham,valuation_analyst",
+                },
+                "a1",
+            ),
             AIMessage("Según el análisis, DEEP podría ser value; es una hipótesis."),
         ]
     )
@@ -177,6 +185,7 @@ async def test_analyze_runs_the_analysis_with_the_live_paper_book(broker: PaperB
 
     [sent] = analysis.inputs
     assert sent["raw_request"]["tickers"] == ["DEEP", "DIST"]
+    assert sent["raw_request"]["analysts"] == ["ben_graham", "valuation_analyst"]
     assert sent["portfolio"]["cash"] == 10_000.0
     summary = json.loads(str(result["messages"][-2].content))
     assert summary["tickers"][0]["ticker"] == "DEEP"

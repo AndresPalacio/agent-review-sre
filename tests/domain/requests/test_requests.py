@@ -108,6 +108,39 @@ def test_request_validation_and_fingerprint() -> None:
     assert normalize_ticker("$brk-b") == "BRK-B"
 
 
+def test_request_validates_and_preserves_explicit_analyst_order() -> None:
+    request = AnalysisRequest(
+        tickers=["AAPL"],
+        as_of=date(2024, 3, 8),
+        analysts="valuation_analyst, ben_graham",
+    )
+
+    assert [item.value for item in request.analysts or ()] == [
+        "valuation_analyst",
+        "ben_graham",
+    ]
+    with pytest.raises(ValidationError, match="duplicate analyst"):
+        AnalysisRequest(
+            tickers=["AAPL"],
+            as_of=date(2024, 3, 8),
+            analysts=["ben_graham", "ben_graham"],
+        )
+    with pytest.raises(ValidationError, match="unknown analyst"):
+        AnalysisRequest(tickers=["AAPL"], as_of=date(2024, 3, 8), analysts=["secret_alpha"])
+
+
+def test_payload_passes_analyst_selection_to_the_request() -> None:
+    request = request_from_payload(
+        {"ticker": "AAPL", "analysts": ["growth_analyst", "news_sentiment_analyst"]},
+        now=NOW,
+    )
+
+    assert [item.value for item in request.analysts or ()] == [
+        "growth_analyst",
+        "news_sentiment_analyst",
+    ]
+
+
 def test_intake_model_extraction() -> None:
     found = RequestExtraction(is_noise=False, tickers=["amzn"], horizon=Horizon.LONG)
     noise = RequestExtraction(is_noise=True, tickers=["AMZN"])

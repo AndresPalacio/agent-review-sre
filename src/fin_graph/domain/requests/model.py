@@ -11,6 +11,7 @@ from typing import Self
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
+from fin_graph.domain.analysts import AnalystId, resolve_analysts
 from fin_graph.domain.portfolio import Portfolio
 
 MAX_TICKERS = 10
@@ -75,6 +76,7 @@ class AnalysisRequest(BaseModel):
     question: str = ""
     trigger: str = ""
     portfolio: Portfolio | None = None
+    analysts: tuple[AnalystId, ...] | None = None
     fingerprint: str = ""
 
     @field_validator("tickers", mode="before")
@@ -84,6 +86,19 @@ class AnalysisRequest(BaseModel):
             value = re.split(r"[\s,;]+", value)
         if isinstance(value, list | tuple):
             return unique_tickers(str(item) for item in value if str(item).strip())
+        return value
+
+    @field_validator("analysts", mode="before")
+    @classmethod
+    def _validate_analysts(cls, value: object) -> object:
+        if value is None:
+            return None
+        if isinstance(value, str):
+            value = tuple(item for item in re.split(r"[\s,;]+", value) if item)
+        if isinstance(value, list | tuple):
+            if not value:
+                return ()
+            return tuple(definition.id for definition in resolve_analysts(value))
         return value
 
     @model_validator(mode="after")

@@ -226,4 +226,5 @@ def request_from_payload(
         horizon=horizon,
         question=str(payload.get("question") or "")[:2000],
         trigger=_trigger(kind, payload),
+        analysts=payload.get("analysts"),
     )
