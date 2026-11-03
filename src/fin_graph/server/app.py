@@ -6,6 +6,7 @@ import asyncio
 import hashlib
 import json
 import logging
+import os
 import secrets
 from collections.abc import AsyncIterator, MutableMapping
 from contextlib import AsyncExitStack, asynccontextmanager
@@ -25,6 +26,8 @@ from pydantic import BaseModel, Field, ValidationError
 from sqlalchemy import text as sql_text
 from sqlalchemy.ext.asyncio import create_async_engine
 
+from fin_graph.compat.settings import CompatibilityProfile
+from fin_graph.compat.storage import CompatibilityStore
 from fin_graph.config.settings import PersistenceBackend, Settings
 from fin_graph.config.tracing import disable_external_tracing
 from fin_graph.delivery.service import DeliveryService
@@ -67,6 +70,8 @@ from fin_graph.scheduler.delivery import send_digest_text
 from fin_graph.scheduler.expiry import ApprovalGraph, expire_pending_approvals
 from fin_graph.scheduler.market import MarketJobs
 from fin_graph.scheduler.service import SchedulerService, validate_schedule
+from fin_graph.server.compat import compatibility_router
+from fin_graph.server.compat.ollama import OllamaCompatibilityService
 from fin_graph.server.config import ServerConfig
 from fin_graph.server.events import EventListener
 from fin_graph.server.explain import MAX_EXPLAIN_EVENTS, build_explanation
@@ -130,6 +135,10 @@ def create_app(
     telegram_gateway: Any | None = None,
     paper: PaperBroker | None = None,
     ui_dir: Path | None = None,
+    compatibility_store: CompatibilityStore | None = None,
+    compatibility_profile: CompatibilityProfile | None = None,
+    compatibility_export_dir: Path | None = None,
+    compatibility_ollama: Any | None = None,
 ) -> FastAPI:
     """Create a production Postgres server or an injected offline ASGI test app."""
     disable_external_tracing()
@@ -418,6 +427,17 @@ def create_app(
             yield
 
     app = FastAPI(title="fin-graph", lifespan=lifespan)
+    app.state.compatibility_store = compatibility_store
+    app.state.compatibility_profile = compatibility_profile or CompatibilityProfile.from_env(
+        os.environ
+    )
+    app.state.compatibility_export_dir = (
+        compatibility_export_dir or Path(os.getenv("AI_HEDGE_FUND_OUTPUT_DIR", "outputs"))
+    ).resolve()
+    app.state.compatibility_ollama = compatibility_ollama or OllamaCompatibilityService(
+        Settings(_env_file=None).ollama_base_url
+    )
+    app.state.compatibility_key_role = None
     from fin_graph.server.http_guards import install_http_guards
 
     install_http_guards(
@@ -439,7 +459,7 @@ def create_app(
         CORSMiddleware,
         allow_origins=list(options.cors_origins),
         allow_credentials=False,
-        allow_methods=["GET", "POST", "PUT", "DELETE"],
+        allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE"],
         allow_headers=["X-API-Key", "Last-Event-ID", "Content-Type"],
     )
 
@@ -1231,6 +1251,12 @@ def create_app(
         return Response(status_code=status)
 
     static_root = (ui_dir if ui_dir is not None else Path(__file__).parent / "static").resolve()
+    app.include_router(
+        compatibility_router(
+            include_root=ui_dir is None and not static_root.is_dir(),
+            include_health=False,
+        )
+    )
     if static_root.is_dir():
 
         @app.get("/{path:path}", include_in_schema=False)

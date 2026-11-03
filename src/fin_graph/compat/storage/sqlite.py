@@ -112,6 +112,9 @@ _provider_keys = Table(
     Column("provider", String, nullable=False, unique=True),
     Column("encrypted_secret", Text, nullable=False),
     Column("key_hint", String, nullable=False),
+    Column("is_active", Integer, nullable=False, default=1),
+    Column("description", Text),
+    Column("last_used", String),
     Column("created_at", String, nullable=False),
     Column("updated_at", String, nullable=False),
     Column("version", Integer, nullable=False),
@@ -487,7 +490,14 @@ class SqliteCompatibilityStore:
             ).mappings()
             return tuple(_cycle(row) for row in rows)
 
-    async def put_provider_key(self, provider: str, secret: str) -> ProviderKeyRecord:
+    async def put_provider_key(
+        self,
+        provider: str,
+        secret: str,
+        *,
+        description: str | None = None,
+        is_active: bool = True,
+    ) -> ProviderKeyRecord:
         normalized = provider.strip().lower()
         if not normalized or not secret:
             raise ValueError("provider and secret must not be blank")
@@ -506,6 +516,9 @@ class SqliteCompatibilityStore:
                         "provider": normalized,
                         "encrypted_secret": encrypted,
                         "key_hint": hint,
+                        "is_active": int(is_active),
+                        "description": description,
+                        "last_used": None,
                         "created_at": _timestamp(changed),
                         "updated_at": _timestamp(changed),
                         "version": 1,
@@ -516,6 +529,8 @@ class SqliteCompatibilityStore:
                         **dict(current),
                         "encrypted_secret": encrypted,
                         "key_hint": hint,
+                        "is_active": int(is_active),
+                        "description": description,
                         "updated_at": _timestamp(changed),
                         "version": int(current["version"]) + 1,
                     }
@@ -525,6 +540,8 @@ class SqliteCompatibilityStore:
                         .values(
                             encrypted_secret=encrypted,
                             key_hint=hint,
+                            is_active=int(is_active),
+                            description=description,
                             updated_at=values["updated_at"],
                             version=values["version"],
                         )
@@ -536,6 +553,9 @@ class SqliteCompatibilityStore:
             _provider_keys.c.id,
             _provider_keys.c.provider,
             _provider_keys.c.key_hint,
+            _provider_keys.c.is_active,
+            _provider_keys.c.description,
+            _provider_keys.c.last_used,
             _provider_keys.c.created_at,
             _provider_keys.c.updated_at,
             _provider_keys.c.version,
@@ -553,6 +573,58 @@ class SqliteCompatibilityStore:
                 ),
             )
         return None if row is None else self._cipher.decrypt(str(row["encrypted_secret"]))
+
+    async def update_provider_key(
+        self,
+        provider: str,
+        *,
+        expected_version: int,
+        secret: str | None,
+        description: str | None,
+        is_active: bool,
+        last_used: datetime | None,
+    ) -> ProviderKeyRecord | None:
+        normalized = provider.strip().lower()
+        if not normalized:
+            raise ValueError("provider must not be blank")
+        changed = _now()
+        async with self._write_lock, self._engine.begin() as connection:
+            current = await _mapping_or_none(
+                connection,
+                select(_provider_keys).where(
+                    _provider_keys.c.provider == normalized,
+                    _provider_keys.c.version == expected_version,
+                ),
+            )
+            if current is None:
+                return None
+            values: dict[str, Any] = {
+                "description": description,
+                "is_active": int(is_active),
+                "last_used": _timestamp(last_used) if last_used is not None else None,
+                "updated_at": _timestamp(changed),
+                "version": expected_version + 1,
+            }
+            if secret is not None:
+                if not secret:
+                    raise ValueError("secret must not be blank")
+                values["encrypted_secret"] = self._cipher.encrypt(secret)
+                values["key_hint"] = f"…{secret[-4:]}" if len(secret) > 4 else "…"
+            outcome = await connection.execute(
+                update(_provider_keys)
+                .where(
+                    _provider_keys.c.provider == normalized,
+                    _provider_keys.c.version == expected_version,
+                )
+                .values(**values)
+            )
+            if _rowcount(outcome) != 1:
+                return None
+            row = await _mapping_or_none(
+                connection,
+                select(_provider_keys).where(_provider_keys.c.provider == normalized),
+            )
+        return None if row is None else _provider_key(row)
 
     async def delete_provider_key(self, provider: str, *, expected_version: int) -> bool:
         async with self._engine.begin() as connection:
@@ -698,6 +770,23 @@ async def _open_compat_sqlite(
     try:
         async with engine.begin() as connection:
             await connection.run_sync(_metadata.create_all)
+            columns = {
+                str(row._mapping["name"])
+                for row in (
+                    await connection.exec_driver_sql("PRAGMA table_info(compat_provider_keys)")
+                )
+            }
+            migrations = {
+                "is_active": (
+                    "ALTER TABLE compat_provider_keys ADD COLUMN is_active "
+                    "INTEGER NOT NULL DEFAULT 1"
+                ),
+                "description": "ALTER TABLE compat_provider_keys ADD COLUMN description TEXT",
+                "last_used": "ALTER TABLE compat_provider_keys ADD COLUMN last_used TEXT",
+            }
+            for name, statement in migrations.items():
+                if name not in columns:
+                    await connection.exec_driver_sql(statement)
         yield SqliteCompatibilityStore(engine, cipher)
     finally:
         await engine.dispose()

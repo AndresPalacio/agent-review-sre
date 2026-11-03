@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from datetime import datetime
 from typing import Protocol, runtime_checkable
 
 from fin_graph.compat.contracts import JsonObject, JsonValue
@@ -78,7 +79,25 @@ class CompatibilityStore(Protocol):
 
     async def list_run_cycles(self, run_id: str) -> tuple[RunCycleRecord, ...]: ...
 
-    async def put_provider_key(self, provider: str, secret: str) -> ProviderKeyRecord: ...
+    async def put_provider_key(
+        self,
+        provider: str,
+        secret: str,
+        *,
+        description: str | None = None,
+        is_active: bool = True,
+    ) -> ProviderKeyRecord: ...
+
+    async def update_provider_key(
+        self,
+        provider: str,
+        *,
+        expected_version: int,
+        secret: str | None,
+        description: str | None,
+        is_active: bool,
+        last_used: datetime | None,
+    ) -> ProviderKeyRecord | None: ...
 
     async def list_provider_keys(self) -> tuple[ProviderKeyRecord, ...]: ...
 

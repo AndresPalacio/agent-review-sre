@@ -69,6 +69,9 @@ class RunCycleRecord(StoredRecord):
 class ProviderKeyRecord(StoredRecord):
     provider: str = Field(min_length=1)
     key_hint: str
+    is_active: bool = True
+    description: str | None = None
+    last_used: datetime | None = None
 
 
 class BacktestJobRecord(StoredRecord):
