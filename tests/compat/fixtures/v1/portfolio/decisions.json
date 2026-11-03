@@ -1,0 +1,44 @@
+{
+  "bullish_flat": {
+    "portfolio": {"cash": 10000.0},
+    "prices": {"AAPL": 100.0},
+    "signal": "bullish",
+    "confidence": 80.0,
+    "expected": {"action": "buy", "quantity": 10, "confidence": 80}
+  },
+  "bearish_flat": {
+    "portfolio": {"cash": 10000.0},
+    "prices": {"AAPL": 100.0},
+    "signal": "bearish",
+    "confidence": 70.0,
+    "expected": {"action": "short", "quantity": 10, "confidence": 70}
+  },
+  "bearish_long": {
+    "portfolio": {
+      "cash": 9300.0,
+      "positions": {"AAPL": {"long": 7, "long_cost_basis": 100.0}}
+    },
+    "prices": {"AAPL": 100.0},
+    "signal": "bearish",
+    "confidence": 65.0,
+    "expected": {"action": "sell", "quantity": 7, "confidence": 65}
+  },
+  "bullish_short": {
+    "portfolio": {
+      "cash": 10200.0,
+      "margin_used": 200.0,
+      "positions": {"AAPL": {"short": 4, "short_cost_basis": 100.0}}
+    },
+    "prices": {"AAPL": 100.0},
+    "signal": "bullish",
+    "confidence": 75.0,
+    "expected": {"action": "cover", "quantity": 4, "confidence": 75}
+  },
+  "neutral_flat": {
+    "portfolio": {"cash": 10000.0},
+    "prices": {"AAPL": 100.0},
+    "signal": "neutral",
+    "confidence": 55.0,
+    "expected": {"action": "hold", "quantity": 0, "confidence": 0}
+  }
+}
