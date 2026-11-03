@@ -21,7 +21,6 @@ from sqlalchemy.ext.asyncio import create_async_engine
 from fin_graph.compat.settings import CompatibilityProfile
 from fin_graph.compat.storage import FernetSecretCipher, open_compat_sqlite
 from fin_graph.config.settings import PersistenceBackend, Settings
-from fin_graph.harness.runtime import _analysis_services, make_analysis_graph
 from fin_graph.integrations.analytics.engine import AnalyticsEngine
 from fin_graph.integrations.broker.paper.runtime import context_quotes, paper_broker
 from fin_graph.integrations.catalog import default_registry
@@ -29,6 +28,7 @@ from fin_graph.integrations.context import RunContext
 from fin_graph.integrations.market_data import MarketDataClient
 from fin_graph.integrations.registry import IntegrationRegistry
 from fin_graph.persistence.paper_ledger import PaperLedgerStore, create_paper_tables
+from fin_graph.runtime.analysis import _analysis_services, make_analysis_graph
 from fin_graph.safety.approval import ApprovalPolicy
 from fin_graph.server.app import create_app as create_native_app
 from fin_graph.server.config import ServerConfig

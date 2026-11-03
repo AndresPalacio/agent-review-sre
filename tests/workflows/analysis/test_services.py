@@ -11,10 +11,10 @@ from fin_graph.domain.quant.common import Signal
 from fin_graph.domain.requests.model import AnalysisRequest
 from fin_graph.domain.tools import Domain
 from fin_graph.domain.window import AnalysisWindow
-from fin_graph.harness.runtime import analyst_mode
 from fin_graph.integrations.analytics.tools import ANALYTICS_TOOLS
 from fin_graph.integrations.context import RunContext
 from fin_graph.llm.models import ModelRole, missing_credentials
+from fin_graph.runtime.analysis import analyst_mode
 from fin_graph.workflows.analysis.services import (
     LangChainAnalysisServices,
     ModelOutputError,

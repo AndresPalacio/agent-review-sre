@@ -22,9 +22,9 @@ from sqlalchemy.ext.asyncio import create_async_engine
 
 from fin_graph.evals.market.runner import run_context
 from fin_graph.evals.market.scenarios import load_equity_scenario
-from fin_graph.harness.runtime import make_analysis_graph
 from fin_graph.integrations.analytics.tools import ANALYTICS_TOOLS
 from fin_graph.integrations.context import RunContext
+from fin_graph.runtime.analysis import make_analysis_graph
 from fin_graph.server.app import create_app
 from fin_graph.server.config import ServerConfig
 from fin_graph.server.manager import RunManager

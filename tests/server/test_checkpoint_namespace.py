@@ -20,9 +20,9 @@ from tests.server.test_orders_api import ORDER
 
 from fin_graph.agents.chat.supervisor import make_chat_graph
 from fin_graph.agents.common.testing.scripted_model import ScriptedChatModel, tool_call_message
-from fin_graph.harness.runtime import make_analysis_graph
 from fin_graph.integrations.registry import IntegrationRegistry
 from fin_graph.memory.theses import ThesisMemory
+from fin_graph.runtime.analysis import make_analysis_graph
 from fin_graph.safety.approval import ApprovalPolicy
 from fin_graph.server.app import _retention_cycle, create_app
 from fin_graph.server.manager import RunManager

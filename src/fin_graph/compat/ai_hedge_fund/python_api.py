@@ -107,7 +107,7 @@ async def run_hedge_fund_async(
     """Execute the native DeepAgents compatibility graph."""
 
     del show_reasoning
-    from fin_graph.harness.runtime import make_compat_analysis_runtime_async
+    from fin_graph.runtime.analysis import make_reference_analysis_runtime_async
 
     request = make_request(
         tickers,
@@ -119,7 +119,7 @@ async def run_hedge_fund_async(
         model_provider,
     )
     native = to_native_analysis_request(request)
-    graph, _context = await make_compat_analysis_runtime_async()
+    graph, _context = await make_reference_analysis_runtime_async()
     state = await graph.ainvoke(
         {
             "request": native.model_dump(mode="json"),

@@ -26,7 +26,7 @@ def _state() -> dict[str, Any]:
 
 def _invoke(monkeypatch: Any, args: list[str], state: dict[str, Any] | None = None) -> Any:
     from fin_graph.cli import main
-    from fin_graph.harness import runtime
+    from fin_graph.runtime import analysis as runtime
 
     graph = FakeGraph(_state() if state is None else state)
     monkeypatch.setattr(runtime, "make_analysis_runtime", lambda: (graph, RunContext()))

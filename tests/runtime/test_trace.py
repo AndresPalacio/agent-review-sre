@@ -49,7 +49,7 @@ async def test_failed_run_keeps_partial_trace(tmp_path, monkeypatch):
 
 
 async def test_concurrent_scopes_are_not_mixed_and_secrets_are_redacted():
-    from fin_graph.harness.trace import ExecutionTrace
+    from fin_graph.runtime.trace import ExecutionTrace
 
     trace = ExecutionTrace()
 
@@ -77,7 +77,7 @@ async def test_concurrent_scopes_are_not_mixed_and_secrets_are_redacted():
 def test_tool_error_message_counts_as_failed_execution():
     from langchain_core.messages import ToolMessage
 
-    from fin_graph.harness.trace import ExecutionTrace
+    from fin_graph.runtime.trace import ExecutionTrace
 
     trace = ExecutionTrace()
     call_id = uuid4()
@@ -89,7 +89,7 @@ def test_tool_error_message_counts_as_failed_execution():
 
 
 def test_observed_services_only_wrap_analysis_methods():
-    from fin_graph.harness.trace import observe_analysis_services
+    from fin_graph.runtime.trace import observe_analysis_services
 
     class Services:
         models = ("worker", "fixture")

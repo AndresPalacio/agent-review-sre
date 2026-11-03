@@ -78,7 +78,7 @@ def test_candidates_use_resolved_dotenv_budgets_without_production_variant_pin(
 
     from fin_graph.harness.configuration import load_config
     from fin_graph.harness.execution import execute_variant
-    from fin_graph.harness.profile import resolve_analysis_profile
+    from fin_graph.runtime.profile import resolve_analysis_profile
 
     config = load_config(CONFIG, model="scripted", repeat=1)
     baseline = build_baseline_variant(config.experiment)
@@ -101,7 +101,7 @@ def test_candidates_use_resolved_dotenv_budgets_without_production_variant_pin(
 
 
 def test_production_refuses_an_unreviewed_variant(monkeypatch):
-    from fin_graph.harness.profile import resolve_analysis_profile
+    from fin_graph.runtime.profile import resolve_analysis_profile
 
     monkeypatch.setenv("FIN_ANALYSIS_EXPECTED_VARIANT", "sha256:" + "0" * 64)
     with pytest.raises(ValueError, match="FIN_ANALYSIS_EXPECTED_VARIANT"):

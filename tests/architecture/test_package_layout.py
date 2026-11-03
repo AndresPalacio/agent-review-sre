@@ -28,6 +28,10 @@ import pytest
         "fin_graph.workflows.orders.graph",
         "fin_graph.workflows.market_watch.graph",
         "fin_graph.trading.order_desk",
+        "fin_graph.runtime.analysis",
+        "fin_graph.runtime.observation",
+        "fin_graph.runtime.profile",
+        "fin_graph.runtime.trace",
     ],
 )
 def test_target_module_imports(module: str) -> None:

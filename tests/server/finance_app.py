@@ -19,12 +19,12 @@ from sqlalchemy.ext.asyncio import AsyncEngine, create_async_engine
 
 from fin_graph.domain.portfolio import Portfolio
 from fin_graph.evals.market.scenarios import load_equity_scenario
-from fin_graph.harness.runtime import make_analysis_graph
 from fin_graph.integrations.analytics.engine import AnalyticsEngine
 from fin_graph.integrations.analytics.tools import ANALYTICS_TOOLS
 from fin_graph.integrations.broker.paper.broker import PaperBroker
 from fin_graph.integrations.context import RunContext
 from fin_graph.persistence.paper_ledger import PaperLedgerStore, create_paper_tables
+from fin_graph.runtime.analysis import make_analysis_graph
 from fin_graph.safety.approval import ApprovalPolicy
 from fin_graph.safety.trading_limits import TradingLimits
 from fin_graph.server.manager import RunManager

@@ -26,7 +26,6 @@ from fin_graph.cli.orders import app as orders_app
 from fin_graph.cli.schedules import app as schedules_app
 from fin_graph.config.settings import PersistenceBackend, Settings
 from fin_graph.config.tracing import disable_external_tracing
-from fin_graph.harness.runtime import _analysis_services, make_analysis_graph
 from fin_graph.integrations.broker.paper.runtime import open_trading_context
 from fin_graph.integrations.catalog import default_registry
 from fin_graph.integrations.context import RunContext
@@ -35,6 +34,7 @@ from fin_graph.memory.theses import ThesisMemory
 from fin_graph.persistence.action_ledger import open_sqlite_action_ledger
 from fin_graph.persistence.checkpointer import open_checkpointer
 from fin_graph.persistence.store import open_store
+from fin_graph.runtime.analysis import _analysis_services, make_analysis_graph
 from fin_graph.safety.approval import ApprovalPolicy
 
 app = typer.Typer(
@@ -119,7 +119,7 @@ def analyze(
             raw["as_of"] = as_of
     portfolio = {"cash": cash} if cash is not None else None
     try:
-        from fin_graph.harness.runtime import make_analysis_runtime
+        from fin_graph.runtime.analysis import make_analysis_runtime
 
         graph, context = make_analysis_runtime()
         asyncio.run(_analyze(graph, context, raw, portfolio, as_json, propose))

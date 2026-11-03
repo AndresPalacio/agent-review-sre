@@ -10,9 +10,9 @@ from langgraph.checkpoint.memory import InMemorySaver
 from fin_graph.domain.tools import Domain
 from fin_graph.evals.market.runner import run_context
 from fin_graph.evals.market.scenarios import load_equity_scenario
-from fin_graph.harness.runtime import make_analysis_graph
 from fin_graph.integrations.analytics.tools import ANALYTICS_TOOLS
 from fin_graph.integrations.context import RunContext
+from fin_graph.runtime.analysis import make_analysis_graph
 from fin_graph.workflows.analysis.graph import AnalysisLimits
 from fin_graph.workflows.analysis.services import UnavailableAnalysisServices
 
@@ -80,7 +80,7 @@ async def test_concurrent_analyses_do_not_mix_trace_scopes():
 
 
 async def test_checkpoint_timestamps_reconstruct_parallel_analyst_interleaving():
-    from fin_graph.harness.trace import ExecutionTrace
+    from fin_graph.runtime.trace import ExecutionTrace
 
     fundamentals_started, valuation_finished = asyncio.Event(), asyncio.Event()
 

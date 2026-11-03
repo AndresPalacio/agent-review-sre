@@ -24,6 +24,13 @@ def _module_name(path: str) -> str:
     return relative.removesuffix(".py").replace("/", ".")
 
 
+def test_langgraph_studio_uses_product_runtime() -> None:
+    assert (
+        _graph_targets()["analysis"]
+        == "./src/fin_graph/runtime/analysis.py:make_analysis_graph_async"
+    )
+
+
 async def _build(graph_id: str) -> Any:
     path, attribute = _graph_targets()[graph_id].rsplit(":", 1)
     result = getattr(importlib.import_module(_module_name(path)), attribute)()

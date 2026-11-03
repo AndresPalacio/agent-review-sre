@@ -1,4 +1,4 @@
-"""Canonical production financial-analysis harness."""
+"""Canonical production assembly for the financial-analysis workflow."""
 
 from __future__ import annotations
 
@@ -14,15 +14,15 @@ from fin_graph.config.settings import Settings
 from fin_graph.config.tracing import disable_external_tracing
 from fin_graph.delivery.service import DeliveryService
 from fin_graph.domain.portfolio import Portfolio
-from fin_graph.harness.observation import Observation
-from fin_graph.harness.profile import resolve_analysis_profile
-from fin_graph.harness.trace import ExecutionTrace, observe_analysis_services
 from fin_graph.integrations.catalog import default_registry
 from fin_graph.integrations.context import RunContext
 from fin_graph.integrations.mcp.runtime import configured_mcp_path, with_configured_mcp
 from fin_graph.integrations.registry import IntegrationRegistry
 from fin_graph.llm.models import ModelRole, get_model, missing_credentials
 from fin_graph.memory.theses import ThesisMemory
+from fin_graph.runtime.observation import Observation
+from fin_graph.runtime.profile import resolve_analysis_profile
+from fin_graph.runtime.trace import ExecutionTrace, observe_analysis_services
 from fin_graph.safety.masking import MaskingPolicy
 from fin_graph.safety.trading_limits import TradingLimits
 from fin_graph.workflows.analysis.graph import (
@@ -87,7 +87,7 @@ def make_analysis_graph(
     settings: Settings | None = None,
     verify_variant_pin: bool = True,
 ) -> CompiledStateGraph[Any, Any, Any, Any]:
-    """The analysis graph wrapped in the harness: traced model steps and pinned budgets."""
+    """Build the analysis graph with traced model steps and pinned runtime budgets."""
     active = settings or Settings()
     profile = resolve_analysis_profile(limits=limits, verify_variant_pin=verify_variant_pin)
     assert isinstance(profile.limits, AnalysisLimits)
@@ -154,7 +154,9 @@ async def make_analysis_graph_async() -> CompiledStateGraph[Any, Any, Any, Any]:
     )
 
 
-def make_compat_analysis_runtime() -> tuple[CompiledStateGraph[Any, Any, Any, Any], RunContext]:
+def make_reference_analysis_runtime() -> tuple[
+    CompiledStateGraph[Any, Any, Any, Any], RunContext
+]:
     """Create the nineteen-persona DeepAgents replacement runtime."""
     from fin_graph.agents.analysis.persona_team import make_persona_analysis_supervisor
 
@@ -172,10 +174,10 @@ def make_compat_analysis_runtime() -> tuple[CompiledStateGraph[Any, Any, Any, An
     return graph, context
 
 
-async def make_compat_analysis_runtime_async() -> tuple[
+async def make_reference_analysis_runtime_async() -> tuple[
     CompiledStateGraph[Any, Any, Any, Any], RunContext
 ]:
-    """Async compatibility runtime with configured MCP discovery."""
+    """Async reference-app runtime with configured MCP discovery."""
     from fin_graph.agents.analysis.persona_team import make_persona_analysis_supervisor
 
     disable_external_tracing()

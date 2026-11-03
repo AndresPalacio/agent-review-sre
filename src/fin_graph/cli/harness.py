@@ -24,7 +24,7 @@ console = Console()
 @app.command("runtime")
 def runtime_info() -> None:
     """Show the installed variant and effective analysis budgets without an LLM call."""
-    from fin_graph.harness.profile import resolve_analysis_profile
+    from fin_graph.runtime.profile import resolve_analysis_profile
 
     try:
         console.print(json.dumps(resolve_analysis_profile().metadata()), markup=False)

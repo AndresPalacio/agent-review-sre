@@ -40,10 +40,10 @@ from fin_graph.compat.storage import (
 )
 from fin_graph.config.settings import Settings
 from fin_graph.evals.market.scenarios import load_equity_scenario
-from fin_graph.harness.runtime import make_analysis_graph
 from fin_graph.integrations.registry import IntegrationRegistry
 from fin_graph.memory.theses import ThesisMemory
 from fin_graph.persistence.paper_ledger import create_paper_tables
+from fin_graph.runtime.analysis import make_analysis_graph
 from fin_graph.safety.approval import ApprovalPolicy
 from fin_graph.server.app import create_app
 from fin_graph.server.compat.events import InternalEvent

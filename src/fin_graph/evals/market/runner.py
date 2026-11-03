@@ -27,12 +27,12 @@ from fin_graph.config.tracing import disable_external_tracing
 from fin_graph.evals.market.scenarios import EquityScenario, dataset_fingerprint, load_equity_suite
 from fin_graph.evals.market.scoring import score_equity_scenario
 from fin_graph.evals.market.trajectory import contract_for, grade_trajectory
-from fin_graph.harness.runtime import analyst_mode, make_analysis_graph
-from fin_graph.harness.trace import ExecutionTrace
 from fin_graph.integrations.analytics.engine import AnalyticsEngine
 from fin_graph.integrations.analytics.tools import ANALYTICS_TOOLS
 from fin_graph.integrations.context import RunContext
 from fin_graph.llm.models import ModelRole, build_chat_model, missing_credentials, parse_model_spec
+from fin_graph.runtime.analysis import analyst_mode, make_analysis_graph
+from fin_graph.runtime.trace import ExecutionTrace
 from fin_graph.safety.secrets import redact_secrets, redact_value
 from fin_graph.workflows.analysis.graph import AnalysisLimits, is_fallback_error
 from fin_graph.workflows.analysis.services import (

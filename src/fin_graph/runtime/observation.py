@@ -13,9 +13,9 @@ from langgraph.config import get_stream_writer
 from langgraph.runtime import Runtime
 from langgraph.types import Overwrite
 
-from fin_graph.harness.profile import RuntimeProfile
-from fin_graph.harness.trace import ExecutionTrace, active_trace
 from fin_graph.integrations.context import RunContext
+from fin_graph.runtime.profile import RuntimeProfile
+from fin_graph.runtime.trace import ExecutionTrace, active_trace
 
 #: Nodes that run as parallel ``Send`` branches; they must not write the shared profile channel.
 PARALLEL_NODES = frozenset({"specialist", "analyst"})

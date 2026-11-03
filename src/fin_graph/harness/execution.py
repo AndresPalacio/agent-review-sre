@@ -16,8 +16,8 @@ from typing import Any
 from better_harness.core import Variant
 
 from fin_graph.harness.configuration import HarnessConfig
-from fin_graph.harness.profile import resolve_analysis_profile
 from fin_graph.harness.surfaces import FILE_SURFACES, SURFACES, validate_values
+from fin_graph.runtime.profile import resolve_analysis_profile
 from fin_graph.safety.secrets import redact_secrets
 
 

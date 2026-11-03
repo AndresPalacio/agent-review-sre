@@ -12,9 +12,9 @@ from fin_graph.domain.evidence import EvidenceItem
 from fin_graph.domain.orders import OrderAction, PortfolioDecision
 from fin_graph.domain.quant.common import Signal
 from fin_graph.domain.thesis import InvestmentThesis, ThesisClaim
-from fin_graph.harness.runtime import make_analysis_graph
 from fin_graph.integrations.context import RunContext
 from fin_graph.memory.theses import ThesisMemory
+from fin_graph.runtime.analysis import make_analysis_graph
 from fin_graph.safety.trading_limits import TradingLimits
 from fin_graph.workflows.analysis.graph import AnalysisLimits, _compile_analysis_graph
 

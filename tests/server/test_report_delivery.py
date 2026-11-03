@@ -19,7 +19,7 @@ from tests.server.finance_app import (
 
 from fin_graph.delivery.client import SlackClient
 from fin_graph.delivery.service import DeliveryService, DeliveryStatus
-from fin_graph.harness.runtime import make_analysis_graph
+from fin_graph.runtime.analysis import make_analysis_graph
 from fin_graph.scheduler.market import MarketJobs
 from fin_graph.server.app import create_app
 from fin_graph.server.config import ServerConfig

@@ -52,7 +52,6 @@ from fin_graph.gateway import GatewayResult, GatewayRunPending
 from fin_graph.gateway.settings import SlackGatewaySettings, TelegramGatewaySettings
 from fin_graph.gateway.slack import SlackGateway
 from fin_graph.gateway.telegram import TelegramGateway
-from fin_graph.harness.runtime import _analysis_services, make_analysis_graph
 from fin_graph.integrations.base import IntegrationError, IntegrationNotConfiguredError
 from fin_graph.integrations.broker.paper.broker import PaperBroker, PaperBrokerError
 from fin_graph.integrations.broker.paper.runtime import context_quotes, paper_broker
@@ -64,6 +63,7 @@ from fin_graph.memory.theses import ThesisMemory
 from fin_graph.persistence.checkpointer import open_checkpointer
 from fin_graph.persistence.paper_ledger import PaperLedgerStore
 from fin_graph.persistence.store import open_store
+from fin_graph.runtime.analysis import _analysis_services, make_analysis_graph
 from fin_graph.safety.approval import ApprovalPolicy
 from fin_graph.safety.secrets import redact_secrets, redact_value
 from fin_graph.scheduler.delivery import send_digest_text

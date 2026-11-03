@@ -73,13 +73,13 @@ def test_analyze_propose_queues_each_proposed_order(monkeypatch: pytest.MonkeyPa
     from tests.cli.test_analyze import FakeGraph, _state
     from tests.domain.test_analysis_report import _report
 
-    from fin_graph.harness import runtime as harness_runtime
+    from fin_graph.runtime import analysis as analysis_runtime
 
     order = _report().sections[0].order
     assert order is not None
     monkeypatch.setitem(QUOTES, order.ticker, order.reference_price)
     graph = FakeGraph(_state())
-    monkeypatch.setattr(harness_runtime, "make_analysis_runtime", lambda: (graph, RunContext()))
+    monkeypatch.setattr(analysis_runtime, "make_analysis_runtime", lambda: (graph, RunContext()))
 
     result = cli("analyze", "--tickers", "DEEP", "--propose")
 
@@ -93,11 +93,11 @@ def test_analyze_propose_queues_each_proposed_order(monkeypatch: pytest.MonkeyPa
 def test_a_quote_far_from_the_proposal_blocks_the_order(monkeypatch: pytest.MonkeyPatch) -> None:
     from tests.cli.test_analyze import FakeGraph, _state
 
-    from fin_graph.harness import runtime as harness_runtime
+    from fin_graph.runtime import analysis as analysis_runtime
 
     monkeypatch.setitem(QUOTES, "DEEP", 0.5)
     graph = FakeGraph(_state())
-    monkeypatch.setattr(harness_runtime, "make_analysis_runtime", lambda: (graph, RunContext()))
+    monkeypatch.setattr(analysis_runtime, "make_analysis_runtime", lambda: (graph, RunContext()))
 
     result = cli("analyze", "--tickers", "DEEP", "--propose")
 

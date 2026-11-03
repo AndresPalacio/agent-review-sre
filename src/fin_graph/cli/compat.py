@@ -123,7 +123,7 @@ def backtest_command(
     """Run the compatible point-in-time portfolio backtest."""
 
     from fin_graph.compat.ai_hedge_fund.schemas import BacktestRequest, GraphNode, ModelProvider
-    from fin_graph.harness.runtime import make_compat_analysis_runtime_async
+    from fin_graph.runtime.analysis import make_reference_analysis_runtime_async
     from fin_graph.server.compat.hedge_fund import make_v1_backtest_runner
 
     start = _date(start_date, "--start-date")
@@ -147,7 +147,7 @@ def backtest_command(
     )
 
     async def execute() -> dict[str, Any]:
-        graph, context = await make_compat_analysis_runtime_async()
+        graph, context = await make_reference_analysis_runtime_async()
         runner = make_v1_backtest_runner(graph, lambda: context)
 
         async def ignore(_event: Any) -> None:
