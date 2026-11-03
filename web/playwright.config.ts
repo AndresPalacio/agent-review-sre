@@ -9,20 +9,11 @@ export default defineConfig({
   reporter: [["list"], ["html", { open: "never" }]],
   use: { baseURL: "http://127.0.0.1:8000", trace: "retain-on-failure" },
   projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"] } }],
-  webServer: [
-    {
-      command: "uv run python -m tests.web.fixture_server",
-      cwd: "..",
-      url: "http://127.0.0.1:8000/health",
-      reuseExistingServer: false,
-      timeout: 90_000,
-    },
-    {
-      command: "uv run python -m tests.web.reference_frontend_server",
-      cwd: "..",
-      url: "http://127.0.0.1:4174",
-      reuseExistingServer: false,
-      timeout: 240_000,
-    },
-  ],
+  webServer: {
+    command: "uv run python -m tests.web.fixture_server",
+    cwd: "..",
+    url: "http://127.0.0.1:8000/health",
+    reuseExistingServer: false,
+    timeout: 90_000,
+  },
 });

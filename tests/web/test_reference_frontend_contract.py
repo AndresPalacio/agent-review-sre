@@ -3,6 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 
 import httpx
+import pytest
 from cryptography.fernet import Fernet
 from tests.web.fixture_server import create_fixture_app
 from tests.web.reference_frontend_server import resolve_reference_frontend
@@ -11,7 +12,10 @@ from fin_graph.compat.storage import FernetSecretCipher, open_compat_sqlite
 
 
 def test_frozen_reference_frontend_is_discovered_without_source_changes() -> None:
-    frontend = resolve_reference_frontend()
+    try:
+        frontend = resolve_reference_frontend()
+    except FileNotFoundError:
+        pytest.skip("optional AI Hedge Fund reference checkout is not configured")
     assert (frontend / "package.json").is_file()
     flow_service = (frontend / "src/services/flow-service.ts").read_text(encoding="utf-8")
     api_service = (frontend / "src/services/api.ts").read_text(encoding="utf-8")

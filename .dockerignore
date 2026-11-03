@@ -12,6 +12,10 @@
 dist
 __pycache__
 *.pyc
+*.sqlite
+*.sqlite3
+*.db
+*.key
 .superpowers
 web/node_modules
 web/test-results

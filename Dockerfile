@@ -17,7 +17,10 @@ COPY src ./src
 COPY --from=web-build /app/src/fin_graph/server/static ./src/fin_graph/server/static
 RUN uv sync --frozen --no-dev --no-editable --extra app
 
-RUN useradd --system --create-home fingraph
+RUN useradd --system --create-home fingraph \
+    && install -d -o fingraph -g fingraph /data
 USER fingraph
 EXPOSE 8000
+HEALTHCHECK --interval=30s --timeout=3s --start-period=20s --retries=3 \
+    CMD ["python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=2)"]
 CMD ["uv", "run", "--no-sync", "fin-graph", "app", "--host", "0.0.0.0", "--data-dir", "/data"]

@@ -9,7 +9,6 @@ from typer.testing import CliRunner
 
 from fin_graph.cli.main import app
 
-
 ROOT = Path(__file__).parents[2]
 DOCS = (
     "docs/compatibility/ai-hedge-fund.md",

@@ -146,9 +146,10 @@ Las importaciones históricas se resuelven dentro del wheel:
 ```python
 from src.main import run_hedge_fund
 from src.backtester import Backtester
-from app.backend.src.main import run_hedge_fund as app_run_hedge_fund
+from app.backend.main import app as compatible_fastapi_app
 
-assert app_run_hedge_fund is run_hedge_fund
+assert callable(run_hedge_fund)
+assert compatible_fastapi_app.title
 ```
 
 La API moderna vive en `fin_graph`. El paquete independiente
