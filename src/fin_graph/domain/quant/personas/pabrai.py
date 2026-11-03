@@ -59,7 +59,7 @@ def analyze_downside_protection(items: Sequence[LineItem]) -> Component:
 
 def analyze_pabrai_valuation(items: Sequence[LineItem], market_cap: float | None) -> Component:
     cash_flows = _values(items, "free_cash_flow")
-    if market_cap is None or len(cash_flows) < 3:
+    if market_cap is None or market_cap <= 0 or len(cash_flows) < 3:
         return Component(
             name="valuation",
             score=0,
@@ -90,11 +90,9 @@ def analyze_pabrai_valuation(items: Sequence[LineItem], market_cap: float | None
         else 0.0
     )
     capex_ratios = [
-        abs(capex) / revenue
+        abs(item.value("capital_expenditure") or 0) / revenue
         for item in items
-        if (capex := item.value("capital_expenditure")) is not None
-        and (revenue := item.value("revenue")) is not None
-        and revenue > 0
+        if (revenue := item.value("revenue")) is not None and revenue > 0
     ]
     average_capex = sum(capex_ratios) / len(capex_ratios) if capex_ratios else None
     if average_capex is not None:
@@ -113,7 +111,7 @@ def analyze_pabrai_valuation(items: Sequence[LineItem], market_cap: float | None
 
 
 def analyze_double_potential(items: Sequence[LineItem], market_cap: float | None) -> Component:
-    if not items or market_cap is None:
+    if not items or market_cap is None or market_cap <= 0:
         return Component(
             name="double_potential", score=0, max_score=10, details="Insufficient data"
         )

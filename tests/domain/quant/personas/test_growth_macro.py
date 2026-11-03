@@ -41,15 +41,17 @@ def _metrics(**updates: float) -> tuple[FinancialMetrics, ...]:
         "report_period": date(2025, 12, 31),
         "return_on_equity": 0.22,
         "return_on_invested_capital": 0.18,
-        "revenue_growth": 0.18,
-        "earnings_growth": 0.20,
-        "free_cash_flow_growth": 0.16,
+        "revenue_growth": 0.25,
+        "earnings_growth": 0.25,
+        "earnings_per_share_growth": 0.25,
+        "free_cash_flow_growth": 0.20,
         "operating_income_growth": 0.14,
-        "gross_margin": 0.45,
+        "gross_margin": 0.55,
         "operating_margin": 0.22,
         "debt_to_equity": 0.25,
         "current_ratio": 2.0,
-        "peg_ratio": 1.1,
+        "peg_ratio": 0.8,
+        "price_to_sales_ratio": 1.5,
         "market_cap": 1_000_000_000,
     }
     return (FinancialMetrics(**(base | updates)),)
@@ -69,6 +71,8 @@ def _items(**updates: float) -> tuple[LineItem, ...]:
             "total_debt": 100_000_000,
             "cash_and_equivalents": 250_000_000,
             "shareholders_equity": 600_000_000,
+            "total_assets": 1_000_000_000,
+            "total_liabilities": 400_000_000,
             "current_assets": 500_000_000,
             "current_liabilities": 200_000_000,
             "capital_expenditure": -30_000_000,
@@ -122,8 +126,15 @@ def test_growth_and_contraction_are_distinct_deterministic_cases() -> None:
         metrics=_metrics(
             revenue_growth=-0.2,
             earnings_growth=-0.3,
+            earnings_per_share_growth=-0.3,
             free_cash_flow_growth=-0.25,
             operating_income_growth=-0.2,
+            gross_margin=0.2,
+            operating_margin=0.05,
+            peg_ratio=3.0,
+            price_to_sales_ratio=10.0,
+            debt_to_equity=3.0,
+            current_ratio=0.5,
         ),
         line_items=_items(revenue=400_000_000, free_cash_flow=-50_000_000),
     )
@@ -140,7 +151,13 @@ def test_high_leverage_and_insider_sales_reduce_quality_and_macro_scores() -> No
     healthy = _snapshot(insider_trades=buys)
     leveraged = _snapshot(
         metrics=_metrics(debt_to_equity=3.0, current_ratio=0.5),
-        line_items=_items(total_debt=2_000_000_000, cash_and_equivalents=5_000_000),
+        line_items=_items(
+            total_debt=2_000_000_000,
+            total_liabilities=900_000_000,
+            current_assets=500_000_000,
+            current_liabilities=500_000_000,
+            cash_and_equivalents=5_000_000,
+        ),
         insider_trades=sales,
     )
 

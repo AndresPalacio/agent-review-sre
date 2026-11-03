@@ -36,6 +36,7 @@ def test_deep_value_components_match_recorded_reference_fixture() -> None:
     scores = {
         "damodaran": score_damodaran(snapshot),
         "ackman": score_ackman(snapshot),
+        "munger": score_munger(snapshot),
         "burry": score_burry(snapshot),
         "pabrai": score_pabrai(snapshot),
     }
@@ -50,9 +51,8 @@ def test_deep_value_components_match_recorded_reference_fixture() -> None:
         } == pytest.approx(expected[name]["components"])
     damodaran_value = scores["damodaran"].component("intrinsic_value")
     assert damodaran_value is not None
-    assert damodaran_value.metrics["intrinsic_value"] == pytest.approx(
-        expected["damodaran"]["intrinsic_value"]
-    )
+    assert damodaran_value.metrics["intrinsic_value"] is expected["damodaran"]["intrinsic_value"]
+    assert scores["munger"].confidence == expected["munger"]["confidence"]
 
 
 def test_quality_and_negative_value_cases_remain_finite_and_deterministic() -> None:
@@ -149,3 +149,40 @@ def test_company_snapshot_rejects_future_observations(field: str, observation: o
             as_of=date(2026, 1, 1),
             **{field: (observation,)},
         )
+
+
+def test_company_snapshot_canonicalizes_sequences_for_latest_first_scorers() -> None:
+    older, newer = date(2025, 1, 1), date(2025, 2, 1)
+    old_price = Price(
+        time=datetime(2025, 1, 1, tzinfo=UTC), open=1, high=1, low=1, close=1, volume=1
+    )
+    new_price = Price(
+        time=datetime(2025, 2, 1, tzinfo=UTC), open=2, high=2, low=2, close=2, volume=2
+    )
+    snapshot = CompanySnapshot(
+        ticker="ORD",
+        as_of=newer,
+        prices=(new_price, old_price),
+        metrics=(
+            FinancialMetrics(ticker="ORD", report_period=older),
+            FinancialMetrics(ticker="ORD", report_period=newer),
+        ),
+        line_items=(
+            LineItem(ticker="ORD", report_period=older),
+            LineItem(ticker="ORD", report_period=newer),
+        ),
+        news=(
+            CompanyNews(ticker="ORD", title="old", date=datetime(2025, 1, 1, tzinfo=UTC)),
+            CompanyNews(ticker="ORD", title="new", date=datetime(2025, 2, 1, tzinfo=UTC)),
+        ),
+        insider_trades=(
+            InsiderTrade(ticker="ORD", filing_date=older),
+            InsiderTrade(ticker="ORD", filing_date=newer),
+        ),
+    )
+
+    assert [item.day for item in snapshot.prices] == [older, newer]
+    assert [item.report_period for item in snapshot.metrics] == [newer, older]
+    assert [item.report_period for item in snapshot.line_items] == [newer, older]
+    assert [item.title for item in snapshot.news] == ["new", "old"]
+    assert [item.filing_date for item in snapshot.insider_trades] == [newer, older]

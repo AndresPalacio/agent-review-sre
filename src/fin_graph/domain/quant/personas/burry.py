@@ -24,9 +24,7 @@ def _analyze_value(snapshot: CompanySnapshot) -> Component:
             score += 3
         elif cash_flow_yield >= 0.08:
             score += 2
-    enterprise_value = snapshot.metrics[0].enterprise_value if snapshot.metrics else None
-    ebit = latest.value("ebit") if latest else None
-    ev_to_ebit = enterprise_value / ebit if enterprise_value is not None and ebit else None
+    ev_to_ebit = getattr(snapshot.metrics[0], "ev_to_ebit", None) if snapshot.metrics else None
     if ev_to_ebit is not None:
         score += 2 if ev_to_ebit < 6 else 1 if ev_to_ebit < 10 else 0
     return Component(
@@ -83,7 +81,7 @@ def _analyze_insider_activity(snapshot: CompanySnapshot) -> Component:
 
 
 def _analyze_contrarian_sentiment(snapshot: CompanySnapshot) -> Component:
-    negative = sum(item.sentiment == "negative" for item in snapshot.news)
+    negative = sum(item.sentiment in {"negative", "bearish"} for item in snapshot.news)
     return Component(
         name="contrarian_sentiment",
         score=1.0 if negative >= 5 else 0.0,

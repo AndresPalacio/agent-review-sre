@@ -44,6 +44,8 @@ from fin_graph.gateway import GatewayResult, GatewayRunPending
 from fin_graph.gateway.settings import SlackGatewaySettings, TelegramGatewaySettings
 from fin_graph.gateway.slack import SlackGateway
 from fin_graph.gateway.telegram import TelegramGateway
+from fin_graph.graphs.analysis.compat import make_compat_analysis_agent
+from fin_graph.graphs.analysis.snapshots import MarketSnapshotServices
 from fin_graph.graphs.chat.graph import make_chat_graph
 from fin_graph.graphs.orders.desk import OrderDesk
 from fin_graph.graphs.orders.graph import PLACE_ORDER, make_order_graph
@@ -215,12 +217,12 @@ def create_app(
                     _LOGGER.warning("chat model unavailable at startup")
                     active_chat = None
                 else:
-                    chat_analysis = make_analysis_graph(
-                        analysis_services,
+                    chat_analysis = make_compat_analysis_agent(
+                        model,
                         active_registry,
-                        memory=theses,
+                        context_factory(),
+                        MarketSnapshotServices(),
                         checkpointer=False,  # Disable the inherited chat saver.
-                        settings=settings,
                     )
                     active_chat = make_chat_graph(
                         model,

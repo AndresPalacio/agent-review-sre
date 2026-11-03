@@ -1,5 +1,66 @@
 {
-  "fixtures": [],
+  "fixtures": [
+    {
+      "fixture": "v1/backtests/scenarios.json",
+      "license": "MIT",
+      "name": "v1-backtest-scenarios",
+      "origin": "AI Hedge Fund",
+      "recorder_version": "1",
+      "snapshot_digest": "42cd3a84c47ccd9ca2a891146a2d818b2ea8c7908162ef107975239b7148a71f",
+      "source_file": "src/backtester.py",
+      "source_hashes": {
+        "src/backtester.py": "1f18e90059a9554bd8456fbfd5b4ac8d96e6619d5ba265c6735cd5ba4712f5ee"
+      }
+    },
+    {
+      "fixture": "v1/personas/growth-macro/cases.json",
+      "license": "MIT",
+      "name": "v1-growth-macro-personas",
+      "origin": "AI Hedge Fund",
+      "recorder_version": "1",
+      "snapshot_digest": "42cd3a84c47ccd9ca2a891146a2d818b2ea8c7908162ef107975239b7148a71f",
+      "source_file": "src/agents/growth_agent.py",
+      "source_hashes": {
+        "src/agents/cathie_wood.py": "fea31f79370435869537534f2edc3a408374152eb6bd4b670a8fa2f6b8d71183",
+        "src/agents/growth_agent.py": "88a1a67fa92d401bb1d3d8e07cf18f1389b5b02652a29371fc94e3c1bde54a9d",
+        "src/agents/nassim_taleb.py": "03c588db168b3e068b81da2386c76209d407162a959de3f67b99e1e71e7b46b3",
+        "src/agents/news_sentiment.py": "1f368844040de78ac33a384e0555b3648d7dde181010011c4f453c420b9836f6",
+        "src/agents/peter_lynch.py": "e85c49e6f82046f2d835ea54f82323995e94e5b9dca6a9f4f0e3634fe3a9df73",
+        "src/agents/phil_fisher.py": "20d81d94a29deca23f46edf2b90ac2dda297b783dfeef481a6c84d7f960843e4",
+        "src/agents/rakesh_jhunjhunwala.py": "bd8c9f01d4d08778a7a1c8eac7a06fc4923a4dc3ca4f5da931b26eac15a5ab01",
+        "src/agents/stanley_druckenmiller.py": "d87a9fbd56b9f3f426d6f2294e6a95c5a1a4dc595f35bfe71c8794da297f085e"
+      }
+    },
+    {
+      "fixture": "v1/personas/value-quality/deep-value.json",
+      "license": "MIT",
+      "name": "v1-value-quality-personas",
+      "origin": "AI Hedge Fund",
+      "recorder_version": "1",
+      "snapshot_digest": "42cd3a84c47ccd9ca2a891146a2d818b2ea8c7908162ef107975239b7148a71f",
+      "source_file": "src/agents/aswath_damodaran.py",
+      "source_hashes": {
+        "src/agents/aswath_damodaran.py": "827220edc0aab5a02c93013b4be0ffdf0b333bb2906039540293117312601501",
+        "src/agents/bill_ackman.py": "7b7752b71911024a2398b5947f6af3a4fdaf5e3235476e0782db2b292bf0cd95",
+        "src/agents/charlie_munger.py": "d3fda5d3222a79b10eb71b2f492428d1575617831eebdb5ff8f26b8237c04193",
+        "src/agents/michael_burry.py": "4a208a73acbc5a175d46880fe3e93cd0770c43c906650ccc401b2c67022a51a8",
+        "src/agents/mohnish_pabrai.py": "94f8f791234aac73d50b66ab774df9307459fbc0f758582e16ea807dd6c95937"
+      }
+    },
+    {
+      "fixture": "v1/portfolio/decisions.json",
+      "license": "MIT",
+      "name": "v1-portfolio-decisions",
+      "origin": "AI Hedge Fund",
+      "recorder_version": "1",
+      "snapshot_digest": "42cd3a84c47ccd9ca2a891146a2d818b2ea8c7908162ef107975239b7148a71f",
+      "source_file": "src/agents/portfolio_manager.py",
+      "source_hashes": {
+        "src/agents/portfolio_manager.py": "580f7a65c6c60b35ec033cc8f9b08c3d3014ec2dc997137ea68a9e8e38ed8580",
+        "src/agents/risk_manager.py": "be64b10f1ed37d68a2b4cd70b6d421eaf023e9244aed4b8d562a8e422a2623f5"
+      }
+    }
+  ],
   "recorder_version": "1",
   "schema_version": 1,
   "snapshot_digest": "42cd3a84c47ccd9ca2a891146a2d818b2ea8c7908162ef107975239b7148a71f"

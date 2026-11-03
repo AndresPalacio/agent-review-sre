@@ -35,8 +35,8 @@ class CompanySnapshot(BaseModel):
     def enforce_point_in_time(self) -> CompanySnapshot:
         dated = (
             ("prices", tuple(item.day for item in self.prices)),
-            ("metrics", tuple(item.report_period for item in self.metrics)),
-            ("line_items", tuple(item.report_period for item in self.line_items)),
+            ("metrics", tuple(item.available_on for item in self.metrics)),
+            ("line_items", tuple(item.available_on for item in self.line_items)),
             ("news", tuple(item.date.date() for item in self.news)),
             ("insider_trades", tuple(item.filing_date for item in self.insider_trades)),
         )
@@ -52,4 +52,28 @@ class CompanySnapshot(BaseModel):
         for field, tickers in ticker_fields:
             if any(ticker.strip().upper() != self.ticker for ticker in tickers):
                 raise ValueError(f"{field} observation belongs to another ticker")
+        # Persona scorers use index zero for the latest filed fundamentals, while price
+        # calculations expect chronological bars. Canonicalize once at the domain boundary so
+        # provider-specific ordering cannot silently change a score.
+        object.__setattr__(self, "prices", tuple(sorted(self.prices, key=lambda item: item.time)))
+        object.__setattr__(
+            self,
+            "metrics",
+            tuple(sorted(self.metrics, key=lambda item: item.report_period, reverse=True)),
+        )
+        object.__setattr__(
+            self,
+            "line_items",
+            tuple(sorted(self.line_items, key=lambda item: item.report_period, reverse=True)),
+        )
+        object.__setattr__(
+            self,
+            "news",
+            tuple(sorted(self.news, key=lambda item: item.date, reverse=True)),
+        )
+        object.__setattr__(
+            self,
+            "insider_trades",
+            tuple(sorted(self.insider_trades, key=lambda item: item.filing_date, reverse=True)),
+        )
         return self

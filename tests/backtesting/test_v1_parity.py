@@ -63,7 +63,10 @@ class ScenarioRunner:
         request: AnalysisRequest,
         portfolio: Portfolio,
         data: PointInTimeDataView,
+        *,
+        model: str,
     ) -> LegacyHedgeFundResult:
+        assert model == "gpt-4.1"
         plan = self.plans[self.calls]
         self.calls += 1
         decisions: dict[str, LegacyPortfolioDecision] = {}
@@ -149,6 +152,8 @@ async def test_task_cancellation_propagates_and_emits_one_terminal_event() -> No
             request: AnalysisRequest,
             portfolio: Portfolio,
             data: PointInTimeDataView,
+            *,
+            model: str,
         ) -> LegacyHedgeFundResult:
             started.set()
             await asyncio.Event().wait()
@@ -175,3 +180,53 @@ async def test_task_cancellation_propagates_and_emits_one_terminal_event() -> No
         await task
     assert sum(event.terminal for event in events) == 1
     assert events[-1].kind.value == "cancelled"
+
+
+async def test_cooperative_cancellation_does_not_report_future_benchmark() -> None:
+    cancellation = asyncio.Event()
+    events: list[BacktestEvent] = []
+
+    def sink(event: BacktestEvent) -> None:
+        events.append(event)
+        if event.kind.value == "progress":
+            cancellation.set()
+
+    histories = {
+        "AAPL": tuple(bar(day, 100.0) for day in DAYS),
+        "SPY": tuple(
+            bar(day, close) for day, close in zip(DAYS, [100.0, 101.0, 99.0, 102.0], strict=True)
+        ),
+    }
+    result = await run_v1_backtest(
+        BacktestRequest(tickers=["AAPL"], start_date=START, end_date=DAYS[-1]),
+        ScenarioRunner([{}]),
+        DataClient(histories),
+        event_sink=sink,
+        cancellation=cancellation,
+    )
+
+    assert result.status is BacktestStatus.CANCELLED
+    assert len(result.snapshots) == 1
+    assert result.metrics.benchmark_return_pct == 0
+    assert sum(event.terminal for event in events) == 1
+
+
+async def test_data_failure_emits_one_error_terminal_and_propagates() -> None:
+    class FailingClient(DataClient):
+        async def price_history(
+            self, ticker: str, start_date: date, end_date: date
+        ) -> tuple[Price, ...]:
+            raise RuntimeError("fixture data failure")
+
+    events: list[BacktestEvent] = []
+    with pytest.raises(RuntimeError, match="fixture data failure"):
+        await run_v1_backtest(
+            BacktestRequest(tickers=["AAPL"], start_date=START, end_date=DAYS[-1]),
+            ScenarioRunner([]),
+            FailingClient({}),
+            event_sink=events.append,
+            cancellation=None,
+        )
+
+    assert sum(event.terminal for event in events) == 1
+    assert events[-1].kind.value == "error"

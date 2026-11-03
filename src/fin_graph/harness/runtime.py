@@ -16,6 +16,7 @@ from fin_graph.delivery.service import DeliveryService
 from fin_graph.domain.alerts.model import NormalizedAlert
 from fin_graph.domain.portfolio import Portfolio
 from fin_graph.domain.window import IncidentWindow
+from fin_graph.graphs.analysis.compat import make_compat_analysis_agent
 from fin_graph.graphs.analysis.graph import (
     AnalysisDelivery,
     AnalysisLimits,
@@ -28,6 +29,7 @@ from fin_graph.graphs.analysis.services import (
     LangChainAnalysisServices,
     UnavailableAnalysisServices,
 )
+from fin_graph.graphs.analysis.snapshots import MarketSnapshotServices
 from fin_graph.graphs.investigation.graph import (
     InvestigationLimits,
     ReportDelivery,
@@ -238,3 +240,37 @@ async def make_analysis_graph_async() -> CompiledStateGraph[Any, Any, Any, Any]:
         delivery=DeliveryService.from_env(),
         settings=settings,
     )
+
+
+def make_compat_analysis_runtime() -> tuple[CompiledStateGraph[Any, Any, Any, Any], RunContext]:
+    """Create the nineteen-persona DeepAgents replacement runtime."""
+    disable_external_tracing()
+    settings = Settings()
+    registry = _sync_registry()
+    context = registry.run_context()
+    model = get_model(ModelRole.REASONING, settings)
+    graph = make_compat_analysis_agent(
+        model,
+        registry,
+        context,
+        MarketSnapshotServices(),
+    )
+    return graph, context
+
+
+async def make_compat_analysis_runtime_async() -> tuple[
+    CompiledStateGraph[Any, Any, Any, Any], RunContext
+]:
+    """Async compatibility runtime with configured MCP discovery."""
+    disable_external_tracing()
+    settings = Settings()
+    registry = await with_configured_mcp(default_registry())
+    context = registry.run_context()
+    model = get_model(ModelRole.REASONING, settings)
+    graph = make_compat_analysis_agent(
+        model,
+        registry,
+        context,
+        MarketSnapshotServices(),
+    )
+    return graph, context

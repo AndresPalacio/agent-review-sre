@@ -360,6 +360,7 @@ class YahooClient(MarketDataClient):
                 FinancialMetrics(
                     ticker=ticker,
                     report_period=day,
+                    filing_date=day,
                     period="annual",
                     currency=currency,
                     gross_margin=facts["gross_margin"],
@@ -389,6 +390,7 @@ class YahooClient(MarketDataClient):
         return FinancialMetrics(
             ticker=ticker,
             report_period=as_of,
+            filing_date=as_of,
             period=period,
             currency=currency,
             market_cap=market_cap,
@@ -432,6 +434,7 @@ class YahooClient(MarketDataClient):
             LineItem(
                 ticker=ticker,
                 report_period=day,
+                filing_date=day,
                 period="annual",
                 currency=currency,
                 **{name: facts.get(name) for name in names},

@@ -48,7 +48,16 @@ def analyze_business_quality(
     )
 
 
-def analyze_financial_discipline(items: Sequence[LineItem]) -> Component:
+def analyze_financial_discipline(
+    metrics: Sequence[FinancialMetrics], items: Sequence[LineItem]
+) -> Component:
+    if not metrics or not items:
+        return Component(
+            name="financial_discipline",
+            score=0,
+            max_score=4,
+            details="Insufficient data to analyze financial discipline",
+        )
     score = 0.0
     details: list[str] = []
     debt_to_equity = _values(items, "debt_to_equity")
@@ -111,7 +120,7 @@ def analyze_activism_potential(items: Sequence[LineItem]) -> Component:
 
 def analyze_valuation(items: Sequence[LineItem], market_cap: float | None) -> Component:
     cash_flow = items[0].value("free_cash_flow") if items else None
-    if cash_flow is None or cash_flow <= 0 or market_cap is None:
+    if cash_flow is None or cash_flow <= 0 or market_cap is None or market_cap <= 0:
         return Component(
             name="valuation",
             score=0,
@@ -143,7 +152,7 @@ def score_ackman(snapshot: CompanySnapshot) -> QuantScore:
         return no_data(Domain.FUNDAMENTALS, snapshot.ticker, "no financial observations")
     components = [
         analyze_business_quality(snapshot.metrics, snapshot.line_items),
-        analyze_financial_discipline(snapshot.line_items),
+        analyze_financial_discipline(snapshot.metrics, snapshot.line_items),
         analyze_activism_potential(snapshot.line_items),
         analyze_valuation(snapshot.line_items, snapshot.market_cap),
     ]

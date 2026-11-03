@@ -54,6 +54,7 @@ from fin_graph.domain.tools import (
     read_tool_meta,
 )
 from fin_graph.graphs.analysis.analysts import available_analysts, read_tools
+from fin_graph.graphs.analysis.compat import LegacyAnalysisBundle
 from fin_graph.graphs.orders.desk import OrderDesk
 from fin_graph.integrations.broker.paper.broker import PaperBroker
 from fin_graph.integrations.broker.paper.tools import PAPER_BROKER_TOOLS
@@ -122,6 +123,35 @@ def report_summary(report: AnalysisReport) -> dict[str, Any]:
         "tickers": tickers,
         "degraded_steps": report.degraded_steps[:10],
         "disclaimer": report.disclaimer,
+    }
+
+
+def compatibility_summary(bundle: LegacyAnalysisBundle) -> dict[str, Any]:
+    """Compact, stable view of the authoritative compatibility persona results."""
+    tickers = []
+    for ticker in bundle.request.tickers:
+        findings = [item for item in bundle.findings if item.ticker == ticker]
+        tickers.append(
+            {
+                "ticker": ticker,
+                "analysts": [
+                    {
+                        "analyst_id": item.analyst_id.value,
+                        "signal": item.score.signal.value if item.score else None,
+                        "confidence": item.score.confidence if item.score else None,
+                        "reasoning": item.reasoning[:600],
+                        "evidence_ids": list(item.evidence_ids[:8]),
+                        "error": item.error.model_dump(mode="json") if item.error else None,
+                    }
+                    for item in findings
+                ],
+            }
+        )
+    return {
+        "as_of": bundle.request.as_of.isoformat(),
+        "horizon": bundle.request.horizon.value,
+        "tickers": tickers,
+        "disclaimer": "Educational paper-trading analysis; not financial advice.",
     }
 
 
@@ -359,7 +389,12 @@ def make_chat_graph(
             """
             symbols = [item.strip() for item in tickers.split(",") if item.strip()][:5]
             request: dict[str, Any] = {
-                "raw_request": {"tickers": symbols, "horizon": horizon, "question": question},
+                "raw_request": {
+                    "tickers": symbols,
+                    "as_of": datetime.now(UTC).date().isoformat(),
+                    "horizon": horizon,
+                    "question": question,
+                },
                 "source_hint": "json",
                 "user_requested": True,
             }
@@ -371,6 +406,9 @@ def make_chat_graph(
                 # Size against the paper book as it is now, not the starting one.
                 request["portfolio"] = (await broker.portfolio()).model_dump(mode="json")
             result = await analysis.ainvoke(request, context=runtime.context)
+            if result.get("bundle"):
+                bundle = LegacyAnalysisBundle.model_validate(result["bundle"])
+                return json.dumps(compatibility_summary(bundle), ensure_ascii=False, default=str)
             if not result.get("report"):
                 return json.dumps({"error": result.get("errors") or "no report"})
             report = AnalysisReport.model_validate(result["report"])

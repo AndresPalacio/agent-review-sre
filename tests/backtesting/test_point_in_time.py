@@ -57,7 +57,8 @@ class LeakyDataClient:
                 ),
                 FinancialMetrics(
                     ticker=ticker,
-                    report_period=self.future,
+                    report_period=date(2025, 1, 4),
+                    filing_date=self.future,
                     revenue_growth=0.8,
                 ),
             ),
@@ -74,13 +75,16 @@ class InspectingRunner:
         request: AnalysisRequest,
         portfolio: Portfolio,
         data: PointInTimeDataView,
+        *,
+        model: str,
     ) -> LegacyHedgeFundResult:
         snapshot = data.company_snapshot("AAPL")
         assert snapshot.as_of == request.as_of == data.as_of
         assert all(item.day <= request.as_of for item in data.price_history("AAPL"))
-        assert all(item.report_period <= request.as_of for item in snapshot.metrics)
+        assert all(item.available_on <= request.as_of for item in snapshot.metrics)
+        assert model == "fixture-model"
         self.as_of_dates.append(request.as_of)
-        latest_growth = snapshot.metrics[-1].revenue_growth if snapshot.metrics else None
+        latest_growth = snapshot.metrics[0].revenue_growth if snapshot.metrics else None
         self.growth_seen.append(latest_growth)
         action = OrderAction.BUY if latest_growth and latest_growth > 0 else OrderAction.HOLD
         return LegacyHedgeFundResult(
@@ -105,6 +109,7 @@ async def test_future_filing_and_price_bar_never_reach_the_runner() -> None:
         start_date=client.days[0],
         end_date=client.days[-1],
         initial_capital=10_000,
+        model="fixture-model",
     )
 
     result = await run_v1_backtest(

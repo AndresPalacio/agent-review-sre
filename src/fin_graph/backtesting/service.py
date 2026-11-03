@@ -43,6 +43,8 @@ class AnalysisRunner(Protocol):
         request: AnalysisRequest,
         portfolio: Portfolio,
         data: PointInTimeDataView,
+        *,
+        model: str,
     ) -> LegacyHedgeFundResult: ...
 
 
@@ -51,6 +53,24 @@ class Cancellation(Protocol):
 
 
 type EventSink = Callable[[BacktestEvent], Awaitable[None] | None]
+
+
+async def _gather_cancel_on_error[ValueT](
+    awaitables: Sequence[Awaitable[ValueT]],
+) -> list[ValueT]:
+    """Gather results without leaving sibling I/O running after one operation fails."""
+
+    tasks: list[asyncio.Future[ValueT]] = [
+        asyncio.ensure_future(awaitable) for awaitable in awaitables
+    ]
+    try:
+        return list(await asyncio.gather(*tasks))
+    except BaseException:
+        for task in tasks:
+            if not task.done():
+                task.cancel()
+        await asyncio.gather(*tasks, return_exceptions=True)
+        raise
 
 
 @dataclass(frozen=True)
@@ -71,8 +91,8 @@ class PointInTimeDataView:
 
     def company_snapshot(self, ticker: str) -> CompanySnapshot:
         source = self._snapshots[ticker]
-        metrics = tuple(item for item in source.metrics if item.report_period <= self.as_of)
-        line_items = tuple(item for item in source.line_items if item.report_period <= self.as_of)
+        metrics = tuple(item for item in source.metrics if item.available_on <= self.as_of)
+        line_items = tuple(item for item in source.line_items if item.available_on <= self.as_of)
         news = tuple(item for item in source.news if item.date.date() <= self.as_of)
         insider_trades = tuple(
             item for item in source.insider_trades if item.filing_date <= self.as_of
@@ -178,13 +198,19 @@ async def run_v1_backtest(
     benchmark: Sequence[Price] = ()
 
     async def finish(status: BacktestStatus) -> BacktestResult:
+        metric_end = (
+            snapshots[-1].date
+            if status is BacktestStatus.CANCELLED and snapshots
+            else request.end_date
+        )
+        metric_benchmark = () if status is BacktestStatus.CANCELLED and not snapshots else benchmark
         metrics = calculate_metrics(
             request.initial_capital,
             snapshots,
-            benchmark,
+            metric_benchmark,
             exit_pnl,
             start_date=request.start_date,
-            end_date=request.end_date,
+            end_date=metric_end,
         )
         return BacktestResult(
             request=request,
@@ -206,8 +232,8 @@ async def run_v1_backtest(
             values = await data_client.price_history(ticker, history_start, request.end_date)
             return ticker, tuple(values)
 
-        loaded = await asyncio.gather(
-            *(load_history(ticker) for ticker in (*request.tickers, "SPY"))
+        loaded = await _gather_cancel_on_error(
+            [load_history(ticker) for ticker in (*request.tickers, "SPY")]
         )
         histories = dict(loaded)
         benchmark = histories["SPY"]
@@ -217,7 +243,7 @@ async def run_v1_backtest(
             return ticker, value
 
         full_snapshots = dict(
-            await asyncio.gather(*(load_snapshot(ticker) for ticker in request.tickers))
+            await _gather_cancel_on_error([load_snapshot(ticker) for ticker in request.tickers])
         )
         days = _business_days(request.start_date, request.end_date)
         for index, day in enumerate(days, start=1):
@@ -243,7 +269,7 @@ async def run_v1_backtest(
                 analysts=request.analysts,
             )
             analysis = LegacyHedgeFundResult.model_validate(
-                await analysis_runner(analysis_request, portfolio, view)
+                await analysis_runner(analysis_request, portfolio, view, model=request.model)
             )
             execution = execute_day(portfolio, request.tickers, current_prices, analysis)
             portfolio = execution.portfolio

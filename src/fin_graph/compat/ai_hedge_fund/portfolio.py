@@ -7,10 +7,15 @@ from collections.abc import Mapping, Sequence
 
 from fin_graph.compat.ai_hedge_fund.models import (
     LegacyAnalystSignal,
+    LegacyCorrelatedTicker,
+    LegacyCorrelationMetrics,
     LegacyHedgeFundResult,
     LegacyPortfolioDecision,
+    LegacyRiskAnalysis,
+    LegacyVolatilityMetrics,
 )
 from fin_graph.domain.fills import apply_fill
+from fin_graph.domain.market import Price
 from fin_graph.domain.orders import (
     OrderAction,
     PortfolioDecision,
@@ -25,6 +30,7 @@ from fin_graph.domain.quant.risk import (
     TRADING_DAYS,
     PositionLimit,
     VolatilityMetrics,
+    position_limits,
     volatility_limit_pct,
 )
 from fin_graph.graphs.analysis.compat import PersonaFinding
@@ -70,11 +76,7 @@ def _position_limit(
 
 def _legacy_signal(finding: PersonaFinding) -> LegacyAnalystSignal:
     if finding.score is None:
-        return LegacyAnalystSignal(
-            signal=Signal.NEUTRAL,
-            confidence=0,
-            reasoning=finding.error or finding.reasoning or "Analysis unavailable",
-        )
+        raise ValueError("a failed finding is not an analyst signal")
     reasoning: dict[str, object] | str
     if finding.reasoning:
         reasoning = finding.reasoning
@@ -87,6 +89,50 @@ def _legacy_signal(finding: PersonaFinding) -> LegacyAnalystSignal:
         signal=finding.score.signal,
         confidence=finding.score.confidence,
         reasoning=reasoning,
+    )
+
+
+def _legacy_risk(limit: PositionLimit, available_cash: float) -> LegacyRiskAnalysis:
+    if limit.error:
+        return LegacyRiskAnalysis(
+            remaining_position_limit=0.0,
+            current_price=0.0,
+            reasoning={"error": limit.error},
+        )
+    volatility = LegacyVolatilityMetrics(
+        daily_volatility=limit.volatility.daily,
+        annualized_volatility=limit.volatility.annualized,
+        volatility_percentile=limit.volatility.percentile,
+        data_points=limit.volatility.data_points,
+    )
+    correlation = LegacyCorrelationMetrics(
+        avg_correlation_with_active=limit.correlation.average,
+        max_correlation_with_active=limit.correlation.maximum,
+        top_correlated_tickers=tuple(
+            LegacyCorrelatedTicker(ticker=ticker, correlation=value)
+            for ticker, value in limit.correlation.top
+        ),
+    )
+    position_limit = limit.portfolio_value * limit.limit_pct
+    return LegacyRiskAnalysis(
+        remaining_position_limit=limit.remaining_limit,
+        current_price=limit.current_price,
+        volatility_metrics=volatility,
+        correlation_metrics=correlation,
+        reasoning={
+            "portfolio_value": limit.portfolio_value,
+            "current_position_value": limit.current_position_value,
+            "base_position_limit_pct": limit.volatility_limit_pct,
+            "correlation_multiplier": limit.correlation_multiplier,
+            "combined_position_limit_pct": limit.limit_pct,
+            "position_limit": position_limit,
+            "remaining_limit": position_limit - limit.current_position_value,
+            "available_cash": available_cash,
+            "risk_adjustment": (
+                "Volatility x Correlation adjusted: "
+                f"{limit.limit_pct:.1%} (base {limit.volatility_limit_pct:.1%})"
+            ),
+        },
     )
 
 
@@ -168,11 +214,13 @@ def build_legacy_portfolio_result(
     findings: Sequence[PersonaFinding],
     portfolio: Portfolio,
     prices: Mapping[str, float],
+    *,
+    price_histories: Mapping[str, Sequence[Price]] | None = None,
 ) -> LegacyHedgeFundResult:
     """Aggregate persona scores and enforce v1 risk, cash, shares, and margin bounds."""
 
     by_ticker: dict[str, list[PersonaFinding]] = {}
-    analyst_signals: dict[str, dict[str, LegacyAnalystSignal]] = {}
+    analyst_signals: dict[str, dict[str, LegacyAnalystSignal | LegacyRiskAnalysis]] = {}
     seen: set[tuple[str, str]] = set()
     for finding in findings:
         key = (finding.analyst_id.value, finding.ticker)
@@ -180,9 +228,10 @@ def build_legacy_portfolio_result(
             raise ValueError(f"duplicate finding: {key[0]} / {key[1]}")
         seen.add(key)
         by_ticker.setdefault(finding.ticker, []).append(finding)
-        analyst_signals.setdefault(finding.analyst_id.value, {})[finding.ticker] = _legacy_signal(
-            finding
-        )
+        if finding.score is not None:
+            analyst_signals.setdefault(f"{finding.analyst_id.value}_agent", {})[finding.ticker] = (
+                _legacy_signal(finding)
+            )
 
     tickers = tuple(dict.fromkeys([*prices, *by_ticker]))
     normalized_prices = {ticker: float(prices.get(ticker, 0.0)) for ticker in tickers}
@@ -190,9 +239,15 @@ def build_legacy_portfolio_result(
         ticker: price if math.isfinite(price) and price > 0 else 0.0
         for ticker, price in normalized_prices.items()
     }
-    limits = {
-        ticker: _position_limit(ticker, normalized_prices[ticker], portfolio, normalized_prices)
-        for ticker in tickers
+    if price_histories is None:
+        limits = {
+            ticker: _position_limit(ticker, normalized_prices[ticker], portfolio, normalized_prices)
+            for ticker in tickers
+        }
+    else:
+        limits = position_limits(tickers, price_histories, portfolio)
+    analyst_signals["risk_management_agent"] = {
+        ticker: _legacy_risk(limit, portfolio.cash) for ticker, limit in limits.items()
     }
     allowed = compute_allowed_actions(
         tickers,

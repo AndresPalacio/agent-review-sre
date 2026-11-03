@@ -191,6 +191,54 @@ async def test_analyze_runs_the_analysis_with_the_live_paper_book(broker: PaperB
     assert summary["tickers"][0]["ticker"] == "DEEP"
 
 
+async def test_analyze_accepts_the_compatibility_persona_bundle(broker: PaperBroker) -> None:
+    from fin_graph.domain.analysts import AnalystId
+    from fin_graph.domain.quant.common import QuantScore, Signal
+    from fin_graph.domain.requests.model import AnalysisRequest
+    from fin_graph.domain.tools import Domain
+    from fin_graph.graphs.analysis.compat import LegacyAnalysisBundle, PersonaFinding
+
+    bundle = LegacyAnalysisBundle(
+        request=AnalysisRequest(tickers=["MSFT"], as_of=date(2026, 1, 1)),
+        findings=(
+            PersonaFinding(
+                analyst_id=AnalystId.BILL_ACKMAN,
+                ticker="MSFT",
+                score=QuantScore(
+                    analyst=Domain.FUNDAMENTALS,
+                    ticker="MSFT",
+                    signal=Signal.BULLISH,
+                    confidence=80,
+                ),
+                reasoning="Deterministic quality score.",
+                evidence_ids=("metric:2025-12-31",),
+            ),
+        ),
+    )
+
+    class Analysis:
+        async def ainvoke(self, value: dict[str, Any], **kwargs: Any) -> dict[str, Any]:
+            return {"bundle": bundle.model_dump(mode="json")}
+
+    model = ScriptedChatModel(
+        responses=[
+            tool_call_message("analyze", {"tickers": "MSFT"}, "a1"),
+            AIMessage("MSFT has a bullish deterministic finding."),
+        ]
+    )
+    result = await chat(model, analysis=Analysis()).ainvoke(
+        {"messages": [HumanMessage("Analyze MSFT")]},
+        {"configurable": {"thread_id": "compat-analysis"}},
+        context=RunContext(clients={"paper_broker": broker}),
+    )
+
+    summary = json.loads(str(result["messages"][-2].content))
+    analyst = summary["tickers"][0]["analysts"][0]
+    assert analyst["analyst_id"] == "bill_ackman"
+    assert analyst["signal"] == "bullish"
+    assert analyst["evidence_ids"] == ["metric:2025-12-31"]
+
+
 def test_the_approver_reads_the_concrete_order_and_whether_it_was_analyzed() -> None:
     from langchain_core.messages import ToolMessage
 

@@ -51,6 +51,8 @@ def calculate_metrics(
             sortino = math.sqrt(ANNUAL_TRADING_DAYS) * mean_excess / downside
         elif mean_excess <= 0:
             sortino = 0.0
+        else:
+            sortino = math.inf
 
     peak = initial_capital
     max_drawdown = 0.0

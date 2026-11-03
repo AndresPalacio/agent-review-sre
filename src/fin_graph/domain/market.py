@@ -59,6 +59,7 @@ class FinancialMetrics(BaseModel):
 
     ticker: str
     report_period: date
+    filing_date: date | None = None
     period: str = "ttm"
     currency: str = "USD"
     market_cap: float | None = None
@@ -101,6 +102,12 @@ class FinancialMetrics(BaseModel):
     book_value_per_share: float | None = None
     free_cash_flow_per_share: float | None = None
 
+    @property
+    def available_on(self) -> date:
+        """First day this period was knowable; old providers fall back to period end."""
+
+        return self.filing_date or self.report_period
+
 
 class LineItem(BaseModel):
     """Statement lines for one period; the line names vary, so they are extra fields.
@@ -112,8 +119,15 @@ class LineItem(BaseModel):
 
     ticker: str
     report_period: date
+    filing_date: date | None = None
     period: str = "ttm"
     currency: str = "USD"
+
+    @property
+    def available_on(self) -> date:
+        """First day this statement was knowable; old fixtures use period end."""
+
+        return self.filing_date or self.report_period
 
     def value(self, name: str) -> float | None:
         """The numeric line ``name``, or ``None`` when absent or not a number."""
@@ -187,5 +201,5 @@ def closes(prices: Sequence[Price]) -> list[float]:
 
 def latest_first[T: FinancialMetrics | LineItem](periods: Iterable[T], as_of: date) -> list[T]:
     """Periods reported on or before ``as_of``, newest first: the order every scorer expects."""
-    known = [item for item in periods if item.report_period <= as_of]
+    known = [item for item in periods if item.available_on <= as_of]
     return sorted(known, key=lambda item: item.report_period, reverse=True)

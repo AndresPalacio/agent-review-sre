@@ -1,16 +1,21 @@
 from __future__ import annotations
 
 import json
-from datetime import date
+from datetime import UTC, date, datetime, timedelta
 from pathlib import Path
 from typing import Any
 
 import pytest
 
-from fin_graph.compat.ai_hedge_fund.models import LegacyHedgeFundRequest
+from fin_graph.compat.ai_hedge_fund.models import (
+    LegacyHedgeFundRequest,
+    LegacyPortfolio,
+    LegacyRiskAnalysis,
+)
 from fin_graph.compat.ai_hedge_fund.portfolio import build_legacy_portfolio_result
 from fin_graph.domain.analysts import AnalystId
 from fin_graph.domain.fills import apply_fill
+from fin_graph.domain.market import Price
 from fin_graph.domain.orders import OrderAction
 from fin_graph.domain.portfolio import Portfolio, Position
 from fin_graph.domain.quant.common import QuantScore, Signal
@@ -18,6 +23,17 @@ from fin_graph.domain.tools import Domain
 from fin_graph.graphs.analysis.compat import PersonaFinding
 
 FIXTURE = Path(__file__).parents[1] / "fixtures" / "v1" / "portfolio" / "decisions.json"
+
+
+def bar(day: date, close: float) -> Price:
+    return Price(
+        time=datetime(day.year, day.month, day.day, 21, tzinfo=UTC),
+        open=close,
+        high=close,
+        low=close,
+        close=close,
+        volume=1_000,
+    )
 
 
 def finding(
@@ -71,13 +87,13 @@ def test_legacy_wire_models_keep_reference_field_names() -> None:
         tickers=["aapl"],
         start_date=date(2025, 1, 1),
         end_date=date(2025, 1, 31),
-        portfolio=Portfolio(cash=10_000),
+        portfolio=LegacyPortfolio(cash=10_000),
         selected_analysts=[AnalystId.BEN_GRAHAM],
         model_name="gpt-4.1",
         model_provider="OpenAI",
     )
     result = build_legacy_portfolio_result(
-        [finding(Signal.BULLISH, 80)], request.portfolio, {"AAPL": 100.0}
+        [finding(Signal.BULLISH, 80)], request.portfolio.to_native(), {"AAPL": 100.0}
     )
 
     assert request.tickers == ("AAPL",)
@@ -92,7 +108,68 @@ def test_legacy_wire_models_keep_reference_field_names() -> None:
         "model_provider",
     }
     assert set(result.model_dump(mode="json")) == {"decisions", "analyst_signals"}
-    assert result.analyst_signals["ben_graham"]["AAPL"].signal is Signal.BULLISH
+    analyst_signal = result.analyst_signals["ben_graham_agent"]["AAPL"]
+    assert not isinstance(analyst_signal, LegacyRiskAnalysis)
+    assert analyst_signal.signal is Signal.BULLISH
+    assert isinstance(result.analyst_signals["risk_management_agent"]["AAPL"], LegacyRiskAnalysis)
+
+
+def test_legacy_portfolio_round_trips_short_margin_and_realized_gains() -> None:
+    payload = {
+        "cash": 8_000.0,
+        "margin_used": 1_500.0,
+        "margin_requirement": 0.5,
+        "positions": {
+            "AAPL": {
+                "long": 2,
+                "short": 10,
+                "long_cost_basis": 90.0,
+                "short_cost_basis": 110.0,
+                "short_margin_used": 1_500.0,
+            }
+        },
+        "realized_gains": {"AAPL": {"long": 12.5, "short": -7.0}},
+    }
+
+    portfolio = LegacyPortfolio.model_validate(payload)
+
+    assert portfolio.model_dump(mode="json") == payload
+    assert portfolio.to_native().margin_used == 1_500.0
+
+
+def test_real_price_histories_drive_volatility_limits_and_risk_payload() -> None:
+    first = date(2025, 1, 1)
+    flat_history = tuple(bar(first + timedelta(days=offset), 100.0) for offset in range(70))
+    result = build_legacy_portfolio_result(
+        [finding(Signal.BULLISH, 90)],
+        Portfolio(cash=10_000),
+        {"AAPL": 100.0},
+        price_histories={"AAPL": flat_history},
+    )
+
+    risk = result.analyst_signals["risk_management_agent"]["AAPL"]
+    assert isinstance(risk, LegacyRiskAnalysis)
+    assert risk.volatility_metrics is not None
+    assert risk.volatility_metrics.data_points == 60
+    assert risk.remaining_position_limit == pytest.approx(2_500.0)
+    assert result.decisions["AAPL"].quantity == 25
+
+
+def test_failed_findings_are_not_published_as_neutral_votes() -> None:
+    failed = PersonaFinding(
+        analyst_id=AnalystId.BEN_GRAHAM,
+        ticker="AAPL",
+        error={
+            "code": "data_unavailable",
+            "message": "Company data is temporarily unavailable.",
+            "correlation_id": "0123456789abcdef",
+        },
+    )
+
+    result = build_legacy_portfolio_result([failed], Portfolio(cash=10_000), {"AAPL": 100.0})
+
+    assert "ben_graham_agent" not in result.analyst_signals
+    assert result.decisions["AAPL"].reasoning == "No analyst signals"
 
 
 def test_contradictory_votes_and_no_votes_hold_deterministically() -> None:

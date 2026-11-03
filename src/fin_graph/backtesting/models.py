@@ -11,6 +11,7 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator, model_valida
 from fin_graph.compat.ai_hedge_fund.models import (
     LegacyAnalystSignal,
     LegacyPortfolioDecision,
+    LegacyRiskAnalysis,
 )
 from fin_graph.domain.analysts import AnalystId, resolve_analysts
 from fin_graph.domain.portfolio import Portfolio
@@ -77,7 +78,7 @@ class BacktestSnapshot(BaseModel):
     decisions: dict[str, LegacyPortfolioDecision]
     executed_trades: dict[str, int]
     realized_pnl: dict[str, float]
-    analyst_signals: dict[str, dict[str, LegacyAnalystSignal]]
+    analyst_signals: dict[str, dict[str, LegacyAnalystSignal | LegacyRiskAnalysis]]
     current_prices: dict[str, float]
     benchmark_return_pct: float | None = None
     long_exposure: float = 0

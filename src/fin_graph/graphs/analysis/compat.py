@@ -3,9 +3,11 @@
 from __future__ import annotations
 
 import asyncio
+import hashlib
 import json
 from collections.abc import Mapping
 from datetime import date
+from enum import StrEnum
 from typing import Any, Protocol, TypedDict
 
 from deepagents import create_deep_agent
@@ -29,7 +31,11 @@ from fin_graph.domain.company import CompanySnapshot
 from fin_graph.domain.quant.common import QuantScore
 from fin_graph.domain.quant.personas.registry import scorer_for
 from fin_graph.domain.requests.model import AnalysisRequest
-from fin_graph.graphs.analysis.personas import build_persona_subagents
+from fin_graph.graphs.analysis.personas import (
+    PERSONA_TOOL_SCOPE,
+    PersonaToolScope,
+    build_persona_subagents,
+)
 from fin_graph.integrations.context import RunContext
 from fin_graph.safety.masking import MaskingPolicy
 
@@ -54,7 +60,23 @@ class PersonaFinding(BaseModel):
     score: QuantScore | None = None
     reasoning: str = ""
     evidence_ids: tuple[str, ...] = ()
-    error: str | None = None
+    error: PersonaError | None = None
+
+
+class PersonaFailureCode(StrEnum):
+    DATA_UNAVAILABLE = "data_unavailable"
+    SCORER_FAILED = "scorer_failed"
+    NARRATION_FAILED = "narration_failed"
+
+
+class PersonaError(BaseModel):
+    """Public failure record; raw provider/model exception text never crosses the boundary."""
+
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+    code: PersonaFailureCode
+    message: str
+    correlation_id: str
 
 
 class LegacyAnalysisBundle(BaseModel):
@@ -68,6 +90,8 @@ class LegacyAnalysisBundle(BaseModel):
 
 class _CompatState(TypedDict, total=False):
     request: dict[str, Any] | AnalysisRequest
+    raw_request: dict[str, Any]
+    portfolio: dict[str, Any]
     bundle: dict[str, Any]
     errors: list[str]
 
@@ -100,6 +124,51 @@ def _score_payload(
     )
 
 
+def _public_error(
+    code: PersonaFailureCode,
+    definition: AnalystDefinition,
+    ticker: str,
+    exc: Exception,
+) -> PersonaError:
+    digest = hashlib.sha256(
+        f"{code.value}:{definition.id.value}:{ticker}:{type(exc).__name__}".encode()
+    ).hexdigest()[:16]
+    messages = {
+        PersonaFailureCode.DATA_UNAVAILABLE: "Company data is temporarily unavailable.",
+        PersonaFailureCode.SCORER_FAILED: "The deterministic analysis could not be completed.",
+        PersonaFailureCode.NARRATION_FAILED: (
+            "The deterministic score is available without a narrative."
+        ),
+    }
+    return PersonaError(code=code, message=messages[code], correlation_id=digest)
+
+
+def _evidence_ids(snapshot: CompanySnapshot) -> tuple[str, ...]:
+    values = [
+        *(f"price:{item.day.isoformat()}" for item in snapshot.prices),
+        *(f"metric:{item.report_period.isoformat()}" for item in snapshot.metrics),
+        *(f"line-item:{item.report_period.isoformat()}" for item in snapshot.line_items),
+        *(f"news:{item.url or item.date.isoformat()}" for item in snapshot.news),
+        *(f"insider:{item.filing_date.isoformat()}" for item in snapshot.insider_trades),
+    ]
+    return tuple(dict.fromkeys(values))
+
+
+def _authoritative_reasoning(text: str, score: QuantScore) -> str:
+    cleaned = text.strip()
+    opposite = {
+        "bullish": "bearish",
+        "bearish": "bullish",
+        "neutral": "",
+    }[score.signal.value]
+    if opposite and opposite in cleaned.lower():
+        return (
+            f"Deterministic {score.signal.value} score retained; "
+            "the model narrative was withheld because it contradicted that score."
+        )
+    return cleaned
+
+
 def make_compat_analysis_agent(
     model: BaseChatModel,
     registry: ToolSource,
@@ -130,7 +199,19 @@ def make_compat_analysis_agent(
         )
 
     async def analyze(state: _CompatState) -> dict[str, Any]:
-        request = AnalysisRequest.model_validate(state["request"])
+        request_payload = state.get("request")
+        if request_payload is None:
+            raw = state.get("raw_request", {})
+            request_payload = {
+                "tickers": raw.get("tickers", ()),
+                "as_of": raw.get("as_of") or date.today(),
+                "horizon": raw.get("horizon", "medium"),
+                "question": raw.get("question", ""),
+                "analysts": raw.get("analysts"),
+                "source": "chat",
+                "portfolio": state.get("portfolio"),
+            }
+        request = AnalysisRequest.model_validate(request_payload)
         selected = resolve_analysts(request.analysts)
 
         async def load(ticker: str) -> CompanySnapshot | Exception:
@@ -152,7 +233,12 @@ def make_compat_analysis_agent(
                 return PersonaFinding(
                     analyst_id=definition.id,
                     ticker=ticker,
-                    error=f"{type(snapshot).__name__}: {snapshot}",
+                    error=_public_error(
+                        PersonaFailureCode.DATA_UNAVAILABLE,
+                        definition,
+                        ticker,
+                        snapshot,
+                    ),
                 )
             try:
                 score = scorer_for(definition.scorer_key)(snapshot)
@@ -162,32 +248,47 @@ def make_compat_analysis_agent(
                 return PersonaFinding(
                     analyst_id=definition.id,
                     ticker=ticker,
-                    error=f"{type(exc).__name__}: {exc}",
+                    error=_public_error(
+                        PersonaFailureCode.SCORER_FAILED,
+                        definition,
+                        ticker,
+                        exc,
+                    ),
                 )
             try:
-                result = await asyncio.wait_for(
-                    agents[definition.id].ainvoke(
-                        {
-                            "messages": [
-                                HumanMessage(content=_score_payload(request, definition, score))
-                            ]
-                        },
-                        context=context,
-                    ),
-                    timeout=options.llm_timeout_seconds,
-                )
-                reasoning = _last_text(result)
+                token = PERSONA_TOOL_SCOPE.set(PersonaToolScope(ticker=ticker, as_of=request.as_of))
+                try:
+                    result = await asyncio.wait_for(
+                        agents[definition.id].ainvoke(
+                            {
+                                "messages": [
+                                    HumanMessage(content=_score_payload(request, definition, score))
+                                ]
+                            },
+                            context=context,
+                        ),
+                        timeout=options.llm_timeout_seconds,
+                    )
+                finally:
+                    PERSONA_TOOL_SCOPE.reset(token)
+                reasoning = _authoritative_reasoning(_last_text(result), score)
                 error = None
             except asyncio.CancelledError:
                 raise
             except Exception as exc:
                 reasoning = ""
-                error = f"{type(exc).__name__}: {exc}"
+                error = _public_error(
+                    PersonaFailureCode.NARRATION_FAILED,
+                    definition,
+                    ticker,
+                    exc,
+                )
             return PersonaFinding(
                 analyst_id=definition.id,
                 ticker=ticker,
                 score=score,
                 reasoning=reasoning,
+                evidence_ids=_evidence_ids(snapshot),
                 error=error,
             )
 

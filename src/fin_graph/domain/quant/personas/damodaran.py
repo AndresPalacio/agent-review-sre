@@ -20,9 +20,18 @@ def _values(items: Sequence[LineItem], name: str) -> list[float]:
 def analyze_growth_and_reinvestment(
     metrics: Sequence[FinancialMetrics], items: Sequence[LineItem]
 ) -> Component:
+    if len(metrics) < 2:
+        return Component(
+            name="growth_and_reinvestment",
+            score=0,
+            max_score=4,
+            details="Insufficient history",
+        )
     score = 0.0
     details: list[str] = []
-    revenues = list(reversed(_values(items, "revenue")))
+    revenues = [
+        float(value) for metric in reversed(metrics) if (value := getattr(metric, "revenue", None))
+    ]
     if len(revenues) >= 2 and revenues[0] > 0:
         cagr = (revenues[-1] / revenues[0]) ** (1 / (len(revenues) - 1)) - 1
         if cagr > 0.08:
@@ -34,15 +43,15 @@ def analyze_growth_and_reinvestment(
         cagr = None
         details.append("Revenue data incomplete")
 
-    cash_flows = list(reversed(_values(items, "free_cash_flow")))
+    cash_flows = [value for value in reversed(_values(items, "free_cash_flow")) if value]
     if len(cash_flows) >= 2 and cash_flows[-1] > cash_flows[0]:
         score += 1
         details.append("Positive FCFF growth")
     else:
         details.append("Flat, declining, or unavailable FCFF")
 
-    roic = metrics[0].return_on_invested_capital if metrics else None
-    if roic is not None and roic > 0.10:
+    roic = metrics[0].return_on_invested_capital
+    if roic and roic > 0.10:
         score += 1
         details.append(f"ROIC {roic:.1%}")
     return Component(
@@ -69,11 +78,9 @@ def analyze_risk_profile(
     debt_to_equity = latest.debt_to_equity if latest else None
     if debt_to_equity is not None and debt_to_equity < 1:
         score += 1
-    coverage = latest.interest_coverage if latest else None
-    if coverage is None and items:
-        ebit = items[0].value("ebit")
-        interest = items[0].value("interest_expense")
-        coverage = ebit / abs(interest) if ebit is not None and interest else None
+    ebit = getattr(latest, "ebit", None) if latest else None
+    interest = getattr(latest, "interest_expense", None) if latest else None
+    coverage = ebit / abs(interest) if ebit and interest else None
     if coverage is not None and coverage > 3:
         score += 1
     return Component(
@@ -116,12 +123,21 @@ def analyze_relative_valuation(metrics: Sequence[FinancialMetrics]) -> Component
     )
 
 
-def calculate_intrinsic_value_dcf(items: Sequence[LineItem], cost_of_equity: float) -> Component:
-    latest = items[0] if items else None
-    base_cash_flow = latest.value("free_cash_flow") if latest else None
-    shares = latest.value("outstanding_shares") if latest else None
-    revenues = list(reversed(_values(items, "revenue")))
-    if base_cash_flow is None or base_cash_flow <= 0 or shares is None or shares <= 0:
+def calculate_intrinsic_value_dcf(
+    metrics: Sequence[FinancialMetrics], items: Sequence[LineItem], cost_of_equity: float
+) -> Component:
+    if len(metrics) < 2 or not items:
+        return Component(
+            name="intrinsic_value",
+            details="Insufficient data",
+            metrics={"intrinsic_value": None, "intrinsic_per_share": None},
+        )
+    base_cash_flow = getattr(metrics[0], "free_cash_flow", None)
+    shares = items[0].value("outstanding_shares")
+    revenues = [
+        float(value) for metric in reversed(metrics) if (value := getattr(metric, "revenue", None))
+    ]
+    if not base_cash_flow or not shares:
         return Component(
             name="intrinsic_value",
             details="Missing positive FCFF or share count",
@@ -136,13 +152,7 @@ def calculate_intrinsic_value_dcf(items: Sequence[LineItem], cost_of_equity: flo
         base_growth = 0.04
     terminal_growth = 0.025
     years = 10
-    discount = cost_of_equity
-    if discount <= terminal_growth:
-        return Component(
-            name="intrinsic_value",
-            details="Discount rate does not exceed terminal growth",
-            metrics={"intrinsic_value": None, "intrinsic_per_share": None},
-        )
+    discount = cost_of_equity or 0.09
     present_value = 0.0
     growth = base_growth
     growth_step = (terminal_growth - base_growth) / (years - 1)
@@ -178,6 +188,7 @@ def score_damodaran(snapshot: CompanySnapshot) -> QuantScore:
     risk = analyze_risk_profile(snapshot.metrics, snapshot.line_items)
     relative = analyze_relative_valuation(snapshot.metrics)
     intrinsic = calculate_intrinsic_value_dcf(
+        snapshot.metrics,
         snapshot.line_items,
         float(risk.metrics["cost_of_equity"]),
     )

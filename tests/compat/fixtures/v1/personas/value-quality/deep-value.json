@@ -23,11 +23,22 @@
     "components": {
       "growth_and_reinvestment": 2.0,
       "relative_valuation": 0.0,
-      "risk_profile": 2.0
+      "risk_profile": 1.0
     },
-    "intrinsic_value": 1454270925.6202254,
-    "score": 4.0,
-    "signal": "bullish"
+    "intrinsic_value": null,
+    "score": 3.0,
+    "signal": "neutral"
+  },
+  "munger": {
+    "components": {
+      "management_quality": 6.666666666666667,
+      "moat_strength": 2.2222222222222223,
+      "predictability": 7.0,
+      "valuation": 9.0
+    },
+    "confidence": 65.0,
+    "score": 5.544444444444444,
+    "signal": "neutral"
   },
   "pabrai": {
     "components": {
