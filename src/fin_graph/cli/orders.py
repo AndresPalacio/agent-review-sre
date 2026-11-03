@@ -25,8 +25,6 @@ from fin_graph.config.settings import PersistenceBackend, Settings
 from fin_graph.domain.fills import OrderStatus
 from fin_graph.domain.orders import OrderAction, ProposedOrder, client_order_id
 from fin_graph.domain.requests.model import normalize_ticker
-from fin_graph.graphs.orders.desk import OrderDesk
-from fin_graph.graphs.orders.graph import PLACE_ORDER, make_order_graph
 from fin_graph.integrations.broker.paper.broker import PaperBroker, PaperBrokerError
 from fin_graph.integrations.broker.paper.runtime import ledger_path, open_trading_context
 from fin_graph.integrations.catalog import default_registry
@@ -34,6 +32,8 @@ from fin_graph.integrations.context import RunContext
 from fin_graph.persistence.checkpointer import open_checkpointer
 from fin_graph.safety.approval import ApprovalPolicy
 from fin_graph.safety.secrets import redact_secrets
+from fin_graph.trading.order_desk import OrderDesk
+from fin_graph.workflows.orders.graph import PLACE_ORDER, make_order_graph
 
 app = typer.Typer(
     help="Órdenes paper: proponer, aprobar o rechazar, listar, cancelar y liquidar.",

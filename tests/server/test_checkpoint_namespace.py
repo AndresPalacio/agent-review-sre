@@ -20,8 +20,6 @@ from tests.server.test_orders_api import ORDER
 
 from fin_graph.agents.chat.supervisor import make_chat_graph
 from fin_graph.agents.common.testing.scripted_model import ScriptedChatModel, tool_call_message
-from fin_graph.graphs.orders.desk import OrderDesk
-from fin_graph.graphs.orders.graph import make_order_graph
 from fin_graph.harness.runtime import make_analysis_graph
 from fin_graph.integrations.registry import IntegrationRegistry
 from fin_graph.memory.theses import ThesisMemory
@@ -29,7 +27,9 @@ from fin_graph.safety.approval import ApprovalPolicy
 from fin_graph.server.app import _retention_cycle, create_app
 from fin_graph.server.manager import RunManager
 from fin_graph.server.storage import CheckpointThreadRow
+from fin_graph.trading.order_desk import OrderDesk
 from fin_graph.workflows.analysis.services import UnavailableAnalysisServices
+from fin_graph.workflows.orders.graph import make_order_graph
 
 
 async def test_shared_saver_keeps_same_thread_id_separate_for_all_graphs(

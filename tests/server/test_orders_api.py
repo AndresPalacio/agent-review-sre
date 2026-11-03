@@ -15,9 +15,9 @@ from tests.server.finance_app import (
     paper_broker,
 )
 
-from fin_graph.graphs.orders.desk import OrderDesk
-from fin_graph.graphs.orders.graph import PLACE_ORDER
 from fin_graph.server.app import create_app
+from fin_graph.trading.order_desk import OrderDesk
+from fin_graph.workflows.orders.graph import PLACE_ORDER
 
 ORDER = {"ticker": "deep", "action": "buy", "quantity": 10, "reasoning": "margen de seguridad"}
 VIEWER = {"x-api-key": "viewer-key"}

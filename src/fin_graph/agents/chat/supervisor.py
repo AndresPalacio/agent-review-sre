@@ -7,7 +7,7 @@
 - **Memory**: verified theses and their track record, curated playbooks and skills.
 - **Orders**: ``preview_order`` shows the limits verdict and the simulated fill;
   ``propose_order`` (and ``cancel_paper_order``) pause for a human approval, then go through
-  :class:`~fin_graph.graphs.orders.desk.OrderDesk`, the same path as the orders graph.
+  :class:`~fin_graph.trading.order_desk.OrderDesk`, the same path as the orders workflow.
 
 The default Deep Agents state backend keeps its files in the thread: no shell and no sandbox.
 Every answer about trading gets the paper-only disclaimer.
@@ -56,7 +56,6 @@ from fin_graph.domain.tools import (
     attach_tool_meta,
     read_tool_meta,
 )
-from fin_graph.graphs.orders.desk import OrderDesk
 from fin_graph.integrations.broker.paper.broker import PaperBroker
 from fin_graph.integrations.broker.paper.tools import PAPER_BROKER_TOOLS
 from fin_graph.integrations.context import RunContext
@@ -65,6 +64,7 @@ from fin_graph.playbooks.catalog import load_playbook
 from fin_graph.safety.approval import ApprovalPolicy
 from fin_graph.safety.masking import MaskingPolicy
 from fin_graph.skills.catalog import load_skill
+from fin_graph.trading.order_desk import OrderDesk
 
 SYSTEM_PROMPT = (
     "Eres un copiloto de análisis bursátil con una cartera paper (simulada). "

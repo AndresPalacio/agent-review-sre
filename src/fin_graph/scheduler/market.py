@@ -15,12 +15,12 @@ from zoneinfo import ZoneInfo
 
 from fin_graph.domain.fills import OrderStatus
 from fin_graph.domain.market_watch import WatchResult
-from fin_graph.graphs.market_watch.graph import make_market_watch_graph
 from fin_graph.integrations.analytics.engine import AnalyticsEngine
 from fin_graph.integrations.broker.paper.broker import PaperBroker
 from fin_graph.integrations.context import RunContext
 from fin_graph.integrations.market_data import MarketDataClient
 from fin_graph.memory.theses import ThesisMemory
+from fin_graph.workflows.market_watch.graph import make_market_watch_graph
 
 SendText = Callable[[str, dict[str, str], str], Awaitable[None]]
 

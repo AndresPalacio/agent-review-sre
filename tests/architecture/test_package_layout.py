@@ -25,6 +25,9 @@ import pytest
         "fin_graph.workflows.analysis.services",
         "fin_graph.workflows.analysis.state",
         "fin_graph.workflows.analysis.strategy.registration",
+        "fin_graph.workflows.orders.graph",
+        "fin_graph.workflows.market_watch.graph",
+        "fin_graph.trading.order_desk",
     ],
 )
 def test_target_module_imports(module: str) -> None:

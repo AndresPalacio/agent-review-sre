@@ -15,8 +15,8 @@ from tests.server.finance_app import (
 )
 from tests.server.test_orders_api import OPERATOR, ORDER
 
-from fin_graph.graphs.orders.desk import OrderDesk
 from fin_graph.server.app import create_app
+from fin_graph.trading.order_desk import OrderDesk
 
 
 class Storage:

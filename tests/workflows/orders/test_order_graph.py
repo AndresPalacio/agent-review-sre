@@ -12,13 +12,13 @@ from langgraph.types import Command
 from fin_graph.domain.fills import OrderStatus
 from fin_graph.domain.orders import OrderAction, ProposedOrder
 from fin_graph.domain.portfolio import Portfolio
-from fin_graph.graphs.orders.desk import OrderDesk
-from fin_graph.graphs.orders.graph import PLACE_ORDER, make_order_graph
 from fin_graph.integrations.broker.paper.broker import PaperBroker
 from fin_graph.integrations.context import RunContext
 from fin_graph.persistence.paper_ledger import open_sqlite_paper_ledger
 from fin_graph.safety.approval import ApprovalPolicy
 from fin_graph.safety.trading_limits import TradingLimits
+from fin_graph.trading.order_desk import OrderDesk
+from fin_graph.workflows.orders.graph import PLACE_ORDER, make_order_graph
 
 APPROVER = RunContext(actor="trader-1", role="approver")
 ORDER = ProposedOrder(

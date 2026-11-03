@@ -19,13 +19,13 @@ from tests.server.finance_app import (
 )
 
 from fin_graph.domain.orders import OrderAction, ProposedOrder
-from fin_graph.graphs.orders.desk import OrderDesk
-from fin_graph.graphs.orders.graph import make_order_graph
 from fin_graph.integrations.context import RunContext
 from fin_graph.integrations.registry import IntegrationRegistry
 from fin_graph.safety.approval import ApprovalPolicy
 from fin_graph.server.app import _gateway_decide, create_app
 from fin_graph.server.storage import Base, Storage
+from fin_graph.trading.order_desk import OrderDesk
+from fin_graph.workflows.orders.graph import make_order_graph
 
 
 def _order(client_order_id: str = "gateway-order") -> ProposedOrder:

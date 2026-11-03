@@ -26,9 +26,9 @@ from langgraph.types import interrupt
 from fin_graph.domain.fills import OrderStatus, PaperExecution
 from fin_graph.domain.orders import ProposedOrder
 from fin_graph.domain.tools import Domain, EvidenceType, SideEffectLevel, ToolMeta
-from fin_graph.graphs.orders.desk import OrderDesk, OrderPreview
 from fin_graph.integrations.context import RunContext
 from fin_graph.safety.approval import ApprovalPolicy
+from fin_graph.trading.order_desk import OrderDesk, OrderPreview
 
 #: The action name approvals, audits and ``AUTO_APPROVE_TOOLS`` refer to.
 PLACE_ORDER = "place_paper_order"
