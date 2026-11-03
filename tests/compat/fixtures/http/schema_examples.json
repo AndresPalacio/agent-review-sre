@@ -1,0 +1,41 @@
+{
+  "hedge_fund_request": {
+    "tickers": ["aapl", "MSFT"],
+    "graph_nodes": [
+      {"id": "ben_graham_abc123", "type": "agent", "data": {"label": "Graham"}, "position": null},
+      {"id": "technical_analyst", "type": "agent", "data": null, "position": null},
+      {"id": "portfolio_manager_xyz789", "type": "agent", "data": null, "position": null}
+    ],
+    "graph_edges": [
+      {"id": "e1", "source": "ben_graham_abc123", "target": "portfolio_manager_xyz789", "type": null, "data": null}
+    ],
+    "agent_models": [
+      {"agent_id": "ben_graham_abc123", "model_name": "gpt-4.1", "model_provider": "OpenAI"}
+    ],
+    "model_name": "gpt-4.1",
+    "model_provider": "OpenAI",
+    "margin_requirement": 0.5,
+    "portfolio_positions": [
+      {"ticker": "AAPL", "quantity": 10.0, "trade_price": 100.25},
+      {"ticker": "MSFT", "quantity": -5.0, "trade_price": 400.0}
+    ],
+    "api_keys": {"OPENAI_API_KEY": "test-only"},
+    "end_date": "2025-01-31",
+    "start_date": "2025-01-01",
+    "initial_cash": 100000.125
+  },
+  "start_event_sse": "event: start\ndata: {\"type\":\"start\",\"timestamp\":\"2025-01-01T12:00:00Z\"}\n\n",
+  "flow_response": {
+    "id": 7,
+    "name": "Core flow",
+    "description": null,
+    "nodes": [],
+    "edges": [],
+    "viewport": null,
+    "data": null,
+    "is_template": false,
+    "tags": null,
+    "created_at": "2025-01-01T12:00:00Z",
+    "updated_at": null
+  }
+}
