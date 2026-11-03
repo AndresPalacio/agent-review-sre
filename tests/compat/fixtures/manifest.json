@@ -1,4 +1,357 @@
 {
+  "contracts": [
+    {
+      "candidate_digest": "135af23e71beb75ef2535e7e55895aaa58574fb107470501f2055570127faba3",
+      "comparison_rule": "exact",
+      "evidence_command": "uv run pytest tests/compat/test_reference_snapshot.py::test_snapshot_is_stable_and_excludes_private_state -q",
+      "id": "reference-source-freeze",
+      "owner": "tests/compat/test_reference_snapshot.py::test_snapshot_is_stable_and_excludes_private_state",
+      "reference_digest": "42cd3a84c47ccd9ca2a891146a2d818b2ea8c7908162ef107975239b7148a71f",
+      "status": "verified"
+    },
+    {
+      "candidate_digest": "37a9aaf67eed173d4a22f6d26ff3e8b98b1c2c72076ed742ac38636185a81bd7",
+      "comparison_rule": "security-deviation",
+      "evidence_command": "uv run pytest tests/compat/test_licensing.py::test_checked_in_inventory_matches_clean_snapshot_and_explicit_origins -q",
+      "id": "licensed-reference-assets",
+      "owner": "tests/compat/test_licensing.py::test_checked_in_inventory_matches_clean_snapshot_and_explicit_origins",
+      "reference_digest": "42cd3a84c47ccd9ca2a891146a2d818b2ea8c7908162ef107975239b7148a71f",
+      "status": "verified"
+    },
+    {
+      "candidate_digest": "c2a540b69471c6a40343740ab72573ee23892ae2ca0558ad4e6d6c360df46b82",
+      "comparison_rule": "float-tolerance",
+      "evidence_command": "uv run pytest tests/compat/test_contract_oracle.py::test_exact_money_and_decision_differences_fail -q",
+      "id": "differential-comparison-rules",
+      "owner": "tests/compat/test_contract_oracle.py::test_exact_money_and_decision_differences_fail",
+      "reference_digest": "42cd3a84c47ccd9ca2a891146a2d818b2ea8c7908162ef107975239b7148a71f",
+      "status": "verified"
+    },
+    {
+      "candidate_digest": "2d6180904046b439ec76388200ad2d4ce612aeafe74893b7cfb479ea20ae72a9",
+      "comparison_rule": "semantic",
+      "evidence_command": "uv run pytest tests/graphs/analysis/test_persona_team.py::test_no_selection_runs_all_nineteen_in_catalog_order -q",
+      "id": "deepagents-nineteen-personas",
+      "owner": "tests/graphs/analysis/test_persona_team.py::test_no_selection_runs_all_nineteen_in_catalog_order",
+      "reference_digest": "42cd3a84c47ccd9ca2a891146a2d818b2ea8c7908162ef107975239b7148a71f",
+      "status": "verified"
+    },
+    {
+      "candidate_digest": "2d6180904046b439ec76388200ad2d4ce612aeafe74893b7cfb479ea20ae72a9",
+      "comparison_rule": "security-deviation",
+      "evidence_command": "uv run pytest tests/graphs/analysis/test_persona_team.py::test_data_failure_is_typed_and_does_not_expose_exception_text -q",
+      "id": "persona-failure-visibility",
+      "owner": "tests/graphs/analysis/test_persona_team.py::test_data_failure_is_typed_and_does_not_expose_exception_text",
+      "reference_digest": "42cd3a84c47ccd9ca2a891146a2d818b2ea8c7908162ef107975239b7148a71f",
+      "status": "verified"
+    },
+    {
+      "candidate_digest": "97441ec6470793fb8487b23005ad9937d76620d26c0f460e233750cab44f2331",
+      "comparison_rule": "exact",
+      "evidence_command": "uv run pytest tests/compat/v1/test_portfolio_parity.py::test_long_short_hold_decisions_match_recorded_fixture -q",
+      "id": "v1-portfolio-decisions",
+      "owner": "tests/compat/v1/test_portfolio_parity.py::test_long_short_hold_decisions_match_recorded_fixture",
+      "reference_digest": "42cd3a84c47ccd9ca2a891146a2d818b2ea8c7908162ef107975239b7148a71f",
+      "status": "verified"
+    },
+    {
+      "candidate_digest": "97441ec6470793fb8487b23005ad9937d76620d26c0f460e233750cab44f2331",
+      "comparison_rule": "exact",
+      "evidence_command": "uv run pytest tests/compat/v1/test_portfolio_parity.py::test_cash_shares_margin_and_mixed_positions_stay_inside_hard_limits -q",
+      "id": "v1-risk-and-hard-limits",
+      "owner": "tests/compat/v1/test_portfolio_parity.py::test_cash_shares_margin_and_mixed_positions_stay_inside_hard_limits",
+      "reference_digest": "42cd3a84c47ccd9ca2a891146a2d818b2ea8c7908162ef107975239b7148a71f",
+      "status": "verified"
+    },
+    {
+      "candidate_digest": "8ed2d2e54fb4d6d0ea792ee196081a2c98d6a60eb821eb6ddc99ccb716b63aae",
+      "comparison_rule": "float-tolerance",
+      "evidence_command": "uv run pytest tests/backtesting/test_v1_parity.py::test_v1_long_short_scenarios_match_golden_results -q",
+      "id": "v1-backtest-golden-results",
+      "owner": "tests/backtesting/test_v1_parity.py::test_v1_long_short_scenarios_match_golden_results",
+      "reference_digest": "42cd3a84c47ccd9ca2a891146a2d818b2ea8c7908162ef107975239b7148a71f",
+      "status": "verified"
+    },
+    {
+      "candidate_digest": "8ed2d2e54fb4d6d0ea792ee196081a2c98d6a60eb821eb6ddc99ccb716b63aae",
+      "comparison_rule": "exact",
+      "evidence_command": "uv run pytest tests/backtesting/test_v1_parity.py::test_pre_cancelled_backtest_returns_one_cancelled_terminal_event -q",
+      "id": "v1-backtest-cancellation",
+      "owner": "tests/backtesting/test_v1_parity.py::test_pre_cancelled_backtest_returns_one_cancelled_terminal_event",
+      "reference_digest": "42cd3a84c47ccd9ca2a891146a2d818b2ea8c7908162ef107975239b7148a71f",
+      "status": "verified"
+    },
+    {
+      "candidate_digest": "7deab789eb08f4acfcdef2f8ff0358d6ac6a895010cb2ed801cef464e95a7d2c",
+      "comparison_rule": "exact",
+      "evidence_command": "uv run pytest tests/quant/signals/test_deterministic_models.py::test_registry_has_every_frozen_reference_key_without_eager_heavy_imports -q",
+      "id": "v2-deterministic-alpha-catalog",
+      "owner": "tests/quant/signals/test_deterministic_models.py::test_registry_has_every_frozen_reference_key_without_eager_heavy_imports",
+      "reference_digest": "42cd3a84c47ccd9ca2a891146a2d818b2ea8c7908162ef107975239b7148a71f",
+      "status": "verified"
+    },
+    {
+      "candidate_digest": "9c5beae92069b4727450c9c0e569914204c4fc56e14a4488fc2ba890da3c8c9c",
+      "comparison_rule": "semantic",
+      "evidence_command": "uv run pytest tests/quant/test_data_contract.py::test_point_in_time_view_filters_future_bars_and_filing_dates -q",
+      "id": "v2-point-in-time-data",
+      "owner": "tests/quant/test_data_contract.py::test_point_in_time_view_filters_future_bars_and_filing_dates",
+      "reference_digest": "42cd3a84c47ccd9ca2a891146a2d818b2ea8c7908162ef107975239b7148a71f",
+      "status": "verified"
+    },
+    {
+      "candidate_digest": "b3a5fe91979f058538f94870f805390a70f6745f5d74fcc901d1530c0d21aeee",
+      "comparison_rule": "runtime-digest",
+      "evidence_command": "uv run pytest tests/quant/signals/test_trainable_models.py::test_train_publish_load_and_predict_are_repeatable -q",
+      "id": "v2-trainable-model-artifacts",
+      "owner": "tests/quant/signals/test_trainable_models.py::test_train_publish_load_and_predict_are_repeatable",
+      "reference_digest": "42cd3a84c47ccd9ca2a891146a2d818b2ea8c7908162ef107975239b7148a71f",
+      "status": "verified"
+    },
+    {
+      "candidate_digest": "8e9da5187dbf79b7497b87caaf7ab84ee789538a2afcb606a0754b6623c0b267",
+      "comparison_rule": "float-tolerance",
+      "evidence_command": "uv run pytest tests/quant/signals/test_forecasts.py::test_recorded_reference_parity -q",
+      "id": "v2-forecast-reference-parity",
+      "owner": "tests/quant/signals/test_forecasts.py::test_recorded_reference_parity",
+      "reference_digest": "42cd3a84c47ccd9ca2a891146a2d818b2ea8c7908162ef107975239b7148a71f",
+      "status": "verified"
+    },
+    {
+      "candidate_digest": "10911281afc2af28b47252acff5b0d18bde18ca8f369fc03a12191b649d864b0",
+      "comparison_rule": "exact",
+      "evidence_command": "uv run pytest tests/strategies/test_catalog.py::test_catalog_has_exact_reference_keys_specs_and_defaults -q",
+      "id": "strategy-catalog",
+      "owner": "tests/strategies/test_catalog.py::test_catalog_has_exact_reference_keys_specs_and_defaults",
+      "reference_digest": "42cd3a84c47ccd9ca2a891146a2d818b2ea8c7908162ef107975239b7148a71f",
+      "status": "verified"
+    },
+    {
+      "candidate_digest": "2b4d6f93a579ee84b0db935cbb99fcbd82d109329ca75dc50078426730c9910d",
+      "comparison_rule": "exact",
+      "evidence_command": "uv run pytest tests/strategies/test_algorithms.py::test_sma_crossover_golden_signals_and_order -q",
+      "id": "strategy-golden-signals",
+      "owner": "tests/strategies/test_algorithms.py::test_sma_crossover_golden_signals_and_order",
+      "reference_digest": "42cd3a84c47ccd9ca2a891146a2d818b2ea8c7908162ef107975239b7148a71f",
+      "status": "verified"
+    },
+    {
+      "candidate_digest": "1a4d2f1e1069be84488a60c04697bde59193648498b83eb09dfa3c716c5ebe1f",
+      "comparison_rule": "exact",
+      "evidence_command": "uv run pytest tests/skills/test_catalog_parity.py::test_every_licensed_finance_skill_and_resource_is_bundled_byte_for_byte -q",
+      "id": "finance-skill-catalog",
+      "owner": "tests/skills/test_catalog_parity.py::test_every_licensed_finance_skill_and_resource_is_bundled_byte_for_byte",
+      "reference_digest": "42cd3a84c47ccd9ca2a891146a2d818b2ea8c7908162ef107975239b7148a71f",
+      "status": "verified"
+    },
+    {
+      "candidate_digest": "d1065f473d5773ed1088a6360f5fe1e70522d2b115058b7045774c3a3ba779be",
+      "comparison_rule": "exact",
+      "evidence_command": "uv run pytest tests/compat/http/test_basic_routes.py::test_health_root_ping_and_exact_language_model_catalog -q",
+      "id": "http-health-and-model-catalog",
+      "owner": "tests/compat/http/test_basic_routes.py::test_health_root_ping_and_exact_language_model_catalog",
+      "reference_digest": "42cd3a84c47ccd9ca2a891146a2d818b2ea8c7908162ef107975239b7148a71f",
+      "status": "verified"
+    },
+    {
+      "candidate_digest": "04ab46a44bd962b4e98ff2f5ff921a4e2afd2e2cb8c3bd45f266c3e6b1208b89",
+      "comparison_rule": "schema",
+      "evidence_command": "uv run pytest tests/compat/http/test_schemas.py::test_hedge_fund_request_matches_the_recorded_shape_and_adapts_losslessly -q",
+      "id": "http-public-schemas",
+      "owner": "tests/compat/http/test_schemas.py::test_hedge_fund_request_matches_the_recorded_shape_and_adapts_losslessly",
+      "reference_digest": "42cd3a84c47ccd9ca2a891146a2d818b2ea8c7908162ef107975239b7148a71f",
+      "status": "verified"
+    },
+    {
+      "candidate_digest": "a78a15cf719d099d4eb664e3d0ee892d16f7129e9b688a4201862ef1686e7a15",
+      "comparison_rule": "exact",
+      "evidence_command": "uv run pytest tests/compat/http/test_hedge_fund_routes.py::test_agents_and_hedge_fund_stream_contract -q",
+      "id": "http-hedge-fund-stream",
+      "owner": "tests/compat/http/test_hedge_fund_routes.py::test_agents_and_hedge_fund_stream_contract",
+      "reference_digest": "42cd3a84c47ccd9ca2a891146a2d818b2ea8c7908162ef107975239b7148a71f",
+      "status": "verified"
+    },
+    {
+      "candidate_digest": "21ce2579a17b9aa458aab3961d4d139eb15d991c05ab04b47ef2642998955b5c",
+      "comparison_rule": "exact",
+      "evidence_command": "uv run pytest tests/compat/http/test_v1_sse.py::test_backtest_sse_transcript_has_exact_wire_order -q",
+      "id": "http-v1-backtest-sse",
+      "owner": "tests/compat/http/test_v1_sse.py::test_backtest_sse_transcript_has_exact_wire_order",
+      "reference_digest": "42cd3a84c47ccd9ca2a891146a2d818b2ea8c7908162ef107975239b7148a71f",
+      "status": "verified"
+    },
+    {
+      "candidate_digest": "7bddb67dbe8dda324fc1aa003d1774d49d5eaf7c9ff74c3ab660fc876ad9c0da",
+      "comparison_rule": "exact",
+      "evidence_command": "uv run pytest tests/compat/http/test_flow_routes.py::test_flow_crud_duplicate_search_and_revision_pinning -q",
+      "id": "http-flow-crud-and-revisions",
+      "owner": "tests/compat/http/test_flow_routes.py::test_flow_crud_duplicate_search_and_revision_pinning",
+      "reference_digest": "42cd3a84c47ccd9ca2a891146a2d818b2ea8c7908162ef107975239b7148a71f",
+      "status": "verified"
+    },
+    {
+      "candidate_digest": "7bddb67dbe8dda324fc1aa003d1774d49d5eaf7c9ff74c3ab660fc876ad9c0da",
+      "comparison_rule": "exact",
+      "evidence_command": "uv run pytest tests/compat/http/test_flow_routes.py::test_flow_run_history_cycles_pagination_and_idempotent_cancel -q",
+      "id": "http-flow-runs-and-cancellation",
+      "owner": "tests/compat/http/test_flow_routes.py::test_flow_run_history_cycles_pagination_and_idempotent_cancel",
+      "reference_digest": "42cd3a84c47ccd9ca2a891146a2d818b2ea8c7908162ef107975239b7148a71f",
+      "status": "verified"
+    },
+    {
+      "candidate_digest": "b895eb1a9cdb741d24916c43224956dedc5302a24c9eb02b77c3c715b9292d60",
+      "comparison_rule": "security-deviation",
+      "evidence_command": "uv run pytest tests/compat/http/test_settings_routes.py::test_provider_key_crud_is_redacted_encrypted_and_tracks_metadata -q",
+      "id": "provider-key-security",
+      "owner": "tests/compat/http/test_settings_routes.py::test_provider_key_crud_is_redacted_encrypted_and_tracks_metadata",
+      "reference_digest": "42cd3a84c47ccd9ca2a891146a2d818b2ea8c7908162ef107975239b7148a71f",
+      "status": "verified"
+    },
+    {
+      "candidate_digest": "b895eb1a9cdb741d24916c43224956dedc5302a24c9eb02b77c3c715b9292d60",
+      "comparison_rule": "exact",
+      "evidence_command": "uv run pytest tests/compat/http/test_settings_routes.py::test_ollama_management_and_progress_contracts -q",
+      "id": "ollama-management",
+      "owner": "tests/compat/http/test_settings_routes.py::test_ollama_management_and_progress_contracts",
+      "reference_digest": "42cd3a84c47ccd9ca2a891146a2d818b2ea8c7908162ef107975239b7148a71f",
+      "status": "verified"
+    },
+    {
+      "candidate_digest": "ba06d7073e968e4dbf8dcd501e0d82add2e0906baefd8accb694d99f6385e70b",
+      "comparison_rule": "schema",
+      "evidence_command": "uv run pytest tests/compat/http/test_v2_routes.py::test_predict_train_model_availability_and_validation -q",
+      "id": "http-v2-predict-and-train",
+      "owner": "tests/compat/http/test_v2_routes.py::test_predict_train_model_availability_and_validation",
+      "reference_digest": "42cd3a84c47ccd9ca2a891146a2d818b2ea8c7908162ef107975239b7148a71f",
+      "status": "verified"
+    },
+    {
+      "candidate_digest": "ba06d7073e968e4dbf8dcd501e0d82add2e0906baefd8accb694d99f6385e70b",
+      "comparison_rule": "float-tolerance",
+      "evidence_command": "uv run pytest tests/compat/http/test_v2_routes.py::test_var_and_algorithm_catalog_routes -q",
+      "id": "http-v2-var-and-algorithms",
+      "owner": "tests/compat/http/test_v2_routes.py::test_var_and_algorithm_catalog_routes",
+      "reference_digest": "42cd3a84c47ccd9ca2a891146a2d818b2ea8c7908162ef107975239b7148a71f",
+      "status": "verified"
+    },
+    {
+      "candidate_digest": "9a69b3c5eecee3ff3c8a4b98b78055b467184a8ac7c8395d028d1f2a60d4c0f0",
+      "comparison_rule": "runtime-digest",
+      "evidence_command": "uv run pytest tests/compat/http/test_algorithm_jobs.py::test_algorithm_job_result_signal_pagination_events_and_restart -q",
+      "id": "v2-backtest-jobs-artifacts-and-restart",
+      "owner": "tests/compat/http/test_algorithm_jobs.py::test_algorithm_job_result_signal_pagination_events_and_restart",
+      "reference_digest": "42cd3a84c47ccd9ca2a891146a2d818b2ea8c7908162ef107975239b7148a71f",
+      "status": "verified"
+    },
+    {
+      "candidate_digest": "9a69b3c5eecee3ff3c8a4b98b78055b467184a8ac7c8395d028d1f2a60d4c0f0",
+      "comparison_rule": "exact",
+      "evidence_command": "uv run pytest tests/compat/http/test_algorithm_jobs.py::test_algorithm_job_validation_duplicate_requests_and_idempotent_cancel -q",
+      "id": "v2-backtest-validation-and-cancellation",
+      "owner": "tests/compat/http/test_algorithm_jobs.py::test_algorithm_job_validation_duplicate_requests_and_idempotent_cancel",
+      "reference_digest": "42cd3a84c47ccd9ca2a891146a2d818b2ea8c7908162ef107975239b7148a71f",
+      "status": "verified"
+    },
+    {
+      "candidate_digest": "565f7cefe7479f9c3915ad8588d7807d1ab2d997ee43a9e70612e26e407663cc",
+      "comparison_rule": "schema",
+      "evidence_command": "uv run pytest tests/compat/test_cli.py::test_compatibility_commands_are_first_class_cli_commands -q",
+      "id": "cli-command-surface",
+      "owner": "tests/compat/test_cli.py::test_compatibility_commands_are_first_class_cli_commands",
+      "reference_digest": "42cd3a84c47ccd9ca2a891146a2d818b2ea8c7908162ef107975239b7148a71f",
+      "status": "verified"
+    },
+    {
+      "candidate_digest": "2a027d4b5597d489c9e0124482de9ba52f1009b6ec8101dcbd623a1c3aa14ccf",
+      "comparison_rule": "exact",
+      "evidence_command": "uv run pytest tests/compat/test_import_shims.py::test_documented_legacy_imports_resolve_to_native_objects -q",
+      "id": "python-import-shims",
+      "owner": "tests/compat/test_import_shims.py::test_documented_legacy_imports_resolve_to_native_objects",
+      "reference_digest": "42cd3a84c47ccd9ca2a891146a2d818b2ea8c7908162ef107975239b7148a71f",
+      "status": "verified"
+    },
+    {
+      "candidate_digest": "9880b56d1152a582fc9152b5d16a989c154cafb5b07c3b4fb61350fa68280990",
+      "comparison_rule": "semantic",
+      "evidence_command": "uv run pytest tests/compat/test_local_app.py::test_clean_local_startup_needs_neither_postgres_nor_admin_key -q",
+      "id": "zero-config-local-startup",
+      "owner": "tests/compat/test_local_app.py::test_clean_local_startup_needs_neither_postgres_nor_admin_key",
+      "reference_digest": "42cd3a84c47ccd9ca2a891146a2d818b2ea8c7908162ef107975239b7148a71f",
+      "status": "verified"
+    },
+    {
+      "candidate_digest": "9880b56d1152a582fc9152b5d16a989c154cafb5b07c3b4fb61350fa68280990",
+      "comparison_rule": "runtime-digest",
+      "evidence_command": "uv run pytest tests/compat/test_local_app.py::test_local_compatibility_data_survives_restart -q",
+      "id": "local-durable-restart",
+      "owner": "tests/compat/test_local_app.py::test_local_compatibility_data_survives_restart",
+      "reference_digest": "42cd3a84c47ccd9ca2a891146a2d818b2ea8c7908162ef107975239b7148a71f",
+      "status": "verified"
+    },
+    {
+      "candidate_digest": "d1065f473d5773ed1088a6360f5fe1e70522d2b115058b7045774c3a3ba779be",
+      "comparison_rule": "security-deviation",
+      "evidence_command": "uv run pytest tests/compat/http/test_basic_routes.py::test_loopback_is_seamless_but_remote_clients_require_native_auth -q",
+      "id": "remote-compatibility-auth-boundary",
+      "owner": "tests/compat/http/test_basic_routes.py::test_loopback_is_seamless_but_remote_clients_require_native_auth",
+      "reference_digest": "42cd3a84c47ccd9ca2a891146a2d818b2ea8c7908162ef107975239b7148a71f",
+      "status": "verified"
+    },
+    {
+      "candidate_digest": "e4fb06303b9e179c2b51b6fed279fce35fc22b64d411662d87ad09690f249d19",
+      "comparison_rule": "exact",
+      "evidence_command": "uv run pytest tests/web/test_reference_frontend_contract.py::test_fixture_serves_the_reference_flow_and_stream_contract -q",
+      "id": "reference-frontend-backend-contract",
+      "owner": "tests/web/test_reference_frontend_contract.py::test_fixture_serves_the_reference_flow_and_stream_contract",
+      "reference_digest": "42cd3a84c47ccd9ca2a891146a2d818b2ea8c7908162ef107975239b7148a71f",
+      "status": "verified"
+    },
+    {
+      "candidate_digest": "c2c0a15db4bbb29dcb8643250741c5775d1988fb151f6e32f4c674fb8039333b",
+      "comparison_rule": "exact",
+      "evidence_command": "uv run pytest tests/packaging/test_clean_install.py::test_extracted_wheel_imports_without_repository_on_pythonpath -q",
+      "id": "clean-wheel-imports-and-static-ui",
+      "owner": "tests/packaging/test_clean_install.py::test_extracted_wheel_imports_without_repository_on_pythonpath",
+      "reference_digest": "42cd3a84c47ccd9ca2a891146a2d818b2ea8c7908162ef107975239b7148a71f",
+      "status": "verified"
+    },
+    {
+      "candidate_digest": "dd9012dc5fe5a8cd7aac19ff229aed1910ef6cf974721bbd30883fa35ec50c82",
+      "comparison_rule": "semantic",
+      "evidence_command": "uv run pytest tests/packaging/test_container_contract.py::test_compose_has_loopback_local_and_distributed_postgres_profiles -q",
+      "id": "container-local-and-distributed-profiles",
+      "owner": "tests/packaging/test_container_contract.py::test_compose_has_loopback_local_and_distributed_postgres_profiles",
+      "reference_digest": "42cd3a84c47ccd9ca2a891146a2d818b2ea8c7908162ef107975239b7148a71f",
+      "status": "verified"
+    },
+    {
+      "candidate_digest": "84a3af0386a0fb038600883eebbcdb8694bc9cc5b2e095f92bd1982e068c54c3",
+      "comparison_rule": "runtime-digest",
+      "evidence_command": "uv run pytest tests/acceptance/test_runtime_parity.py::test_sqlite_acceptance_covers_complete_public_financial_surface -q",
+      "id": "sqlite-complete-runtime",
+      "owner": "tests/acceptance/test_runtime_parity.py::test_sqlite_acceptance_covers_complete_public_financial_surface",
+      "reference_digest": "42cd3a84c47ccd9ca2a891146a2d818b2ea8c7908162ef107975239b7148a71f",
+      "status": "verified"
+    },
+    {
+      "candidate_digest": "84a3af0386a0fb038600883eebbcdb8694bc9cc5b2e095f92bd1982e068c54c3",
+      "comparison_rule": "runtime-digest",
+      "evidence_command": "uv run pytest tests/acceptance/test_runtime_parity.py::test_postgres_acceptance_has_same_public_digest_and_distributed_capabilities -q",
+      "id": "postgres-complete-runtime",
+      "owner": "tests/acceptance/test_runtime_parity.py::test_postgres_acceptance_has_same_public_digest_and_distributed_capabilities",
+      "reference_digest": "42cd3a84c47ccd9ca2a891146a2d818b2ea8c7908162ef107975239b7148a71f",
+      "status": "verified"
+    },
+    {
+      "candidate_digest": "1bd56b7e4292e47034c240826b5c019564549b451d955d1b0ac7efa20bc5c264",
+      "comparison_rule": "runtime-digest",
+      "evidence_command": "uv run pytest tests/acceptance/test_restart_and_concurrency.py::test_sqlite_restart_and_compare_and_swap_are_durable -q",
+      "id": "restart-and-concurrency-cas",
+      "owner": "tests/acceptance/test_restart_and_concurrency.py::test_sqlite_restart_and_compare_and_swap_are_durable",
+      "reference_digest": "42cd3a84c47ccd9ca2a891146a2d818b2ea8c7908162ef107975239b7148a71f",
+      "status": "verified"
+    }
+  ],
   "fixtures": [
     {
       "fixture": "v1/backtests/scenarios.json",

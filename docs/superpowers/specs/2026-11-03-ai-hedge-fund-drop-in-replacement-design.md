@@ -364,3 +364,19 @@ hash del commit/estado fuente y licencia.
   sin modificarla ni leer/copiar su `.env`.
 - Si una prueba revela un defecto inseguro de la referencia, conservar el contrato observable salvo
   la conducta insegura; documentar la desviación y cubrir la salvaguarda con una regresión.
+
+## Evidencia final verificada (2026-11-03)
+
+- El manifiesto ejecutable cierra 39 contratos: 39 verificados, cero exclusiones y cero pendientes,
+  contra el snapshot `42cd3a84c47ccd9ca2a891146a2d818b2ea8c7908162ef107975239b7148a71f`.
+- La aceptación completa pasa 14/14 criterios tanto en SQLite como en PostgreSQL real y ambos
+  producen el digest financiero público
+  `a9036a91c42b90abde555aec416592908ce6e3da95266d13410332cc3f983f9b`.
+- El frontend, wheel y contenedor se construyeron desde limpio; el contenedor corre sin privilegios,
+  conserva `/data` y responde `/health`.
+- El checker `scripts/check_compatibility_manifest.py` invalida owners inexistentes, evidencia en
+  prosa, snapshots/candidatos obsoletos, estados pendientes, ownership duplicado y exclusiones sin
+  aprobación de diseño.
+- La evidencia y los límites reproducibles quedan publicados en
+  `docs/compatibility/parity-report.md`; las pruebas con proveedores vivos siguen siendo smokes
+  opcionales y no sustituyen el gate offline.
