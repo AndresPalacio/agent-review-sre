@@ -12,8 +12,10 @@ cinco preguntas sin buscar símbolos por todo el repositorio:
 5. ¿Qué parte es producción y qué parte es evaluación u optimización opcional?
 
 La reorganización no cambia decisiones financieras, contratos HTTP, formatos de persistencia ni la
-compatibilidad con AI Hedge Fund. Es una refactorización estructural y documental protegida por la
-suite existente.
+compatibilidad con la aplicación de referencia AI Hedge Fund. Es una refactorización estructural y
+documental protegida por la suite existente. El nombre del proyecto de origen no formará parte de la
+arquitectura interna: solo aparecerá en documentación histórica, scripts de aceptación y contratos
+públicos que no se pueden renombrar sin romper consumidores.
 
 ## Problema actual
 
@@ -32,6 +34,10 @@ El comportamiento multiagente está implementado, pero sus responsabilidades est
   para optimización.
 - `docs/arquitectura-agentes.md` todavía describe el producto SRE anterior y referencias que ya no
   existen.
+- `fin_graph.compat.ai_hedge_fund` y `fin_graph.server.compat` mezclan adaptadores HTTP, modelos,
+  persistencia y pruebas de conformidad bajo nombres de migración que no explican su responsabilidad.
+- Helpers llamados `compact` describen unas veces normalización y otras límites de payload, por lo
+  que ocultan una decisión importante de seguridad y consumo de tokens.
 
 El resultado funciona, pero el árbol no enseña la arquitectura.
 
@@ -45,6 +51,10 @@ El resultado funciona, pero el árbol no enseña la arquitectura.
 - Añadir documentación corta junto al código, con recorridos desde API/CLI hasta agente y salida.
 - Mantener sin cambios los contratos públicos de AI Hedge Fund y los resultados de los evals.
 - Hacer explícito que `optimization/fin.toml` es opcional y nunca se carga al arrancar la app.
+- Encapsular la aplicación de referencia bajo `adapters/reference_app`, con persistencia y
+  conformidad separadas, sin nombres `Legacy*`, `Compatibility*` ni `compat` en el núcleo.
+- Sustituir nombres vagos como `compact` por nombres que declaren la operación real, por ejemplo
+  `bounded_evidence_payload`, `normalized_hex` o `normalized_iban`.
 
 ## No objetivos
 
@@ -108,7 +118,7 @@ src/fin_graph/
       catalog.py
       personas.py
       persona_prompts.py
-      supervisor.py
+      persona_team.py
     chat/
       README.md
       supervisor.py
@@ -159,6 +169,27 @@ src/fin_graph/
       surfaces.py
       worker.py
 
+  adapters/
+    reference_app/
+      README.md
+      mapping.py
+      models.py
+      portfolio.py
+      python_api.py
+      runtime.py
+      schemas.py
+      settings.py
+      http/
+
+  persistence/
+    reference_app/
+
+  conformance/
+    contracts.py
+    reference_app/
+      licensing.py
+      snapshot.py
+
 optimization/
   README.md
   fin.toml
@@ -184,6 +215,7 @@ runtime
 CLI / API / Studio
 
 optimization → runtime + evals, nunca al revés
+adapters/reference_app → runtime + agents + persistence, nunca al revés
 ```
 
 `trading/order_desk.py` será el servicio compartido de reglas y ejecución paper que consumen chat y
@@ -236,8 +268,8 @@ abrir la interfaz web y sin crear otra fuente de verdad.
 ### `agents`
 
 Contiene componentes que toman decisiones mediante un modelo o que se registran como subagentes.
-Cada llamada a `create_deep_agent` deberá vivir bajo este paquete. `agents/analysis/supervisor.py`
-ensamblará el supervisor compatible y sus diecinueve personas; `agents/chat/supervisor.py` el chat;
+Cada llamada a `create_deep_agent` deberá vivir bajo este paquete. `agents/analysis/persona_team.py`
+ensamblará el supervisor de personas y sus diecinueve identidades; `agents/chat/supervisor.py` el chat;
 `agents/solver/supervisor.py` el solver verificado; y `agents/optimizer/proposer.py` construirá el
 DeepAgent opcional que edita el workspace del optimizador. Middleware, fábricas y modelos guionados
 comunes vivirán en `agents/common`. La fábrica del proponente no importará `better_harness` ni
@@ -276,12 +308,31 @@ solo usarán `optimization/fin.toml` si existe en el directorio del repositorio;
 wheel mostrará un error claro solicitando `--config`, en lugar de fingir que esa configuración es
 necesaria para la aplicación.
 
+### `adapters/reference_app`, `persistence/reference_app` y `conformance`
+
+`adapters/reference_app` será el único lugar donde se traduce entre el modelo nativo y la superficie
+externa heredada: API Python, rutas HTTP/SSE, schemas, portfolio y construcción del runtime requerido
+por ese cliente. `persistence/reference_app` contendrá sus stores SQLite/PostgreSQL. `conformance`
+contendrá contratos y snapshots usados para demostrar paridad; no participará en decisiones de
+producción.
+
+Los símbolos internos usarán intención, no historia: `ReferencePortfolio`, `ReferenceStore`,
+`ReferenceAppProfile`, `reference_app_router` y `make_persona_analysis_supervisor`. Los identificadores
+públicos o persistidos que ya forman parte del contrato —rutas, claves JSON, variables de entorno,
+tablas `compat_*`, migraciones y shims `src.*`/`v2.*`/`app.backend.*`— permanecen exactamente iguales.
+Las pruebas de arquitectura impedirán que reaparezcan los paquetes internos `compat` o
+`ai_hedge_fund` y que el núcleo dependa del adaptador.
+
+El antiguo helper `_compact` del análisis se llamará `_bounded_evidence_payload`, porque limita lo que
+se entrega al modelo. Las normalizaciones de identificadores se llamarán por el dato normalizado. No
+se elimina el límite: se hace visible su propósito de seguridad, determinismo y control de tokens.
+
 ## Entradas y recorridos documentados
 
 `agents/README.md` incluirá una tabla con cuatro recorridos:
 
-1. Compatibilidad AI Hedge Fund → runtime compatible → supervisor DeepAgents → 19 personas →
-   portfolio compatible.
+1. Cliente de referencia → adaptador externo → supervisor DeepAgents → 19 personas → portfolio con
+   el contrato público original.
 2. App nativa → runtime de análisis → workflow LangGraph → analistas/herramientas → tesis verificadas
    → orden paper opcional.
 3. Chat → supervisor DeepAgents → consultas, análisis y herramientas de orden con aprobación.
@@ -296,6 +347,9 @@ un diagrama Mermaid que enlace estos READMEs en lugar de repetir detalles.
 - Se preservan `src.*`, `v2.*`, `app.backend.*`, comandos CLI, rutas HTTP, schemas y respuestas SSE.
 - `langgraph.json` apuntará a `fin_graph.runtime.analysis`.
 - Los imports internos `fin_graph.graphs.*` y `fin_graph.harness.*` se actualizarán de forma mecánica.
+- Los paquetes internos `fin_graph.compat`, `fin_graph.compat.ai_hedge_fund` y
+  `fin_graph.server.compat` se reemplazarán por fronteras con responsabilidad explícita; no se dejan
+  shims internos con esos nombres.
 - Solo se conservarán shims para imports documentados o probados como superficies públicas. Cada shim
   tendrá una única importación y comentario de deprecación; no contendrá lógica.
 - El paquete experimental `fin_graph.work` conservará contratos, servicio y persistencia. Su
@@ -316,7 +370,9 @@ un diagrama Mermaid que enlace estos READMEs en lugar de repetir detalles.
 6. Crear `runtime` y cambiar API, CLI, Studio y evals a sus fábricas.
 7. Crear `optimization/harness`, mover `fin.toml` y actualizar el CLI opcional.
 8. Reescribir documentación obsoleta y añadir los comandos `agents list/describe`.
-9. Eliminar paquetes vacíos y shims no públicos después de verificar todos los consumidores.
+9. Aislar la aplicación de referencia y su persistencia/conformidad, renombrar símbolos de migración
+   y nombres `compact` ambiguos.
+10. Eliminar paquetes vacíos y shims no públicos después de verificar todos los consumidores.
 
 ## Pruebas y criterios de aceptación
 
@@ -331,6 +387,9 @@ un diagrama Mermaid que enlace estos READMEs en lugar de repetir detalles.
 - Los nodos deterministas se documentan como workflows y no aparecen como agentes en el catálogo.
 - Un test estático falla si aparece `create_deep_agent` fuera de `fin_graph/agents`.
 - Un test de dependencias falla si producción importa `fin_graph.optimization` o `better_harness`.
+- Un test de arquitectura falla si reaparecen paquetes internos `compat`/`ai_hedge_fund`, símbolos
+  `Legacy*`/`Compatibility*` o nombres `compact` ambiguos fuera de identificadores públicos
+  explícitamente permitidos.
 - `fin-graph app` y `fin-graph eval run` funcionan sin instalar el extra `harness`.
 - `fin-graph harness validate optimization/fin.toml` funciona con el extra opcional; fuera de un
   checkout, omitir la ruta devuelve un error accionable.

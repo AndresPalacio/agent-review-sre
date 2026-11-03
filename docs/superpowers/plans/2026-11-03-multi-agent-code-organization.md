@@ -4,7 +4,7 @@
 
 **Goal:** Reorganizar fin-graph para que agentes, workflows, runtime y optimización sean encontrables y comprensibles desde el árbol del código, sin cambiar resultados ni contratos públicos.
 
-**Architecture:** Las fábricas agentivas vivirán bajo `fin_graph.agents`, las máquinas de estado bajo `fin_graph.workflows`, el ensamblaje productivo bajo `fin_graph.runtime` y el ciclo opcional de better-harness bajo `fin_graph.optimization.harness`. Un catálogo inmutable agregará descriptores declarados junto a las fábricas, mientras producción conservará imports explícitos y tipados.
+**Architecture:** Las fábricas agentivas vivirán bajo `fin_graph.agents`, las máquinas de estado bajo `fin_graph.workflows`, el ensamblaje productivo bajo `fin_graph.runtime` y el ciclo opcional de better-harness bajo `fin_graph.optimization.harness`. La aplicación migrada será un adaptador externo bajo `fin_graph.adapters.reference_app`, con persistencia y conformidad separadas. Un catálogo inmutable agregará descriptores declarados junto a las fábricas, mientras producción conservará imports explícitos y tipados.
 
 **Tech Stack:** Python 3.12, DeepAgents, LangChain, LangGraph, Typer/Rich, Pydantic, pytest, import-linter, uv/Hatch.
 
@@ -19,6 +19,8 @@
 - Producción no puede importar `fin_graph.optimization` ni `better_harness`; `src/fin_graph/cli/harness.py` solo puede hacerlo de forma perezosa al ejecutar un comando opcional.
 - `optimization/fin.toml` es configuración opcional del checkout y no se incluye como configuración operativa del wheel.
 - No dejar lógica duplicada ni shims internos; el único shim nuevo permitido es `fin_graph.work.graphs`, porque `examples/langgraph.async.json` documentó esa superficie.
+- Eliminar los paquetes internos `fin_graph.compat`, `fin_graph.compat.ai_hedge_fund` y `fin_graph.server.compat`; preservar exactamente los identificadores públicos/persistidos que ya consumen clientes o bases existentes.
+- Renombrar símbolos internos `Legacy*`, `Compatibility*`, `make_compat_*` y nombres `compact` ambiguos por nombres de responsabilidad, sin retirar límites de payload.
 - Cada movimiento debe conservar firmas y comportamiento, y terminar con pruebas verdes antes del commit.
 
 ## Review Focus
@@ -28,6 +30,8 @@
 - `fin-graph harness validate` sin ruta fuera del checkout: debe salir con código 2 y explicar cómo pasar `--config`, sin traceback ni secreto (Task 8).
 - Alias, imports calificados y comentarios que mencionan `create_deep_agent`: la prueba arquitectónica debe analizar AST y detectar llamadas reales sin falsos positivos de texto (Task 8).
 - Worker/proponente lanzado en Windows después del cambio de módulo: los subprocess deben usar `fin_graph.optimization.harness.worker` y `fin_graph.optimization.harness.proposer` (Task 8).
+- Las rutas y payloads antiguos siguen idénticos aunque su implementación pase a `adapters/reference_app`; ningún paquete de núcleo importa el adaptador (Task 10).
+- Tablas `compat_*`, migraciones, variables de entorno y shims públicos históricos permanecen estables y se controlan mediante allowlist, no mediante renombres destructivos (Task 10).
 
 ---
 
@@ -37,7 +41,7 @@
 |---|---|---|
 | Fábrica, subagentes, middleware y modelo scripted | `src/fin_graph/agents/{factory.py,subagents.py,middleware/,testing/}` | `src/fin_graph/agents/common/` |
 | Catálogo de analistas reactivos | `src/fin_graph/graphs/analysis/analysts.py` | `src/fin_graph/agents/analysis/catalog.py` |
-| Personas y supervisor compatible | `src/fin_graph/graphs/analysis/{personas.py,persona_prompts.py,compat.py}` | `src/fin_graph/agents/analysis/{personas.py,persona_prompts.py,supervisor.py}` |
+| Personas y supervisor de referencia | `src/fin_graph/graphs/analysis/{personas.py,persona_prompts.py,compat.py}` | `src/fin_graph/agents/analysis/{personas.py,persona_prompts.py,persona_team.py}` |
 | Chat DeepAgents | `src/fin_graph/graphs/chat/graph.py` | `src/fin_graph/agents/chat/supervisor.py` |
 | Solver verificado | `src/fin_graph/work/graphs.py` | `src/fin_graph/agents/solver/supervisor.py` |
 | DeepAgent proponente | bloque de `run_outer_agent` en `src/fin_graph/harness/proposer.py` | `src/fin_graph/agents/optimizer/proposer.py` |
@@ -47,6 +51,9 @@
 | Runtime productivo | `src/fin_graph/harness/{runtime,observation,profile,trace}.py` | `src/fin_graph/runtime/{analysis,observation,profile,trace}.py` |
 | Optimizador opcional | resto de `src/fin_graph/harness/` | `src/fin_graph/optimization/harness/` |
 | Configuración opcional | `harness/fin.toml` | `optimization/fin.toml` |
+| Adaptador de aplicación de referencia | `src/fin_graph/compat/ai_hedge_fund/`, `src/fin_graph/server/compat/`, `src/fin_graph/compat/settings.py` | `src/fin_graph/adapters/reference_app/` |
+| Persistencia de la aplicación de referencia | `src/fin_graph/compat/storage/` | `src/fin_graph/persistence/reference_app/` |
+| Contratos, snapshot y licencia de conformidad | `src/fin_graph/compat/{contracts,reference,licensing}.py` | `src/fin_graph/conformance/`, `src/fin_graph/conformance/reference_app/` |
 
 Los tests siguen el mismo mapa: infraestructura en `tests/agents/common`, agentes especializados en `tests/agents/{analysis,chat,solver,optimizer}`, workflows en `tests/workflows`, runtime en `tests/runtime` y better-harness en `tests/optimization/harness`.
 
@@ -117,18 +124,18 @@ git commit -m "refactor(agents): group shared agent infrastructure"
 - Move: `src/fin_graph/graphs/analysis/analysts.py` → `src/fin_graph/agents/analysis/catalog.py`
 - Move: `src/fin_graph/graphs/analysis/personas.py` → `src/fin_graph/agents/analysis/personas.py`
 - Move: `src/fin_graph/graphs/analysis/persona_prompts.py` → `src/fin_graph/agents/analysis/persona_prompts.py`
-- Move: `src/fin_graph/graphs/analysis/compat.py` → `src/fin_graph/agents/analysis/supervisor.py`
-- Move: `tests/graphs/analysis/test_persona_team.py` → `tests/agents/analysis/test_supervisor.py`
+- Move: `src/fin_graph/graphs/analysis/compat.py` → `src/fin_graph/agents/analysis/persona_team.py`
+- Move: `tests/graphs/analysis/test_persona_team.py` → `tests/agents/analysis/test_persona_team.py`
 - Modify: consumers returned by `rg -l "fin_graph\.graphs\.analysis\.(analysts|personas|persona_prompts|compat)" src tests`
 - Modify: `tests/architecture/test_package_layout.py`
 
 **Interfaces:**
 - Consumes: `analyst_catalog()` as the only source of the 19 identities; common middleware and `RunContext`.
-- Produces: `make_persona_agent(model, spec, *, masking=None) -> CompiledStateGraph[Any, Any, Any, Any]` and the unchanged `make_compat_analysis_agent(...)` signature.
+- Produces: `make_persona_agent(model, spec, *, masking=None) -> CompiledStateGraph[Any, Any, Any, Any]`, `make_persona_analysis_supervisor(...)` and `PersonaAnalysisBundle`.
 
 - [ ] **Step 1: Extend the layout test with the four analysis-agent modules**
 
-Assert that `fin_graph.agents.analysis.catalog`, `.personas`, `.persona_prompts` and `.supervisor` import.
+Assert that `fin_graph.agents.analysis.catalog`, `.personas`, `.persona_prompts` and `.persona_team` import.
 
 - [ ] **Step 2: Run the layout and persona tests before moving code**
 
@@ -138,7 +145,7 @@ Expected: layout test FAILS because `fin_graph.agents.analysis` does not exist; 
 
 - [ ] **Step 3: Move the four modules and extract the persona factory**
 
-`make_compat_analysis_agent(...)` must call `make_persona_agent(...)` inside its existing 19-item loop; move the existing `create_deep_agent(...)` arguments unchanged into that helper.
+`make_persona_analysis_supervisor(...)` must call `make_persona_agent(...)` inside its existing 19-item loop; move the existing `create_deep_agent(...)` arguments unchanged into that helper. Rename only internal symbols; the adapter added in Task 10 preserves the public result shape.
 
 - [ ] **Step 4: Update consumers and move the persona characterization suite**
 
@@ -300,9 +307,9 @@ Each specialized package declares its tuple beside its real factory. `agent_cata
 
 Use IDs `analysis.persona.<analyst_id>` and one shared real factory path `fin_graph.agents.analysis.supervisor:make_persona_agent`; do not copy names, order, prompts or domains.
 
-- [ ] **Step 5: Add descriptors for compatible analysis, native react analyst, chat, solver supervisor/children and optimizer proposer**
+- [ ] **Step 5: Add descriptors for persona analysis, native react analyst, chat, solver supervisor/children and optimizer proposer**
 
-Children are the 19 persona IDs for compatible analysis and `solver.fundamentals`/`solver.technicals` for the solver supervisor.
+Children are the 19 persona IDs for `analysis.persona_team` and `solver.fundamentals`/`solver.technicals` for the solver supervisor.
 
 - [ ] **Step 6: Verify catalog determinism and domain parity**
 
@@ -425,12 +432,12 @@ git commit -m "refactor(workflows): expose orders and market watch explicitly"
 - Move: `src/fin_graph/harness/runtime.py` → `src/fin_graph/runtime/analysis.py`
 - Move: `src/fin_graph/harness/{observation,profile,trace}.py` → `src/fin_graph/runtime/`
 - Move: `tests/harness/{test_runtime,test_trace,test_entrypoints}.py` → `tests/runtime/`
-- Modify: CLI, compat API, eval runner, server factory/app and all test fixtures consuming runtime
+- Modify: CLI, reference Python API, eval runner, server factory/app and all test fixtures consuming runtime
 - Modify: `langgraph.json`
 - Modify: `tests/test_langgraph_json.py`, `tests/architecture/test_package_layout.py`
 
 **Interfaces:**
-- Produces: unchanged `make_analysis_graph(...)`, `make_analysis_runtime[_async]()`, `make_analysis_graph_async()`, `make_compat_analysis_runtime[_async]()`, `_analysis_services(...)`, `ExecutionTrace`, `Observation` and `resolve_analysis_profile(...)` under `fin_graph.runtime`.
+- Produces: unchanged `make_analysis_graph(...)`, `make_analysis_runtime[_async]()`, `make_analysis_graph_async()`, `_analysis_services(...)`, `ExecutionTrace`, `Observation` and `resolve_analysis_profile(...)` under `fin_graph.runtime`; temporarily exposes renamed `make_reference_analysis_runtime[_async]()` until Task 10 moves that reference-only assembly into its adapter.
 
 - [ ] **Step 1: Add failing runtime import and Studio target assertions**
 
@@ -447,7 +454,7 @@ Expected: new runtime path assertions FAIL; old runtime characterization passes.
 
 - [ ] **Step 3: Relocate runtime modules and switch product entry points**
 
-Update explicit imports in CLI, server, compatibility Python API and evals; do not create `fin_graph.harness.runtime` shims.
+Update explicit imports in CLI, server, reference Python API and evals; do not create `fin_graph.harness.runtime` shims. Rename `make_compat_analysis_runtime[_async]` to `make_reference_analysis_runtime[_async]` in the same movement.
 
 - [ ] **Step 4: Point Studio at `runtime/analysis.py` and relocate runtime tests**
 
@@ -491,7 +498,7 @@ git commit -m "refactor(runtime): separate production assembly from optimization
 ```python
 def test_create_deep_agent_calls_live_only_under_agents() -> None:
     assert discovered_create_deep_agent_call_paths() == {
-        "agents/analysis/supervisor.py",
+        "agents/analysis/persona_team.py",
         "agents/chat/supervisor.py",
         "agents/solver/supervisor.py",
         "agents/optimizer/proposer.py",
@@ -589,7 +596,7 @@ def test_agents_list_is_catalog_backed_and_has_nineteen_personas() -> None:
     assert len([item for item in payload if item["id"].startswith("analysis.persona.")]) == 19
 
 def test_agents_describe_returns_relationships_without_building_a_model() -> None:
-    result = runner.invoke(app, ["agents", "describe", "analysis.compatibility", "--json"])
+    result = runner.invoke(app, ["agents", "describe", "analysis.persona_team", "--json"])
     payload = json.loads(result.output)
     assert result.exit_code == 0
     assert len(payload["children"]) == 19
@@ -608,7 +615,7 @@ Expected: FAIL because the `agents` command and new documentation do not exist.
 
 - [ ] **Step 3: Implement the read-only Typer group**
 
-Default list output is a compact Rich table; `--json` emits `AgentDescriptor.to_dict()`. `describe` never resolves/builds a model and converts unknown IDs into `typer.Exit(2)`.
+Default list output is a concise Rich table; `--json` emits `AgentDescriptor.to_dict()`. `describe` never resolves/builds a model and converts unknown IDs into `typer.Exit(2)`.
 
 - [ ] **Step 4: Write the colocated architecture guides**
 
@@ -624,7 +631,7 @@ Run: `uv run pytest tests/cli/test_agents.py tests/compat/test_documented_comman
 
 Run: `uv run fin-graph agents list`
 
-Run: `uv run fin-graph agents describe analysis.compatibility`
+Run: `uv run fin-graph agents describe analysis.persona_team`
 
 Expected: tests PASS; commands show supervisors, exactly 19 personas, tools/middleware/children and no duplicate IDs.
 
@@ -635,7 +642,88 @@ git add src/fin_graph/cli src/fin_graph/agents src/fin_graph/workflows src/fin_g
 git commit -m "docs(agents): make multi-agent architecture navigable"
 ```
 
-### Task 10: Ejecutar la aceptación completa sin cambios de comportamiento
+### Task 10: Aislar por completo la aplicación de referencia y aclarar nombres ambiguos
+
+**Files:**
+- Create: `src/fin_graph/adapters/__init__.py`, `src/fin_graph/adapters/reference_app/__init__.py`, `src/fin_graph/adapters/reference_app/README.md`
+- Move: `src/fin_graph/compat/ai_hedge_fund/adapters.py` → `src/fin_graph/adapters/reference_app/mapping.py`
+- Move: remaining `src/fin_graph/compat/ai_hedge_fund/*.py` → `src/fin_graph/adapters/reference_app/`
+- Move: `src/fin_graph/server/compat/` → `src/fin_graph/adapters/reference_app/http/`
+- Move: `src/fin_graph/compat/settings.py` → `src/fin_graph/adapters/reference_app/settings.py`
+- Extract reference-only runtime assembly from `src/fin_graph/runtime/analysis.py` → `src/fin_graph/adapters/reference_app/runtime.py`
+- Move: `src/fin_graph/compat/storage/` → `src/fin_graph/persistence/reference_app/`
+- Move: `src/fin_graph/compat/contracts.py` → `src/fin_graph/conformance/contracts.py`
+- Move: `src/fin_graph/compat/{reference,licensing}.py` → `src/fin_graph/conformance/reference_app/{snapshot,licensing}.py`
+- Move: `src/fin_graph/cli/compat.py` → `src/fin_graph/cli/reference_app.py`
+- Delete: empty `src/fin_graph/compat/`, `src/fin_graph/server/compat/`
+- Modify: every source/test/import consumer of those modules
+- Modify: `src/fin_graph/workflows/analysis/services.py`, `src/fin_graph/flows/service.py`, `src/fin_graph/safety/masking.py`, `src/fin_graph/integrations/{payload,tooling}.py`
+- Create: `tests/architecture/test_reference_boundary.py`
+- Modify: `tests/architecture/test_package_layout.py`, reference/conformance tests as required
+
+**Interfaces:**
+- Consumes: persona analysis supervisor, product runtime services, external request schemas and existing persistence records.
+- Produces: the exact same Python/HTTP/SSE/JSON behavior through explicit `Reference*` types and `reference_app_*` factories; no core package imports this adapter.
+- Preserves verbatim: public `src.*`, `v2.*`, `app.backend.*` shims; routes; payload keys; CLI spelling already documented; environment aliases; table names `compat_*`; migration filenames; database/key filenames; acceptance script names and digests.
+
+- [ ] **Step 1: Write failing reference-boundary architecture tests**
+
+Assert that target modules import, old internal package directories do not exist, and AST names in live product code do not begin with `Legacy`, `Compatibility` or `make_compat`. Allow only explicitly enumerated string literals for persisted/public identifiers. Assert that `agents`, `workflows`, `runtime`, `trading`, `domain`, `safety`, `integrations` and `llm` do not import `fin_graph.adapters.reference_app`.
+
+Add focused assertions for the names `_bounded_evidence_payload`, `normalized_hex` and `normalized_iban`, and absence of functions/locals named only `compact` in product code.
+
+- [ ] **Step 2: Run the boundary test before moving code**
+
+Run: `uv run pytest tests/architecture/test_reference_boundary.py -q`
+
+Expected: FAIL because `fin_graph.compat`, `fin_graph.server.compat`, `ai_hedge_fund`, legacy symbols and ambiguous `compact` names still exist.
+
+- [ ] **Step 3: Move the adapter, persistence and conformance modules**
+
+Move code without behavior edits. The former `adapters.py` becomes `mapping.py`; the reference-only runtime factories move out of `fin_graph.runtime`. Update imports atomically and do not leave re-export shims for internal `fin_graph.compat` paths.
+
+- [ ] **Step 4: Rename internal migration terminology by responsibility**
+
+Use this mechanical map throughout source and tests:
+
+- `Legacy*` → `Reference*`
+- `CompatibilityAdapterError` → `ReferenceAdapterError`
+- `CompatibilityProfile` → `ReferenceAppProfile`
+- `CompatibilityStore`/`SqliteCompatibilityStore` → `ReferenceStore`/`SqliteReferenceStore`
+- `open_compat_sqlite`/`open_compat_postgres` → `open_reference_sqlite`/`open_reference_postgres`
+- `compatibility_router` and app-state `compatibility_*` → `reference_app_router` and `reference_app_*`
+- `LegacyAnalysisBundle` → `PersonaAnalysisBundle`
+- `compatibility_summary` → `persona_summary`
+- `make_reference_analysis_runtime[_async]` remains public only inside `adapters/reference_app/runtime.py`
+
+Do not rename persisted/public literals listed in the interface allowlist.
+
+- [ ] **Step 5: Rename ambiguous bounded/normalized helpers without changing outputs**
+
+Rename analysis `_compact` to `_bounded_evidence_payload`, flow hex normalization to `normalized_hex`, and IBAN normalization to `normalized_iban`. Update payload/tooling docstrings from “compact” to “bounded” where they describe a size/token limit. Characterization assertions must prove byte-equivalent output.
+
+- [ ] **Step 6: Verify old architecture is gone and external behavior remains**
+
+Run: `rg -n "fin_graph\.compat|fin_graph\.server\.compat|ai_hedge_fund|\bLegacy[A-Z]|\bCompatibility[A-Z]|make_compat|\bcompact\b" src tests/architecture`
+
+Expected: only explicit allowlisted public/persisted strings or acceptance references; no old package import or ambiguous identifier.
+
+Run: `uv run pytest tests/architecture/test_reference_boundary.py tests/compat tests/backtesting tests/flows tests/server -q`
+
+Expected: PASS with unchanged contract snapshots and response bodies.
+
+- [ ] **Step 7: Run the complete suite and commit**
+
+Run: `uv run pytest -q`
+
+Expected: zero failures and only baseline environment-dependent skips.
+
+```bash
+git add src tests docs
+git commit -m "refactor(adapters): isolate reference application boundary"
+```
+
+### Task 11: Ejecutar la aceptación completa sin cambios de comportamiento
 
 **Files:**
 - Modify only if evidence changed: `docs/compatibility/parity-report.md`
