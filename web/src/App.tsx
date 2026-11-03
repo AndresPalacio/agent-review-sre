@@ -1,6 +1,9 @@
 import { Component, type ErrorInfo, type ReactNode } from "react";
-import { Blocks, ChevronDown, FilePlus2, LineChart, Search } from "lucide-react";
+import { FilePlus2, LineChart, Search } from "lucide-react";
 import { LayoutProvider } from "./contexts/LayoutContext";
+import { NodeProvider } from "./contexts/NodeContext";
+import { ComponentCatalog } from "./components/catalog/ComponentCatalog";
+import { FlowCanvas } from "./components/flow/FlowCanvas";
 import { TopBar } from "./components/layout/TopBar";
 import { WorkbenchLayout } from "./components/layout/WorkbenchLayout";
 import "./style.css";
@@ -37,23 +40,6 @@ function FlowPlaceholder() {
   </>;
 }
 
-function CanvasPlaceholder() {
-  return <div className="canvas-empty">
-    <div className="canvas-grid" />
-    <div className="empty-card"><LineChart size={34} /><h1>Construye tu estrategia</h1><p>Arrastra analistas y componentes al lienzo para crear un flujo de inversión.</p><button><FilePlus2 size={16} /> Crear primer flujo</button></div>
-  </div>;
-}
-
-function CatalogPlaceholder() {
-  return <>
-    <div className="panel-heading"><strong>Componentes</strong></div>
-    <label className="search-field"><Search size={14} /><span className="sr-only">Buscar componentes</span><input placeholder="Buscar componentes" /></label>
-    <div className="catalog-group"><button><ChevronDown size={14} /> Entrada</button><div className="catalog-item"><Blocks size={18} /><span><strong>Portafolio inicial</strong><small>Capital y posiciones</small></span></div></div>
-    <div className="catalog-group"><button><ChevronDown size={14} /> Analistas</button></div>
-    <div className="catalog-group"><button><ChevronDown size={14} /> Salida</button></div>
-  </>;
-}
-
 function BottomPlaceholder() {
   return <div className="result-shell">
     <div className="result-tabs"><button className="active">Salida</button><button>Razonamiento</button><button>Problemas <span>0</span></button><button>Terminal</button></div>
@@ -62,5 +48,5 @@ function BottomPlaceholder() {
 }
 
 export function App() {
-  return <AppErrorBoundary><LayoutProvider><WorkbenchLayout top={<TopBar />} left={<FlowPlaceholder />} canvas={<CanvasPlaceholder />} right={<CatalogPlaceholder />} bottom={<BottomPlaceholder />} /></LayoutProvider></AppErrorBoundary>;
+  return <AppErrorBoundary><LayoutProvider><NodeProvider><WorkbenchLayout top={<TopBar />} left={<FlowPlaceholder />} canvas={<FlowCanvas />} right={<ComponentCatalog />} bottom={<BottomPlaceholder />} /></NodeProvider></LayoutProvider></AppErrorBoundary>;
 }

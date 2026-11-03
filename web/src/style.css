@@ -74,10 +74,36 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); ou
 .empty-card button { display: inline-flex; align-items: center; gap: 7px; padding: 8px 12px; border: 1px solid var(--border); border-radius: 7px; background: var(--surface-3); cursor: pointer; }
 .catalog-group { border-bottom: 1px solid var(--border); }
 .catalog-group > button { width: 100%; display: flex; align-items: center; gap: 7px; padding: 10px 12px; border: 0; background: transparent; color: var(--muted); font-size: 11px; font-weight: 700; text-transform: uppercase; cursor: pointer; }
+.catalog-group > button span { margin-left: auto; }
+.catalog-items { display: grid; }
 .catalog-item { display: flex; gap: 9px; margin: 0 9px 10px; padding: 10px; border: 1px solid var(--border); border-radius: 7px; background: var(--surface-2); }
 .catalog-item svg { color: var(--accent); }
 .catalog-item span { display: flex; flex-direction: column; font-size: 12px; }
 .catalog-item small { margin-top: 3px; color: var(--muted); font-size: 10px; }
+.catalog-empty { padding: 24px 12px; text-align: center; color: var(--muted); font-size: 12px; }
+.flow-canvas { position: relative; width: 100%; height: 100%; min-height: 320px; }
+.flow-canvas .react-flow { background: var(--bg); }
+.flow-canvas .react-flow__background { color: var(--border); }
+.flow-controls { position: absolute; z-index: 4; top: 10px; left: 50%; transform: translateX(-50%); display: flex; align-items: center; gap: 4px; padding: 4px; border: 1px solid var(--border); border-radius: 8px; background: color-mix(in srgb, var(--surface) 95%, transparent); box-shadow: 0 8px 22px #0004; }
+.flow-controls input { width: 170px; height: 27px; padding: 0 8px; border: 0; background: transparent; color: var(--text); font-size: 12px; }
+.flow-controls button { width: 28px; height: 28px; display: grid; place-items: center; border: 0; border-radius: 5px; background: transparent; cursor: pointer; }
+.flow-controls button:hover:not(:disabled) { background: var(--surface-3); }
+.flow-controls button:disabled { opacity: .35; }
+.canvas-warning { position: absolute; z-index: 6; left: 12px; bottom: 12px; max-width: 320px; padding: 8px 11px; border: 1px solid #b7791f; border-radius: 7px; background: #392b13; color: #fde68a; font-size: 11px; }
+.flow-node { width: 220px; min-height: 62px; display: grid; grid-template-columns: 35px minmax(0, 1fr) 8px; align-items: center; gap: 8px; padding: 9px 11px; border: 1px solid var(--border); border-radius: 9px; background: var(--surface-2); box-shadow: 0 8px 24px #0004; }
+.flow-node.selected { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent), 0 8px 24px #0004; }
+.node-icon { width: 32px; height: 32px; display: grid; place-items: center; border-radius: 7px; color: var(--accent); background: var(--accent-soft); }
+.node-copy { min-width: 0; display: flex; flex-direction: column; }
+.node-copy strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 12px; }
+.node-copy small { margin-top: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--muted); font-size: 9px; }
+.node-status { width: 7px; height: 7px; border-radius: 50%; background: var(--muted); }
+.node-status.in_progress { background: #60a5fa; box-shadow: 0 0 6px #60a5fa; }
+.node-status.complete { background: var(--accent); }
+.node-status.error { background: var(--danger); }
+.flow-node .react-flow__handle { width: 7px; height: 7px; border: 1px solid var(--surface); background: var(--muted); }
+.flow-node-agent-node .node-icon { color: #60a5fa; background: #172d49; }
+.flow-node-portfolio-manager-node .node-icon { color: #c084fc; background: #302044; }
+.flow-node-unknown-node { border-color: #b7791f; }
 .result-tabs { height: 39px; display: flex; align-items: stretch; gap: 4px; padding: 0 10px; border-bottom: 1px solid var(--border); }
 .result-tabs button { padding: 0 10px; border: 0; border-bottom: 2px solid transparent; background: transparent; color: var(--muted); font-size: 11px; cursor: pointer; }
 .result-tabs button.active { color: var(--text); border-bottom-color: var(--accent); }
