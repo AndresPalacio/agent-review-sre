@@ -12,6 +12,7 @@ from fin_graph.compat.storage.models import (
     RunCycleRecord,
     RunStatus,
 )
+from fin_graph.compat.storage.postgres import open_compat_postgres
 from fin_graph.compat.storage.protocol import (
     CompatibilityStore,
     ConcurrentUpdateError,
@@ -36,5 +37,6 @@ __all__ = [
     "RunCycleRecord",
     "RunStatus",
     "SecretCipher",
+    "open_compat_postgres",
     "open_compat_sqlite",
 ]

@@ -1,5 +1,5 @@
-"""Import target for Uvicorn and Docker."""
+"""Import target selecting local SQLite unless ``DATABASE_URL`` requests Postgres."""
 
-from fin_graph.server.app import create_app
+from fin_graph.server.factory import RuntimeProfile, create_app
 
-app = create_app()
+app = create_app(RuntimeProfile.from_env())

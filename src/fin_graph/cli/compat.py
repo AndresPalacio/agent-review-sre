@@ -243,7 +243,9 @@ def app_command(
 
     try:
         factory = importlib.import_module("fin_graph.server.factory")
-        application = factory.create_runtime_app(factory.RuntimeProfile.local(data_dir=data_dir))
+        application = factory.create_runtime_app(
+            factory.RuntimeProfile.local(data_dir=data_dir, host=host)
+        )
     except ImportError:
         from fin_graph.server.app import create_app
 

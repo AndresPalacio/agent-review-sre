@@ -1,5 +1,31 @@
 services:
+  app:
+    build: .
+    command: ["uv", "run", "--no-sync", "fin-graph", "app", "--host", "0.0.0.0", "--data-dir", "/data"]
+    environment:
+      FIN_GRAPH_ALLOW_INSECURE_LEGACY_API: "true"
+      FIN_GRAPH_DATA_DIR: /data
+    ports:
+      - "8000:8000"
+    volumes:
+      - appdata:/data
+
+  server:
+    profiles: ["distributed"]
+    build: .
+    command: ["uv", "run", "--no-sync", "uvicorn", "fin_graph.server.asgi:app", "--host", "0.0.0.0", "--port", "8000"]
+    environment:
+      DATABASE_URL: postgresql+psycopg://fin_graph:fin_graph@postgres:5432/fin_graph
+      BOOTSTRAP_ADMIN_KEY: ${BOOTSTRAP_ADMIN_KEY:-local-distributed-admin-key-change-me-000000}
+      FIN_GRAPH_HOST: 0.0.0.0
+    ports:
+      - "8001:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
   postgres:
+    profiles: ["distributed"]
     image: pgvector/pgvector:pg17
     environment:
       POSTGRES_USER: fin_graph
@@ -17,3 +43,4 @@ services:
 
 volumes:
   pgdata:
+  appdata:

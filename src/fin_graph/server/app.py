@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+import base64
 import hashlib
 import json
 import logging
@@ -27,7 +28,11 @@ from sqlalchemy import text as sql_text
 from sqlalchemy.ext.asyncio import create_async_engine
 
 from fin_graph.compat.settings import CompatibilityProfile
-from fin_graph.compat.storage import CompatibilityStore
+from fin_graph.compat.storage import (
+    CompatibilityStore,
+    FernetSecretCipher,
+    open_compat_postgres,
+)
 from fin_graph.config.settings import PersistenceBackend, Settings
 from fin_graph.config.tracing import disable_external_tracing
 from fin_graph.delivery.service import DeliveryService
@@ -164,6 +169,9 @@ def create_app(
                 await manager.start()
                 yield
             finally:
+                backtests = getattr(app.state, "compatibility_backtest_manager", None)
+                if backtests is not None:
+                    await backtests.close()
                 await app.state.events.stop()
                 await manager.stop()
                 await manager.storage.close()
@@ -181,6 +189,15 @@ def create_app(
             stack.push_async_callback(engine.dispose)
             stack.push_async_callback(storage.close)
             stack.push_async_callback(listener.stop)
+            if compatibility_store is None and engine.dialect.name == "postgresql":
+                derived_key = base64.urlsafe_b64encode(
+                    hashlib.sha256(
+                        f"fin-graph-compatibility:{bootstrap.get_secret_value()}".encode()
+                    ).digest()
+                )
+                app.state.compatibility_store = await stack.enter_async_context(
+                    open_compat_postgres(engine, cipher=FernetSecretCipher(derived_key))
+                )
             settings = Settings(
                 persistence_backend=PersistenceBackend.POSTGRES,
                 database_url=options.database_url,
@@ -436,7 +453,12 @@ def create_app(
             await active_scheduler.start()
             if isinstance(app.state.slack_gateway, SlackGateway):
                 await app.state.slack_gateway.start_socket_mode()
-            yield
+            try:
+                yield
+            finally:
+                backtests = getattr(app.state, "compatibility_backtest_manager", None)
+                if backtests is not None:
+                    await backtests.close()
 
     app = FastAPI(title="fin-graph", lifespan=lifespan)
     app.state.compatibility_store = compatibility_store

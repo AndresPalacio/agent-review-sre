@@ -42,6 +42,13 @@ async def test_alembic_upgrade_is_repeatable(tmp_path: Path) -> None:
         "paper_orders",
         "gateway_events",
         "gateway_threads",
+        "compat_flows",
+        "compat_flow_revisions",
+        "compat_flow_runs",
+        "compat_run_cycles",
+        "compat_provider_keys",
+        "compat_backtest_jobs",
+        "compat_artifacts",
         "alembic_version",
     } <= tables
     assert "thread_id" in action_columns
