@@ -117,7 +117,7 @@ async def test_v1_long_short_scenarios_match_golden_results(case_name: str) -> N
     assert result.metrics.benchmark_return_pct == pytest.approx(2.0)
     assert result.metrics.sharpe_ratio == pytest.approx(case["sharpe_ratio"])
     assert result.metrics.max_drawdown_pct == pytest.approx(case["max_drawdown_pct"])
-    assert result.metrics.max_drawdown_date == date(2025, 1, 8)
+    assert result.metrics.max_drawdown_date == date.fromisoformat(case["max_drawdown_date"])
     assert result.metrics.win_rate_pct == pytest.approx(case["win_rate_pct"])
     assert sum(event.terminal for event in events) == 1
     assert events[-1].kind.value == "complete"

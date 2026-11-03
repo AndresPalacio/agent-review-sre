@@ -5,7 +5,7 @@ from __future__ import annotations
 import asyncio
 import json
 from collections.abc import Callable
-from datetime import date
+from datetime import date, timedelta
 from pathlib import Path
 from typing import Any
 
@@ -172,6 +172,19 @@ async def test_annual_statements_count_only_after_the_reporting_lag(fake: FakeYa
 
     assert [item.report_period for item in before] == [date(2022, 9, 24), date(2021, 9, 25)]
     assert after[0].report_period == date(2023, 9, 30)
+
+
+async def test_annual_records_remain_unavailable_until_their_synthetic_filing_date(
+    fake: FakeYahoo,
+) -> None:
+    yahoo = client(fake, report_lag_days=45)
+
+    metrics = await yahoo.financial_metrics("AAPL", date(2024, 1, 20))
+    items = await yahoo.line_items("AAPL", ["revenue"], date(2024, 1, 20))
+    annual_metric = next(item for item in metrics if item.period == "annual")
+
+    assert annual_metric.filing_date == annual_metric.report_period + timedelta(days=45)
+    assert items[0].filing_date == items[0].report_period + timedelta(days=45)
 
 
 async def test_line_items_merge_summary_and_timeseries(fake: FakeYahoo) -> None:

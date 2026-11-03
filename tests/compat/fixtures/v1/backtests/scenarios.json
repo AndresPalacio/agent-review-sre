@@ -11,6 +11,7 @@
     "final_value": 10050.0,
     "sharpe_ratio": 1.1984945164625067,
     "max_drawdown_pct": -1.9801980198019802,
+    "max_drawdown_date": "2025-01-08",
     "win_rate_pct": 50.0,
     "total_return_pct": 0.49999999999998934
   },
@@ -22,10 +23,11 @@
       {"AAPL": ["cover", 5]},
       {"AAPL": ["cover", 5]}
     ],
-    "portfolio_values": [10000.0, 10100.0, 9900.0, 10050.0],
+    "portfolio_values": [9500.0, 9600.0, 9650.0, 10050.0],
     "final_value": 10050.0,
-    "sharpe_ratio": 1.1984945164625067,
-    "max_drawdown_pct": -1.9801980198019802,
+    "sharpe_ratio": 0.6776079104049841,
+    "max_drawdown_pct": -5.0,
+    "max_drawdown_date": "2025-01-06",
     "win_rate_pct": 50.0,
     "total_return_pct": 0.49999999999998934
   },
@@ -40,10 +42,11 @@
       {},
       {"AAPL": ["sell", 5], "MSFT": ["cover", 5]}
     ],
-    "portfolio_values": [10000.0, 10100.0, 9900.0, 10200.0],
+    "portfolio_values": [9750.0, 9850.0, 9650.0, 10200.0],
     "final_value": 10200.0,
-    "sharpe_ratio": 3.769419413386307,
-    "max_drawdown_pct": -1.9801980198019802,
+    "sharpe_ratio": 2.236047710770429,
+    "max_drawdown_pct": -3.5000000000000004,
+    "max_drawdown_date": "2025-01-08",
     "win_rate_pct": 100.0,
     "total_return_pct": 2.0000000000000018
   }

@@ -65,7 +65,9 @@ def execute_day(
     )
     return DayExecution(
         portfolio=current,
-        portfolio_value=current.net_liquidation_value(prices),
+        # The compatibility engine intentionally mirrors ai-hedge-fund's historical
+        # valuation: free cash + longs - shorts, without adding locked collateral.
+        portfolio_value=current.cash + long_exposure - short_exposure,
         executed_trades=executed,
         realized_pnl=realized,
         exit_pnl=tuple(exits),

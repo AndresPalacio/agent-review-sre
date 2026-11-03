@@ -132,9 +132,14 @@ def test_legacy_portfolio_round_trips_short_margin_and_realized_gains() -> None:
     }
 
     portfolio = LegacyPortfolio.model_validate(payload)
+    native = portfolio.to_native()
 
     assert portfolio.model_dump(mode="json") == payload
-    assert portfolio.to_native().margin_used == 1_500.0
+    assert native.margin_used == 1_500.0
+    assert native.position("AAPL").short_margin_used == 1_500.0
+    assert native.realized_gains["AAPL"].long == 12.5
+    assert native.realized_gains["AAPL"].short == -7.0
+    assert LegacyPortfolio.from_native(native).model_dump(mode="json") == payload
 
 
 def test_real_price_histories_drive_volatility_limits_and_risk_payload() -> None:

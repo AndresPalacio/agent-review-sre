@@ -368,7 +368,7 @@ class YahooClient(MarketDataClient):
                 FinancialMetrics(
                     ticker=ticker,
                     report_period=day,
-                    filing_date=day,
+                    filing_date=day + self.report_lag,
                     period="annual",
                     currency=currency,
                     gross_margin=facts["gross_margin"],
@@ -442,7 +442,7 @@ class YahooClient(MarketDataClient):
             LineItem(
                 ticker=ticker,
                 report_period=day,
-                filing_date=day,
+                filing_date=day + self.report_lag,
                 period="annual",
                 currency=currency,
                 **{name: facts.get(name) for name in names},

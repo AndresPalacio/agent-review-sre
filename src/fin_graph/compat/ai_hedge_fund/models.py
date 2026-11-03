@@ -9,7 +9,7 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator, model_valida
 
 from fin_graph.domain.analysts import AnalystId, resolve_analysts
 from fin_graph.domain.orders import OrderAction
-from fin_graph.domain.portfolio import Portfolio, Position
+from fin_graph.domain.portfolio import Portfolio, Position, RealizedGains
 from fin_graph.domain.quant.common import Signal
 from fin_graph.domain.requests.model import unique_tickers
 
@@ -55,8 +55,13 @@ class LegacyPortfolio(BaseModel):
                     short=position.short,
                     long_cost_basis=position.long_cost_basis,
                     short_cost_basis=position.short_cost_basis,
+                    short_margin_used=position.short_margin_used,
                 )
                 for ticker, position in self.positions.items()
+            },
+            realized_gains={
+                ticker: RealizedGains(long=gains.long, short=gains.short)
+                for ticker, gains in self.realized_gains.items()
             },
         )
 
@@ -72,10 +77,14 @@ class LegacyPortfolio(BaseModel):
                     short=position.short,
                     long_cost_basis=position.long_cost_basis,
                     short_cost_basis=position.short_cost_basis,
+                    short_margin_used=position.short_margin_used,
                 )
                 for ticker, position in portfolio.positions.items()
             },
-            realized_gains={ticker: LegacyRealizedGains() for ticker in portfolio.positions},
+            realized_gains={
+                ticker: LegacyRealizedGains(long=gains.long, short=gains.short)
+                for ticker, gains in portfolio.realized_gains.items()
+            },
         )
 
 

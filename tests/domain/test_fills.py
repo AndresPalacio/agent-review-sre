@@ -33,11 +33,14 @@ def test_shorts_lock_collateral_that_still_counts_as_equity() -> None:
     shorted = apply_fill(start, "B", OrderAction.SHORT, 10, 50.0)
 
     assert shorted.portfolio.cash == 8_700.0 and shorted.portfolio.margin_used == 250.0
+    assert shorted.portfolio.position("B").short_margin_used == 250.0
     # Opening a short at the market price leaves the net liquidation value unchanged.
     assert shorted.portfolio.net_liquidation_value(prices) == before == 10_400.0
     covered = apply_fill(shorted.portfolio, "B", OrderAction.COVER, 4, 40.0)
     assert covered.realized_pnl == 40.0
     assert covered.portfolio.cash == 8_640.0 and covered.portfolio.margin_used == 150.0
+    assert covered.portfolio.position("B").short_margin_used == 150.0
+    assert covered.portfolio.realized_gains["B"].short == 40.0
     # 10 000 start + 100 long realized + 300 long open + 40 short realized + 60 short open.
     assert covered.portfolio.net_liquidation_value({"A": 130.0, "B": 40.0}) == 10_500.0
 
@@ -49,6 +52,18 @@ def test_closing_a_position_removes_it_and_resets_its_cost() -> None:
 
     assert "A" not in sold.portfolio.positions and sold.realized_pnl == -50.0
     assert sold.portfolio.cash == 950.0
+    assert sold.portfolio.realized_gains["A"].long == -50.0
+
+
+def test_cover_releases_the_positions_actual_margin_after_mixed_short_entries() -> None:
+    first = apply_fill(Portfolio(cash=10_000.0), "A", OrderAction.SHORT, 10, 100.0)
+    second = apply_fill(first.portfolio, "A", OrderAction.SHORT, 10, 200.0)
+
+    covered = apply_fill(second.portfolio, "A", OrderAction.COVER, 10, 150.0)
+
+    assert covered.portfolio.position("A").short_margin_used == 750.0
+    assert covered.portfolio.margin_used == 750.0
+    assert covered.portfolio.realized_gains["A"].short == 0.0
 
 
 def test_an_approved_quantity_is_never_silently_reduced() -> None:

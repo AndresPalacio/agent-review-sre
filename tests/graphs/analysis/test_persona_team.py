@@ -12,10 +12,11 @@ from langchain_core.tools import BaseTool, tool
 from pydantic import PrivateAttr
 
 from fin_graph.agents.testing.scripted_model import ScriptedChatModel
+from fin_graph.compat.ai_hedge_fund.models import LegacyHedgeFundResult
 from fin_graph.domain.analysts import AnalystId, analyst_catalog, resolve_analysts
 from fin_graph.domain.company import CompanySnapshot
 from fin_graph.domain.market import FinancialMetrics, LineItem, Price
-from fin_graph.domain.quant.common import Signal
+from fin_graph.domain.quant.common import QuantScore, Signal
 from fin_graph.domain.requests.model import AnalysisRequest
 from fin_graph.domain.tools import (
     Domain,
@@ -28,6 +29,7 @@ from fin_graph.domain.tools import (
 from fin_graph.graphs.analysis.compat import (
     LegacyAnalysisBundle,
     PersonaFailureCode,
+    _authoritative_reasoning,
     make_compat_analysis_agent,
 )
 from fin_graph.graphs.analysis.personas import build_persona_subagents
@@ -286,7 +288,7 @@ async def test_explicit_selection_preserves_scores_and_child_failure(
             calls.append(self.name)
             if self.name.endswith("news_sentiment_analyst"):
                 raise RuntimeError("scripted child failure")
-            return {"messages": [AIMessage("Ignore the score: this is bearish.")]}
+            return {"messages": [AIMessage("Sell CASE or open a short position.")]}
 
     monkeypatch.setattr(
         "fin_graph.graphs.analysis.compat.create_deep_agent",
@@ -308,11 +310,13 @@ async def test_explicit_selection_preserves_scores_and_child_failure(
 
     result = await graph.ainvoke({"request": request.model_dump(mode="json")})
     bundle = LegacyAnalysisBundle.model_validate(result["bundle"])
+    legacy_result = LegacyHedgeFundResult.model_validate(result["result"])
 
     assert [finding.analyst_id for finding in bundle.findings] == list(request.analysts or ())
     growth, failed = bundle.findings
     assert growth.score is not None and growth.score.signal is Signal.BULLISH
-    assert "bearish" not in growth.reasoning.lower()
+    assert "sell" not in growth.reasoning.lower()
+    assert "short" not in growth.reasoning.lower()
     assert growth.evidence_ids
     assert failed.score is not None
     assert failed.error is not None
@@ -321,6 +325,28 @@ async def test_explicit_selection_preserves_scores_and_child_failure(
     assert len(failed.error.correlation_id) == 16
     assert calls == ["analyst_growth_analyst", "analyst_news_sentiment_analyst"]
     assert services.loaded == ["CASE"]
+    assert set(legacy_result.decisions) == {"CASE"}
+    assert "risk_management_agent" in legacy_result.analyst_signals
+
+
+@pytest.mark.parametrize(
+    ("signal", "narrative"),
+    [
+        (Signal.BULLISH, "Sell the position."),
+        (Signal.BULLISH, "Open a short."),
+        (Signal.BEARISH, "Buy and stay long."),
+        (Signal.NEUTRAL, "Buy the breakout."),
+    ],
+)
+def test_directional_narratives_cannot_override_authoritative_scores(
+    signal: Signal,
+    narrative: str,
+) -> None:
+    score = QuantScore(analyst=Domain.FUNDAMENTALS, ticker="CASE", signal=signal, confidence=80)
+
+    reasoning = _authoritative_reasoning(narrative, score)
+
+    assert "was withheld" in reasoning
 
 
 async def test_no_selection_runs_all_nineteen_in_catalog_order(

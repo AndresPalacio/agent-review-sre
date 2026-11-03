@@ -5,6 +5,7 @@ from __future__ import annotations
 import asyncio
 import hashlib
 import json
+import re
 from collections.abc import Mapping
 from datetime import date
 from enum import StrEnum
@@ -93,6 +94,7 @@ class _CompatState(TypedDict, total=False):
     raw_request: dict[str, Any]
     portfolio: dict[str, Any]
     bundle: dict[str, Any]
+    result: dict[str, Any]
     errors: list[str]
 
 
@@ -156,12 +158,26 @@ def _evidence_ids(snapshot: CompanySnapshot) -> tuple[str, ...]:
 
 def _authoritative_reasoning(text: str, score: QuantScore) -> str:
     cleaned = text.strip()
-    opposite = {
-        "bullish": "bearish",
-        "bearish": "bullish",
-        "neutral": "",
+    bullish_actions = (
+        r"\bbullish\b",
+        r"\bbuy\b",
+        r"\b(?:go|stay|remain|open(?:\s+a)?)\s+long\b",
+        r"\blong\s+(?:the|this|position|shares|stock|ticker)\b",
+        r"\boverweight\b",
+    )
+    bearish_actions = (
+        r"\bbearish\b",
+        r"\bsell\b",
+        r"\b(?:go|stay|remain|open(?:\s+a)?)\s+short\b",
+        r"\bshort\s+(?:the|this|position|shares|stock|ticker)\b",
+        r"\bunderweight\b",
+    )
+    forbidden = {
+        "bullish": bearish_actions,
+        "bearish": bullish_actions,
+        "neutral": (*bullish_actions, *bearish_actions),
     }[score.signal.value]
-    if opposite and opposite in cleaned.lower():
+    if any(re.search(pattern, cleaned, flags=re.IGNORECASE) for pattern in forbidden):
         return (
             f"Deterministic {score.signal.value} score retained; "
             "the model narrative was withheld because it contradicted that score."
@@ -200,6 +216,7 @@ def make_compat_analysis_agent(
 
     async def analyze(state: _CompatState) -> dict[str, Any]:
         request_payload = state.get("request")
+        portfolio_payload: object | None = state.get("portfolio")
         if request_payload is None:
             raw = state.get("raw_request", {})
             request_payload = {
@@ -211,6 +228,8 @@ def make_compat_analysis_agent(
                 "source": "chat",
                 "portfolio": state.get("portfolio"),
             }
+        elif isinstance(request_payload, Mapping):
+            portfolio_payload = request_payload.get("portfolio", portfolio_payload)
         request = AnalysisRequest.model_validate(request_payload)
         selected = resolve_analysts(request.analysts)
 
@@ -300,7 +319,39 @@ def make_compat_analysis_agent(
             )
         )
         bundle = LegacyAnalysisBundle(request=request, findings=tuple(findings))
-        return {"bundle": bundle.model_dump(mode="json"), "errors": []}
+        from fin_graph.compat.ai_hedge_fund.portfolio import build_legacy_portfolio_result
+        from fin_graph.domain.portfolio import Portfolio
+
+        portfolio = (
+            Portfolio.model_validate(portfolio_payload)
+            if portfolio_payload is not None
+            else request.portfolio or Portfolio()
+        )
+        prices: dict[str, float] = {}
+        price_histories: dict[str, tuple[Any, ...]] = {}
+        for ticker, snapshot in zip(request.tickers, snapshots, strict=True):
+            if isinstance(snapshot, Exception):
+                continue
+            history = tuple(
+                sorted(
+                    (bar for bar in snapshot.prices if bar.day <= request.as_of),
+                    key=lambda bar: bar.time,
+                )
+            )
+            price_histories[ticker] = history
+            if history:
+                prices[ticker] = history[-1].effective_close
+        result = build_legacy_portfolio_result(
+            findings,
+            portfolio,
+            prices,
+            price_histories=price_histories,
+        )
+        return {
+            "bundle": bundle.model_dump(mode="json"),
+            "result": result.model_dump(mode="json"),
+            "errors": [],
+        }
 
     builder = StateGraph(_CompatState)
     builder.add_node("analyze_personas", analyze)

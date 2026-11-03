@@ -20,6 +20,7 @@ class Position(BaseModel):
     short: int = Field(default=0, ge=0)
     long_cost_basis: float = Field(default=0.0, ge=0)
     short_cost_basis: float = Field(default=0.0, ge=0)
+    short_margin_used: float = Field(default=0.0, ge=0)
 
     @property
     def net_shares(self) -> int:
@@ -28,6 +29,15 @@ class Position(BaseModel):
     def exposure(self, price: float) -> float:
         """Absolute net market value at ``price``."""
         return abs(self.net_shares * price)
+
+
+class RealizedGains(BaseModel):
+    """Cumulative closed-position profit and loss for one ticker, split by side."""
+
+    model_config = ConfigDict(frozen=True)
+
+    long: float = 0.0
+    short: float = 0.0
 
 
 class Portfolio(BaseModel):
@@ -39,6 +49,7 @@ class Portfolio(BaseModel):
     positions: dict[str, Position] = Field(default_factory=dict)
     margin_requirement: float = Field(default=0.5, ge=0, le=1)
     margin_used: float = Field(default=0.0, ge=0)
+    realized_gains: dict[str, RealizedGains] = Field(default_factory=dict)
     currency: str = "USD"
 
     def position(self, ticker: str) -> Position:

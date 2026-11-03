@@ -10,9 +10,8 @@ Ported from ai-hedge-fund ``src/backtesting/portfolio.py`` (MIT), with three del
   a human approved that quantity. The backtester passes ``partial=True`` for the original
   "fill what fits" behaviour.
 
-Collateral is ``quantity x price x margin_requirement`` per short. Covering releases it in
-proportion at the average short price, which equals the original's per-position tracking while
-the margin requirement does not change.
+Collateral is ``quantity x price x margin_requirement`` per short. Covering releases the exact
+proportion recorded on that position, including portfolios restored from a legacy snapshot.
 """
 
 from __future__ import annotations
@@ -23,7 +22,7 @@ from enum import StrEnum
 from pydantic import BaseModel, ConfigDict, Field
 
 from fin_graph.domain.orders import OrderAction, ProposedOrder
-from fin_graph.domain.portfolio import Portfolio, Position
+from fin_graph.domain.portfolio import Portfolio, Position, RealizedGains
 
 
 class InsufficientFunds(ValueError):
@@ -143,6 +142,7 @@ def apply_fill(
             update={
                 "short": held.short + executed,
                 "short_cost_basis": _weighted(held.short, held.short_cost_basis, executed, price),
+                "short_margin_used": held.short_margin_used + margin,
             }
         )
         cash += executed * price - margin
@@ -158,13 +158,17 @@ def apply_fill(
                 needed = executed * per_share
                 raise InsufficientFunds(f"cover needs {needed:,.2f}, cash is {cash:,.2f}")
             executed = int(cash // per_share)
-        released = min(margin_used, executed * held.short_cost_basis * ratio)
+        portion = executed / held.short if held.short else 0.0
+        released = min(margin_used, held.short_margin_used * portion)
         realized = (held.short_cost_basis - price) * executed
         remaining = held.short - executed
         position = held.model_copy(
             update={
                 "short": remaining,
                 "short_cost_basis": held.short_cost_basis if remaining else 0.0,
+                "short_margin_used": max(held.short_margin_used - released, 0.0)
+                if remaining
+                else 0.0,
             }
         )
         cash += released - executed * price
@@ -176,12 +180,22 @@ def apply_fill(
         positions.pop(ticker, None)
     else:
         positions[ticker] = position
+    realized_gains = dict(portfolio.realized_gains)
+    if action in (OrderAction.SELL, OrderAction.COVER):
+        previous = realized_gains.get(ticker, RealizedGains())
+        if action is OrderAction.SELL:
+            realized_gains[ticker] = previous.model_copy(update={"long": previous.long + realized})
+        else:
+            realized_gains[ticker] = previous.model_copy(
+                update={"short": previous.short + realized}
+            )
     after = portfolio.model_copy(
         update={
             # Clamp only float rounding: every branch above keeps cash and margin non-negative.
             "cash": max(cash, 0.0),
             "margin_used": max(margin_used, 0.0),
             "positions": positions,
+            "realized_gains": realized_gains,
         }
     )
     return FillResult(
