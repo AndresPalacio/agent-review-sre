@@ -4,10 +4,13 @@ from __future__ import annotations
 
 from datetime import datetime
 from enum import StrEnum
+from typing import Annotated
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, StringConstraints
 
 from fin_graph.compat.contracts import JsonObject, JsonValue
+
+NonBlankString = Annotated[str, StringConstraints(strip_whitespace=True, min_length=1)]
 
 
 class RunStatus(StrEnum):
@@ -59,7 +62,7 @@ class FlowRunRecord(StoredRecord):
 class RunCycleRecord(StoredRecord):
     run_id: str
     sequence: int = Field(ge=1)
-    event: str = Field(min_length=1)
+    event: NonBlankString
     payload: JsonObject
 
 
@@ -69,7 +72,7 @@ class ProviderKeyRecord(StoredRecord):
 
 
 class BacktestJobRecord(StoredRecord):
-    kind: str = Field(min_length=1)
+    kind: NonBlankString
     status: JobStatus
     request: JsonObject
     result: JsonValue = None
@@ -78,6 +81,6 @@ class BacktestJobRecord(StoredRecord):
 
 class ArtifactRecord(StoredRecord):
     job_id: str
-    kind: str = Field(min_length=1)
-    path: str = Field(min_length=1)
+    kind: NonBlankString
+    path: NonBlankString
     metadata: JsonObject

@@ -38,6 +38,12 @@ def test_snapshot_is_stable_and_excludes_private_state(tmp_path: Path) -> None:
     _write(root / "__pycache__" / "main.cpython-312.pyc", "must-not-leak")
     _write(root / ".venv" / "Lib" / "site-packages" / "private.py", "must-not-leak")
     _write(root / "node_modules" / "private" / "index.js", "must-not-leak")
+    _write(root / ".ai_hedge_fund" / "jobs" / "request.json", "must-not-leak")
+    _write(root / ".v2_cache" / "models" / "weights.json", "must-not-leak")
+    _write(root / ".claude" / "settings.local.json", "must-not-leak")
+    _write(root / "hedge_fund.db-wal", "must-not-leak")
+    _write(root / "hedge_fund.sqlite-shm", "must-not-leak")
+    _write(root / "hedge_fund.sqlite3-journal", "must-not-leak")
 
     first = build_reference_snapshot(root)
     second = build_reference_snapshot(root)

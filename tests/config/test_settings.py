@@ -40,6 +40,36 @@ def test_dotenv_file_in_working_directory_is_read(
     assert Settings().llm_provider == "ollama"
 
 
+def test_conflicting_dotenv_compatibility_aliases_are_rejected_without_values(
+    tmp_path: Path,
+) -> None:
+    env_file = tmp_path / ".env"
+    env_file.write_text(
+        "LLM_PROVIDER=openai\nDEFAULT_MODEL_PROVIDER=anthropic\n",
+        encoding="utf-8",
+    )
+
+    with pytest.raises(ValueError) as caught:
+        Settings(_env_file=env_file)
+
+    message = str(caught.value)
+    assert "LLM_PROVIDER" in message
+    assert "DEFAULT_MODEL_PROVIDER" in message
+    assert "openai" not in message
+    assert "anthropic" not in message
+
+
+def test_conflicting_process_and_dotenv_aliases_are_rejected(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    env_file = tmp_path / ".env"
+    env_file.write_text("DEFAULT_MODEL_PROVIDER=anthropic\n", encoding="utf-8")
+    monkeypatch.setenv("LLM_PROVIDER", "openai")
+
+    with pytest.raises(ValueError, match=r"LLM_PROVIDER.*DEFAULT_MODEL_PROVIDER"):
+        Settings(_env_file=env_file)
+
+
 def test_missing_database_url_names_the_variable_to_set() -> None:
     with pytest.raises(ValueError, match="DATABASE_URL"):
         Settings(_env_file=None).require_database_url()
@@ -81,6 +111,21 @@ def test_provider_and_environment_names_are_normalized(monkeypatch: pytest.Monke
 
     assert settings.llm_provider == "anthropic"
     assert settings.environment == "prod"
+
+
+@pytest.mark.parametrize(
+    ("reference_name", "canonical_name"),
+    [
+        ("Google", "google_genai"),
+        ("Mistral", "mistralai"),
+        ("Azure OpenAI", "azure_openai"),
+    ],
+)
+def test_reference_provider_names_are_canonicalized_in_settings(
+    reference_name: str,
+    canonical_name: str,
+) -> None:
+    assert Settings(_env_file=None, llm_provider=reference_name).llm_provider == canonical_name
 
 
 def test_database_password_never_appears_in_repr(monkeypatch: pytest.MonkeyPatch) -> None:

@@ -7,7 +7,7 @@ import json
 from collections.abc import Sequence
 from pathlib import Path
 
-from fin_graph.compat.licensing import audit_assets
+from fin_graph.compat.licensing import AssetInventory, audit_assets
 from fin_graph.compat.reference import ReferenceSnapshot
 
 
@@ -33,16 +33,17 @@ def main(argv: Sequence[str] | None = None) -> int:
 
     snapshot = ReferenceSnapshot.model_validate_json(arguments.snapshot.read_text(encoding="utf-8"))
     assets = audit_assets(root, snapshot)
-    inventory = {
-        "schema_version": 1,
-        "snapshot_digest": snapshot.root_digest,
-        "redistributable_count": sum(asset.redistributable for asset in assets),
-        "excluded_count": sum(not asset.redistributable for asset in assets),
-        "assets": [asset.model_dump(mode="json") for asset in assets],
-    }
+    inventory = AssetInventory(
+        schema_version=1,
+        snapshot_digest=snapshot.root_digest,
+        redistributable_count=sum(asset.redistributable for asset in assets),
+        excluded_count=sum(not asset.redistributable for asset in assets),
+        assets=assets,
+    )
     output.parent.mkdir(parents=True, exist_ok=True)
     output.write_text(
-        json.dumps(inventory, ensure_ascii=False, indent=2, sort_keys=True) + "\n",
+        json.dumps(inventory.model_dump(mode="json"), ensure_ascii=False, indent=2, sort_keys=True)
+        + "\n",
         encoding="utf-8",
     )
     return 0

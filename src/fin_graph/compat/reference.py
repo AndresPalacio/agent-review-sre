@@ -12,12 +12,14 @@ from pydantic import BaseModel, ConfigDict
 _EXCLUDED_DIRECTORIES = frozenset(
     {
         ".cache",
+        ".ai_hedge_fund",
         ".git",
         ".mypy_cache",
         ".pytest_cache",
         ".ruff_cache",
         ".tox",
         ".venv",
+        ".v2_cache",
         "__pycache__",
         "build",
         "dist",
@@ -27,6 +29,11 @@ _EXCLUDED_DIRECTORIES = frozenset(
     }
 )
 _PRIVATE_SUFFIXES = frozenset({".db", ".pyc", ".pyo", ".sqlite", ".sqlite3"})
+_PRIVATE_DATABASE_SIDECARS = tuple(
+    f"{database_suffix}-{sidecar}"
+    for database_suffix in (".db", ".sqlite", ".sqlite3")
+    for sidecar in ("journal", "shm", "wal")
+)
 _SAFE_ENV_TEMPLATES = frozenset({".env.example", ".env.sample", ".env.template"})
 
 
@@ -61,6 +68,10 @@ def _is_excluded(relative: Path) -> bool:
         return True
     if name == ".env" or (name.startswith(".env.") and name not in _SAFE_ENV_TEMPLATES):
         return True
+    if lowered_parts == (".claude", "settings.local.json"):
+        return True
+    if name.endswith(_PRIVATE_DATABASE_SIDECARS):
+        return True
     return Path(name).suffix in _PRIVATE_SUFFIXES
 
 
@@ -81,19 +92,6 @@ def _hash_file(path: Path) -> tuple[str, int]:
             digest.update(chunk)
             size += len(chunk)
     return digest.hexdigest(), size
-
-
-def _root_license(root: Path) -> str | None:
-    for name in ("LICENSE", "LICENSE.md", "LICENSE.txt"):
-        candidate = root / name
-        if not candidate.is_file():
-            continue
-        text = candidate.read_text(encoding="utf-8", errors="replace")[:65536].lower()
-        if "apache license" in text and "version 2.0" in text:
-            return "Apache-2.0"
-        if "mit license" in text and "permission is hereby granted" in text:
-            return "MIT"
-    return None
 
 
 def _aggregate_digest(files: tuple[ReferenceFile, ...]) -> str:
@@ -117,7 +115,6 @@ def build_reference_snapshot(root: Path) -> ReferenceSnapshot:
     if not resolved_root.is_dir():
         raise ValueError(f"reference root is not a directory: {root}")
 
-    license_id = _root_license(resolved_root)
     entries: list[ReferenceFile] = []
     for current, directory_names, file_names in os.walk(resolved_root, followlinks=False):
         current_path = Path(current)
@@ -145,7 +142,9 @@ def build_reference_snapshot(root: Path) -> ReferenceSnapshot:
                     path=relative.as_posix(),
                     sha256=sha256,
                     size=size,
-                    license_id=license_id,
+                    # Licensing is deliberately classified later from verified,
+                    # scope-aware documents. A snapshot is only an inventory.
+                    license_id=None,
                 )
             )
 

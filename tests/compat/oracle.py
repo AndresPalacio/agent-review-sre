@@ -3,7 +3,9 @@ from __future__ import annotations
 from collections.abc import Mapping
 from typing import Any
 
-_PROVENANCE_FIELDS = frozenset({"snapshot_digest", "source_file", "recorder_version", "license"})
+_PROVENANCE_FIELDS = frozenset(
+    {"snapshot_digest", "source_file", "recorder_version", "license", "origin"}
+)
 
 
 def assert_fixture_provenance(manifest: Mapping[str, Any]) -> None:

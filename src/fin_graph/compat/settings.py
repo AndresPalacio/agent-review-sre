@@ -7,6 +7,36 @@ from collections.abc import Mapping, Sequence
 
 from pydantic import BaseModel, ConfigDict, field_validator
 
+_PROVIDER_ALIASES = {
+    "alibaba": "alibaba",
+    "anthropic": "anthropic",
+    "azure openai": "azure_openai",
+    "azure_openai": "azure_openai",
+    "deepseek": "deepseek",
+    "gigachat": "gigachat",
+    "google": "google_genai",
+    "google_genai": "google_genai",
+    "groq": "groq",
+    "kimi": "kimi",
+    "meta": "meta",
+    "mistral": "mistralai",
+    "mistralai": "mistralai",
+    "ollama": "ollama",
+    "openai": "openai",
+    "openrouter": "openrouter",
+    "xai": "xai",
+}
+
+
+def normalize_model_provider(value: str) -> str:
+    """Map a reference-app provider label to the runtime provider identifier."""
+
+    normalized = " ".join(value.strip().lower().split())
+    canonical = _PROVIDER_ALIASES.get(normalized)
+    if canonical is None:
+        raise ValueError(f"unsupported model provider: {value.strip()}")
+    return canonical
+
 
 def resolve_alias(
     env: Mapping[str, str],

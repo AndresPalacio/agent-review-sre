@@ -99,6 +99,20 @@ async def test_runs_and_cycles_are_returned_in_creation_order(tmp_path: Path) ->
     assert [item.id for item in runs] == [run.id]
 
 
+async def test_concurrent_cycle_appends_receive_gapless_sequences(tmp_path: Path) -> None:
+    async with open_compat_sqlite(tmp_path / "compat.sqlite", _cipher()) as store:
+        flow, revision = await store.create_flow("concurrent-cycles", {"nodes": []})
+        run = await store.create_flow_run(flow.id, revision.revision, {})
+
+        created = await asyncio.gather(
+            *(store.append_run_cycle(run.id, f"event-{index}", {}) for index in range(20))
+        )
+        persisted = await store.list_run_cycles(run.id)
+
+    assert len(created) == 20
+    assert [cycle.sequence for cycle in persisted] == list(range(1, 21))
+
+
 async def test_provider_secrets_are_encrypted_and_never_returned_by_list(
     tmp_path: Path,
 ) -> None:
@@ -118,6 +132,20 @@ async def test_provider_secrets_are_encrypted_and_never_returned_by_list(
 
     async with open_compat_sqlite(database, cipher) as reopened:
         assert await reopened.get_provider_secret("openai") == secret
+
+
+async def test_concurrent_provider_key_updates_increment_every_version(tmp_path: Path) -> None:
+    secrets = [f"provider-secret-{index}" for index in range(10)]
+    async with open_compat_sqlite(tmp_path / "compat.sqlite", _cipher()) as store:
+        updated = await asyncio.gather(
+            *(store.put_provider_key("openai", secret) for secret in secrets)
+        )
+        listed = await store.list_provider_keys()
+        recovered = await store.get_provider_secret("openai")
+
+    assert sorted(record.version for record in updated) == list(range(1, 11))
+    assert listed[0].version == 10
+    assert recovered in secrets
 
 
 async def test_only_one_concurrent_backtest_transition_wins_compare_and_swap(
@@ -166,3 +194,23 @@ async def test_artifacts_persist_with_stable_public_ids(tmp_path: Path) -> None:
     assert artifacts == (artifact,)
     assert artifact.id
     assert artifact.version == 1
+
+
+async def test_invalid_text_fields_never_leave_corrupt_rows(tmp_path: Path) -> None:
+    async with open_compat_sqlite(tmp_path / "compat.sqlite", _cipher()) as store:
+        flow, revision = await store.create_flow("validated", {"nodes": []})
+        run = await store.create_flow_run(flow.id, revision.revision, {})
+        job = await store.create_backtest_job("valid", {})
+
+        with pytest.raises((ValidationError, ValueError)):
+            await store.append_run_cycle(run.id, "   ", {})
+        with pytest.raises((ValidationError, ValueError)):
+            await store.create_backtest_job("", {})
+        with pytest.raises((ValidationError, ValueError)):
+            await store.create_artifact(job.id, "", "artifacts/result.json", {})
+        with pytest.raises((ValidationError, ValueError)):
+            await store.create_artifact(job.id, "result", "   ", {})
+
+        assert await store.list_run_cycles(run.id) == ()
+        assert await store.list_backtest_jobs() == (job,)
+        assert await store.list_artifacts(job.id) == ()

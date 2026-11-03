@@ -4,461 +4,6 @@
       "license_id": "MIT",
       "notice": "Covered by LICENSE (MIT); preserve its license terms.",
       "origin": "AI Hedge Fund",
-      "path": ".ai_hedge_fund/backtests/39f013a925244651a95f96a8483e6321/artifacts/equity.csv",
-      "redistributable": true
-    },
-    {
-      "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
-      "path": ".ai_hedge_fund/backtests/39f013a925244651a95f96a8483e6321/artifacts/positions.csv",
-      "redistributable": true
-    },
-    {
-      "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
-      "path": ".ai_hedge_fund/backtests/39f013a925244651a95f96a8483e6321/artifacts/signals.csv",
-      "redistributable": true
-    },
-    {
-      "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
-      "path": ".ai_hedge_fund/backtests/39f013a925244651a95f96a8483e6321/artifacts/stderr.log",
-      "redistributable": true
-    },
-    {
-      "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
-      "path": ".ai_hedge_fund/backtests/39f013a925244651a95f96a8483e6321/artifacts/trades.csv",
-      "redistributable": true
-    },
-    {
-      "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
-      "path": ".ai_hedge_fund/backtests/39f013a925244651a95f96a8483e6321/job.json",
-      "redistributable": true
-    },
-    {
-      "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
-      "path": ".ai_hedge_fund/backtests/39f013a925244651a95f96a8483e6321/request.json",
-      "redistributable": true
-    },
-    {
-      "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
-      "path": ".ai_hedge_fund/backtests/39f013a925244651a95f96a8483e6321/result.json",
-      "redistributable": true
-    },
-    {
-      "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
-      "path": ".ai_hedge_fund/backtests/64ecaf116a824f338813707312bd33db/artifacts/equity.csv",
-      "redistributable": true
-    },
-    {
-      "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
-      "path": ".ai_hedge_fund/backtests/64ecaf116a824f338813707312bd33db/artifacts/positions.csv",
-      "redistributable": true
-    },
-    {
-      "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
-      "path": ".ai_hedge_fund/backtests/64ecaf116a824f338813707312bd33db/artifacts/signals.csv",
-      "redistributable": true
-    },
-    {
-      "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
-      "path": ".ai_hedge_fund/backtests/64ecaf116a824f338813707312bd33db/artifacts/stderr.log",
-      "redistributable": true
-    },
-    {
-      "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
-      "path": ".ai_hedge_fund/backtests/64ecaf116a824f338813707312bd33db/artifacts/trades.csv",
-      "redistributable": true
-    },
-    {
-      "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
-      "path": ".ai_hedge_fund/backtests/64ecaf116a824f338813707312bd33db/job.json",
-      "redistributable": true
-    },
-    {
-      "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
-      "path": ".ai_hedge_fund/backtests/64ecaf116a824f338813707312bd33db/request.json",
-      "redistributable": true
-    },
-    {
-      "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
-      "path": ".ai_hedge_fund/backtests/64ecaf116a824f338813707312bd33db/result.json",
-      "redistributable": true
-    },
-    {
-      "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
-      "path": ".ai_hedge_fund/backtests/71672579090c4d9c8ab8696c8732990d/artifacts/equity.csv",
-      "redistributable": true
-    },
-    {
-      "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
-      "path": ".ai_hedge_fund/backtests/71672579090c4d9c8ab8696c8732990d/artifacts/positions.csv",
-      "redistributable": true
-    },
-    {
-      "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
-      "path": ".ai_hedge_fund/backtests/71672579090c4d9c8ab8696c8732990d/artifacts/signals.csv",
-      "redistributable": true
-    },
-    {
-      "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
-      "path": ".ai_hedge_fund/backtests/71672579090c4d9c8ab8696c8732990d/artifacts/stderr.log",
-      "redistributable": true
-    },
-    {
-      "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
-      "path": ".ai_hedge_fund/backtests/71672579090c4d9c8ab8696c8732990d/artifacts/trades.csv",
-      "redistributable": true
-    },
-    {
-      "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
-      "path": ".ai_hedge_fund/backtests/71672579090c4d9c8ab8696c8732990d/job.json",
-      "redistributable": true
-    },
-    {
-      "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
-      "path": ".ai_hedge_fund/backtests/71672579090c4d9c8ab8696c8732990d/request.json",
-      "redistributable": true
-    },
-    {
-      "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
-      "path": ".ai_hedge_fund/backtests/71672579090c4d9c8ab8696c8732990d/result.json",
-      "redistributable": true
-    },
-    {
-      "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
-      "path": ".ai_hedge_fund/backtests/8f5775e4a8144d66a61837961459248b/artifacts/equity.csv",
-      "redistributable": true
-    },
-    {
-      "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
-      "path": ".ai_hedge_fund/backtests/8f5775e4a8144d66a61837961459248b/artifacts/positions.csv",
-      "redistributable": true
-    },
-    {
-      "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
-      "path": ".ai_hedge_fund/backtests/8f5775e4a8144d66a61837961459248b/artifacts/signals.csv",
-      "redistributable": true
-    },
-    {
-      "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
-      "path": ".ai_hedge_fund/backtests/8f5775e4a8144d66a61837961459248b/artifacts/stderr.log",
-      "redistributable": true
-    },
-    {
-      "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
-      "path": ".ai_hedge_fund/backtests/8f5775e4a8144d66a61837961459248b/artifacts/trades.csv",
-      "redistributable": true
-    },
-    {
-      "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
-      "path": ".ai_hedge_fund/backtests/8f5775e4a8144d66a61837961459248b/job.json",
-      "redistributable": true
-    },
-    {
-      "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
-      "path": ".ai_hedge_fund/backtests/8f5775e4a8144d66a61837961459248b/request.json",
-      "redistributable": true
-    },
-    {
-      "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
-      "path": ".ai_hedge_fund/backtests/8f5775e4a8144d66a61837961459248b/result.json",
-      "redistributable": true
-    },
-    {
-      "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
-      "path": ".ai_hedge_fund/backtests/9d38865f68b04fc6946b46520c06f33b/artifacts/equity.csv",
-      "redistributable": true
-    },
-    {
-      "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
-      "path": ".ai_hedge_fund/backtests/9d38865f68b04fc6946b46520c06f33b/artifacts/positions.csv",
-      "redistributable": true
-    },
-    {
-      "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
-      "path": ".ai_hedge_fund/backtests/9d38865f68b04fc6946b46520c06f33b/artifacts/signals.csv",
-      "redistributable": true
-    },
-    {
-      "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
-      "path": ".ai_hedge_fund/backtests/9d38865f68b04fc6946b46520c06f33b/artifacts/stderr.log",
-      "redistributable": true
-    },
-    {
-      "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
-      "path": ".ai_hedge_fund/backtests/9d38865f68b04fc6946b46520c06f33b/artifacts/trades.csv",
-      "redistributable": true
-    },
-    {
-      "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
-      "path": ".ai_hedge_fund/backtests/9d38865f68b04fc6946b46520c06f33b/job.json",
-      "redistributable": true
-    },
-    {
-      "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
-      "path": ".ai_hedge_fund/backtests/9d38865f68b04fc6946b46520c06f33b/request.json",
-      "redistributable": true
-    },
-    {
-      "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
-      "path": ".ai_hedge_fund/backtests/9d38865f68b04fc6946b46520c06f33b/result.json",
-      "redistributable": true
-    },
-    {
-      "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
-      "path": ".ai_hedge_fund/backtests/c5076c8f1e4e402585fb1f309f56c823/artifacts/equity.csv",
-      "redistributable": true
-    },
-    {
-      "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
-      "path": ".ai_hedge_fund/backtests/c5076c8f1e4e402585fb1f309f56c823/artifacts/positions.csv",
-      "redistributable": true
-    },
-    {
-      "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
-      "path": ".ai_hedge_fund/backtests/c5076c8f1e4e402585fb1f309f56c823/artifacts/signals.csv",
-      "redistributable": true
-    },
-    {
-      "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
-      "path": ".ai_hedge_fund/backtests/c5076c8f1e4e402585fb1f309f56c823/artifacts/stderr.log",
-      "redistributable": true
-    },
-    {
-      "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
-      "path": ".ai_hedge_fund/backtests/c5076c8f1e4e402585fb1f309f56c823/artifacts/trades.csv",
-      "redistributable": true
-    },
-    {
-      "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
-      "path": ".ai_hedge_fund/backtests/c5076c8f1e4e402585fb1f309f56c823/job.json",
-      "redistributable": true
-    },
-    {
-      "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
-      "path": ".ai_hedge_fund/backtests/c5076c8f1e4e402585fb1f309f56c823/request.json",
-      "redistributable": true
-    },
-    {
-      "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
-      "path": ".ai_hedge_fund/backtests/c5076c8f1e4e402585fb1f309f56c823/result.json",
-      "redistributable": true
-    },
-    {
-      "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
-      "path": ".ai_hedge_fund/backtests/fc208f57700343cbb43ab7b0290595e5/artifacts/equity.csv",
-      "redistributable": true
-    },
-    {
-      "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
-      "path": ".ai_hedge_fund/backtests/fc208f57700343cbb43ab7b0290595e5/artifacts/positions.csv",
-      "redistributable": true
-    },
-    {
-      "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
-      "path": ".ai_hedge_fund/backtests/fc208f57700343cbb43ab7b0290595e5/artifacts/signals.csv",
-      "redistributable": true
-    },
-    {
-      "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
-      "path": ".ai_hedge_fund/backtests/fc208f57700343cbb43ab7b0290595e5/artifacts/stderr.log",
-      "redistributable": true
-    },
-    {
-      "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
-      "path": ".ai_hedge_fund/backtests/fc208f57700343cbb43ab7b0290595e5/artifacts/trades.csv",
-      "redistributable": true
-    },
-    {
-      "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
-      "path": ".ai_hedge_fund/backtests/fc208f57700343cbb43ab7b0290595e5/job.json",
-      "redistributable": true
-    },
-    {
-      "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
-      "path": ".ai_hedge_fund/backtests/fc208f57700343cbb43ab7b0290595e5/request.json",
-      "redistributable": true
-    },
-    {
-      "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
-      "path": ".ai_hedge_fund/backtests/fc208f57700343cbb43ab7b0290595e5/result.json",
-      "redistributable": true
-    },
-    {
-      "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
-      "path": ".ai_hedge_fund/backtests/ff130a74513d4605b817a22480faf861/artifacts/equity.csv",
-      "redistributable": true
-    },
-    {
-      "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
-      "path": ".ai_hedge_fund/backtests/ff130a74513d4605b817a22480faf861/artifacts/positions.csv",
-      "redistributable": true
-    },
-    {
-      "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
-      "path": ".ai_hedge_fund/backtests/ff130a74513d4605b817a22480faf861/artifacts/signals.csv",
-      "redistributable": true
-    },
-    {
-      "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
-      "path": ".ai_hedge_fund/backtests/ff130a74513d4605b817a22480faf861/artifacts/stderr.log",
-      "redistributable": true
-    },
-    {
-      "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
-      "path": ".ai_hedge_fund/backtests/ff130a74513d4605b817a22480faf861/artifacts/trades.csv",
-      "redistributable": true
-    },
-    {
-      "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
-      "path": ".ai_hedge_fund/backtests/ff130a74513d4605b817a22480faf861/job.json",
-      "redistributable": true
-    },
-    {
-      "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
-      "path": ".ai_hedge_fund/backtests/ff130a74513d4605b817a22480faf861/request.json",
-      "redistributable": true
-    },
-    {
-      "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
-      "path": ".ai_hedge_fund/backtests/ff130a74513d4605b817a22480faf861/result.json",
-      "redistributable": true
-    },
-    {
-      "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
-      "path": ".claude/settings.local.json",
-      "redistributable": true
-    },
-    {
-      "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
       "path": ".dockerignore",
       "redistributable": true
     },
@@ -488,230 +33,6 @@
       "notice": "Covered by LICENSE (MIT); preserve its license terms.",
       "origin": "AI Hedge Fund",
       "path": ".gitignore",
-      "redistributable": true
-    },
-    {
-      "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
-      "path": ".v2_cache/data/0ff379693b84a57953dca9e1.json",
-      "redistributable": true
-    },
-    {
-      "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
-      "path": ".v2_cache/data/324f8b24673b812f83ca84bd.json",
-      "redistributable": true
-    },
-    {
-      "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
-      "path": ".v2_cache/data/3e69e4c0893040bcfef8dbc7.json",
-      "redistributable": true
-    },
-    {
-      "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
-      "path": ".v2_cache/data/5cfafb7cb1c8b8f629bf1da0.json",
-      "redistributable": true
-    },
-    {
-      "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
-      "path": ".v2_cache/data/63ecebcfa5e80da9cac79ce6.json",
-      "redistributable": true
-    },
-    {
-      "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
-      "path": ".v2_cache/data/7d39b1bc3a074510aaf38c0d.json",
-      "redistributable": true
-    },
-    {
-      "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
-      "path": ".v2_cache/data/87f0ea7fa4dcee571a60a0a4.json",
-      "redistributable": true
-    },
-    {
-      "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
-      "path": ".v2_cache/data/9d4fd550fe4b784e2675f84f.json",
-      "redistributable": true
-    },
-    {
-      "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
-      "path": ".v2_cache/data/a5400211d073f514d2a94e87.json",
-      "redistributable": true
-    },
-    {
-      "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
-      "path": ".v2_cache/data/a822c3b2eec7803f9656e7f6.json",
-      "redistributable": true
-    },
-    {
-      "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
-      "path": ".v2_cache/data/b74037b12bff3b4ab51c7ad6.json",
-      "redistributable": true
-    },
-    {
-      "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
-      "path": ".v2_cache/data/c1cf6bbde8d0f5681310db9a.json",
-      "redistributable": true
-    },
-    {
-      "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
-      "path": ".v2_cache/data/cbb62c7865bb8f5c088a1f76.json",
-      "redistributable": true
-    },
-    {
-      "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
-      "path": ".v2_cache/data/db2b6ba6563c798695c8d2de.json",
-      "redistributable": true
-    },
-    {
-      "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
-      "path": ".v2_cache/data/dc2ebb08f8862edff1ac92d9.json",
-      "redistributable": true
-    },
-    {
-      "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
-      "path": ".v2_cache/data/fe77572848ba0b4ba472f0f9.json",
-      "redistributable": true
-    },
-    {
-      "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
-      "path": ".v2_cache/epoch_sweep_10/AAPL_lstm.joblib",
-      "redistributable": true
-    },
-    {
-      "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
-      "path": ".v2_cache/epoch_sweep_10/AAPL_lstm.keras",
-      "redistributable": true
-    },
-    {
-      "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
-      "path": ".v2_cache/epoch_sweep_100/AAPL_lstm.joblib",
-      "redistributable": true
-    },
-    {
-      "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
-      "path": ".v2_cache/epoch_sweep_100/AAPL_lstm.keras",
-      "redistributable": true
-    },
-    {
-      "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
-      "path": ".v2_cache/epoch_sweep_30/AAPL_lstm.joblib",
-      "redistributable": true
-    },
-    {
-      "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
-      "path": ".v2_cache/epoch_sweep_30/AAPL_lstm.keras",
-      "redistributable": true
-    },
-    {
-      "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
-      "path": ".v2_cache/epoch_sweep_60/AAPL_lstm.joblib",
-      "redistributable": true
-    },
-    {
-      "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
-      "path": ".v2_cache/epoch_sweep_60/AAPL_lstm.keras",
-      "redistributable": true
-    },
-    {
-      "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
-      "path": ".v2_cache/models/AAPL_arima.joblib",
-      "redistributable": true
-    },
-    {
-      "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
-      "path": ".v2_cache/models/AAPL_lstm.joblib",
-      "redistributable": true
-    },
-    {
-      "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
-      "path": ".v2_cache/models/AAPL_lstm.keras",
-      "redistributable": true
-    },
-    {
-      "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
-      "path": ".v2_cache/models/AAPL_montecarlo.joblib",
-      "redistributable": true
-    },
-    {
-      "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
-      "path": ".v2_cache/models/AAPL_technical_ml.joblib",
-      "redistributable": true
-    },
-    {
-      "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
-      "path": ".v2_cache/models/AAPL_technical_scan.joblib",
-      "redistributable": true
-    },
-    {
-      "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
-      "path": ".v2_cache/models/MSFT_montecarlo.joblib",
-      "redistributable": true
-    },
-    {
-      "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
-      "path": ".v2_cache/models/MSFT_technical_ml.joblib",
       "redistributable": true
     },
     {
@@ -1094,2423 +415,2423 @@
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/adr-hshare/SKILL.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/akshare/SKILL.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/asset-allocation/SKILL.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/backtest-diagnose/SKILL.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/behavioral-finance/SKILL.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/candlestick/SKILL.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/candlestick/example_signal_engine.py",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/ccxt/SKILL.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/chanlun/SKILL.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/chanlun/example_signal_engine.py",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/chanlun/references/买卖点/一买一卖.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/chanlun/references/买卖点/三买三卖.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/chanlun/references/买卖点/二买二卖.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/chanlun/references/核心概念/中枢.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/chanlun/references/核心概念/分型.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/chanlun/references/核心概念/笔.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/commodity-analysis/SKILL.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/convertible-bond/SKILL.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/corporate-events/SKILL.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/correlation-analysis/SKILL.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/credit-analysis/SKILL.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/cross-market-strategy/SKILL.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/cross-market-strategy/example_signal_engine.py",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/crypto-derivatives/SKILL.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/data-routing/SKILL.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/defi-yield/SKILL.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/doc-reader/SKILL.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/earnings-forecast/SKILL.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/earnings-revision/SKILL.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/edgar-sec-filings/SKILL.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/elliott-wave/SKILL.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/elliott-wave/example_signal_engine.py",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/elliott-wave/references/Fibonacci浪间关系.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/elliott-wave/references/波浪结构.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/etf-analysis/SKILL.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/event-driven/SKILL.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/execution-model/SKILL.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/factor-research/SKILL.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/financial-statement/SKILL.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/fund-analysis/SKILL.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/fundamental-filter/SKILL.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/fundamental-filter/example_signal_engine.py",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/geopolitical-risk/SKILL.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/global-macro/SKILL.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/harmonic/SKILL.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/harmonic/example_signal_engine.py",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/harmonic/references/PRZ交易.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/harmonic/references/XABCD形态.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/hedging-strategy/SKILL.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/hk-connect-flow/SKILL.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/ichimoku/SKILL.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/ichimoku/example_signal_engine.py",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/ichimoku/references/五线计算.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/ichimoku/references/信号系统.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/liquidation-heatmap/SKILL.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/macro-analysis/SKILL.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/market-microstructure/SKILL.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/minute-analysis/SKILL.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/minute-analysis/example_signal_engine.py",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/ml-strategy/SKILL.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/multi-factor/SKILL.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/multi-factor/example_signal_engine.py",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/okx-market/SKILL.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/okx-market/references/合约行情/历史资金费率.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/okx-market/references/合约行情/持仓量.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/okx-market/references/合约行情/标记价格.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/okx-market/references/合约行情/资金费率.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/okx-market/references/合约行情/限价.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/okx-market/references/指数行情/指数K线.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/okx-market/references/指数行情/指数行情.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/okx-market/references/现货行情/K线数据.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/okx-market/references/现货行情/交易产品列表.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/okx-market/references/现货行情/单个行情.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/okx-market/references/现货行情/批量行情.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/okx-market/references/现货行情/最近成交.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/okx-market/references/现货行情/深度数据.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/okx-market/scripts/candle_data_example.py",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/okx-market/scripts/market_data_example.py",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/onchain-analysis/SKILL.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/options-advanced/SKILL.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/options-payoff/SKILL.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/options-strategy/SKILL.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/pair-trading/SKILL.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/pair-trading/example_signal_engine.py",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/performance-attribution/SKILL.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/perp-funding-basis/SKILL.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/pine-script/SKILL.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/quant-statistics/SKILL.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/regulatory-knowledge/SKILL.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/report-generate/SKILL.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/risk-analysis/SKILL.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/seasonal/SKILL.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/seasonal/example_signal_engine.py",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/sector-rotation/SKILL.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/sentiment-analysis/SKILL.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/shadow-account/SKILL.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/smc/SKILL.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/smc/example_signal_engine.py",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/smc/references/结构突破.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/smc/references/订单块与缺口.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/social-media-intelligence/SKILL.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/stablecoin-flow/SKILL.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/strategy-generate/SKILL.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/strategy-generate/examples.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/technical-basic/SKILL.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/technical-basic/example_signal_engine.py",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/token-unlock-treasury/SKILL.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/trade-journal/SKILL.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/SKILL.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/ETF专题/ETF份额规模.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/ETF专题/ETF历史分钟.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/ETF专题/ETF基准指数.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/ETF专题/ETF基本信息.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/ETF专题/ETF复权因子.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/ETF专题/ETF实时分钟.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/ETF专题/ETF实时日线.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/ETF专题/ETF日线行情.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/债券专题/债券回购日行情.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/债券专题/全球财经事件.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/债券专题/可转债发行.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/债券专题/可转债基础信息.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/债券专题/可转债技术面因子(专业版).md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/债券专题/可转债票面利率.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/债券专题/可转债行情.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/债券专题/可转债赎回信息.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/债券专题/可转债转股价变动.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/债券专题/可转债转股结果.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/债券专题/国债收益率曲线.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/债券专题/大宗交易.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/债券专题/大宗交易明细.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/债券专题/柜台流通式债券报价.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/债券专题/柜台流通式债券最优报价.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/公募基金/基金净值.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/公募基金/基金分红.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/公募基金/基金列表.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/公募基金/基金技术面因子(专业版).md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/公募基金/基金持仓.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/公募基金/基金管理人.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/公募基金/基金经理.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/公募基金/基金规模.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/外汇数据/外汇基础信息(海外).md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/外汇数据/外汇日线行情.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/大模型语料专题数据/上市公司公告.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/大模型语料专题数据/上证e互动问答.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/大模型语料专题数据/券商研究报告.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/大模型语料专题数据/国家政策库.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/大模型语料专题数据/新闻快讯(短讯).md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/大模型语料专题数据/新闻联播文字稿.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/大模型语料专题数据/新闻通讯(长篇).md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/大模型语料专题数据/深证易互动问答.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/宏观经济/国内宏观/价格指数/居民消费价格指数(CPI).md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/宏观经济/国内宏观/价格指数/工业生产者出厂价格指数(PPI).md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/宏观经济/国内宏观/利率数据/Hibor利率.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/宏观经济/国内宏观/利率数据/LPR贷款基础利率.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/宏观经济/国内宏观/利率数据/Libor利率.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/宏观经济/国内宏观/利率数据/Shibor利率.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/宏观经济/国内宏观/利率数据/Shibor报价数据.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/宏观经济/国内宏观/利率数据/广州民间借贷利率.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/宏观经济/国内宏观/利率数据/温州民间借贷利率.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/宏观经济/国内宏观/国民经济/国内生产总值(GDP).md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/宏观经济/国内宏观/景气度/采购经理指数(PMI).md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/宏观经济/国内宏观/金融/社会融资/社融增量(月度).md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/宏观经济/国内宏观/金融/货币供应量/货币供应量(月).md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/宏观经济/国际宏观/美国利率/国债实际收益率曲线利率.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/宏观经济/国际宏观/美国利率/国债收益率曲线利率.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/宏观经济/国际宏观/美国利率/国债长期利率.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/宏观经济/国际宏观/美国利率/国债长期利率平均值.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/宏观经济/国际宏观/美国利率/短期国债利率.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/指数专题/中信行业成分.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/指数专题/中信行业指数日行情.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/指数专题/国际主要指数.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/指数专题/大盘指数每日指标.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/指数专题/指数历史分钟.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/指数专题/指数周线行情.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/指数专题/指数基本信息.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/指数专题/指数实时分钟.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/指数专题/指数实时日线.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/指数专题/指数成分和权重.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/指数专题/指数技术面因子(专业版).md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/指数专题/指数日线行情.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/指数专题/指数月线行情.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/指数专题/沪深市场每日交易统计.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/指数专题/深圳市场每日交易情况.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/指数专题/申万实时行情.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/指数专题/申万行业分类.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/指数专题/申万行业成分(分级).md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/指数专题/申万行业指数日行情.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/期权数据/期权分钟行情.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/期权数据/期权合约信息.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/期权数据/期权日线行情.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/期货数据/交易日历.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/期货数据/仓单日报.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/期货数据/南华期货指数行情.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/期货数据/历史分钟行情.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/期货数据/合约信息.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/期货数据/实时分钟行情.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/期货数据/日线行情.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/期货数据/期货主力与连续合约.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/期货数据/期货主要品种交易周报.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/期货数据/期货合约涨跌停价格.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/期货数据/期货周月线行情(每日更新).md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/期货数据/每日持仓排名.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/期货数据/每日结算参数.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/港股数据/港股交易日历.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/港股数据/港股分钟行情.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/港股数据/港股利润表.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/港股数据/港股基础信息.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/港股数据/港股复权因子.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/港股数据/港股复权行情.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/港股数据/港股实时日线.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/港股数据/港股日线行情.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/港股数据/港股现金流量表.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/港股数据/港股财务指标数据.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/港股数据/港股资产负债表.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/现货数据/上海黄金基础信息.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/现货数据/上海黄金现货日行情.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/美股数据/美股交易日历.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/美股数据/美股利润表.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/美股数据/美股基础信息.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/美股数据/美股复权因子.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/美股数据/美股复权行情.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/美股数据/美股日线行情.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/美股数据/美股现金流量表.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/美股数据/美股财务指标数据.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/美股数据/美股资产负债表.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/股票数据/两融及转融通/做市借券交易汇总(停).md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/股票数据/两融及转融通/融资融券交易明细.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/股票数据/两融及转融通/融资融券交易汇总.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/股票数据/两融及转融通/融资融券标的(盘前).md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/股票数据/两融及转融通/转融券交易明细(停).md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/股票数据/两融及转融通/转融券交易汇总(停).md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/股票数据/两融及转融通/转融资交易汇总.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/股票数据/参考数据/前十大流通股东.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/股票数据/参考数据/前十大股东.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/股票数据/参考数据/大宗交易.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/股票数据/参考数据/股东人数.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/股票数据/参考数据/股东增减持.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/股票数据/参考数据/股权质押明细数据.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/股票数据/参考数据/股权质押统计数据.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/股票数据/参考数据/股票回购.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/股票数据/参考数据/股票开户数据(停).md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/股票数据/参考数据/股票开户数据(旧).md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/股票数据/参考数据/限售股解禁.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/股票数据/基础数据/IPO新股上市.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/股票数据/基础数据/ST股票列表.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/股票数据/基础数据/ST风险警示板股票.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/股票数据/基础数据/上市公司基本信息.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/股票数据/基础数据/上市公司管理层.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/股票数据/基础数据/交易日历.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/股票数据/基础数据/北交所新旧代码对照.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/股票数据/基础数据/每日股本(盘前).md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/股票数据/基础数据/沪深港通股票列表.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/股票数据/基础数据/管理层薪酬和持股.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/股票数据/基础数据/股票列表.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/股票数据/基础数据/股票历史列表.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/股票数据/基础数据/股票曾用名.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/股票数据/打板专题数据/东方财富App热榜.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/股票数据/打板专题数据/东方财富概念成分.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/股票数据/打板专题数据/东方财富概念板块.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/股票数据/打板专题数据/东财概念和行业指数行情.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/股票数据/打板专题数据/同花顺App热榜数.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/股票数据/打板专题数据/同花顺概念和行业指数行情.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/股票数据/打板专题数据/同花顺涨跌停榜单.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/股票数据/打板专题数据/同花顺行业概念成分.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/股票数据/打板专题数据/同花顺行业概念板块.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/股票数据/打板专题数据/市场游资最全名录.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/股票数据/打板专题数据/开盘竞价成交(当日).md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/股票数据/打板专题数据/榜单数据(开盘啦).md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/股票数据/打板专题数据/涨停最强板块统计.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/股票数据/打板专题数据/涨停股票连板天梯.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/股票数据/打板专题数据/涨跌停和炸板数据.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/股票数据/打板专题数据/游资交易每日明细.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/股票数据/打板专题数据/通达信板块信息.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/股票数据/打板专题数据/通达信板块成分.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/股票数据/打板专题数据/通达信板块行情.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/股票数据/打板专题数据/题材成分(开盘啦).md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/股票数据/打板专题数据/龙虎榜机构交易单.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/股票数据/打板专题数据/龙虎榜每日统计单.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/股票数据/特色数据/AH股比价.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/股票数据/特色数据/中央结算系统持股明细.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/股票数据/特色数据/中央结算系统持股统计.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/股票数据/特色数据/券商月度金股.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/股票数据/特色数据/券商盈利预测数据.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/股票数据/特色数据/机构调研数据.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/股票数据/特色数据/每日筹码分布.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/股票数据/特色数据/每日筹码及胜率.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/股票数据/特色数据/沪深股通持股明细.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/股票数据/特色数据/神奇九转指标.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/股票数据/特色数据/股票开盘集合竞价数据.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/股票数据/特色数据/股票技术面因子(专业版).md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/股票数据/特色数据/股票收盘集合竞价数据.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/股票数据/行情数据/历史分钟.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/股票数据/行情数据/历史日线.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/股票数据/行情数据/周月线复权行情(每日更新).md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/股票数据/行情数据/周月线行情(每日更新).md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/股票数据/行情数据/周线行情.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/股票数据/行情数据/备用行情.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/股票数据/行情数据/复权因子.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/股票数据/行情数据/复权行情.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/股票数据/行情数据/实时分钟.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/股票数据/行情数据/实时日线.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/股票数据/行情数据/月线行情.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/股票数据/行情数据/每日停复牌信息.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/股票数据/行情数据/每日指标.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/股票数据/行情数据/每日涨跌停价格.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/股票数据/行情数据/沪深股通十大成交股.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/股票数据/行情数据/港股通十大成交股.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/股票数据/行情数据/港股通每日成交统计.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/股票数据/行情数据/港股通每月成交统计.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/股票数据/行情数据/通用行情接口.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/股票数据/财务数据/业绩快报.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/股票数据/财务数据/业绩预告.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/股票数据/财务数据/主营业务构成.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/股票数据/财务数据/分红送股数据.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/股票数据/财务数据/利润表.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/股票数据/财务数据/现金流量表.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/股票数据/财务数据/财务审计意见.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/股票数据/财务数据/财务指标数据.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/股票数据/财务数据/财报披露日期表.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/股票数据/财务数据/资产负债表.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/股票数据/资金流向数据/个股资金流向(DC).md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/股票数据/资金流向数据/个股资金流向(THS).md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/股票数据/资金流向数据/个股资金流向.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/股票数据/资金流向数据/大盘资金流向(DC).md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/股票数据/资金流向数据/板块资金流向(DC).md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/股票数据/资金流向数据/板块资金流向(THS).md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/股票数据/资金流向数据/沪深港通资金流向.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/股票数据/资金流向数据/行业资金流向(THS).md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/行业经济/TMT行业/全国电影剧本备案数据.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/行业经济/TMT行业/全国电视剧备案公示数据.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/行业经济/TMT行业/台湾电子产业月营收.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/行业经济/TMT行业/台湾电子产业月营收明细.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/行业经济/TMT行业/影院日度票房.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/行业经济/TMT行业/电影周度票房.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/行业经济/TMT行业/电影日度票房.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/行业经济/TMT行业/电影月度票房.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/财富管理/基金销售行业数据/各渠道公募基金销售保有规模占比.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/references/财富管理/基金销售行业数据/销售机构公募基金销售保有规模.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/scripts/fund_data_example.py",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/tushare/scripts/stock_data_example.py",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/us-etf-flow/SKILL.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/valuation-model/SKILL.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/volatility/SKILL.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/volatility/example_signal_engine.py",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/web-reader/SKILL.md",
       "redistributable": true
     },
     {
       "license_id": "MIT",
-      "notice": "Covered by LICENSE (MIT); preserve its license terms.",
-      "origin": "AI Hedge Fund",
+      "notice": "Covered by THIRD_PARTY_NOTICES_VIBE.md (MIT); preserve Copyright (c) 2026 Vibe-Trading Contributors.",
+      "origin": "Vibe-Trading",
       "path": "app/backend/skills/finance/yfinance/SKILL.md",
       "redistributable": true
     },
@@ -5931,7 +5252,7 @@
     }
   ],
   "excluded_count": 0,
-  "redistributable_count": 847,
+  "redistributable_count": 750,
   "schema_version": 1,
-  "snapshot_digest": "e5cb4ce3d748d6658159baac9ad116f7a3516b9a960e309d2ebe32e8470a7f96"
+  "snapshot_digest": "42cd3a84c47ccd9ca2a891146a2d818b2ea8c7908162ef107975239b7148a71f"
 }

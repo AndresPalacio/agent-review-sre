@@ -10,6 +10,7 @@ from typing import Any
 from langchain.chat_models import init_chat_model
 from langchain_core.language_models import BaseChatModel
 
+from fin_graph.compat.settings import normalize_model_provider
 from fin_graph.config.settings import Settings
 
 
@@ -69,26 +70,6 @@ PROVIDER_KEY_ENV = {
     "xai": "XAI_API_KEY",
 }
 
-_PROVIDER_ALIASES = {
-    "alibaba": "alibaba",
-    "anthropic": "anthropic",
-    "azure openai": "azure_openai",
-    "azure_openai": "azure_openai",
-    "deepseek": "deepseek",
-    "gigachat": "gigachat",
-    "google": "google_genai",
-    "google_genai": "google_genai",
-    "groq": "groq",
-    "kimi": "kimi",
-    "meta": "meta",
-    "mistral": "mistralai",
-    "mistralai": "mistralai",
-    "ollama": "ollama",
-    "openai": "openai",
-    "openrouter": "openrouter",
-    "xai": "xai",
-}
-
 
 def missing_credentials(provider: str) -> str | None:
     """The key variable a hosted provider needs and the process lacks, else ``None``."""
@@ -140,14 +121,10 @@ def build_chat_model(
 def parse_model_spec(value: str) -> ModelSpec:
     """Parse ``provider:model``; only the first colon splits, so ``ollama:llama3.2:3b`` works."""
     provider, separator, name = value.partition(":")
-    provider_name = provider.strip().lower()
     model_name = name.strip()
-    if not separator or not provider_name or not model_name:
+    if not separator or not provider.strip() or not model_name:
         raise ValueError("model must be provider:model")
-    canonical_provider = _PROVIDER_ALIASES.get(provider_name)
-    if canonical_provider is None:
-        raise ValueError(f"unsupported model provider: {provider.strip()}")
-    return ModelSpec(provider=canonical_provider, model=model_name)
+    return ModelSpec(provider=normalize_model_provider(provider), model=model_name)
 
 
 def get_model(role: ModelRole, settings: Settings) -> BaseChatModel:

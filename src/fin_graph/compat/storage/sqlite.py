@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import json
 import uuid
 from collections.abc import AsyncIterator, Mapping
@@ -11,6 +12,7 @@ from pathlib import Path
 from typing import Any, cast
 
 from sqlalchemy import (
+    CheckConstraint,
     Column,
     ForeignKey,
     Integer,
@@ -101,6 +103,7 @@ _run_cycles = Table(
     Column("updated_at", String, nullable=False),
     Column("version", Integer, nullable=False),
     UniqueConstraint("run_id", "sequence", name="uq_compat_run_cycle_sequence"),
+    CheckConstraint("length(trim(event)) > 0", name="ck_compat_run_cycle_event"),
 )
 _provider_keys = Table(
     "compat_provider_keys",
@@ -125,6 +128,7 @@ _backtest_jobs = Table(
     Column("created_at", String, nullable=False),
     Column("updated_at", String, nullable=False),
     Column("version", Integer, nullable=False),
+    CheckConstraint("length(trim(kind)) > 0", name="ck_compat_backtest_job_kind"),
 )
 _artifacts = Table(
     "compat_artifacts",
@@ -142,6 +146,8 @@ _artifacts = Table(
     Column("created_at", String, nullable=False),
     Column("updated_at", String, nullable=False),
     Column("version", Integer, nullable=False),
+    CheckConstraint("length(trim(kind)) > 0", name="ck_compat_artifact_kind"),
+    CheckConstraint("length(trim(path)) > 0", name="ck_compat_artifact_path"),
 )
 
 
@@ -169,6 +175,13 @@ def _load_json(value: str | None) -> JsonValue:
 
 def _id() -> str:
     return uuid.uuid4().hex
+
+
+def _non_blank(value: str, field: str) -> str:
+    normalized = value.strip()
+    if not normalized:
+        raise ValueError(f"{field} must not be blank")
+    return normalized
 
 
 def _flow(row: _RecordRow) -> FlowRecord:
@@ -227,6 +240,7 @@ class SqliteCompatibilityStore:
     def __init__(self, engine: AsyncEngine, cipher: SecretCipher) -> None:
         self._engine = engine
         self._cipher = cipher
+        self._write_lock = asyncio.Lock()
 
     async def create_flow(
         self, name: str, definition: JsonObject, *, description: str = ""
@@ -422,37 +436,45 @@ class SqliteCompatibilityStore:
     async def append_run_cycle(
         self, run_id: str, event: str, payload: JsonObject
     ) -> RunCycleRecord:
-        created = _now()
-        async with self._engine.begin() as connection:
-            run = await _mapping_or_none(
-                connection, select(_flow_runs.c.id).where(_flow_runs.c.id == run_id)
-            )
-            if run is None:
-                raise RecordNotFoundError(f"flow run not found: {run_id}")
-            sequence = (
-                int(
-                    (
-                        await connection.execute(
-                            select(func.coalesce(func.max(_run_cycles.c.sequence), 0)).where(
-                                _run_cycles.c.run_id == run_id
-                            )
-                        )
-                    ).scalar_one()
+        normalized_event = _non_blank(event, "event")
+        async with self._write_lock:
+            created = _now()
+            async with self._engine.begin() as connection:
+                run = await _mapping_or_none(
+                    connection, select(_flow_runs.c.id).where(_flow_runs.c.id == run_id)
                 )
-                + 1
-            )
-            values = {
-                "id": _id(),
-                "run_id": run_id,
-                "sequence": sequence,
-                "event": event,
-                "payload": _json(payload),
-                "created_at": _timestamp(created),
-                "updated_at": _timestamp(created),
-                "version": 1,
-            }
-            await connection.execute(_run_cycles.insert().values(**values))
-        return _cycle(values)
+                if run is None:
+                    raise RecordNotFoundError(f"flow run not found: {run_id}")
+                sequence = (
+                    int(
+                        (
+                            await connection.execute(
+                                select(func.coalesce(func.max(_run_cycles.c.sequence), 0)).where(
+                                    _run_cycles.c.run_id == run_id
+                                )
+                            )
+                        ).scalar_one()
+                    )
+                    + 1
+                )
+                candidate = RunCycleRecord(
+                    id=_id(),
+                    run_id=run_id,
+                    sequence=sequence,
+                    event=normalized_event,
+                    payload=payload,
+                    created_at=created,
+                    updated_at=created,
+                    version=1,
+                )
+                values = {
+                    **candidate.model_dump(exclude={"payload"}),
+                    "payload": _json(candidate.payload),
+                    "created_at": _timestamp(candidate.created_at),
+                    "updated_at": _timestamp(candidate.updated_at),
+                }
+                await connection.execute(_run_cycles.insert().values(**values))
+        return candidate
 
     async def list_run_cycles(self, run_id: str) -> tuple[RunCycleRecord, ...]:
         async with self._engine.connect() as connection:
@@ -471,40 +493,42 @@ class SqliteCompatibilityStore:
             raise ValueError("provider and secret must not be blank")
         encrypted = self._cipher.encrypt(secret)
         hint = f"…{secret[-4:]}" if len(secret) > 4 else "…"
-        changed = _now()
-        async with self._engine.begin() as connection:
-            current = await _mapping_or_none(
-                connection, select(_provider_keys).where(_provider_keys.c.provider == normalized)
-            )
-            if current is None:
-                values = {
-                    "id": _id(),
-                    "provider": normalized,
-                    "encrypted_secret": encrypted,
-                    "key_hint": hint,
-                    "created_at": _timestamp(changed),
-                    "updated_at": _timestamp(changed),
-                    "version": 1,
-                }
-                await connection.execute(_provider_keys.insert().values(**values))
-            else:
-                values = {
-                    **dict(current),
-                    "encrypted_secret": encrypted,
-                    "key_hint": hint,
-                    "updated_at": _timestamp(changed),
-                    "version": int(current["version"]) + 1,
-                }
-                await connection.execute(
-                    update(_provider_keys)
-                    .where(_provider_keys.c.id == current["id"])
-                    .values(
-                        encrypted_secret=encrypted,
-                        key_hint=hint,
-                        updated_at=values["updated_at"],
-                        version=values["version"],
-                    )
+        async with self._write_lock:
+            changed = _now()
+            async with self._engine.begin() as connection:
+                current = await _mapping_or_none(
+                    connection,
+                    select(_provider_keys).where(_provider_keys.c.provider == normalized),
                 )
+                if current is None:
+                    values = {
+                        "id": _id(),
+                        "provider": normalized,
+                        "encrypted_secret": encrypted,
+                        "key_hint": hint,
+                        "created_at": _timestamp(changed),
+                        "updated_at": _timestamp(changed),
+                        "version": 1,
+                    }
+                    await connection.execute(_provider_keys.insert().values(**values))
+                else:
+                    values = {
+                        **dict(current),
+                        "encrypted_secret": encrypted,
+                        "key_hint": hint,
+                        "updated_at": _timestamp(changed),
+                        "version": int(current["version"]) + 1,
+                    }
+                    await connection.execute(
+                        update(_provider_keys)
+                        .where(_provider_keys.c.id == current["id"])
+                        .values(
+                            encrypted_secret=encrypted,
+                            key_hint=hint,
+                            updated_at=values["updated_at"],
+                            version=values["version"],
+                        )
+                    )
         return _provider_key(values)
 
     async def list_provider_keys(self) -> tuple[ProviderKeyRecord, ...]:
@@ -542,20 +566,27 @@ class SqliteCompatibilityStore:
 
     async def create_backtest_job(self, kind: str, request: JsonObject) -> BacktestJobRecord:
         created = _now()
+        candidate = BacktestJobRecord(
+            id=_id(),
+            kind=_non_blank(kind, "kind"),
+            status=JobStatus.QUEUED,
+            request=request,
+            result=None,
+            error=None,
+            created_at=created,
+            updated_at=created,
+            version=1,
+        )
         values = {
-            "id": _id(),
-            "kind": kind,
-            "status": JobStatus.QUEUED.value,
-            "request": _json(request),
+            **candidate.model_dump(exclude={"request", "result"}, mode="json"),
+            "request": _json(candidate.request),
             "result": None,
-            "error": None,
             "created_at": _timestamp(created),
             "updated_at": _timestamp(created),
-            "version": 1,
         }
         async with self._engine.begin() as connection:
             await connection.execute(_backtest_jobs.insert().values(**values))
-        return _job(values)
+        return candidate
 
     async def get_backtest_job(self, job_id: str) -> BacktestJobRecord | None:
         async with self._engine.connect() as connection:
@@ -615,22 +646,28 @@ class SqliteCompatibilityStore:
         metadata: JsonObject,
     ) -> ArtifactRecord:
         created = _now()
+        candidate = ArtifactRecord(
+            id=_id(),
+            job_id=job_id,
+            kind=_non_blank(kind, "kind"),
+            path=_non_blank(path, "path"),
+            metadata=metadata,
+            created_at=created,
+            updated_at=created,
+            version=1,
+        )
         values = {
-            "id": _id(),
-            "job_id": job_id,
-            "kind": kind,
-            "path": path,
-            "metadata_json": _json(metadata),
+            **candidate.model_dump(exclude={"metadata"}),
+            "metadata_json": _json(candidate.metadata),
             "created_at": _timestamp(created),
             "updated_at": _timestamp(created),
-            "version": 1,
         }
         try:
             async with self._engine.begin() as connection:
                 await connection.execute(_artifacts.insert().values(**values))
         except IntegrityError as exc:
             raise RecordNotFoundError(f"backtest job not found: {job_id}") from exc
-        return _artifact(values)
+        return candidate
 
     async def list_artifacts(self, job_id: str | None = None) -> tuple[ArtifactRecord, ...]:
         statement = select(_artifacts)

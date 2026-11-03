@@ -100,8 +100,27 @@ def test_recorder_writes_fixture_with_complete_provenance(tmp_path: Path) -> Non
         root_digest="a" * 64,
     )
     snapshot_path = tmp_path / "snapshot.json"
+    inventory_path = tmp_path / "inventory.json"
     input_path = tmp_path / "recording.json"
     _write_json(snapshot_path, snapshot.model_dump(mode="json"))
+    _write_json(
+        inventory_path,
+        {
+            "schema_version": 1,
+            "snapshot_digest": snapshot.root_digest,
+            "redistributable_count": 1,
+            "excluded_count": 0,
+            "assets": [
+                {
+                    "path": "src/main.py",
+                    "origin": "AI Hedge Fund",
+                    "license_id": "MIT",
+                    "redistributable": True,
+                    "notice": "Covered by LICENSE (MIT).",
+                }
+            ],
+        },
+    )
     _write_json(input_path, {"status": "ok", "value": 3})
     (tmp_path / ".env").write_text("SECRET=never-read", encoding="utf-8")
     script = Path(__file__).parents[2] / "scripts" / "record_ai_hedge_fund_contracts.py"
@@ -112,6 +131,8 @@ def test_recorder_writes_fixture_with_complete_provenance(tmp_path: Path) -> Non
             str(script),
             "--snapshot",
             str(snapshot_path),
+            "--asset-inventory",
+            str(inventory_path),
             "--name",
             "health-response",
             "--source-file",
@@ -134,6 +155,7 @@ def test_recorder_writes_fixture_with_complete_provenance(tmp_path: Path) -> Non
             "fixture": "health-response.json",
             "license": "MIT",
             "name": "health-response",
+            "origin": "AI Hedge Fund",
             "recorder_version": "1",
             "snapshot_digest": "a" * 64,
             "source_file": "src/main.py",
@@ -147,12 +169,23 @@ def test_recorder_writes_fixture_with_complete_provenance(tmp_path: Path) -> Non
 
 def test_recorder_rejects_private_or_database_input(tmp_path: Path) -> None:
     snapshot_path = tmp_path / "snapshot.json"
+    inventory_path = tmp_path / "inventory.json"
     _write_json(
         snapshot_path,
         {
             "schema_version": 1,
             "files": [],
             "root_digest": "a" * 64,
+        },
+    )
+    _write_json(
+        inventory_path,
+        {
+            "schema_version": 1,
+            "snapshot_digest": "a" * 64,
+            "redistributable_count": 0,
+            "excluded_count": 0,
+            "assets": [],
         },
     )
     private_input = tmp_path / "hedge_fund.db"
@@ -165,6 +198,8 @@ def test_recorder_rejects_private_or_database_input(tmp_path: Path) -> None:
             str(script),
             "--snapshot",
             str(snapshot_path),
+            "--asset-inventory",
+            str(inventory_path),
             "--name",
             "private",
             "--source-file",
@@ -180,4 +215,68 @@ def test_recorder_rejects_private_or_database_input(tmp_path: Path) -> None:
 
     assert completed.returncode != 0
     assert "JSON input" in completed.stderr
+    assert not (tmp_path / "tests" / "compat" / "fixtures").exists()
+
+
+def test_recorder_rejects_source_excluded_by_scope_aware_inventory(tmp_path: Path) -> None:
+    snapshot = ReferenceSnapshot(
+        schema_version=1,
+        files=(
+            ReferenceFile(
+                path="vendor/restricted.py",
+                sha256="b" * 64,
+                size=12,
+                license_id="MIT",
+            ),
+        ),
+        root_digest="a" * 64,
+    )
+    snapshot_path = tmp_path / "snapshot.json"
+    inventory_path = tmp_path / "inventory.json"
+    input_path = tmp_path / "recording.json"
+    _write_json(snapshot_path, snapshot.model_dump(mode="json"))
+    _write_json(input_path, {"status": "must-not-write"})
+    _write_json(
+        inventory_path,
+        {
+            "schema_version": 1,
+            "snapshot_digest": snapshot.root_digest,
+            "redistributable_count": 0,
+            "excluded_count": 1,
+            "assets": [
+                {
+                    "path": "vendor/restricted.py",
+                    "origin": "AI Hedge Fund/vendor",
+                    "license_id": "UNKNOWN",
+                    "redistributable": False,
+                    "notice": "Unrecognized nested license; excluded.",
+                }
+            ],
+        },
+    )
+    script = Path(__file__).parents[2] / "scripts" / "record_ai_hedge_fund_contracts.py"
+
+    completed = subprocess.run(
+        [
+            sys.executable,
+            str(script),
+            "--snapshot",
+            str(snapshot_path),
+            "--asset-inventory",
+            str(inventory_path),
+            "--name",
+            "restricted",
+            "--source-file",
+            "vendor/restricted.py",
+            "--input",
+            str(input_path),
+        ],
+        cwd=tmp_path,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+
+    assert completed.returncode != 0
+    assert "not redistributable" in completed.stderr
     assert not (tmp_path / "tests" / "compat" / "fixtures").exists()

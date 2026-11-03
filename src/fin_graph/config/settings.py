@@ -4,8 +4,10 @@ from __future__ import annotations
 
 import os
 from enum import StrEnum
+from pathlib import Path
 from typing import Annotated, Any, Literal, cast
 
+from dotenv import dotenv_values
 from pydantic import AliasChoices, Field, SecretStr, field_validator
 from pydantic_settings import (
     BaseSettings,
@@ -14,7 +16,7 @@ from pydantic_settings import (
     SettingsConfigDict,
 )
 
-from fin_graph.compat.settings import resolve_alias
+from fin_graph.compat.settings import normalize_model_provider, resolve_alias
 
 _COMPATIBILITY_ENV_ALIASES = (
     ("LLM_PROVIDER", ("DEFAULT_MODEL_PROVIDER",)),
@@ -26,9 +28,33 @@ _COMPATIBILITY_ENV_ALIASES = (
 )
 
 
-def _validate_compatibility_environment() -> dict[str, Any]:
+def _dotenv_environment(source: PydanticBaseSettingsSource) -> dict[str, str]:
+    configured = getattr(source, "env_file", None)
+    if configured is None:
+        return {}
+    files = configured if isinstance(configured, (list, tuple)) else (configured,)
+    encoding = getattr(source, "env_file_encoding", None) or "utf-8"
+    values: dict[str, str] = {}
+    for configured_file in files:
+        path = Path(configured_file)
+        if not path.is_file():
+            continue
+        for name, value in dotenv_values(path, encoding=encoding).items():
+            if value is not None:
+                values[name.upper()] = value
+    return values
+
+
+def _validate_compatibility_environment(
+    dotenv_settings: PydanticBaseSettingsSource,
+) -> dict[str, Any]:
+    dotenv_environment = _dotenv_environment(dotenv_settings)
+    process_environment = {name.upper(): value for name, value in os.environ.items()}
+    combined = {**dotenv_environment, **process_environment}
     for modern, legacy in _COMPATIBILITY_ENV_ALIASES:
-        resolve_alias(os.environ, modern, legacy)
+        resolve_alias(dotenv_environment, modern, legacy)
+        resolve_alias(process_environment, modern, legacy)
+        resolve_alias(combined, modern, legacy)
     return {}
 
 
@@ -133,7 +159,11 @@ class Settings(BaseSettings):
         file_secret_settings: PydanticBaseSettingsSource,
     ) -> tuple[PydanticBaseSettingsSource, ...]:
         del settings_cls
-        validation_source = cast(PydanticBaseSettingsSource, _validate_compatibility_environment)
+
+        def validate_compatibility_environment() -> dict[str, Any]:
+            return _validate_compatibility_environment(dotenv_settings)
+
+        validation_source = cast(PydanticBaseSettingsSource, validate_compatibility_environment)
         return (
             init_settings,
             validation_source,
@@ -150,7 +180,12 @@ class Settings(BaseSettings):
             raise ValueError("must be a three-letter ISO 4217 code")
         return code
 
-    @field_validator("llm_provider", "environment")
+    @field_validator("llm_provider")
+    @classmethod
+    def _normalize_provider(cls, value: str) -> str:
+        return normalize_model_provider(value)
+
+    @field_validator("environment")
     @classmethod
     def _normalize_name(cls, value: str) -> str:
         normalized = value.strip().lower()
