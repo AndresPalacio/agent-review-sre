@@ -340,6 +340,16 @@ class SqliteCompatibilityStore:
             ).mappings()
             return tuple(_flow(row) for row in rows)
 
+    async def delete_flow(self, flow_id: str, *, expected_version: int) -> bool:
+        async with self._engine.begin() as connection:
+            result = await connection.execute(
+                _flows.delete().where(
+                    _flows.c.id == flow_id,
+                    _flows.c.version == expected_version,
+                )
+            )
+        return _rowcount(result) == 1
+
     async def get_flow_revision(self, flow_id: str, revision: int) -> FlowRevision | None:
         async with self._engine.connect() as connection:
             row = await _mapping_or_none(
@@ -406,6 +416,18 @@ class SqliteCompatibilityStore:
         async with self._engine.connect() as connection:
             rows = (await connection.execute(statement)).mappings()
             return tuple(_run(row) for row in rows)
+
+    async def delete_flow_run(self, run_id: str) -> bool:
+        async with self._engine.begin() as connection:
+            result = await connection.execute(_flow_runs.delete().where(_flow_runs.c.id == run_id))
+        return _rowcount(result) == 1
+
+    async def delete_flow_runs(self, flow_id: str) -> int:
+        async with self._engine.begin() as connection:
+            result = await connection.execute(
+                _flow_runs.delete().where(_flow_runs.c.flow_id == flow_id)
+            )
+        return max(_rowcount(result), 0)
 
     async def transition_flow_run(
         self,

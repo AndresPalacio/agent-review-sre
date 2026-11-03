@@ -2,7 +2,7 @@
 
 from fastapi import APIRouter, Depends
 
-from fin_graph.server.compat import api_keys, basic, models, ollama, skills
+from fin_graph.server.compat import api_keys, basic, flows, models, ollama, skills
 from fin_graph.server.compat.security import compatibility_guard
 
 
@@ -17,6 +17,7 @@ def compatibility_router(*, include_root: bool = True, include_health: bool = Tr
     router.include_router(api_keys.router)
     router.include_router(ollama.router)
     router.include_router(skills.router)
+    router.include_router(flows.router)
     return router
 
 
