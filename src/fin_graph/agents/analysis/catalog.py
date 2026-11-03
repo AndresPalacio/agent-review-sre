@@ -7,6 +7,7 @@ from dataclasses import dataclass
 
 from langchain_core.tools import BaseTool
 
+from fin_graph.agents.catalog import AgentDescriptor
 from fin_graph.domain.analysts import AnalystId
 from fin_graph.domain.tools import ANALYST_DOMAINS, Domain, SideEffectLevel, read_tool_meta
 
@@ -84,3 +85,24 @@ def available_analysts(tools: Iterable[BaseTool]) -> list[AnalystSpec]:
     names = {tool.name for tool in tools if (meta := read_tool_meta(tool)) is not None
              and meta.side_effect_level is SideEffectLevel.READ_ONLY}  # fmt: skip
     return [spec for spec in ANALYSTS.values() if spec.compute_tool in names]
+
+
+NATIVE_ANALYSIS_DESCRIPTORS = (
+    AgentDescriptor(
+        id="analysis.native_react",
+        display_name="Native reactive analyst",
+        kind="langchain_agent",
+        purpose="Analyze one requested financial domain with read-only tools and typed output.",
+        factory_path="fin_graph.agents.common.factory:make_agent",
+        tool_policy="read_only",
+        middleware=(
+            "MaskingMiddleware",
+            "GuardrailsMiddleware",
+            "ToolCallLimitMiddleware",
+            "ModelCallLimitMiddleware",
+        ),
+        limits=("8 tool calls", "8 model calls", "40 graph recursions"),
+        activation="Native analysis workflow in react mode, once per AnalystTask.",
+        surfaces=("analysis workflow", "CLI analyze", "HTTP analysis"),
+    ),
+)

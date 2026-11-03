@@ -305,7 +305,7 @@ Each specialized package declares its tuple beside its real factory. `agent_cata
 
 - [ ] **Step 4: Derive the 19 persona descriptors from `analyst_catalog()`**
 
-Use IDs `analysis.persona.<analyst_id>` and one shared real factory path `fin_graph.agents.analysis.supervisor:make_persona_agent`; do not copy names, order, prompts or domains.
+Use IDs `analysis.persona.<analyst_id>` and one shared real factory path `fin_graph.agents.analysis.persona_team:make_persona_agent`; do not copy names, order, prompts or domains.
 
 - [ ] **Step 5: Add descriptors for persona analysis, native react analyst, chat, solver supervisor/children and optimizer proposer**
 

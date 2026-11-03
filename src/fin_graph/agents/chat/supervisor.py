@@ -38,6 +38,7 @@ from langgraph.types import Checkpointer
 
 from fin_graph.agents.analysis.catalog import available_analysts, read_tools
 from fin_graph.agents.analysis.persona_team import PersonaAnalysisBundle
+from fin_graph.agents.catalog import AgentDescriptor
 from fin_graph.agents.common.middleware.disclaimer import DisclaimerMiddleware
 from fin_graph.agents.common.middleware.evidence_gate import EvidenceGateMiddleware
 from fin_graph.agents.common.middleware.guardrails import GuardrailsMiddleware
@@ -460,3 +461,25 @@ def make_chat_graph(
         store=store,
         name="fin_chat",
     )
+
+
+CHAT_AGENT_DESCRIPTORS = (
+    AgentDescriptor(
+        id="chat.supervisor",
+        display_name="Financial chat supervisor",
+        kind="deepagents_supervisor",
+        purpose="Answer financial questions, run analysis and prepare approved paper orders.",
+        factory_path="fin_graph.agents.chat.supervisor:make_chat_graph",
+        tool_policy="paper_trade",
+        middleware=(
+            "GuardrailsMiddleware",
+            "EvidenceGateMiddleware",
+            "ToolResultCacheMiddleware",
+            "MaskingMiddleware",
+            "DisclaimerMiddleware",
+        ),
+        limits=("configured model/tool retries", "human approval for paper orders"),
+        activation="Interactive chat and chat HTTP API.",
+        surfaces=("CLI chat", "HTTP chat"),
+    ),
+)

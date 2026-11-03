@@ -26,6 +26,7 @@ from fin_graph.agents.analysis.personas import (
     PersonaToolScope,
     build_persona_subagents,
 )
+from fin_graph.agents.catalog import AgentDescriptor
 from fin_graph.agents.common.middleware.masking import MaskingMiddleware
 from fin_graph.config.settings import Settings
 from fin_graph.domain.analysts import (
@@ -370,3 +371,43 @@ def make_persona_analysis_supervisor(
     builder.add_edge(START, "analyze_personas")
     builder.add_edge("analyze_personas", END)
     return builder.compile(checkpointer=checkpointer)
+
+
+_PERSONA_IDS = tuple(f"analysis.persona.{item.id.value}" for item in analyst_catalog())
+PERSONA_TEAM_DESCRIPTORS = (
+    AgentDescriptor(
+        id="analysis.persona_team",
+        display_name="Financial persona team",
+        kind="deepagents_supervisor",
+        purpose="Run the selected deterministic financial personas and retain their scores.",
+        factory_path=(
+            "fin_graph.agents.analysis.persona_team:make_persona_analysis_supervisor"
+        ),
+        children=_PERSONA_IDS,
+        tool_policy="read_only",
+        middleware=("MaskingMiddleware",),
+        limits=("19 known personas", "configured LLM timeout per narration"),
+        activation="Reference-client analysis and the chat analysis tool.",
+        surfaces=("reference Python API", "reference HTTP API", "chat"),
+    ),
+    *(
+        AgentDescriptor(
+            id=f"analysis.persona.{definition.id.value}",
+            display_name=definition.display_name,
+            kind="deepagents_subagent",
+            purpose=f"{definition.description}. {definition.investing_style}",
+            factory_path="fin_graph.agents.analysis.persona_team:make_persona_agent",
+            tool_policy="read_only",
+            middleware=(
+                "PersonaPointInTimeMiddleware",
+                "EvidenceGateMiddleware",
+                "ModelCallLimitMiddleware",
+                "DisclaimerMiddleware",
+            ),
+            limits=("8 model calls", "request ticker/date boundary"),
+            activation=f"Selected persona: {definition.id.value}.",
+            surfaces=("persona team",),
+        )
+        for definition in analyst_catalog()
+    ),
+)

@@ -30,6 +30,7 @@ from langgraph.runtime import Runtime
 from langgraph.types import Command
 from langgraph_sdk import get_client
 
+from fin_graph.agents.catalog import AgentDescriptor
 from fin_graph.agents.common.factory import make_agent
 from fin_graph.agents.solver.control import read_control
 from fin_graph.agents.solver.testing import OfflinePilotModel
@@ -390,3 +391,44 @@ async def fundamentals(config: RunnableConfig) -> CompiledStateGraph[Any, Any, A
 async def technicals(config: RunnableConfig) -> CompiledStateGraph[Any, Any, Any, Any]:
     """Build the technicals child with native Deep Agents parent notification."""
     return await asyncio.to_thread(make_solver_child, "technicals")
+
+
+SOLVER_AGENT_DESCRIPTORS = (
+    AgentDescriptor(
+        id="solver.supervisor",
+        display_name="Bounded asynchronous solver",
+        kind="deepagents_supervisor",
+        purpose="Coordinate at most two synthetic, read-only analysis children.",
+        factory_path="fin_graph.agents.solver.supervisor:supervisor",
+        children=("solver.fundamentals", "solver.technicals"),
+        tool_policy="read_only",
+        middleware=("PilotGuard", "ModelCallLimitMiddleware", "AsyncSubAgentMiddleware"),
+        limits=("2 children", "20 model calls", "gateway deadline and revision"),
+        activation="Opt-in asynchronous Agent Server pilot.",
+        surfaces=("LangGraph Agent Server example",),
+    ),
+    AgentDescriptor(
+        id="solver.fundamentals",
+        display_name="Synthetic fundamentals solver",
+        kind="deepagents_subagent",
+        purpose="Read and return the bounded synthetic fundamentals fixture.",
+        factory_path="fin_graph.agents.solver.supervisor:fundamentals",
+        tool_policy="read_only",
+        middleware=("PilotGuard", "ModelCallLimitMiddleware"),
+        limits=("6 model calls", "gateway deadline"),
+        activation="Delegated by solver.supervisor.",
+        surfaces=("LangGraph Agent Server example",),
+    ),
+    AgentDescriptor(
+        id="solver.technicals",
+        display_name="Synthetic technicals solver",
+        kind="deepagents_subagent",
+        purpose="Read and return the bounded synthetic technical indicators fixture.",
+        factory_path="fin_graph.agents.solver.supervisor:technicals",
+        tool_policy="read_only",
+        middleware=("PilotGuard", "ModelCallLimitMiddleware"),
+        limits=("6 model calls", "gateway deadline"),
+        activation="Delegated by solver.supervisor.",
+        surfaces=("LangGraph Agent Server example",),
+    ),
+)
