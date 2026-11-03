@@ -71,9 +71,7 @@ class RuntimeProfile:
         )
         compatibility.validate_bind(host)
         root = Path(
-            data_dir
-            or os.getenv("FIN_GRAPH_DATA_DIR")
-            or user_data_dir("fin-graph", "fin-graph")
+            data_dir or os.getenv("FIN_GRAPH_DATA_DIR") or user_data_dir("fin-graph", "fin-graph")
         ).expanduser()
         return cls(
             backend="sqlite",

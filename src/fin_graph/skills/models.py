@@ -25,4 +25,3 @@ class SkillResource(BaseModel):
     content: str
     size_bytes: int = Field(ge=0)
     sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
-

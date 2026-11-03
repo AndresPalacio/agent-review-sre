@@ -49,9 +49,7 @@ def test_unicode_resource_and_mime_are_preserved(tmp_path: Path) -> None:
     _write(directory / "scripts" / "example.py", "print('inert')\n")
 
     catalog = load_skill_catalog(tmp_path)
-    markdown = read_skill_resource(
-        "safe-skill", "references/核心概念/中枢.md", 100, root=tmp_path
-    )
+    markdown = read_skill_resource("safe-skill", "references/核心概念/中枢.md", 100, root=tmp_path)
     python = read_skill_resource("safe-skill", "scripts/example.py", 100, root=tmp_path)
 
     assert catalog[0].resources == (
@@ -75,9 +73,7 @@ def test_unicode_resource_and_mime_are_preserved(tmp_path: Path) -> None:
         "",
     ],
 )
-def test_traversal_and_absolute_paths_are_rejected(
-    tmp_path: Path, resource_path: str
-) -> None:
+def test_traversal_and_absolute_paths_are_rejected(tmp_path: Path, resource_path: str) -> None:
     _skill(tmp_path)
 
     with pytest.raises(ValueError):

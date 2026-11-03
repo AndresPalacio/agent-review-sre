@@ -94,9 +94,7 @@ def load_skill_catalog(root: Traversable) -> tuple[SkillRecord, ...]:
         if not _SKILL_ID.fullmatch(skill_id):
             raise ValueError(f"invalid skill id: {skill_id!r}")
         if skill_id != directory.name:
-            raise ValueError(
-                f"skill id {skill_id!r} does not match directory {directory.name!r}"
-            )
+            raise ValueError(f"skill id {skill_id!r} does not match directory {directory.name!r}")
         if not description:
             raise ValueError(f"skill {skill_id!r} requires a description")
         if not category:
@@ -131,9 +129,7 @@ def _safe_resource_path(resource_path: str) -> tuple[str, ...]:
     return posix.parts
 
 
-def _resolve_skill(
-    skill_id: str, root: Traversable
-) -> tuple[SkillRecord, Traversable]:
+def _resolve_skill(skill_id: str, root: Traversable) -> tuple[SkillRecord, Traversable]:
     records = load_skill_catalog(root)
     try:
         record = next(item for item in records if item.id == skill_id)

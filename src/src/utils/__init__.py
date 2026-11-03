@@ -1,2 +1,1 @@
 """Legacy utility namespace."""
-

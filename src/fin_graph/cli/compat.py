@@ -57,7 +57,7 @@ def _emit(payload: object, as_json: bool) -> None:
 
 
 def run_command(
-    tickers: Annotated[str, typer.Option("--tickers", "--ticker", "-t")] ,
+    tickers: Annotated[str, typer.Option("--tickers", "--ticker", "-t")],
     analysts: Annotated[str | None, typer.Option("--analysts")] = None,
     analysts_all: Annotated[bool, typer.Option("--analysts-all")] = False,
     model: Annotated[str, typer.Option("--model", "--model-name")] = "gpt-4.1",
@@ -73,9 +73,7 @@ def run_command(
             help="Initial cash (legacy alias: --initial-capital).",
         ),
     ] = 100_000.0,
-    margin_requirement: Annotated[
-        float, typer.Option("--margin-requirement", min=0, max=1)
-    ] = 0.0,
+    margin_requirement: Annotated[float, typer.Option("--margin-requirement", min=0, max=1)] = 0.0,
     show_reasoning: Annotated[bool, typer.Option("--show-reasoning")] = False,
     as_json: Annotated[bool, typer.Option("--json")] = False,
 ) -> None:
@@ -119,9 +117,7 @@ def backtest_command(
     initial_capital: Annotated[
         float, typer.Option("--initial-capital", "--initial-cash", min=0)
     ] = 100_000.0,
-    margin_requirement: Annotated[
-        float, typer.Option("--margin-requirement", min=0, max=1)
-    ] = 0.0,
+    margin_requirement: Annotated[float, typer.Option("--margin-requirement", min=0, max=1)] = 0.0,
     as_json: Annotated[bool, typer.Option("--json")] = False,
 ) -> None:
     """Run the compatible point-in-time portfolio backtest."""
@@ -187,8 +183,7 @@ def algorithms_command(as_json: Annotated[bool, typer.Option("--json")] = False)
     from fin_graph.strategies import strategy_catalog
 
     values = [
-        factory.specification.model_dump(mode="json")
-        for factory in strategy_catalog().values()
+        factory.specification.model_dump(mode="json") for factory in strategy_catalog().values()
     ]
     _emit({"algorithms": values}, as_json)
 

@@ -64,4 +64,3 @@ def test_legacy_progressive_disclosure_extends_to_full_finance_catalog() -> None
     assert "cross-listing" in summary
     assert full.startswith("---\nname: adr-hshare")
     assert len(full) > len(summary)
-
