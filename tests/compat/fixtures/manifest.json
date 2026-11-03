@@ -78,6 +78,24 @@
         "v2/signals/news_sentiment.py": "fb0004d4373ae021118fe5804201780e306b28e4d0ec6445114b9e922637962b",
         "v2/signals/pead.py": "65766d61c4d855921491643d861c3c2457a2b4c2ff20377ea0d1e4bac5a1ea94"
       }
+    },
+    {
+      "fixture": "v2/signals/trainable/reference.json",
+      "license": "MIT",
+      "name": "v2-trainable-alpha-models",
+      "origin": "AI Hedge Fund",
+      "recorder_version": "1",
+      "snapshot_digest": "42cd3a84c47ccd9ca2a891146a2d818b2ea8c7908162ef107975239b7148a71f",
+      "source_file": "v2/signals/_trainable.py",
+      "source_hashes": {
+        "v2/features/technical_snapshot.py": "20d05de508bd86484ddd5540a39234e2e7d33c9e3067b411b59a39f52c7998bf",
+        "v2/signals/_forecasting.py": "5c06621b6356124af89dd25171ea97479714ef7c07d619a9ff3d6d0fa57543a4",
+        "v2/signals/_trainable.py": "8f3efb6d2b04ceb4149f872e357c790a47b0398442eb4c5314e7a9c9831049d0",
+        "v2/signals/arima_forecast.py": "0f2e6d5d4a92cb8fe19eca82428ca140cc5cdfbe0107773e45bbff1d65653bfe",
+        "v2/signals/lstm_forecast.py": "7f9ccb5d0fa57415b081cb58c8c7568180a652d2644bd28ae75342b1b940b799",
+        "v2/signals/technical_ml.py": "ff1c59b060e18b6cd9476abafbeb1947761db028318b7c0d3387cf67d809245c",
+        "v2/signals/technical_scan.py": "38040ac5948903ba3f3f88724e578a14356e8b0f0e45adffdf940b39a8dd9f74"
+      }
     }
   ],
   "recorder_version": "1",

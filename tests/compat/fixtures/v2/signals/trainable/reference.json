@@ -1,0 +1,70 @@
+{
+  "arima": {
+    "components": {
+      "expected_return": -0.011255227709957405
+    },
+    "date": "2024-08-07",
+    "metadata": {
+      "confidence_label": "weak",
+      "edge_vs_baseline": -0.013721,
+      "expected_return": -0.011255,
+      "forecast_horizon_days": 5,
+      "forecast_path": [
+        110.9697,
+        110.7184,
+        110.4636,
+        110.2158,
+        109.9712
+      ],
+      "historical_avg_return": 0.002465,
+      "last_close": 111.22306724859955,
+      "n_test_rows": 44,
+      "n_training_rows": 176,
+      "reliable": true,
+      "rmse": 1.3276837936548367,
+      "trained_through": "2024-08-07"
+    },
+    "model_name": "arima",
+    "reasoning": "[weak] 5-day forecast 110.97 -> 109.97 (-1.13% vs last close 111.22, baseline +0.25%, edge -1.37%); trained on 176 rows through 2024-08-07, holdout RMSE 1.33",
+    "ticker": "CASE",
+    "value": -0.27418246107933925
+  },
+  "technical_ml": {
+    "components": {},
+    "date": "2024-08-07",
+    "metadata": {
+      "accuracy": 1.0,
+      "confidence_label": "strong",
+      "edge_vs_base_rate": -0.4999,
+      "historical_base_rate_up": 0.5941176470588235,
+      "n_training_rows": 136,
+      "precision": 1.0,
+      "probability_up": 0.09426199286841601,
+      "reliable": true,
+      "trained_through": "2024-08-07"
+    },
+    "model_name": "technical_ml",
+    "reasoning": "[strong] P(up)=0.09 next session (baseline 0.59, edge -0.50); top features: macd_diff (0.36), bb_pband (0.19), atr_14 (0.11) (trained on 136 rows through 2024-08-07, holdout accuracy 1.00)",
+    "ticker": "CASE",
+    "value": -0.811476014263168
+  },
+  "technical_scan": {
+    "components": {},
+    "date": "2024-08-07",
+    "metadata": {
+      "accuracy": 0.9,
+      "confidence_label": "strong",
+      "edge_vs_base_rate": -0.525,
+      "historical_base_rate_up": 0.525,
+      "n_training_rows": 160,
+      "precision": 1.0,
+      "probability_up": 0.0,
+      "reliable": true,
+      "trained_through": "2024-08-07"
+    },
+    "model_name": "technical_scan",
+    "reasoning": "[strong] P(up)=0.00 next session (baseline 0.53, edge -0.53) (trained on 160 rows through 2024-08-07, holdout accuracy 0.90)",
+    "ticker": "CASE",
+    "value": -1.0
+  }
+}
