@@ -14,6 +14,7 @@ from langgraph.store.sqlite.aio import AsyncSqliteStore
 
 from fin_graph.config.settings import PersistenceBackend, Settings
 from fin_graph.persistence.paths import prepare_sqlite_path
+from fin_graph.persistence.urls import psycopg_connection_url
 
 
 @asynccontextmanager
@@ -28,7 +29,7 @@ async def open_store(settings: Settings) -> AsyncIterator[BaseStore]:
             await sqlite_store.setup()
             yield sqlite_store
     else:
-        url = settings.require_database_url()
+        url = psycopg_connection_url(settings.require_database_url())
         index: PostgresIndexConfig | None = None
         if settings.embeddings_provider:
             if settings.embeddings_provider != "openai":

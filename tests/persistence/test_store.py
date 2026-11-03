@@ -11,6 +11,7 @@ import pytest
 from fin_graph.config.settings import PersistenceBackend, Settings
 from fin_graph.persistence.checkpointer import open_checkpointer
 from fin_graph.persistence.store import open_store
+from fin_graph.persistence.urls import psycopg_connection_url
 
 
 async def _put_then_reopen_and_get(settings: Settings) -> object:
@@ -30,6 +31,16 @@ async def test_sqlite_store_survives_reopening(tmp_path: Path) -> None:
     )
 
     assert await _put_then_reopen_and_get(settings) == {"text": "rollback fixed it"}
+
+
+def test_langgraph_postgres_url_removes_only_the_sqlalchemy_driver() -> None:
+    assert (
+        psycopg_connection_url("postgresql+psycopg://user:pass@db:5432/name?sslmode=require")
+        == "postgresql://user:pass@db:5432/name?sslmode=require"
+    )
+    assert psycopg_connection_url("postgresql://user:pass@db/name") == (
+        "postgresql://user:pass@db/name"
+    )
 
 
 async def test_postgres_embeddings_are_opt_in_without_network(

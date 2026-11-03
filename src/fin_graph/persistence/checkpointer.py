@@ -13,6 +13,7 @@ from langgraph.checkpoint.sqlite.aio import AsyncSqliteSaver
 
 from fin_graph.config.settings import PersistenceBackend, Settings
 from fin_graph.persistence.paths import prepare_sqlite_path
+from fin_graph.persistence.urls import psycopg_connection_url
 
 
 @asynccontextmanager
@@ -27,7 +28,7 @@ async def open_checkpointer(settings: Settings) -> AsyncIterator[BaseCheckpointS
             await sqlite_saver.setup()
             yield sqlite_saver
     else:
-        url = settings.require_database_url()
+        url = psycopg_connection_url(settings.require_database_url())
         async with AsyncPostgresSaver.from_conn_string(url) as postgres_saver:
             await postgres_saver.setup()
             yield postgres_saver
