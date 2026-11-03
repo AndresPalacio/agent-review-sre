@@ -56,6 +56,8 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); ou
 .left-panel { border-right: 1px solid var(--border); }
 .right-panel { border-left: 1px solid var(--border); }
 .canvas-panel { min-width: 0; min-height: 0; background: var(--bg); overflow: hidden; }
+.canvas-workspace { width: 100%; height: 100%; display: grid; grid-template-rows: 35px minmax(0, 1fr); }
+.canvas-stage { min-height: 0; }
 .bottom-panel { grid-column: 1 / -1; min-height: 0; border-top: 1px solid var(--border); background: var(--surface); overflow: auto; }
 .panel-heading { height: 43px; display: flex; align-items: center; justify-content: space-between; padding: 0 12px; border-bottom: 1px solid var(--border); font-size: 13px; }
 .search-field { display: flex; align-items: center; gap: 7px; margin: 10px; padding: 0 9px; height: 31px; border: 1px solid var(--border); border-radius: 6px; background: var(--surface-2); color: var(--muted); }
@@ -64,6 +66,42 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); ou
 .empty-panel svg { opacity: .55; }
 .empty-panel p { margin: 10px 0 4px; color: var(--text); font-size: 13px; }
 .empty-panel span { font-size: 11px; }
+.panel-actions { display: flex; gap: 5px; }
+.sidebar-state, .sidebar-error { margin: 12px; padding: 10px; color: var(--muted); font-size: 11px; }
+.sidebar-error { border: 1px solid color-mix(in srgb, var(--danger) 55%, var(--border)); border-radius: 6px; color: var(--danger); }
+.flow-list { display: grid; gap: 4px; padding: 0 7px 12px; }
+.flow-list-item { position: relative; display: grid; grid-template-columns: minmax(0, 1fr) 26px; align-items: center; border-radius: 7px; }
+.flow-list-item:hover { background: var(--surface-2); }
+.flow-open { min-width: 0; display: flex; align-items: center; gap: 8px; padding: 7px; border: 0; text-align: left; background: transparent; cursor: pointer; }
+.flow-open > span { flex: 0 0 auto; width: 27px; height: 27px; display: grid; place-items: center; border-radius: 6px; background: var(--accent-soft); color: var(--accent); font-size: 11px; font-weight: 800; }
+.flow-open > div { min-width: 0; display: flex; flex-direction: column; }
+.flow-open strong, .flow-open small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.flow-open strong { font-size: 11px; }
+.flow-open small { margin-top: 2px; color: var(--muted); font-size: 9px; }
+.flow-menu-button { width: 24px; height: 24px; display: grid; place-items: center; border: 0; border-radius: 5px; background: transparent; color: var(--muted); cursor: pointer; }
+.flow-menu { position: absolute; z-index: 20; top: 31px; right: 2px; min-width: 135px; display: grid; padding: 4px; border: 1px solid var(--border); border-radius: 7px; background: var(--surface-2); box-shadow: 0 12px 28px #0008; }
+.flow-menu button { display: flex; align-items: center; gap: 7px; padding: 7px 8px; border: 0; border-radius: 5px; text-align: left; background: transparent; font-size: 10px; cursor: pointer; }
+.flow-menu button:hover { background: var(--surface-3); }
+.flow-menu button.danger { color: var(--danger); }
+.tab-bar { min-width: 0; display: flex; align-items: stretch; overflow-x: auto; border-bottom: 1px solid var(--border); background: var(--surface); }
+.flow-tab { display: flex; align-items: center; border-right: 1px solid var(--border); border-bottom: 2px solid transparent; }
+.flow-tab.active { background: var(--surface-2); border-bottom-color: var(--accent); }
+.flow-tab button { height: 100%; border: 0; background: transparent; color: var(--muted); cursor: pointer; }
+.flow-tab button[role="tab"] { max-width: 175px; padding: 0 6px 0 11px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 10px; }
+.flow-tab.active button[role="tab"] { color: var(--text); }
+.flow-tab > button:last-child { padding: 0 8px 0 4px; }
+.tab-empty { align-self: center; padding: 0 12px; color: var(--muted); font-size: 10px; }
+.dialog-backdrop { position: fixed; z-index: 100; inset: 0; display: grid; place-items: center; padding: 20px; background: #03070ca8; }
+.flow-dialog { width: min(430px, 100%); padding: 20px; border: 1px solid var(--border); border-radius: 11px; background: var(--surface); box-shadow: 0 24px 80px #000b; }
+.flow-dialog h2 { margin: 0 0 17px; font-size: 17px; }
+.flow-dialog form, .flow-dialog label { display: grid; gap: 7px; }
+.flow-dialog form { gap: 14px; }
+.flow-dialog label { color: var(--muted); font-size: 11px; }
+.flow-dialog input, .flow-dialog textarea { width: 100%; padding: 8px 9px; border: 1px solid var(--border); border-radius: 6px; background: var(--surface-2); color: var(--text); }
+.flow-dialog textarea { min-height: 70px; resize: vertical; }
+.dialog-actions { display: flex; justify-content: flex-end; gap: 7px; }
+.dialog-actions button { padding: 7px 11px; border: 1px solid var(--border); border-radius: 6px; background: var(--surface-2); cursor: pointer; }
+.dialog-actions button[type="submit"] { border-color: var(--accent); background: var(--accent); color: #06110a; font-weight: 700; }
 
 .canvas-empty { position: relative; width: 100%; height: 100%; display: grid; place-items: center; }
 .canvas-grid { position: absolute; inset: 0; opacity: .45; background-image: radial-gradient(var(--border) 1px, transparent 1px); background-size: 18px 18px; }

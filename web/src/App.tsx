@@ -1,11 +1,17 @@
 import { Component, type ErrorInfo, type ReactNode } from "react";
-import { FilePlus2, LineChart, Search } from "lucide-react";
+import { FilePlus2, LineChart } from "lucide-react";
 import { LayoutProvider } from "./contexts/LayoutContext";
 import { NodeProvider } from "./contexts/NodeContext";
+import { FlowProvider, useFlows } from "./contexts/FlowContext";
+import { TabsProvider, useTabs } from "./contexts/TabsContext";
 import { ComponentCatalog } from "./components/catalog/ComponentCatalog";
 import { FlowCanvas } from "./components/flow/FlowCanvas";
+import { FlowSidebar } from "./components/flows/FlowSidebar";
+import { TabBar } from "./components/tabs/TabBar";
 import { TopBar } from "./components/layout/TopBar";
 import { WorkbenchLayout } from "./components/layout/WorkbenchLayout";
+import { createCatalogNode, type CatalogItem } from "./data/node-catalog";
+import { useKeyboardShortcuts } from "./hooks/useKeyboardShortcuts";
 import "./style.css";
 
 interface BoundaryProps { children: ReactNode }
@@ -32,14 +38,6 @@ export class AppErrorBoundary extends Component<BoundaryProps, BoundaryState> {
   }
 }
 
-function FlowPlaceholder() {
-  return <>
-    <div className="panel-heading"><strong>Flujos</strong><button className="icon-button" aria-label="Crear flujo"><FilePlus2 size={16} /></button></div>
-    <label className="search-field"><Search size={14} /><span className="sr-only">Buscar flujos</span><input placeholder="Buscar flujos" /></label>
-    <div className="empty-panel"><FilePlus2 size={25} /><p>Aún no hay flujos</p><span>Crea uno para diseñar tu estrategia.</span></div>
-  </>;
-}
-
 function BottomPlaceholder() {
   return <div className="result-shell">
     <div className="result-tabs"><button className="active">Salida</button><button>Razonamiento</button><button>Problemas <span>0</span></button><button>Terminal</button></div>
@@ -47,6 +45,31 @@ function BottomPlaceholder() {
   </div>;
 }
 
+function Workbench() {
+  const { activeTab, updateDocument } = useTabs();
+  const { saveFlow } = useFlows();
+  useKeyboardShortcuts({ save: () => { if (activeTab) void saveFlow(activeTab.flow.id); } });
+  const addComponent = (item: CatalogItem) => {
+    if (!activeTab) return;
+    const offset = activeTab.document.nodes.length * 18;
+    updateDocument(activeTab.flow.id, {
+      ...activeTab.document,
+      nodes: [...activeTab.document.nodes, createCatalogNode(item.key, { x: 100 + offset, y: 90 + offset })],
+    });
+  };
+  const canvas = <div className="canvas-workspace">
+    <TabBar />
+    <div className="canvas-stage">
+      {activeTab ? <FlowCanvas
+        initialNodes={activeTab.document.nodes}
+        initialEdges={activeTab.document.edges}
+        onChange={(document) => updateDocument(activeTab.flow.id, document)}
+      /> : <div className="canvas-empty"><div className="canvas-grid" /><div className="empty-card"><LineChart size={34} /><h1>Construye tu estrategia</h1><p>Abre o crea un flujo y arrastra analistas para diseñar una estrategia.</p><FilePlus2 size={18} /></div></div>}
+    </div>
+  </div>;
+  return <WorkbenchLayout top={<TopBar />} left={<FlowSidebar />} canvas={canvas} right={<ComponentCatalog onAdd={addComponent} />} bottom={<BottomPlaceholder />} />;
+}
+
 export function App() {
-  return <AppErrorBoundary><LayoutProvider><NodeProvider><WorkbenchLayout top={<TopBar />} left={<FlowPlaceholder />} canvas={<FlowCanvas />} right={<ComponentCatalog />} bottom={<BottomPlaceholder />} /></NodeProvider></LayoutProvider></AppErrorBoundary>;
+  return <AppErrorBoundary><LayoutProvider><NodeProvider><TabsProvider><FlowProvider><Workbench /></FlowProvider></TabsProvider></NodeProvider></LayoutProvider></AppErrorBoundary>;
 }

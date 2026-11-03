@@ -126,6 +126,13 @@ function Canvas({ initialNodes = [], initialEdges = [], onChange }: FlowCanvasPr
   const selected = useRef<string[]>([]);
   const clipboard = useRef<FlowNode[]>([]);
 
+  useEffect(() => {
+    setNodes((current) => JSON.stringify(current) === JSON.stringify(repaired.nodes) ? current : repaired.nodes);
+  }, [repaired.nodes]);
+  useEffect(() => {
+    setEdges((current) => JSON.stringify(current) === JSON.stringify(initialEdges) ? current : initialEdges);
+  }, [initialEdges]);
+
   useEffect(() => { onChange?.(serializeFlow(nodes, edges)); }, [nodes, edges, onChange]);
 
   const onNodesChange = useCallback((changes: NodeChange<FlowNode>[]) => {
