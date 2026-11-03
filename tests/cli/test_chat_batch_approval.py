@@ -10,9 +10,9 @@ from langgraph.checkpoint.memory import InMemorySaver
 from langgraph.store.memory import InMemoryStore
 from tests.cli.paper_helpers import paper_context
 
+from fin_graph.agents.chat.supervisor import make_chat_graph
 from fin_graph.agents.common.testing.scripted_model import ScriptedChatModel
 from fin_graph.cli.chat import ChatSession, RemoteChatSession
-from fin_graph.graphs.chat.graph import make_chat_graph
 from fin_graph.integrations.context import RunContext
 from fin_graph.integrations.registry import IntegrationRegistry
 from fin_graph.memory.theses import ThesisMemory

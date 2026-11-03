@@ -262,7 +262,7 @@ def create_app(
                     app.state.compatibility_backtest_runner = make_v1_backtest_runner(
                         chat_analysis, context_factory
                     )
-                    from fin_graph.graphs.chat.graph import make_chat_graph
+                    from fin_graph.agents.chat.supervisor import make_chat_graph
 
                     active_chat = make_chat_graph(
                         model,

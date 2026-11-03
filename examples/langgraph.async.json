@@ -2,9 +2,9 @@
   "python_version": "3.12",
   "dependencies": ["."],
   "graphs": {
-    "supervisor": "fin_graph.work.graphs:supervisor",
-    "fundamentals": "fin_graph.work.graphs:fundamentals",
-    "technicals": "fin_graph.work.graphs:technicals"
+    "supervisor": "fin_graph.agents.solver.supervisor:supervisor",
+    "fundamentals": "fin_graph.agents.solver.supervisor:fundamentals",
+    "technicals": "fin_graph.agents.solver.supervisor:technicals"
   },
   "env": ".env"
 }

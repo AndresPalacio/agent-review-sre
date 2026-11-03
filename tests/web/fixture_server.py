@@ -23,6 +23,7 @@ from langgraph.store.memory import InMemoryStore
 from sqlalchemy.ext.asyncio import AsyncEngine, create_async_engine
 from tests.server.finance_app import FixtureTools, fixture_context, paper_broker
 
+from fin_graph.agents.chat.supervisor import make_chat_graph
 from fin_graph.agents.common.testing.scripted_model import ScriptedChatModel
 from fin_graph.backtesting import (
     BacktestArtifactStore,
@@ -40,7 +41,6 @@ from fin_graph.compat.storage import (
 from fin_graph.config.settings import Settings
 from fin_graph.evals.market.scenarios import load_equity_scenario
 from fin_graph.graphs.analysis.services import UnavailableAnalysisServices
-from fin_graph.graphs.chat.graph import make_chat_graph
 from fin_graph.graphs.orders.desk import OrderDesk
 from fin_graph.graphs.orders.graph import make_order_graph
 from fin_graph.harness.runtime import make_analysis_graph

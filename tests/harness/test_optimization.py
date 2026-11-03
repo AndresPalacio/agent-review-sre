@@ -93,7 +93,6 @@ async def test_loop_keeps_train_gain_but_rejects_paired_holdout_regression(
 
 
 async def test_official_proposer_adapter_reads_only_allowed_text_edits(tmp_path, monkeypatch):
-    import deepagents.graph
     from better_harness.core import RunLayout
     from better_harness.patching import build_baseline_variant
     from langchain_core.messages import AIMessage
@@ -124,12 +123,14 @@ async def test_official_proposer_adapter_reads_only_allowed_text_edits(tmp_path,
             AIMessage(content="Applied general valuation reasoning."),
         ]
     )
-    real_factory = deepagents.graph.create_deep_agent
+    import fin_graph.agents.optimizer.proposer as proposer_factory
+
+    real_factory = proposer_factory.create_deep_agent
 
     def offline_factory(**kwargs):
         return real_factory(**(kwargs | {"model": model}))
 
-    monkeypatch.setattr(deepagents.graph, "create_deep_agent", offline_factory)
+    monkeypatch.setattr(proposer_factory, "create_deep_agent", offline_factory)
     proposal, candidate = outer.propose_in_process(config, baseline, train.result, layout, 1)
     assert proposal.changed_surfaces == ("plan",)
     assert candidate.values["plan"] == "Compare the price with the intrinsic value first."

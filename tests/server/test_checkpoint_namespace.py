@@ -18,9 +18,9 @@ from tests.server.finance_app import (
 )
 from tests.server.test_orders_api import ORDER
 
+from fin_graph.agents.chat.supervisor import make_chat_graph
 from fin_graph.agents.common.testing.scripted_model import ScriptedChatModel, tool_call_message
 from fin_graph.graphs.analysis.services import UnavailableAnalysisServices
-from fin_graph.graphs.chat.graph import make_chat_graph
 from fin_graph.graphs.orders.desk import OrderDesk
 from fin_graph.graphs.orders.graph import make_order_graph
 from fin_graph.harness.runtime import make_analysis_graph

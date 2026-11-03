@@ -17,6 +17,7 @@ from platformdirs import user_data_dir
 from prompt_toolkit import PromptSession
 from rich.console import Console
 
+from fin_graph.agents.chat.supervisor import make_chat_graph
 from fin_graph.cli.chat import ChatSession, RemoteChatSession
 from fin_graph.cli.compat import register_compat_commands
 from fin_graph.cli.harness import app as harness_app
@@ -25,7 +26,6 @@ from fin_graph.cli.orders import app as orders_app
 from fin_graph.cli.schedules import app as schedules_app
 from fin_graph.config.settings import PersistenceBackend, Settings
 from fin_graph.config.tracing import disable_external_tracing
-from fin_graph.graphs.chat.graph import make_chat_graph
 from fin_graph.harness.runtime import _analysis_services, make_analysis_graph
 from fin_graph.integrations.broker.paper.runtime import open_trading_context
 from fin_graph.integrations.catalog import default_registry

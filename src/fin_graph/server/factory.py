@@ -148,8 +148,8 @@ def _local_model_graphs(
         from langgraph.store.memory import InMemoryStore
 
         from fin_graph.agents.analysis.persona_team import make_persona_analysis_supervisor
+        from fin_graph.agents.chat.supervisor import make_chat_graph
         from fin_graph.graphs.analysis.snapshots import MarketSnapshotServices
-        from fin_graph.graphs.chat.graph import make_chat_graph
         from fin_graph.memory.theses import ThesisMemory
 
         model = get_model(ModelRole.REASONING, settings)

@@ -22,6 +22,7 @@ from better_harness.agent import (
 from better_harness.core import Proposal, RunLayout, SplitResult, Variant
 from better_harness.patching import build_variant
 
+from fin_graph.agents.optimizer.proposer import make_optimizer_agent
 from fin_graph.config.settings import Settings
 from fin_graph.evals.market.scenarios import load_equity_case
 from fin_graph.evals.market.trajectory import contract_for
@@ -96,8 +97,6 @@ def prepare_workspace(
 
 def run_outer_agent(config: HarnessConfig, workspace: ProposerWorkspace) -> str | None:
     """Upstream's outer Deep Agent on ``workspace``, with a model built by fin-graph."""
-    import deepagents.graph
-    from deepagents.backends import FilesystemBackend
     from langchain_core.messages import HumanMessage
 
     experiment = config.experiment
@@ -111,10 +110,10 @@ def run_outer_agent(config: HarnessConfig, workspace: ProposerWorkspace) -> str 
     system = DEFAULT_SYSTEM_PROMPT
     if experiment.better_agent_system_prompt:
         system = experiment.better_agent_system_prompt.strip() + "\n\n" + system
-    agent = deepagents.graph.create_deep_agent(
+    agent = make_optimizer_agent(
         model=build_chat_model(spec, settings, temperature=0),
         system_prompt=system,
-        backend=FilesystemBackend(root_dir=str(workspace.root), virtual_mode=True),
+        workspace_root=workspace.root,
     )
     result: dict[str, Any] = agent.invoke(
         {"messages": [HumanMessage(content=_START)]},

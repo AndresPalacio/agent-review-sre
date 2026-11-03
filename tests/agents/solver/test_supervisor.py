@@ -16,10 +16,17 @@ from langchain_core.messages import AIMessage, HumanMessage, ToolMessage
 from langgraph_sdk.client import LangGraphClient
 
 from fin_graph.agents.common.testing.scripted_model import ScriptedChatModel
-from fin_graph.work import graphs
+from fin_graph.agents.solver import supervisor as graphs
 from fin_graph.work.store import WorkStore
 
 _LEDGER: WorkStore | None = None
+
+
+def test_legacy_work_graph_import_is_the_new_solver() -> None:
+    from fin_graph.agents.solver.supervisor import supervisor as current
+    from fin_graph.work.graphs import supervisor as legacy
+
+    assert legacy is current
 
 
 @pytest.fixture(autouse=True)

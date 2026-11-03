@@ -12,11 +12,11 @@ from langgraph.checkpoint.memory import InMemorySaver
 from langgraph.store.memory import InMemoryStore
 from langgraph.types import Command
 
+from fin_graph.agents.chat.supervisor import approval_description, make_chat_graph
 from fin_graph.agents.common.middleware.disclaimer import DISCLAIMER
 from fin_graph.agents.common.testing.scripted_model import ScriptedChatModel, tool_call_message
 from fin_graph.domain.fills import OrderStatus
 from fin_graph.domain.portfolio import Portfolio
-from fin_graph.graphs.chat.graph import approval_description, make_chat_graph
 from fin_graph.integrations.broker.paper.broker import PaperBroker
 from fin_graph.integrations.context import RunContext
 from fin_graph.memory.theses import ThesisMemory

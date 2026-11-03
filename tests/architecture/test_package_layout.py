@@ -16,6 +16,11 @@ import pytest
         "fin_graph.agents.analysis.personas",
         "fin_graph.agents.analysis.persona_prompts",
         "fin_graph.agents.analysis.persona_team",
+        "fin_graph.agents.chat.supervisor",
+        "fin_graph.agents.solver.control",
+        "fin_graph.agents.solver.supervisor",
+        "fin_graph.agents.solver.testing",
+        "fin_graph.agents.optimizer.proposer",
     ],
 )
 def test_target_module_imports(module: str) -> None:
