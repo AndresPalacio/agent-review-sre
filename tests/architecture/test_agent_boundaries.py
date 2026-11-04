@@ -95,24 +95,64 @@ def _package_imports(root: Path) -> set[str]:
     return imports
 
 
+def _is_langchain_create_agent_call(
+    node: ast.AST,
+    function_aliases: set[str],
+    langchain_aliases: set[str],
+    agents_aliases: set[str],
+) -> bool:
+    if not isinstance(node, ast.Call):
+        return False
+    if isinstance(node.func, ast.Name):
+        return node.func.id in function_aliases
+    if not isinstance(node.func, ast.Attribute) or node.func.attr != "create_agent":
+        return False
+    owner = node.func.value
+    if isinstance(owner, ast.Name):
+        return owner.id in agents_aliases
+    return (
+        isinstance(owner, ast.Attribute)
+        and owner.attr == "agents"
+        and isinstance(owner.value, ast.Name)
+        and owner.value.id in langchain_aliases
+    )
+
+
 def _langchain_create_agent_references(root: Path) -> set[str]:
     found: set[str] = set()
     for path in _python_files(root):
         tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
-        imported_aliases: set[str] = set()
-        module_aliases: set[str] = set()
+        function_aliases: set[str] = set()
+        langchain_aliases: set[str] = set()
+        agents_aliases: set[str] = set()
         for node in ast.walk(tree):
             if isinstance(node, ast.ImportFrom) and node.module == "langchain.agents":
-                imported_aliases.update(
+                function_aliases.update(
                     item.asname or item.name for item in node.names if item.name == "create_agent"
                 )
-            elif isinstance(node, ast.Import):
-                module_aliases.update(
-                    item.asname or item.name
-                    for item in node.names
-                    if item.name == "langchain.agents"
+            elif isinstance(node, ast.ImportFrom) and node.module == "langchain":
+                agents_aliases.update(
+                    item.asname or item.name for item in node.names if item.name == "agents"
                 )
-        if imported_aliases or module_aliases:
+            elif isinstance(node, ast.Import):
+                for item in node.names:
+                    if item.name == "langchain":
+                        langchain_aliases.add(item.asname or item.name)
+                    elif item.name == "langchain.agents":
+                        if item.asname:
+                            agents_aliases.add(item.asname)
+                        else:
+                            langchain_aliases.add("langchain")
+        has_qualified_call = any(
+            _is_langchain_create_agent_call(
+                node,
+                function_aliases,
+                langchain_aliases,
+                agents_aliases,
+            )
+            for node in ast.walk(tree)
+        )
+        if function_aliases or has_qualified_call:
             found.add(path.relative_to(root).as_posix())
     return found
 
@@ -160,6 +200,38 @@ def test_qualified_deepagent_calls_are_detected(tmp_path: Path) -> None:
         "module_alias.py",
         "qualified.py",
     }
+
+
+def test_qualified_langchain_create_agent_calls_are_detected(tmp_path: Path) -> None:
+    fixtures = {
+        "root_module.py": "import langchain\nlangchain.agents.create_agent()\n",
+        "root_alias.py": "import langchain as lc\nlc.agents.create_agent()\n",
+        "agents_module.py": ("import langchain.agents\nlangchain.agents.create_agent()\n"),
+        "agents_alias.py": ("import langchain.agents as agents\nagents.create_agent()\n"),
+        "from_agents_alias.py": ("from langchain.agents import create_agent as build\n"),
+        "from_langchain_alias.py": (
+            "from langchain import agents as lc_agents\nlc_agents.create_agent()\n"
+        ),
+    }
+    for filename, source in fixtures.items():
+        (tmp_path / filename).write_text(source, encoding="utf-8")
+
+    assert _langchain_create_agent_references(tmp_path) == set(fixtures)
+
+
+def test_non_target_create_agent_references_are_ignored(tmp_path: Path) -> None:
+    fixtures = {
+        "comment.py": "# langchain.agents.create_agent()\n",
+        "local.py": "def create_agent():\n    return None\ncreate_agent()\n",
+        "other_package.py": ("import other_package.agents as agents\nagents.create_agent()\n"),
+        "other_langchain_call.py": (
+            "import langchain.agents\nlangchain.agents.some_other_factory()\n"
+        ),
+    }
+    for filename, source in fixtures.items():
+        (tmp_path / filename).write_text(source, encoding="utf-8")
+
+    assert _langchain_create_agent_references(tmp_path) == set()
 
 
 def test_every_deepagent_factory_is_catalogued() -> None:
