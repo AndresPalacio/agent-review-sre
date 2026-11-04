@@ -9,6 +9,7 @@ from pathlib import Path
 
 from packaging.requirements import Requirement
 from packaging.utils import canonicalize_name
+from packaging.version import Version
 
 from fin_graph.conformance.reference_app.licensing import AssetInventory, audit_assets
 from fin_graph.conformance.reference_app.snapshot import ReferenceSnapshot, build_reference_snapshot
@@ -218,6 +219,11 @@ def test_built_wheel_keeps_heavy_packages_optional_and_app_is_complete(tmp_path:
         }
 
     base = enabled_for("")
+    base_requirements = [
+        requirement
+        for requirement in requirements
+        if requirement.marker is None or requirement.marker.evaluate({"extra": ""})
+    ]
     quant = enabled_for("quant")
     ml = enabled_for("ml")
     app = enabled_for("app")
@@ -235,6 +241,18 @@ def test_built_wheel_keeps_heavy_packages_optional_and_app_is_complete(tmp_path:
     agents_expected = {"deepagents", "langgraph-sdk", "openai", "mcp"}
 
     assert base.isdisjoint({"numpy", "pandas", "tensorflow"})
+    assert "deepagents" in base
+    deepagents_requirement = next(
+        requirement
+        for requirement in base_requirements
+        if canonicalize_name(requirement.name) == "deepagents"
+    )
+    deepagents_minimum = max(
+        Version(specifier.version)
+        for specifier in deepagents_requirement.specifier
+        if specifier.operator in {">=", ">", "~=", "==", "==="}
+    )
+    assert deepagents_minimum >= Version("0.7.32")
     assert quant >= quant_expected
     assert ml >= {"tensorflow"}
     assert app >= quant_expected | agents_expected
