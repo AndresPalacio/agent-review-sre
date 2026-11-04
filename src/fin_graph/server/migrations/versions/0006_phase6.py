@@ -1,4 +1,4 @@
-"""Phase 6 health results and gateway correlation.
+"""Market watch results and gateway correlation.
 
 Revision ID: 0006_phase6
 Revises: 0005_action_thread
@@ -17,15 +17,15 @@ depends_on = None
 
 def upgrade() -> None:
     op.create_table(
-        "health_results",
+        "watch_results",
         Column("id", Integer, primary_key=True, autoincrement=True),
         Column("schedule_id", String(64), nullable=False),
         Column("status", String(20), nullable=False),
         Column("details", JSON, nullable=False),
         Column("checked_at", DateTime(timezone=True), nullable=False),
     )
-    op.create_index("ix_health_results_schedule_id", "health_results", ["schedule_id"])
-    op.create_index("ix_health_results_checked_at", "health_results", ["checked_at"])
+    op.create_index("ix_watch_results_schedule_id", "watch_results", ["schedule_id"])
+    op.create_index("ix_watch_results_checked_at", "watch_results", ["checked_at"])
     op.create_table(
         "gateway_events",
         Column("platform", String(20), primary_key=True),
@@ -47,4 +47,4 @@ def upgrade() -> None:
 def downgrade() -> None:
     op.drop_table("gateway_threads")
     op.drop_table("gateway_events")
-    op.drop_table("health_results")
+    op.drop_table("watch_results")

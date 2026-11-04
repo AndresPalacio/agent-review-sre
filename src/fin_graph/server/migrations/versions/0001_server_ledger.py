@@ -38,13 +38,13 @@ def upgrade() -> None:
     )
     op.create_index("ix_run_events_run_id", "run_events", ["run_id"])
     op.create_table(
-        "alert_fingerprints",
+        "signal_fingerprints",
         Column("source", String(30), primary_key=True),
         Column("fingerprint", String(64), primary_key=True),
         Column("thread_id", String(64), nullable=False),
         Column("expires_at", DateTime(timezone=True), nullable=False),
     )
-    op.create_index("ix_alert_fingerprints_expires_at", "alert_fingerprints", ["expires_at"])
+    op.create_index("ix_signal_fingerprints_expires_at", "signal_fingerprints", ["expires_at"])
     op.create_table(
         "api_keys",
         Column("key_hash", String(64), primary_key=True),
@@ -70,8 +70,8 @@ def downgrade() -> None:
     op.drop_table("schedules")
     op.drop_table("deliveries")
     op.drop_table("api_keys")
-    op.drop_index("ix_alert_fingerprints_expires_at", table_name="alert_fingerprints")
-    op.drop_table("alert_fingerprints")
+    op.drop_index("ix_signal_fingerprints_expires_at", table_name="signal_fingerprints")
+    op.drop_table("signal_fingerprints")
     op.drop_index("ix_run_events_run_id", table_name="run_events")
     op.drop_table("run_events")
     op.drop_index("ix_runs_created_at", table_name="runs")

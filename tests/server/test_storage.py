@@ -88,18 +88,18 @@ async def test_retention_deletes_only_expired_threads_action_results() -> None:
     await storage.touch_checkpoint_thread("old", "chat")
     await storage.touch_checkpoint_thread("new", "chat")
     assert await storage.claim_action("old-action", "a" * 64, thread_id="chat:old") == ("new", None)
-    assert await storage.claim_action("legacy-action", "c" * 64, thread_id="remediation:old") == (
+    assert await storage.claim_action("order-action", "c" * 64, thread_id="orders:old") == (
         "new",
         None,
     )
     assert await storage.claim_action("new-action", "b" * 64, thread_id="chat:new") == ("new", None)
     await storage.complete_action("old-action", {"ok": True})
-    await storage.complete_action("legacy-action", {"ok": True})
+    await storage.complete_action("order-action", {"ok": True})
     await storage.complete_action("new-action", {"ok": True})
     cutoff = datetime.now(UTC) + timedelta(days=1)
     assert await storage.delete_thread("old", cutoff)
     assert await storage.claim_action("old-action", "a" * 64, thread_id="chat:old") == ("new", None)
-    assert await storage.claim_action("legacy-action", "c" * 64, thread_id="remediation:old") == (
+    assert await storage.claim_action("order-action", "c" * 64, thread_id="orders:old") == (
         "new",
         None,
     )

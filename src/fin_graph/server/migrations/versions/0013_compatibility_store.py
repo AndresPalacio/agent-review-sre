@@ -1,7 +1,7 @@
-"""Add the durable AI Hedge Fund compatibility ledger.
+"""Add the durable financial compatibility ledger.
 
 Revision ID: 0013_compatibility_store
-Revises: 0012_finance_names
+Revises: 0011_paper_ledger
 """
 
 from __future__ import annotations
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 from alembic import op
 
 revision = "0013_compatibility_store"
-down_revision = "0012_finance_names"
+down_revision = "0011_paper_ledger"
 branch_labels = None
 depends_on = None
 

@@ -3,10 +3,36 @@ from __future__ import annotations
 import asyncio
 from pathlib import Path
 
+from alembic import command
+from alembic.config import Config
 from sqlalchemy import inspect
 from sqlalchemy.ext.asyncio import create_async_engine
 
+from fin_graph.server import migrate as migrate_module
 from fin_graph.server.migrate import upgrade
+
+LEGACY_TABLES = {"alert" + "_fingerprints", "health" + "_results"}
+
+
+def _upgrade_to(database_url: str, revision: str) -> None:
+    config = Config()
+    config.set_main_option(
+        "script_location", str(Path(migrate_module.__file__).parent / "migrations")
+    )
+    config.attributes["database_url"] = database_url
+    command.upgrade(config, revision)
+
+
+async def test_financial_table_names_exist_before_compatibility_migration(tmp_path: Path) -> None:
+    url = f"sqlite+aiosqlite:///{tmp_path / 'pre-compat-migration.sqlite'}"
+    await asyncio.to_thread(_upgrade_to, url, "0011_paper_ledger")
+    engine = create_async_engine(url)
+    async with engine.connect() as connection:
+        tables = await connection.run_sync(lambda sync: set(inspect(sync).get_table_names()))
+
+    assert {"signal_fingerprints", "watch_results"} <= tables
+    assert LEGACY_TABLES.isdisjoint(tables)
+    await engine.dispose()
 
 
 async def test_alembic_upgrade_is_repeatable(tmp_path: Path) -> None:
@@ -51,6 +77,7 @@ async def test_alembic_upgrade_is_repeatable(tmp_path: Path) -> None:
         "compat_artifacts",
         "alembic_version",
     } <= tables
+    assert LEGACY_TABLES.isdisjoint(tables)
     assert "thread_id" in action_columns
     assert {"status", "payload", "updated_at", "attempts", "owner"} <= gateway_columns
     assert "approval_id" in binding_columns

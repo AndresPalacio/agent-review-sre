@@ -79,7 +79,7 @@ from fin_graph.server.explain import MAX_EXPLAIN_EVENTS, build_explanation
 from fin_graph.server.manager import RunManager, RunOverloaded
 from fin_graph.server.migrate import upgrade
 from fin_graph.server.security import REQUEST_SOURCE, SignalSource, WebhookVerifier
-from fin_graph.server.storage import Storage
+from fin_graph.server.storage import Storage, checkpoint_thread_ids
 from fin_graph.trading.order_desk import OrderDesk
 from fin_graph.workflows.analysis.snapshots import MarketSnapshotServices
 from fin_graph.workflows.orders.graph import PLACE_ORDER, make_order_graph
@@ -1640,12 +1640,7 @@ async def _retention_cycle(
             try:
                 if thread_id not in await manager.storage.expired_threads(cutoff):
                     continue
-                for checkpoint_id in (
-                    thread_id,
-                    f"chat:{thread_id}",
-                    f"orders:{thread_id}",
-                    f"remediation:{thread_id}",  # Legacy namespace, removed after F6 retention.
-                ):
+                for checkpoint_id in checkpoint_thread_ids(thread_id):
                     await saver.adelete_thread(checkpoint_id)
                 await manager.storage.delete_thread(thread_id, cutoff)
             except Exception:

@@ -1,4 +1,4 @@
-"""Track chat and remediation checkpoints for retention.
+"""Track financial analysis, chat and order checkpoints for retention.
 
 Revision ID: 0003_checkpoint_threads
 Revises: 0002_action_executions

@@ -44,6 +44,11 @@ class Base(DeclarativeBase):
     pass
 
 
+def checkpoint_thread_ids(thread_id: str) -> tuple[str, str, str]:
+    """Checkpoint ids owned by one financial analysis thread."""
+    return thread_id, f"chat:{thread_id}", f"orders:{thread_id}"
+
+
 class RunRow(Base):
     __tablename__ = "runs"
 
@@ -1126,14 +1131,7 @@ class Storage:
             )
             await session.execute(
                 delete(ActionExecutionRow).where(
-                    ActionExecutionRow.thread_id.in_(
-                        (
-                            thread_id,
-                            f"chat:{thread_id}",
-                            f"orders:{thread_id}",
-                            f"remediation:{thread_id}",
-                        )
-                    )
+                    ActionExecutionRow.thread_id.in_(checkpoint_thread_ids(thread_id))
                 )
             )
             await session.execute(

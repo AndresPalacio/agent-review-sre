@@ -2,8 +2,7 @@
 
 Each category names why a stock is interesting, or why not, and the stance it implies. A thesis
 whose category implies one stance and argues the other is inconsistent, and verification
-penalises it. ``no_edge`` plays the role ``healthy`` played in incident review: nothing
-distinctive to act on.
+penalises it. ``no_edge`` means there is nothing distinctive to act on.
 """
 
 from __future__ import annotations

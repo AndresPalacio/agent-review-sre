@@ -24,12 +24,20 @@ from fin_graph.integrations.registry import IntegrationRegistry
 from fin_graph.memory.theses import ThesisMemory
 from fin_graph.runtime.analysis import make_analysis_graph
 from fin_graph.safety.approval import ApprovalPolicy
+from fin_graph.server import storage as storage_module
 from fin_graph.server.app import _retention_cycle, create_app
 from fin_graph.server.manager import RunManager
-from fin_graph.server.storage import CheckpointThreadRow
 from fin_graph.trading.order_desk import OrderDesk
 from fin_graph.workflows.analysis.services import UnavailableAnalysisServices
 from fin_graph.workflows.orders.graph import make_order_graph
+
+
+def test_checkpoint_thread_ids_are_financial() -> None:
+    thread_id = "analysis-1"
+    resolver = getattr(storage_module, "checkpoint_thread_ids", None)
+
+    assert resolver is not None
+    assert resolver(thread_id) == (thread_id, f"chat:{thread_id}", f"orders:{thread_id}")
 
 
 async def test_shared_saver_keeps_same_thread_id_separate_for_all_graphs(
@@ -100,20 +108,6 @@ async def test_shared_saver_keeps_same_thread_id_separate_for_all_graphs(
         assert chat_state.values.get("tool") is None
         assert order_state.values["order"]["ticker"] == "DEEP"
         assert order_state.values.get("messages") is None
-        legacy_id = f"remediation:{thread_id}"
-        await analysis.ainvoke(
-            {"raw_request": REQUEST, "source_hint": "json"},
-            {"configurable": {"thread_id": legacy_id}},
-            context=context(),
-        )
-        async with storage.sessions.begin() as session:
-            session.add(
-                CheckpointThreadRow(
-                    thread_id=thread_id,
-                    kind="remediation",
-                    touched_at=datetime.now(UTC),
-                )
-            )
         await storage.record_watch_result("deep", "normal", {}, datetime.now(UTC))
         assert await storage.claim_gateway_event("slack", "retention-event")
         await _retention_cycle(
@@ -127,7 +121,6 @@ async def test_shared_saver_keeps_same_thread_id_separate_for_all_graphs(
             thread_id,
             f"chat:{thread_id}",
             f"orders:{thread_id}",
-            legacy_id,
         ):
             assert await saver.aget_tuple({"configurable": {"thread_id": checkpoint_id}}) is None
         assert await storage.latest_run(thread_id) is None
