@@ -31,6 +31,11 @@ const BacktestWorkspace = lazy(() =>
     default: module.BacktestWorkspace,
   })),
 );
+const DeepAgentsArchitecture = lazy(() =>
+  import("./components/architecture/DeepAgentsArchitecture").then((module) => ({
+    default: module.DeepAgentsArchitecture,
+  })),
+);
 const AnalysisExplainView = lazy(() =>
   import("./components/native/AnalysisExplainView").then((module) => ({
     default: module.AnalysisExplainView,
@@ -195,6 +200,16 @@ function Workbench() {
       <div className="workbench-shell product-shell">
         {top}
         <PaperWorkspace session={nativeSession} />
+        {settings}
+      </div>
+    );
+  if (page === "architecture")
+    return (
+      <div className="workbench-shell product-shell">
+        {top}
+        <Suspense fallback={<LoadingView />}>
+          <DeepAgentsArchitecture />
+        </Suspense>
         {settings}
       </div>
     );

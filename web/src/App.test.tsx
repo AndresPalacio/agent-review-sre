@@ -95,6 +95,29 @@ it("navigates to backtests, paper trading and settings from the product bar", as
   );
 });
 
+it("navigates to the architecture explainer from the product bar", async () => {
+  vi.stubGlobal(
+    "fetch",
+    vi.fn(async (input: unknown) =>
+      String(input).endsWith("/flows/")
+        ? Response.json([])
+        : Response.json({ agents: [] }),
+    ),
+  );
+  render(<App />);
+
+  fireEvent.click(screen.getByRole("button", { name: "Arquitectura" }));
+
+  expect(
+    await screen.findByRole("heading", { name: "Arquitectura de agentes" }),
+  ).toBeVisible();
+  expect(screen.getByRole("banner")).toHaveTextContent("Fin Graph");
+  expect(screen.getByRole("button", { name: "Arquitectura" })).toHaveAttribute(
+    "aria-current",
+    "page",
+  );
+});
+
 it("contains rendering failures in a recoverable boundary", () => {
   vi.spyOn(console, "error").mockImplementation(() => undefined);
   const Broken = () => {

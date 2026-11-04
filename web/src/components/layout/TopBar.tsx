@@ -4,6 +4,7 @@ import {
   GitBranch,
   Landmark,
   Moon,
+  Network,
   Play,
   Save,
   Settings,
@@ -11,7 +12,7 @@ import {
 } from "lucide-react";
 import { useLayout } from "../../contexts/LayoutContext";
 
-export type ProductPage = "flows" | "backtests" | "paper";
+export type ProductPage = "flows" | "backtests" | "paper" | "architecture";
 
 interface TopBarProps {
   page?: ProductPage;
@@ -60,6 +61,13 @@ export function TopBar({
           onClick={() => onPageChange?.("paper")}
         >
           <Landmark size={14} /> Paper trading
+        </button>
+        <button
+          className={page === "architecture" ? "active" : ""}
+          aria-current={page === "architecture" ? "page" : undefined}
+          onClick={() => onPageChange?.("architecture")}
+        >
+          <Network size={14} /> Arquitectura
         </button>
       </nav>
       <div className="topbar-actions">
