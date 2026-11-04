@@ -6,20 +6,35 @@ import asyncio
 import importlib
 import json
 import time
+from collections.abc import Sequence
 from pathlib import Path
 from typing import Any
 from uuid import NAMESPACE_URL, uuid5
 
 import httpx
 import pytest
+from deepagents.middleware.async_subagents import AsyncSubAgentMiddleware
 from langchain_core.messages import AIMessage, HumanMessage, ToolMessage
 from langgraph_sdk.client import LangGraphClient
+from pydantic import PrivateAttr
 
 from fin_graph.agents.common.testing.scripted_model import ScriptedChatModel
 from fin_graph.agents.solver import supervisor as graphs
 from fin_graph.work.store import WorkStore
 
 _LEDGER: WorkStore | None = None
+
+
+class ToolRecordingModel(ScriptedChatModel):
+    _bound_tool_names: list[list[str]] = PrivateAttr(default_factory=list)
+
+    def bind_tools(self, tools: Sequence[Any], **kwargs: Any) -> ToolRecordingModel:
+        self._bound_tool_names.append([getattr(candidate, "name", "") for candidate in tools])
+        return self
+
+    @property
+    def bound_tool_names(self) -> list[list[str]]:
+        return self._bound_tool_names
 
 
 def test_legacy_work_graph_import_is_the_new_solver() -> None:
@@ -149,6 +164,73 @@ async def test_offline_supervisor_launches_real_async_tools_and_portable_context
     assert {row["tool"] for row in result["decision_trace"]} == {"start_async_task"}
     assert all(row["provenance"] == "offline" for row in result["decision_trace"])
     assert "offline" in result["messages"][-1].content.lower()
+
+
+async def test_supervisor_declares_async_children_through_native_deepagents(server, monkeypatch):
+    captured: dict[str, Any] = {}
+    real_make_agent = graphs.make_agent
+
+    def capture_make_agent(**kwargs: Any):
+        captured.update(kwargs)
+        return real_make_agent(**kwargs)
+
+    model = ToolRecordingModel(
+        responses=[
+            AIMessage(
+                content="",
+                tool_calls=[
+                    {
+                        "name": "start_async_task",
+                        "args": {"subagent_type": role, "description": "read"},
+                        "id": role,
+                    }
+                    for role in ("fundamentals", "technicals")
+                ],
+            ),
+            AIMessage(content="done"),
+        ]
+    )
+    monkeypatch.setattr(graphs, "make_agent", capture_make_agent)
+    monkeypatch.setattr(graphs, "_model", lambda role: model)
+
+    result = await graphs._supervisor().ainvoke(
+        {"messages": [HumanMessage("go")]}, context=context()
+    )
+
+    assert {task["agent_name"] for task in result["async_tasks"].values()} == {
+        "fundamentals",
+        "technicals",
+    }
+    assert [set(names) for names in model.bound_tool_names] == [
+        {
+            "start_async_task",
+            "update_async_task",
+            "cancel_async_task",
+            "check_async_task",
+            "list_async_tasks",
+        },
+        {
+            "start_async_task",
+            "update_async_task",
+            "cancel_async_task",
+            "check_async_task",
+            "list_async_tasks",
+        },
+    ]
+    assert all("task" not in names for names in model.bound_tool_names)
+    assert captured["subagents"] == [
+        {
+            "name": "fundamentals",
+            "graph_id": "fundamentals",
+            "description": "Read synthetic fundamentals scores.",
+        },
+        {
+            "name": "technicals",
+            "graph_id": "technicals",
+            "description": "Read synthetic technical indicators.",
+        },
+    ]
+    assert not any(isinstance(item, AsyncSubAgentMiddleware) for item in captured["middleware"])
 
 
 async def test_parallel_model_calls_cannot_exceed_two_children(server, monkeypatch):

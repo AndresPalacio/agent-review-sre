@@ -17,7 +17,7 @@ from collections.abc import Awaitable, Callable, Mapping
 from typing import Annotated, Any, Literal, NotRequired, TypedDict
 
 from deepagents import create_deep_agent
-from deepagents.middleware.async_subagents import AsyncSubAgentMiddleware
+from deepagents.middleware.async_subagents import AsyncSubAgent
 from langchain.agents.middleware import AgentMiddleware, AgentState, ModelCallLimitMiddleware
 from langchain.agents.middleware.types import ModelRequest, ModelResponse, ToolCallRequest
 from langchain.tools import ToolRuntime
@@ -336,19 +336,17 @@ def _supervisor() -> CompiledStateGraph[Any, Any, Any, Any]:
                 provenance="offline" if isinstance(model, OfflinePilotModel) else "live",
             ),
             ModelCallLimitMiddleware(run_limit=20, exit_behavior="end"),
-            AsyncSubAgentMiddleware(
-                async_subagents=[
-                    {
-                        "name": "fundamentals",
-                        "graph_id": "fundamentals",
-                        "description": "Read synthetic fundamentals scores.",
-                    },
-                    {
-                        "name": "technicals",
-                        "graph_id": "technicals",
-                        "description": "Read synthetic technical indicators.",
-                    },
-                ]
+        ],
+        subagents=[
+            AsyncSubAgent(
+                name="fundamentals",
+                graph_id="fundamentals",
+                description="Read synthetic fundamentals scores.",
+            ),
+            AsyncSubAgent(
+                name="technicals",
+                graph_id="technicals",
+                description="Read synthetic technical indicators.",
             ),
         ],
     )
