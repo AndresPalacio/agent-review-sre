@@ -26,6 +26,7 @@ from langgraph.types import Command
 from pydantic import BaseModel, Field, ValidationError
 from sqlalchemy import text as sql_text
 from sqlalchemy.ext.asyncio import create_async_engine
+from starlette.middleware.gzip import GZipMiddleware
 
 from fin_graph.adapters.reference_app.http import reference_app_router
 from fin_graph.adapters.reference_app.http.hedge_fund import make_v1_backtest_runner
@@ -515,6 +516,7 @@ def create_app(
         allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE"],
         allow_headers=["X-API-Key", "Last-Event-ID", "Content-Type"],
     )
+    app.add_middleware(GZipMiddleware, minimum_size=500, compresslevel=6)
 
     @app.get("/health")
     @app.get("/v1/health")
@@ -1325,7 +1327,14 @@ def create_app(
             if first in {"v1", "health", "ready", "docs", "openapi.json", "redoc"}:
                 raise HTTPException(404, "not found")
             if target.is_file():
-                return FileResponse(target)
+                headers = (
+                    {"Cache-Control": "public, max-age=31536000, immutable"}
+                    if first == "assets"
+                    else {"Cache-Control": "no-cache"}
+                    if target == static_root / "index.html"
+                    else None
+                )
+                return FileResponse(target, headers=headers)
             if first not in {
                 "",
                 "analyses",

@@ -1,4 +1,12 @@
-import { Component, useCallback, useState, type ErrorInfo, type ReactNode } from "react";
+import {
+  Component,
+  Suspense,
+  lazy,
+  useCallback,
+  useState,
+  type ErrorInfo,
+  type ReactNode,
+} from "react";
 import { FilePlus2, Landmark, LineChart } from "lucide-react";
 import { LayoutProvider } from "./contexts/LayoutContext";
 import { NodeProvider } from "./contexts/NodeContext";
@@ -12,19 +20,42 @@ import { TabBar } from "./components/tabs/TabBar";
 import { BottomPanel } from "./components/output/BottomPanel";
 import { TopBar, type ProductPage } from "./components/layout/TopBar";
 import { WorkbenchLayout } from "./components/layout/WorkbenchLayout";
-import { BacktestWorkspace } from "./components/backtests/BacktestForm";
-import { AnalysisExplainView } from "./components/native/AnalysisExplainView";
-import { ApprovalView } from "./components/native/ApprovalView";
-import { OrdersView } from "./components/native/OrdersView";
-import { PortfolioView } from "./components/native/PortfolioView";
-import {
-  SettingsDialog,
-  type NativeSession,
-} from "./components/settings/SettingsDialog";
+import type { NativeSession } from "./components/settings/SettingsDialog";
 import { createCatalogNode, type CatalogItem } from "./data/node-catalog";
 import { useKeyboardShortcuts } from "./hooks/useKeyboardShortcuts";
 import type { FlowDocument } from "./types/flow";
 import "./style.css";
+
+const BacktestWorkspace = lazy(() =>
+  import("./components/backtests/BacktestForm").then((module) => ({
+    default: module.BacktestWorkspace,
+  })),
+);
+const AnalysisExplainView = lazy(() =>
+  import("./components/native/AnalysisExplainView").then((module) => ({
+    default: module.AnalysisExplainView,
+  })),
+);
+const ApprovalView = lazy(() =>
+  import("./components/native/ApprovalView").then((module) => ({
+    default: module.ApprovalView,
+  })),
+);
+const OrdersView = lazy(() =>
+  import("./components/native/OrdersView").then((module) => ({
+    default: module.OrdersView,
+  })),
+);
+const PortfolioView = lazy(() =>
+  import("./components/native/PortfolioView").then((module) => ({
+    default: module.PortfolioView,
+  })),
+);
+const SettingsDialog = lazy(() =>
+  import("./components/settings/SettingsDialog").then((module) => ({
+    default: module.SettingsDialog,
+  })),
+);
 
 interface BoundaryProps {
   children: ReactNode;
@@ -56,6 +87,14 @@ export class AppErrorBoundary extends Component<BoundaryProps, BoundaryState> {
   }
 }
 
+function LoadingView() {
+  return (
+    <div className="loading-view" role="status" aria-label="Cargando vista">
+      Cargando...
+    </div>
+  );
+}
+
 function Workbench() {
   const { activeTab, updateDocument } = useTabs();
   const { saveFlow } = useFlows();
@@ -82,9 +121,12 @@ function Workbench() {
     });
   };
   const activeFlowId = activeTab?.flow.id;
-  const updateCanvas = useCallback((document: FlowDocument) => {
-    if (activeFlowId !== undefined) updateDocument(activeFlowId, document);
-  }, [activeFlowId, updateDocument]);
+  const updateCanvas = useCallback(
+    (document: FlowDocument) => {
+      if (activeFlowId !== undefined) updateDocument(activeFlowId, document);
+    },
+    [activeFlowId, updateDocument],
+  );
   const canvas = (
     <div className="canvas-workspace">
       <TabBar />
@@ -129,18 +171,22 @@ function Workbench() {
       }
     />
   );
-  const settings = (
-    <SettingsDialog
-      open={settingsOpen}
-      onOpenChange={setSettingsOpen}
-      onNativeSession={setNativeSession}
-    />
-  );
+  const settings = settingsOpen ? (
+    <Suspense fallback={<LoadingView />}>
+      <SettingsDialog
+        open
+        onOpenChange={setSettingsOpen}
+        onNativeSession={setNativeSession}
+      />
+    </Suspense>
+  ) : null;
   if (page === "backtests")
     return (
       <div className="workbench-shell product-shell">
         {top}
-        <BacktestWorkspace />
+        <Suspense fallback={<LoadingView />}>
+          <BacktestWorkspace />
+        </Suspense>
         {settings}
       </div>
     );
@@ -199,15 +245,17 @@ function PaperWorkspace({ session }: { session: NativeSession }) {
           </p>
         </section>
       ) : (
-        <div className="native-grid" key={`${session.role}-${revision}`}>
-          <PortfolioView />
-          <OrdersView />
-          <ApprovalView
-            role={session.role}
-            onDecision={() => setRevision((value) => value + 1)}
-          />
-          <AnalysisExplainView />
-        </div>
+        <Suspense fallback={<LoadingView />}>
+          <div className="native-grid" key={`${session.role}-${revision}`}>
+            <PortfolioView />
+            <OrdersView />
+            <ApprovalView
+              role={session.role}
+              onDecision={() => setRevision((value) => value + 1)}
+            />
+            <AnalysisExplainView />
+          </div>
+        </Suspense>
       )}
     </main>
   );
