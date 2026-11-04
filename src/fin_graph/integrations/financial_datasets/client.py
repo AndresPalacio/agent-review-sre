@@ -40,6 +40,10 @@ class FinancialDatasetsClient(MarketDataClient):
         self.backoff = tuple(backoff)
         self._memo = RunMemo()
 
+    async def aclose(self) -> None:
+        """Close the run-owned HTTP session."""
+        await self.http.aclose()
+
     async def _call(
         self, method: str, path: str, params: Mapping[str, Any] | None = None, body: Any = None
     ) -> Any:

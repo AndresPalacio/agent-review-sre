@@ -41,6 +41,29 @@ class HttpJsonClient:
         self.headers = dict(headers or {})
         self.timeout_seconds = timeout_seconds
         self.transport = transport
+        self._client: httpx.AsyncClient | None = None
+        self._closed = False
+
+    def _active_client(self) -> httpx.AsyncClient:
+        if self._closed:
+            raise RuntimeError("HTTP client is closed")
+        if self._client is None:
+            self._client = httpx.AsyncClient(
+                headers=self.headers,
+                timeout=self.timeout_seconds,
+                transport=self.transport,
+                follow_redirects=False,
+                trust_env=False,
+            )
+        return self._client
+
+    async def aclose(self) -> None:
+        """Close the run-owned connection pool once."""
+        if self._closed:
+            return
+        self._closed = True
+        if self._client is not None:
+            await self._client.aclose()
 
     async def request(
         self,
@@ -82,20 +105,17 @@ class HttpJsonClient:
             or "#" in path
         ):
             raise ValueError("path must be an internal absolute path without a query")
-        merged = {**self.headers, **(headers or {})}
+        if self._closed:
+            raise RuntimeError("HTTP client is closed")
         try:
-            async with (
-                httpx.AsyncClient(
-                    headers=merged,
-                    timeout=self.timeout_seconds,
-                    transport=self.transport,
-                    follow_redirects=False,
-                    trust_env=False,
-                ) as client,
-                client.stream(
-                    verb, self.base_url + path, params=params, json=json_body
-                ) as response,
-            ):
+            client = self._active_client()
+            async with client.stream(
+                verb,
+                self.base_url + path,
+                params=params,
+                json=json_body,
+                headers=headers,
+            ) as response:
                 if not 200 <= response.status_code < 300:
                     raise HttpStatusError(
                         f"HTTP {verb} {path} returned {response.status_code}", response.status_code

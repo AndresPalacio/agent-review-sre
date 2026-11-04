@@ -73,6 +73,18 @@ class FakeYahoo:
         return sum(call.url.path.startswith(prefix) for call in self.calls)
 
 
+class CloseTrackingYahooTransport(httpx.AsyncBaseTransport):
+    def __init__(self, fake: FakeYahoo) -> None:
+        self.fake = fake
+        self.closes = 0
+
+    async def handle_async_request(self, request: httpx.Request) -> httpx.Response:
+        return self.fake(request)
+
+    async def aclose(self) -> None:
+        self.closes += 1
+
+
 @pytest.fixture
 def fake() -> FakeYahoo:
     return FakeYahoo()
@@ -91,6 +103,33 @@ async def test_prices_map_the_chart_and_skip_null_rows(fake: FakeYahoo) -> None:
     assert bars[0].volume == 1_000_000 and bars[0].day == date(2024, 1, 2)
     assert await client(fake).prices("AAPL", date(2024, 1, 3), date(2024, 1, 3)) != []
     assert await client(fake).prices("AAPL", date(2024, 2, 1), date(2024, 1, 1)) == []
+
+
+async def test_yahoo_session_reuses_transport_until_explicit_close(fake: FakeYahoo) -> None:
+    transport = CloseTrackingYahooTransport(fake)
+    session = YahooSession(transport=transport, backoff=())
+
+    await session.get("https://query1.finance.yahoo.com/v8/finance/chart/AAPL")
+    await session.get("https://query1.finance.yahoo.com/v8/finance/chart/MSFT")
+    assert transport.closes == 0
+
+    await session.aclose()
+    await session.aclose()
+
+    assert transport.closes == 1
+    with pytest.raises(RuntimeError, match="closed"):
+        await session.get("https://query1.finance.yahoo.com/v8/finance/chart/CASE")
+
+
+async def test_yahoo_client_closes_its_owned_session(fake: FakeYahoo) -> None:
+    transport = CloseTrackingYahooTransport(fake)
+    yahoo = YahooClient(YahooSession(transport=transport, backoff=()))
+
+    await yahoo.prices("AAPL", date(2024, 1, 1), date(2024, 1, 31))
+    await yahoo.aclose()
+    await yahoo.aclose()
+
+    assert transport.closes == 1
 
 
 async def test_quote_summary_sends_the_crumb_and_is_fetched_once(fake: FakeYahoo) -> None:

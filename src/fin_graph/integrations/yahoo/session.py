@@ -51,40 +51,59 @@ class YahooSession:
         self._cookies = httpx.Cookies()
         self._crumb: str | None = None
         self._crumb_lock = asyncio.Lock()
+        self._client: httpx.AsyncClient | None = None
+        self._closed = False
 
-    def reset(self) -> None:
-        self._cookies = httpx.Cookies()
-        self._crumb = None
-
-    async def _send(self, url: str, params: Mapping[str, Any] | None) -> httpx.Response:
-        host = urlsplit(url).hostname
-        if host not in ALLOWED_HOSTS:
-            raise IntegrationError(f"Yahoo request to an unexpected host was refused: {host}")
-        try:
-            async with httpx.AsyncClient(
+    def _active_client(self) -> httpx.AsyncClient:
+        if self._closed:
+            raise RuntimeError("Yahoo session is closed")
+        if self._client is None:
+            self._client = httpx.AsyncClient(
                 headers={"User-Agent": BROWSER_USER_AGENT, "Accept": "*/*"},
                 cookies=self._cookies,
                 timeout=self.timeout_seconds,
                 transport=self.transport,
                 follow_redirects=False,
                 trust_env=False,
-            ) as client:
-                async with client.stream("GET", url, params=params) as response:
-                    body = bytearray()
-                    async for chunk in response.aiter_bytes():
-                        body.extend(chunk)
-                        if len(body) > MAX_RESPONSE_BYTES:
-                            raise IntegrationError(
-                                f"Yahoo response too large: {urlsplit(url).path}"
-                            )
-                self._cookies.update(client.cookies)
-                # The body is already decoded: keep only the charset, not content-encoding.
-                content_type = response.headers.get("content-type", "")
-                return httpx.Response(
-                    response.status_code,
-                    headers={"content-type": content_type} if content_type else None,
-                    content=bytes(body),
-                )
+            )
+        return self._client
+
+    async def aclose(self) -> None:
+        """Close the run-owned connection pool once."""
+        if self._closed:
+            return
+        self._closed = True
+        if self._client is not None:
+            await self._client.aclose()
+
+    def reset(self) -> None:
+        self._cookies = httpx.Cookies()
+        self._crumb = None
+        if self._client is not None:
+            self._client.cookies.clear()
+
+    async def _send(self, url: str, params: Mapping[str, Any] | None) -> httpx.Response:
+        host = urlsplit(url).hostname
+        if host not in ALLOWED_HOSTS:
+            raise IntegrationError(f"Yahoo request to an unexpected host was refused: {host}")
+        if self._closed:
+            raise RuntimeError("Yahoo session is closed")
+        try:
+            client = self._active_client()
+            async with client.stream("GET", url, params=params) as response:
+                body = bytearray()
+                async for chunk in response.aiter_bytes():
+                    body.extend(chunk)
+                    if len(body) > MAX_RESPONSE_BYTES:
+                        raise IntegrationError(f"Yahoo response too large: {urlsplit(url).path}")
+            self._cookies.update(client.cookies)
+            # The body is already decoded: keep only the charset, not content-encoding.
+            content_type = response.headers.get("content-type", "")
+            return httpx.Response(
+                response.status_code,
+                headers={"content-type": content_type} if content_type else None,
+                content=bytes(body),
+            )
         except httpx.RequestError as exc:
             raise IntegrationError(
                 f"Yahoo request {urlsplit(url).path} failed: {type(exc).__name__}"

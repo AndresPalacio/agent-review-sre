@@ -17,6 +17,17 @@ from fin_graph.safety.secrets import redact_secrets
 AS_OF = date(2024, 3, 8)
 
 
+class CloseTrackingTransport(httpx.AsyncBaseTransport):
+    def __init__(self) -> None:
+        self.closes = 0
+
+    async def handle_async_request(self, request: httpx.Request) -> httpx.Response:
+        return httpx.Response(200, json={"prices": []})
+
+    async def aclose(self) -> None:
+        self.closes += 1
+
+
 def _api(kind: str) -> dict[str, object]:
     return json.loads((DATA / "api" / kind / "AAPL.json").read_text(encoding="utf-8"))
 
@@ -79,6 +90,17 @@ async def test_repeated_calls_are_cached_for_the_run() -> None:
     await client.market_cap("AAPL", AS_OF)
 
     assert len(seen) == 1
+
+
+async def test_client_closes_its_owned_http_session() -> None:
+    transport = CloseTrackingTransport()
+    client = FinancialDatasetsClient("key", transport=transport, backoff=())
+
+    await client.prices("AAPL", AS_OF, AS_OF)
+    await client.aclose()
+    await client.aclose()
+
+    assert transport.closes == 1
 
 
 async def test_rate_limit_backs_off_and_a_bad_key_is_readable() -> None:

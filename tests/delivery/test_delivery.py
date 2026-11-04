@@ -11,6 +11,18 @@ from fin_graph.delivery.settings import SlackSettings, TelegramSettings
 from fin_graph.integrations.base import IntegrationError, VerifyStatus
 
 
+class CloseTrackingTransport(httpx.AsyncBaseTransport):
+    def __init__(self, response: dict[str, object]) -> None:
+        self.response = response
+        self.closes = 0
+
+    async def handle_async_request(self, request: httpx.Request) -> httpx.Response:
+        return httpx.Response(200, json=self.response)
+
+    async def aclose(self) -> None:
+        self.closes += 1
+
+
 def test_delivery_channels_are_disabled_without_credentials() -> None:
     assert SlackSettings(_env_file=None).enabled is False
     assert TelegramSettings(_env_file=None).enabled is False
@@ -41,6 +53,22 @@ async def test_verify_checks_identity_without_sending_a_message() -> None:
         "/bottelegram-key/getMe",
     ]
     assert all(request.method == "GET" for request in seen)
+
+
+async def test_service_closes_each_configured_client_once() -> None:
+    slack_transport = CloseTrackingTransport({"ok": True, "user_id": "U1"})
+    telegram_transport = CloseTrackingTransport({"ok": True, "result": {"id": 1}})
+    service = DeliveryService(
+        SlackClient("slack-key", transport=slack_transport),
+        TelegramClient("telegram-key", transport=telegram_transport),
+    )
+
+    await service.verify_all()
+    await service.aclose()
+    await service.aclose()
+
+    assert slack_transport.closes == 1
+    assert telegram_transport.closes == 1
 
 
 @pytest.mark.parametrize("channel", ["slack", "telegram"])

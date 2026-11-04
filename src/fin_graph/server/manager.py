@@ -11,6 +11,7 @@ from typing import Any
 from uuid import uuid4
 from weakref import WeakValueDictionary
 
+from fin_graph.integrations.context import RunContext
 from fin_graph.safety.secrets import redact_secrets
 from fin_graph.server.storage import Storage
 
@@ -272,74 +273,83 @@ class RunManager:
             await self.storage.add_event(run_id, "status", {"status": "running"})
             try:
                 report_ready = False
-                async for mode, event in self.graph.astream(
-                    value,
-                    context=self.context_factory(),
-                    stream_mode=["custom", "values"],
-                    config=self._config(thread_id),
-                ):
-                    if mode == "custom" and isinstance(event, dict):
-                        kind = event.get("type")
-                        data = event.get("data")
-                        if kind == "harness_trace" and isinstance(data, dict):
-                            # Public history/SSE exposes execution metadata only.
-                            # Redacted arguments stay in the private checkpoint.
-                            safe_trace = {
-                                key: redact_secrets(data[key])[:128]
-                                for key in (
-                                    "kind",
-                                    "name",
-                                    "call_id",
-                                    "parent",
-                                    "node",
-                                    "status",
-                                    "error",
-                                    "observed_at",
-                                )
-                                if isinstance(data.get(key), str)
-                            }
-                            await self.storage.add_event(run_id, "harness_trace", safe_trace)
-                        if kind in {"stage", "report", "done", "plan", "analyst"} and isinstance(
-                            data, dict
-                        ):
-                            stage = data.get("stage")
-                            if isinstance(stage, str):
-                                safe: dict[str, Any] = {"stage": stage[:80]}
-                                if kind in {"plan", "analyst"}:
-                                    wave = data.get("wave")
-                                    if (
-                                        isinstance(wave, int)
-                                        and not isinstance(wave, bool)
-                                        and 1 <= wave <= 100
-                                    ):
-                                        safe["wave"] = wave
-                                if kind == "plan" and isinstance(data.get("tasks"), list):
-                                    # The analysis plan names one analyst domain per task.
-                                    safe["tasks"] = [
-                                        {"domain": task[:64]}
-                                        for task in data["tasks"][:18]
-                                        if isinstance(task, str)
-                                    ]
-                                if kind == "analyst":
-                                    domain = data.get("domain")
-                                    if isinstance(domain, str):
-                                        safe["domain"] = domain[:64]
-                                    evidence_ids = data.get("evidence_ids")
-                                    if isinstance(evidence_ids, list):
-                                        safe["evidence_ids"] = [
-                                            item[:128]
-                                            for item in evidence_ids[:30]
-                                            if isinstance(item, str)
+                context = self.context_factory()
+                try:
+                    async for mode, event in self.graph.astream(
+                        value,
+                        context=context,
+                        stream_mode=["custom", "values"],
+                        config=self._config(thread_id),
+                    ):
+                        if mode == "custom" and isinstance(event, dict):
+                            kind = event.get("type")
+                            data = event.get("data")
+                            if kind == "harness_trace" and isinstance(data, dict):
+                                # Public history/SSE exposes execution metadata only.
+                                # Redacted arguments stay in the private checkpoint.
+                                safe_trace = {
+                                    key: redact_secrets(data[key])[:128]
+                                    for key in (
+                                        "kind",
+                                        "name",
+                                        "call_id",
+                                        "parent",
+                                        "node",
+                                        "status",
+                                        "error",
+                                        "observed_at",
+                                    )
+                                    if isinstance(data.get(key), str)
+                                }
+                                await self.storage.add_event(run_id, "harness_trace", safe_trace)
+                            if kind in {
+                                "stage",
+                                "report",
+                                "done",
+                                "plan",
+                                "analyst",
+                            } and isinstance(data, dict):
+                                stage = data.get("stage")
+                                if isinstance(stage, str):
+                                    safe: dict[str, Any] = {"stage": stage[:80]}
+                                    if kind in {"plan", "analyst"}:
+                                        wave = data.get("wave")
+                                        if (
+                                            isinstance(wave, int)
+                                            and not isinstance(wave, bool)
+                                            and 1 <= wave <= 100
+                                        ):
+                                            safe["wave"] = wave
+                                    if kind == "plan" and isinstance(data.get("tasks"), list):
+                                        # The analysis plan names one analyst domain per task.
+                                        safe["tasks"] = [
+                                            {"domain": task[:64]}
+                                            for task in data["tasks"][:18]
+                                            if isinstance(task, str)
                                         ]
-                                    signals = data.get("signals")
-                                    if isinstance(signals, dict):
-                                        safe["signals"] = {
-                                            str(ticker)[:16]: str(signal)[:16]
-                                            for ticker, signal in list(signals.items())[:10]
-                                        }
-                                await self.storage.add_event(run_id, kind, safe)
-                    elif mode == "values" and isinstance(event, dict):
-                        report_ready = bool(event.get("report"))
+                                    if kind == "analyst":
+                                        domain = data.get("domain")
+                                        if isinstance(domain, str):
+                                            safe["domain"] = domain[:64]
+                                        evidence_ids = data.get("evidence_ids")
+                                        if isinstance(evidence_ids, list):
+                                            safe["evidence_ids"] = [
+                                                item[:128]
+                                                for item in evidence_ids[:30]
+                                                if isinstance(item, str)
+                                            ]
+                                        signals = data.get("signals")
+                                        if isinstance(signals, dict):
+                                            safe["signals"] = {
+                                                str(ticker)[:16]: str(signal)[:16]
+                                                for ticker, signal in list(signals.items())[:10]
+                                            }
+                                    await self.storage.add_event(run_id, kind, safe)
+                        elif mode == "values" and isinstance(event, dict):
+                            report_ready = bool(event.get("report"))
+                finally:
+                    if isinstance(context, RunContext):
+                        await context.aclose()
                 await self.storage.set_status_with_event(
                     run_id, "completed", data={"report_ready": report_ready}
                 )

@@ -137,6 +137,10 @@ class YahooClient(MarketDataClient):
         self._today = today or (lambda: datetime.now(UTC).date())
         self._memo = RunMemo()
 
+    async def aclose(self) -> None:
+        """Close the run-owned Yahoo session."""
+        await self.session.aclose()
+
     # -- raw endpoints, memoized per run ---------------------------------------------------
 
     async def prices(self, ticker: str, start: date, end: date) -> list[Price]:

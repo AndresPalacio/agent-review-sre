@@ -7,6 +7,19 @@ from fin_graph.integrations.base import IntegrationError
 from fin_graph.integrations.http import HttpJsonClient, require_window
 
 
+class CloseTrackingTransport(httpx.AsyncBaseTransport):
+    def __init__(self) -> None:
+        self.requests = 0
+        self.closes = 0
+
+    async def handle_async_request(self, request: httpx.Request) -> httpx.Response:
+        self.requests += 1
+        return httpx.Response(200, json={"request": self.requests})
+
+    async def aclose(self) -> None:
+        self.closes += 1
+
+
 async def test_json_request_encodes_params_and_headers() -> None:
     seen: list[httpx.Request] = []
 
@@ -26,6 +39,22 @@ async def test_json_request_encodes_params_and_headers() -> None:
     assert seen[0].url.path == "/prefix/api/v1/query"
     assert seen[0].url.params["query"] == 'up{job="api"}'
     assert seen[0].headers["Authorization"] == "Bearer secret"
+
+
+async def test_client_reuses_transport_until_explicit_close() -> None:
+    transport = CloseTrackingTransport()
+    client = HttpJsonClient("https://vendor.example", transport=transport)
+
+    assert await client.request("GET", "/one") == {"request": 1}
+    assert await client.request("GET", "/two") == {"request": 2}
+    assert transport.closes == 0
+
+    await client.aclose()
+    await client.aclose()
+
+    assert transport.closes == 1
+    with pytest.raises(RuntimeError, match="closed"):
+        await client.request("GET", "/three")
 
 
 async def test_mutation_uses_explicit_method_and_still_rejects_redirects() -> None:

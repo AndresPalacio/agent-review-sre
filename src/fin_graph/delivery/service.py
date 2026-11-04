@@ -57,6 +57,12 @@ class DeliveryService:
             "telegram": telegram,
         }
 
+    async def aclose(self) -> None:
+        """Close configured outbound clients; client shutdown is idempotent."""
+        for client in self.clients.values():
+            if client is not None:
+                await client.aclose()
+
     @classmethod
     def from_env(
         cls, env_file: str | None = ".env", *, ledger: DeliveryLedger | None = None

@@ -214,12 +214,16 @@ def create_app(
 
                 active_registry = await with_configured_mcp(active_registry)
             delivery = DeliveryService.from_env(ledger=storage)
+            stack.push_async_callback(delivery.aclose)
             # Paper orders share the server database; migration 0011 creates the tables.
-            active_paper = paper or paper_broker(
-                Settings(),
-                PaperLedgerStore(engine),
-                context_quotes(active_registry.run_context()),
-            )
+            if paper is None:
+                paper_context = active_registry.run_context()
+                stack.push_async_callback(paper_context.aclose)
+                active_paper = paper_broker(
+                    Settings(), PaperLedgerStore(engine), context_quotes(paper_context)
+                )
+            else:
+                active_paper = paper
             app.state.paper_broker = active_paper
 
             def context_factory() -> RunContext:
@@ -1191,7 +1195,11 @@ def create_app(
     ) -> list[dict[str, Any]]:
         await _authorize(request, x_api_key, "operator")
         active_registry: IntegrationRegistry = request.app.state.registry
-        results = await active_registry.verify_all(active_registry.run_context())
+        context = active_registry.run_context()
+        try:
+            results = await active_registry.verify_all(context)
+        finally:
+            await context.aclose()
         return [
             {"id": item.integration, "status": item.status, "message": item.detail}
             for item in results

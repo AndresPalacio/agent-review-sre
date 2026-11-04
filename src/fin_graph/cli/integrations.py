@@ -58,7 +58,11 @@ def verify_integrations(
 ) -> None:
     async def verify() -> Any:
         registry = await _registry(env_file, mcp_config)
-        return await registry.verify_all(registry.run_context())
+        context = registry.run_context()
+        try:
+            return await registry.verify_all(context)
+        finally:
+            await context.aclose()
 
     try:
         results = asyncio.run(verify())

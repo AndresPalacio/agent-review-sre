@@ -50,12 +50,15 @@ class IntegrationRegistry:
         ``unavailable`` (credentials redacted) and its tools stay out.
         """
         clients: dict[str, object] = {}
+        owned_clients: list[object] = []
         unavailable: dict[str, str] = {}
         for integration_id, integration in self._integrations.items():
             try:
                 settings = integration.load_settings(self._env_file)
                 if settings is not None:
-                    clients[integration_id] = integration.build_client(settings)
+                    client = integration.build_client(settings)
+                    clients[integration_id] = client
+                    owned_clients.append(client)
             except ValidationError as exc:
                 # Pydantic can include a truncated input dict in str(exc), losing
                 # the credential field name while still exposing part of its value.
@@ -68,7 +71,11 @@ class IntegrationRegistry:
                 )
             except Exception as exc:
                 unavailable[integration_id] = redact_secrets(f"{type(exc).__name__}: {exc}")
-        return RunContext(clients=clients, unavailable=unavailable)
+        return RunContext(
+            clients=clients,
+            unavailable=unavailable,
+            owned_clients=tuple(owned_clients),
+        )
 
     def tools(
         self, context: RunContext, domains: Collection[Domain] | None = None

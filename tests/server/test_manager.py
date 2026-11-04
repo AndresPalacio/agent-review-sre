@@ -9,6 +9,7 @@ from typing import Any
 from sqlalchemy import update
 from sqlalchemy.ext.asyncio import create_async_engine
 
+from fin_graph.integrations.context import RunContext
 from fin_graph.server.manager import RunManager
 from fin_graph.server.storage import Base, RunRow, Storage
 
@@ -35,6 +36,41 @@ class ScriptedGraph:
         return type(
             "Snapshot", (), {"values": self.checkpoints.get(thread, {}), "next": ("report",)}
         )()
+
+
+class CloseableClient:
+    def __init__(self) -> None:
+        self.closed = asyncio.Event()
+
+    async def aclose(self) -> None:
+        self.closed.set()
+
+
+async def test_manager_closes_run_context_when_execution_is_cancelled(tmp_path: Path) -> None:
+    started = asyncio.Event()
+
+    class BlockingGraph:
+        async def astream(
+            self, value: object, *, context: object, stream_mode: object, config: dict[str, Any]
+        ) -> AsyncIterator[tuple[str, dict[str, Any]]]:
+            started.set()
+            await asyncio.Event().wait()
+            yield "values", {}
+
+    engine = create_async_engine(f"sqlite+aiosqlite:///{tmp_path / 'close-context.sqlite'}")
+    async with engine.begin() as connection:
+        await connection.run_sync(Base.metadata.create_all)
+    storage = Storage(engine)
+    client = CloseableClient()
+    context = RunContext(clients={"closeable": client}, owned_clients=(client,))
+    manager = RunManager(BlockingGraph(), storage, lambda: context)
+
+    await manager.submit("cancel me", None)
+    await asyncio.wait_for(started.wait(), timeout=1)
+    await manager.stop()
+
+    assert client.closed.is_set()
+    await engine.dispose()
 
 
 async def test_manager_persists_only_safe_plan_and_analyst_metadata(tmp_path: Path) -> None:

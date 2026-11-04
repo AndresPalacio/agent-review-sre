@@ -4,11 +4,16 @@ from __future__ import annotations
 
 from collections.abc import Mapping
 from dataclasses import dataclass, field
-from typing import Any
+from typing import Any, Protocol, runtime_checkable
 
 from langchain.tools import ToolRuntime
 
 from fin_graph.integrations.base import IntegrationNotConfiguredError
+
+
+@runtime_checkable
+class AsyncCloseable(Protocol):
+    async def aclose(self) -> None: ...
 
 
 @dataclass(frozen=True)
@@ -22,8 +27,20 @@ class RunContext:
 
     clients: Mapping[str, object] = field(default_factory=dict)
     unavailable: Mapping[str, str] = field(default_factory=dict)
+    owned_clients: tuple[object, ...] = ()
     actor: str | None = None
     role: str | None = None
+    _closed_client_ids: set[int] = field(default_factory=set, init=False, repr=False, compare=False)
+
+    async def aclose(self) -> None:
+        """Close each client owned by this run exactly once."""
+        for client in self.owned_clients:
+            identity = id(client)
+            if identity in self._closed_client_ids:
+                continue
+            self._closed_client_ids.add(identity)
+            if isinstance(client, AsyncCloseable):
+                await client.aclose()
 
     def client[ClientT](self, integration: str, expected_type: type[ClientT]) -> ClientT:
         """The client for ``integration``; an error the model can read when there is none."""

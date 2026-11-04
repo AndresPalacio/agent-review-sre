@@ -26,6 +26,9 @@ class SlackClient:
             "https://slack.com", {"Authorization": f"Bearer {token}"}, timeout_seconds, transport
         )
 
+    async def aclose(self) -> None:
+        await self.http.aclose()
+
     async def verify(self) -> None:
         data = await self.http.request("GET", "/api/auth.test")
         if not isinstance(data, dict) or data.get("ok") is not True or not data.get("user_id"):
@@ -68,6 +71,9 @@ class TelegramClient:
             timeout_seconds=timeout_seconds,
             transport=transport,
         )
+
+    async def aclose(self) -> None:
+        await self.http.aclose()
 
     async def verify(self) -> None:
         data = await self.http.request("GET", "/getMe")

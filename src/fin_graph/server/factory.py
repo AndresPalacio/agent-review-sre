@@ -7,7 +7,7 @@ import os
 import secrets
 from collections.abc import AsyncIterator, Callable
 from contextlib import asynccontextmanager, suppress
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from pathlib import Path
 
 from cryptography.fernet import Fernet
@@ -200,12 +200,7 @@ def _create_local_app(profile: RuntimeProfile) -> FastAPI:
 
     def context_factory() -> RunContext:
         current = registry.run_context()
-        return RunContext(
-            clients={**current.clients, "paper_broker": broker},
-            unavailable=current.unavailable,
-            actor=current.actor,
-            role=current.role,
-        )
+        return replace(current, clients={**current.clients, "paper_broker": broker})
 
     graph = make_analysis_graph(
         _analysis_services(settings),
@@ -214,9 +209,8 @@ def _create_local_app(profile: RuntimeProfile) -> FastAPI:
         settings=settings,
     )
     manager = RunManager(graph, storage, context_factory)
-    reference_app_graph, chat_graph, model = _local_model_graphs(
-        settings, registry, context_factory()
-    )
+    model_context = context_factory()
+    reference_app_graph, chat_graph, model = _local_model_graphs(settings, registry, model_context)
     application = create_native_app(
         manager=manager,
         registry=registry,
@@ -274,6 +268,8 @@ def _create_local_app(profile: RuntimeProfile) -> FastAPI:
             backtests = getattr(app.state, "reference_app_backtest_manager", None)
             if backtests is not None:
                 await backtests.close()
+            await model_context.aclose()
+            await base_context.aclose()
             await engine.dispose()
 
     application.router.lifespan_context = lifespan
