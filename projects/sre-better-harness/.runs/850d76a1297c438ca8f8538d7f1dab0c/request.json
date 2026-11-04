@@ -1,6 +1,0 @@
-{
-  "kind": "better-harness",
-  "mode": "smoke",
-  "scenario": null,
-  "max_iterations": 0
-}

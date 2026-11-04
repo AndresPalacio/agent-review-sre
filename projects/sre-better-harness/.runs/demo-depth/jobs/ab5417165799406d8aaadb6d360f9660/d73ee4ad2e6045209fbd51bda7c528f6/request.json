@@ -1,9 +1,0 @@
-{
-  "kind": "ppc",
-  "mode": "smoke",
-  "scenario": "eks/001-oomkilled-crashloop",
-  "holdout_scenarios": [
-    "eks/002-image-pull-backoff"
-  ],
-  "max_iterations": 1
-}

@@ -1,1 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="0" skipped="0" tests="1" time="3.507" timestamp="2026-10-21T08:42:01.082876-05:00" hostname="DESKTOP-DUR6PSJ"><testcase classname="tests.evals.test_rca" name="test_rca[rds_postgres/001-replication-lag]" time="3.489" /></testsuite></testsuites>

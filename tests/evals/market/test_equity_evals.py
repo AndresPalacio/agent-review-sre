@@ -27,6 +27,12 @@ from fin_graph.integrations.market_data import load_market_fixtures
 ROOT = Path(__file__).resolve().parents[3]
 
 
+def test_packaged_eval_data_contains_only_equities() -> None:
+    data_root = ROOT / "src" / "fin_graph" / "evals" / "data"
+
+    assert {path.name for path in data_root.iterdir()} == {"equities"}
+
+
 def test_the_suites_cover_every_archetype_and_the_seeds() -> None:
     ids = equity_scenario_ids()
 

@@ -1,8 +1,0 @@
-[
-  {
-    "action": "execute_composed_successor",
-    "reason": "Deterministic demo proposal for smoke wiring only.",
-    "production_prompt_modified": false,
-    "promoted": false
-  }
-]

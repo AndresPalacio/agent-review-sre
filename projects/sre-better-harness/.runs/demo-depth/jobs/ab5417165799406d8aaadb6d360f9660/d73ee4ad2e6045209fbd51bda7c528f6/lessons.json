@@ -1,7 +1,0 @@
-[
-  {
-    "kind": "demo",
-    "text": "Deterministic demo proposal for smoke wiring only.",
-    "limitation": "One bounded round on selected historical cases; no generalization claim."
-  }
-]

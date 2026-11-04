@@ -32,9 +32,22 @@ def test_wheel_contains_app_static_and_every_compatibility_namespace(tmp_path: P
         assert any(name.startswith("fin_graph/server/static/assets/") for name in names)
         for namespace in ("fin_graph/", "src/", "v2/", "app/"):
             assert any(name.startswith(namespace) for name in names)
-        assert not any("ai-hedge-fund" in name.lower() for name in names)
-        assert not any(name.endswith("optimization/fin.toml") for name in names)
+        lowered_names = [name.lower() for name in names]
+        assert not any("ai-hedge-fund" in name for name in lowered_names)
+        assert not any(name.endswith("optimization/fin.toml") for name in lowered_names)
         assert not any(name.endswith((".sqlite", ".db", ".env", ".key")) for name in names)
+        forbidden_operational_members = (
+            "/rds_",
+            "/eks/",
+            "cloudwatch",
+            "sre-",
+            "evals/data/manifest.json",
+        )
+        assert not any(
+            forbidden in name
+            for name in lowered_names
+            for forbidden in forbidden_operational_members
+        )
 
 
 def test_extracted_wheel_imports_without_repository_on_pythonpath(tmp_path: Path) -> None:
