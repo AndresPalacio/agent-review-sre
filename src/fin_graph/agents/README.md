@@ -1,7 +1,9 @@
 # Agentes de `fin-graph`
 
-Este paquete contiene únicamente componentes que deciden con un modelo. Las transiciones
-deterministas, reintentos, checkpoints y límites viven en `workflows` y `runtime`.
+Este paquete reúne componentes que deciden con un modelo y el control plane determinista colocado
+junto a `analysis.persona_team`: ese `StateGraph` fija el fan-out sobre sus 19 narradores Deep
+Agents. Los demás workflows de producto y el ensamble de la aplicación viven en `workflows` y
+`runtime`.
 
 Hay cuatro rutas fáciles de localizar:
 
