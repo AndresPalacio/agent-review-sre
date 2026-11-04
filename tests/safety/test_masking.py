@@ -8,46 +8,46 @@ import pytest
 from fin_graph.config.settings import Settings
 from fin_graph.safety.masking import IdentifierKind, Masker, MaskingPolicy
 
-POD = "checkout-7d9f8b6c5-x2x9z"
+EMAIL = "analyst@fund.example"
 ENABLED = MaskingPolicy(enabled=True)
 
 
 def test_a_disabled_policy_changes_nothing() -> None:
-    text = f"pod {POD} in namespace: payments"
+    text = f"email {EMAIL}"
 
     assert Masker(MaskingPolicy()).mask(text) == text
 
 
 def test_identifiers_are_replaced_and_their_labels_kept() -> None:
-    masked = Masker(ENABLED).mask(f"pod {POD} in namespace: payments is CrashLoopBackOff")
+    masked = Masker(ENABLED).mask("portfolio id PF-2026-001 belongs to analyst@fund.example")
 
-    assert POD not in masked
-    assert "payments" not in masked
+    assert "PF-2026-001" not in masked
+    assert EMAIL not in masked
     assert re.fullmatch(
-        r"pod <POD_[0-9a-f]{10}> in namespace: <NAMESPACE_[0-9a-f]{10}> is CrashLoopBackOff",
+        r"portfolio id <PORTFOLIO_ID_[0-9a-f]{10}> belongs to <EMAIL_[0-9a-f]{10}>",
         masked,
     )
 
 
 def test_unmasking_restores_the_original_text() -> None:
     masker = Masker(ENABLED)
-    text = "node ip-10-0-1-5.ec2.internal at 10.0.1.5, account 123456789012, oncall@acme.io"
+    text = "client email analyst@fund.example connected from 10.0.1.5"
 
     assert masker.unmask(masker.mask(text)) == text
 
 
 def test_the_same_value_gets_the_same_token_in_every_call() -> None:
-    first = Masker(ENABLED).mask(f"restart {POD}")
-    second = Masker(ENABLED).mask(f"logs for {POD}")
+    first = Masker(ENABLED).mask(f"notify {EMAIL}")
+    second = Masker(ENABLED).mask(f"report for {EMAIL}")
 
     assert first.split()[-1] == second.split()[-1]
 
 
 def test_tokens_this_masker_did_not_issue_are_left_alone() -> None:
     masker = Masker(ENABLED)
-    masker.mask(f"pod {POD}")
+    masker.mask(f"email {EMAIL}")
 
-    assert masker.unmask("compare <POD_0123456789>") == "compare <POD_0123456789>"
+    assert masker.unmask("compare <EMAIL_0123456789>") == "compare <EMAIL_0123456789>"
 
 
 def test_an_email_is_masked_whole_not_as_a_hostname() -> None:
@@ -59,9 +59,9 @@ def test_an_email_is_masked_whole_not_as_a_hostname() -> None:
 def test_only_the_selected_kinds_are_masked() -> None:
     policy = MaskingPolicy(enabled=True, kinds=frozenset({IdentifierKind.IP_ADDRESS}))
 
-    masked = Masker(policy).mask(f"{POD} at 10.0.1.5")
+    masked = Masker(policy).mask(f"{EMAIL} at 10.0.1.5")
 
-    assert masked.startswith(POD)
+    assert masked.startswith(EMAIL)
     assert "10.0.1.5" not in masked
 
 
@@ -77,12 +77,13 @@ def test_extra_patterns_mask_with_their_own_label() -> None:
 
 def test_nested_values_are_masked_and_restored() -> None:
     masker = Masker(ENABLED)
-    value = {"pods": [POD], "namespace": "namespace: payments", "restarts": 3}
+    value = {"recipients": [EMAIL], "portfolio_id": "PF-2026-001", "positions": 3}
 
     masked = masker.mask_value(value)
 
-    assert POD not in str(masked)
-    assert masked["restarts"] == 3
+    assert EMAIL not in str(masked)
+    assert "PF-2026-001" not in str(masked)
+    assert masked["positions"] == 3
     assert masker.unmask_value(masked) == value
 
 
@@ -97,41 +98,44 @@ def test_policy_from_settings_reads_kinds_and_extra_patterns() -> None:
     settings = Settings(
         _env_file=None,
         mask_enabled=True,
-        mask_kinds=("pod", "email"),
+        mask_kinds=("portfolio_id", "email"),
         mask_extra_regex={"ticket": r"TCK-\d+"},
     )
 
     policy = MaskingPolicy.from_settings(settings)
 
-    assert policy.kinds == {IdentifierKind.POD, IdentifierKind.EMAIL}
+    assert policy.kinds == {IdentifierKind.PORTFOLIO_ID, IdentifierKind.EMAIL}
     assert policy.extra_patterns["ticket"].pattern == r"TCK-\d+"
 
 
 def test_an_unknown_kind_in_settings_is_rejected() -> None:
-    with pytest.raises(ValueError, match="podz"):
-        MaskingPolicy.from_settings(Settings(_env_file=None, mask_kinds=("podz",)))
+    with pytest.raises(ValueError, match="accountz"):
+        MaskingPolicy.from_settings(Settings(_env_file=None, mask_kinds=("accountz",)))
 
 
-def test_json_labels_and_their_values_are_masked() -> None:
-    text = '{"namespace":"payments","cluster": "prod-eu-1","app":"checkout"}'
+def test_financial_labels_and_their_values_are_masked() -> None:
+    text = 'portfolio_id="PF-2026-001", email="analyst@fund.example"'
 
     masked = Masker(ENABLED).mask(text)
 
-    assert "payments" not in masked
-    assert "prod-eu-1" not in masked
-    assert "checkout" not in masked
-    assert masked.startswith('{"namespace":"<NAMESPACE_')
+    assert "PF-2026-001" not in masked
+    assert EMAIL not in masked
+    assert masked.startswith('portfolio_id="<PORTFOLIO_ID_')
 
 
 def test_values_under_identifier_keys_are_masked_whole() -> None:
     masker = Masker(ENABLED)
-    value = {"namespace": "payments", "labels": {"app": "checkout"}, "replicas": 2}
+    value = {
+        "portfolio_id": "PF-2026-001",
+        "owner": {"client_name": "Ana GÃ³mez"},
+        "positions": 2,
+    }
 
     masked = masker.mask_value(value)
 
-    assert "payments" not in str(masked)
-    assert "checkout" not in str(masked)
-    assert masked["replicas"] == 2
+    assert "PF-2026-001" not in str(masked)
+    assert "Ana GÃ³mez" not in str(masked)
+    assert masked["positions"] == 2
     assert masker.unmask_value(masked) == value
 
 
@@ -202,10 +206,23 @@ def test_financial_keys_mask_structured_values_but_never_tickers() -> None:
     assert masked["client_name"].startswith("<CLIENT_NAME_")
 
 
-def test_twelve_digit_financial_figures_are_not_aws_accounts() -> None:
+def test_twelve_digit_financial_figures_are_not_identifiers() -> None:
     masker = Masker(MaskingPolicy(enabled=True))
     figures = '{"revenue": 383000000000.0, "market_cap": 345310000000}'
 
     assert masker.mask(figures) == figures
-    masked = masker.mask("arn:aws:iam::123456789012:role/x aws_account_id=210987654321")
-    assert "123456789012" not in masked and "210987654321" not in masked
+
+
+def test_identifier_kinds_are_exclusively_financial() -> None:
+    assert {item.value for item in IdentifierKind} == {
+        "ip_address",
+        "email",
+        "account_number",
+        "iban",
+        "card_number",
+        "routing_number",
+        "tax_id",
+        "phone",
+        "portfolio_id",
+        "client_name",
+    }

@@ -23,7 +23,7 @@ from fin_graph.domain.tools import Domain, EvidenceType
 AS_OF = date(2024, 3, 8)
 COLLECTED = datetime(2024, 3, 8, 21, tzinfo=UTC)
 EVIDENCE_TYPES = {
-    Domain.FUNDAMENTALS: EvidenceType.METRICS,
+    Domain.FUNDAMENTALS: EvidenceType.FINANCIALS,
     Domain.VALUATION: EvidenceType.VALUATION_MODEL,
     Domain.TECHNICALS: EvidenceType.INDICATORS,
     Domain.SENTIMENT: EvidenceType.NEWS,

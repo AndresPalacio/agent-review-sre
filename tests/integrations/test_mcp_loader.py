@@ -9,7 +9,7 @@ from typing import Any
 import pytest
 from langchain_core.tools import BaseTool, tool
 
-from fin_graph.domain.tools import Domain, SideEffectLevel, read_tool_meta
+from fin_graph.domain.tools import Domain, EvidenceType, SideEffectLevel, read_tool_meta
 from fin_graph.integrations.base import VerifyStatus
 from fin_graph.integrations.mcp.config import McpConfigError, load_mcp_config
 from fin_graph.integrations.mcp.loader import load_mcp_tools, verify_mcp
@@ -117,7 +117,9 @@ async def test_mcp_loader_defaults_to_external_and_isolates_a_failed_server(tmp_
     result = await load_mcp_tools(config, client_factory=FakeAdapter)
 
     assert [tool.name for tool in result.tools] == ["safe_lookup"]
-    assert read_tool_meta(result.tools[0]).side_effect_level is SideEffectLevel.EXTERNAL
+    meta = read_tool_meta(result.tools[0])
+    assert meta.side_effect_level is SideEffectLevel.EXTERNAL
+    assert meta.evidence_type is EvidenceType.FINANCIALS
     assert result.failures == {"broken": "ConnectionError: MCP server unavailable"}
     assert (await verify_mcp(config, client_factory=FakeAdapter))[0].status is VerifyStatus.OK
 
@@ -125,7 +127,7 @@ async def test_mcp_loader_defaults_to_external_and_isolates_a_failed_server(tmp_
 async def test_mcp_policy_sets_domains_and_read_only_effect(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    monkeypatch.setenv("MCP_RUNBOOK_AUTH", "Bearer synthetic-token")
+    monkeypatch.setenv("MCP_FINANCE_AUTH", "Bearer synthetic-token")
     connections: list[dict[str, Any]] = []
 
     def factory(value: dict[str, Any]) -> FakeAdapter:
@@ -138,15 +140,15 @@ async def test_mcp_policy_sets_domains_and_read_only_effect(
             {
                 "servers": [
                     {
-                        "name": "runbooks",
+                        "name": "financial_research",
                         "enabled": True,
                         "transport": "http",
                         "url": "https://mcp.example/mcp",
-                        "headers_from_env": {"Authorization": "MCP_RUNBOOK_AUTH"},
+                        "headers_from_env": {"Authorization": "MCP_FINANCE_AUTH"},
                         "tools": {
                             "lookup": {
                                 "domains": ["fundamentals"],
-                                "evidence_type": "changes",
+                                "evidence_type": "financials",
                                 "side_effect_level": "read_only",
                                 "idempotent": True,
                             }
@@ -160,10 +162,10 @@ async def test_mcp_policy_sets_domains_and_read_only_effect(
     result = await load_mcp_tools(config, client_factory=factory)
 
     meta = read_tool_meta(result.tools[0])
-    assert meta.integration == "mcp:runbooks"
+    assert meta.integration == "mcp:financial_research"
     assert meta.domains == frozenset({Domain.FUNDAMENTALS})
     assert meta.side_effect_level is SideEffectLevel.READ_ONLY
-    assert connections[0]["runbooks"] == {
+    assert connections[0]["financial_research"] == {
         "transport": "streamable_http",
         "url": "https://mcp.example/mcp",
         "headers": {"Authorization": "Bearer synthetic-token"},

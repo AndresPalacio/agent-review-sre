@@ -21,7 +21,7 @@ class McpToolPolicy(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     domains: set[Domain] = Field(default_factory=set)
-    evidence_type: EvidenceType = EvidenceType.EVENTS
+    evidence_type: EvidenceType = EvidenceType.FINANCIALS
     side_effect_level: SideEffectLevel = SideEffectLevel.EXTERNAL
     idempotent: bool = False
 

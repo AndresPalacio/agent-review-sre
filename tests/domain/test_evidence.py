@@ -7,8 +7,8 @@ from fin_graph.domain.tools import Domain, EvidenceType
 
 
 def test_the_same_call_gets_the_same_id_whatever_the_argument_order() -> None:
-    first = evidence_id("k8s_list_pods", {"namespace": "payments", "label_selector": "app=a"})
-    second = evidence_id("k8s_list_pods", {"label_selector": "app=a", "namespace": "payments"})
+    first = evidence_id("get_prices", {"ticker": "AAPL", "start": "2026-01-01"})
+    second = evidence_id("get_prices", {"start": "2026-01-01", "ticker": "AAPL"})
 
     assert first == second
     assert first.startswith("ev_")
@@ -16,10 +16,10 @@ def test_the_same_call_gets_the_same_id_whatever_the_argument_order() -> None:
 
 
 def test_different_calls_get_different_ids() -> None:
-    pods = evidence_id("k8s_list_pods", {"namespace": "payments"})
+    prices = evidence_id("get_prices", {"ticker": "AAPL"})
 
-    assert pods != evidence_id("k8s_list_pods", {"namespace": "checkout"})
-    assert pods != evidence_id("k8s_list_events", {"namespace": "payments"})
+    assert prices != evidence_id("get_prices", {"ticker": "MSFT"})
+    assert prices != evidence_id("get_financials", {"ticker": "AAPL"})
 
 
 def test_merging_appends_new_ids_and_refreshes_repeated_ones_in_place() -> None:
@@ -39,14 +39,14 @@ def test_merging_tolerates_an_empty_side() -> None:
 
 def test_an_evidence_item_round_trips_through_json() -> None:
     item = EvidenceItem(
-        id=evidence_id("k8s_list_pods", {"namespace": "payments"}),
-        integration="kubernetes",
-        tool="k8s_list_pods",
-        evidence_type=EvidenceType.TOPOLOGY,
+        id=evidence_id("get_prices", {"ticker": "AAPL"}),
+        integration="market_data",
+        tool="get_prices",
+        evidence_type=EvidenceType.PRICES,
         domains=[Domain.FUNDAMENTALS],
-        summary="3 pods, 1 in CrashLoopBackOff",
-        args={"namespace": "payments"},
-        data=[{"name": "checkout-7d9f8b6c5-x2x9z"}],
+        summary="AAPL closed at 189.20",
+        args={"ticker": "AAPL"},
+        data=[{"date": "2026-10-07", "close": 189.2}],
         collected_at=datetime(2026, 10, 7, 10, 6, tzinfo=UTC),
     )
 

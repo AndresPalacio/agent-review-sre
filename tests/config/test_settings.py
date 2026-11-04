@@ -136,12 +136,12 @@ def test_database_password_never_appears_in_repr(monkeypatch: pytest.MonkeyPatch
 
 def test_comma_separated_lists_are_split(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("AUTO_APPROVE_TOOLS", "alertmanager_create_silence, k8s_scale")
-    monkeypatch.setenv("MASK_KINDS", "pod,ip_address")
+    monkeypatch.setenv("MASK_KINDS", "portfolio_id,ip_address")
 
     settings = Settings(_env_file=None)
 
     assert settings.auto_approve_tools == ("alertmanager_create_silence", "k8s_scale")
-    assert settings.mask_kinds == ("pod", "ip_address")
+    assert settings.mask_kinds == ("portfolio_id", "ip_address")
 
 
 def test_extra_mask_patterns_are_read_as_json(monkeypatch: pytest.MonkeyPatch) -> None:

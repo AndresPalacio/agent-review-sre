@@ -6,30 +6,30 @@ from fin_graph.integrations.base import IntegrationNotConfiguredError
 from fin_graph.integrations.context import RunContext
 
 
-class PagerClient:
+class MarketDataClient:
     pass
 
 
 def test_a_registered_client_is_returned_with_its_type() -> None:
-    pager = PagerClient()
+    market = MarketDataClient()
 
-    assert RunContext(clients={"pager": pager}).client("pager", PagerClient) is pager
+    assert RunContext(clients={"market": market}).client("market", MarketDataClient) is market
 
 
 def test_a_missing_client_explains_it_is_not_configured() -> None:
     with pytest.raises(
-        IntegrationNotConfiguredError, match=r"pager is unavailable.*not configured"
+        IntegrationNotConfiguredError, match=r"market is unavailable.*not configured"
     ):
-        RunContext().client("pager", PagerClient)
+        RunContext().client("market", MarketDataClient)
 
 
 def test_a_client_that_failed_to_build_explains_why() -> None:
-    context = RunContext(unavailable={"pager": "ConfigException: no kubeconfig"})
+    context = RunContext(unavailable={"market": "ConfigException: no market API key"})
 
-    with pytest.raises(IntegrationNotConfiguredError, match="no kubeconfig"):
-        context.client("pager", PagerClient)
+    with pytest.raises(IntegrationNotConfiguredError, match="no market API key"):
+        context.client("market", MarketDataClient)
 
 
 def test_a_client_of_the_wrong_type_is_a_programming_error() -> None:
-    with pytest.raises(TypeError, match="expected PagerClient"):
-        RunContext(clients={"pager": object()}).client("pager", PagerClient)
+    with pytest.raises(TypeError, match="expected MarketDataClient"):
+        RunContext(clients={"market": object()}).client("market", MarketDataClient)

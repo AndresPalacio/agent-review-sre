@@ -90,7 +90,7 @@ async def test_analyst_subagent_masks_tool_results_and_restores_tool_arguments()
     meta = ToolMeta(
         integration="analytics",
         domains=frozenset({Domain.FUNDAMENTALS}),
-        evidence_type=EvidenceType.METRICS,
+        evidence_type=EvidenceType.FINANCIALS,
     )
 
     class Registry:

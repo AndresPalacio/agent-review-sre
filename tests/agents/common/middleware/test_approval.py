@@ -15,34 +15,34 @@ from fin_graph.domain.tools import Domain, EvidenceType, SideEffectLevel, ToolMe
 from fin_graph.safety.approval import ApprovalPolicy
 
 CONFIG: Any = {"configurable": {"thread_id": "t1"}}
-UNDO_API = tool_call_message("k8s_rollout_undo", {"deployment": "api"}, "c1")
+PLACE_ORDER = tool_call_message("paper_place_order", {"ticker": "AAPL"}, "c1")
 
 
 def _meta(level: SideEffectLevel) -> ToolMeta:
     return ToolMeta(
-        integration="kubernetes",
+        integration="paper_broker",
         domains=frozenset({Domain.PORTFOLIO}),
-        evidence_type=EvidenceType.TOPOLOGY,
+        evidence_type=EvidenceType.POSITIONS,
         side_effect_level=level,
     )
 
 
 def _tools(executed: list[str]) -> list[BaseTool]:
     @tool
-    def k8s_list_pods(namespace: str) -> str:
-        """List pods."""
-        executed.append(f"list {namespace}")
-        return "3 pods"
+    def portfolio_positions(account: str) -> str:
+        """List paper portfolio positions."""
+        executed.append(f"positions {account}")
+        return "2 positions"
 
     @tool
-    def k8s_rollout_undo(deployment: str) -> str:
-        """Roll a deployment back to its previous revision."""
-        executed.append(f"undo {deployment}")
-        return "rolled back"
+    def paper_place_order(ticker: str) -> str:
+        """Place a paper order for a ticker."""
+        executed.append(f"order {ticker}")
+        return "order placed"
 
     return [
-        attach_tool_meta(k8s_list_pods, _meta(SideEffectLevel.READ_ONLY)),
-        attach_tool_meta(k8s_rollout_undo, _meta(SideEffectLevel.MUTATING)),
+        attach_tool_meta(portfolio_positions, _meta(SideEffectLevel.READ_ONLY)),
+        attach_tool_meta(paper_place_order, _meta(SideEffectLevel.MUTATING)),
     ]
 
 
@@ -61,31 +61,31 @@ def _agent(
 
 def test_a_mutating_call_pauses_with_the_standard_payload() -> None:
     executed: list[str] = []
-    agent = _agent(ApprovalPolicy(), executed, UNDO_API)
+    agent = _agent(ApprovalPolicy(), executed, PLACE_ORDER)
 
-    paused = agent.invoke({"messages": [HumanMessage("roll back api")]}, CONFIG)
+    paused = agent.invoke({"messages": [HumanMessage("buy AAPL in the paper account")]}, CONFIG)
 
     request = paused["__interrupt__"][0].value
     assert executed == []
-    assert request["action_requests"][0]["name"] == "k8s_rollout_undo"
-    assert request["action_requests"][0]["args"] == {"deployment": "api"}
+    assert request["action_requests"][0]["name"] == "paper_place_order"
+    assert request["action_requests"][0]["args"] == {"ticker": "AAPL"}
     assert request["review_configs"][0]["allowed_decisions"] == ["approve", "edit", "reject"]
 
 
 def test_an_approved_call_runs_after_resume() -> None:
     executed: list[str] = []
-    agent = _agent(ApprovalPolicy(), executed, UNDO_API)
-    agent.invoke({"messages": [HumanMessage("roll back api")]}, CONFIG)
+    agent = _agent(ApprovalPolicy(), executed, PLACE_ORDER)
+    agent.invoke({"messages": [HumanMessage("buy AAPL in the paper account")]}, CONFIG)
 
     agent.invoke(Command(resume={"decisions": [{"type": "approve"}]}), CONFIG)
 
-    assert executed == ["undo api"]
+    assert executed == ["order AAPL"]
 
 
 def test_a_rejected_call_never_runs_and_the_model_is_told_why() -> None:
     executed: list[str] = []
-    agent = _agent(ApprovalPolicy(), executed, UNDO_API)
-    agent.invoke({"messages": [HumanMessage("roll back api")]}, CONFIG)
+    agent = _agent(ApprovalPolicy(), executed, PLACE_ORDER)
+    agent.invoke({"messages": [HumanMessage("buy AAPL in the paper account")]}, CONFIG)
 
     result = agent.invoke(
         Command(resume={"decisions": [{"type": "reject", "message": "not during peak"}]}), CONFIG
@@ -98,21 +98,21 @@ def test_a_rejected_call_never_runs_and_the_model_is_told_why() -> None:
 
 def test_read_only_calls_run_without_pausing_even_in_production() -> None:
     executed: list[str] = []
-    list_pods = tool_call_message("k8s_list_pods", {"namespace": "payments"}, "c1")
-    agent = _agent(ApprovalPolicy(environment="prod"), executed, list_pods)
+    positions = tool_call_message("portfolio_positions", {"account": "paper-main"}, "c1")
+    agent = _agent(ApprovalPolicy(environment="prod"), executed, positions)
 
-    result = agent.invoke({"messages": [HumanMessage("list pods")]}, CONFIG)
+    result = agent.invoke({"messages": [HumanMessage("show paper positions")]}, CONFIG)
 
     assert "__interrupt__" not in result
-    assert executed == ["list payments"]
+    assert executed == ["positions paper-main"]
 
 
 def test_an_auto_approved_call_runs_without_pausing() -> None:
     executed: list[str] = []
-    policy = ApprovalPolicy(environment="dev", auto_approve=frozenset({"k8s_rollout_undo"}))
-    agent = _agent(policy, executed, UNDO_API)
+    policy = ApprovalPolicy(environment="dev", auto_approve=frozenset({"paper_place_order"}))
+    agent = _agent(policy, executed, PLACE_ORDER)
 
-    result = agent.invoke({"messages": [HumanMessage("roll back api")]}, CONFIG)
+    result = agent.invoke({"messages": [HumanMessage("buy AAPL in the paper account")]}, CONFIG)
 
     assert "__interrupt__" not in result
-    assert executed == ["undo api"]
+    assert executed == ["order AAPL"]

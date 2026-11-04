@@ -69,8 +69,8 @@ def test_a_value_already_redacted_by_a_specific_rule_keeps_its_kind() -> None:
     assert redacted == 'token: "[REDACTED:github_token]"'
 
 
-def test_ordinary_operational_text_is_left_alone() -> None:
-    text = "pod checkout-7d9f8b6c5-x2x9z restarted 3 times; max_tokens=4096; tokens: 12"
+def test_ordinary_financial_text_is_left_alone() -> None:
+    text = "AAPL closed at 189.20 with volume 4096; tokens: 12"
 
     assert redact_secrets(text) == text
 

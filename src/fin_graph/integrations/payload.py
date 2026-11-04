@@ -45,7 +45,7 @@ def tool_payload(data: Any, *, max_items: int = MAX_ITEMS, max_chars: int = MAX_
 
 
 def text_payload(text: str, *, max_chars: int = MAX_CHARS) -> str:
-    """The end of ``text`` (for logs, the most recent lines), marked when the start was cut.
+    """The end of long text, marked when the start was cut.
 
     Credentials are redacted before the cut, so a key split by it cannot leak.
     """

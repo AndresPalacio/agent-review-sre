@@ -52,13 +52,6 @@ class EvidenceType(StrEnum):
     VALUATION_MODEL = "valuation_model"
     INDICATORS = "indicators"
     POSITIONS = "positions"
-    LOGS = "logs"
-    METRICS = "metrics"
-    TRACES = "traces"
-    EVENTS = "events"
-    TOPOLOGY = "topology"
-    CHANGES = "changes"
-    ERRORS = "errors"
 
 
 @dataclass(frozen=True)

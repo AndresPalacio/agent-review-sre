@@ -9,9 +9,9 @@ from fin_graph.safety.approval import ApprovalPolicy
 
 def _meta(level: SideEffectLevel) -> ToolMeta:
     return ToolMeta(
-        integration="kubernetes",
+        integration="paper_broker",
         domains=frozenset({Domain.PORTFOLIO}),
-        evidence_type=EvidenceType.TOPOLOGY,
+        evidence_type=EvidenceType.POSITIONS,
         side_effect_level=level,
     )
 
@@ -20,25 +20,27 @@ def _meta(level: SideEffectLevel) -> ToolMeta:
 def test_read_only_calls_never_wait(environment: str) -> None:
     policy = ApprovalPolicy(environment=environment)
 
-    assert policy.requires_approval("k8s_list_pods", _meta(SideEffectLevel.READ_ONLY)) is False
+    assert (
+        policy.requires_approval("portfolio_positions", _meta(SideEffectLevel.READ_ONLY)) is False
+    )
 
 
 @pytest.mark.parametrize("level", [SideEffectLevel.MUTATING, SideEffectLevel.EXTERNAL])
 def test_state_changing_calls_wait_by_default(level: SideEffectLevel) -> None:
-    assert ApprovalPolicy().requires_approval("k8s_rollout_undo", _meta(level)) is True
+    assert ApprovalPolicy().requires_approval("paper_place_order", _meta(level)) is True
 
 
 def test_auto_approved_tools_skip_the_wait_outside_production() -> None:
-    policy = ApprovalPolicy(environment="staging", auto_approve=frozenset({"k8s_rollout_undo"}))
+    policy = ApprovalPolicy(environment="staging", auto_approve=frozenset({"paper_place_order"}))
 
-    assert policy.requires_approval("k8s_rollout_undo", _meta(SideEffectLevel.MUTATING)) is False
-    assert policy.requires_approval("k8s_scale", _meta(SideEffectLevel.MUTATING)) is True
+    assert policy.requires_approval("paper_place_order", _meta(SideEffectLevel.MUTATING)) is False
+    assert policy.requires_approval("paper_cancel_order", _meta(SideEffectLevel.MUTATING)) is True
 
 
 def test_production_ignores_the_auto_approve_list() -> None:
-    policy = ApprovalPolicy(environment="prod", auto_approve=frozenset({"k8s_rollout_undo"}))
+    policy = ApprovalPolicy(environment="prod", auto_approve=frozenset({"paper_place_order"}))
 
-    assert policy.requires_approval("k8s_rollout_undo", _meta(SideEffectLevel.MUTATING)) is True
+    assert policy.requires_approval("paper_place_order", _meta(SideEffectLevel.MUTATING)) is True
 
 
 def test_a_tool_without_metadata_is_treated_as_changing_state() -> None:
@@ -65,13 +67,13 @@ def test_named_approver_allowlist_restricts_mutation_decisions() -> None:
 def test_any_environment_not_known_as_non_production_ignores_auto_approve(
     environment: str,
 ) -> None:
-    policy = ApprovalPolicy(environment=environment, auto_approve=frozenset({"k8s_rollout_undo"}))
+    policy = ApprovalPolicy(environment=environment, auto_approve=frozenset({"paper_place_order"}))
 
-    assert policy.requires_approval("k8s_rollout_undo", _meta(SideEffectLevel.MUTATING)) is True
+    assert policy.requires_approval("paper_place_order", _meta(SideEffectLevel.MUTATING)) is True
 
 
 @pytest.mark.parametrize("environment", ["dev", "development", "local", "test", "staging"])
 def test_auto_approve_applies_in_known_non_production_environments(environment: str) -> None:
-    policy = ApprovalPolicy(environment=environment, auto_approve=frozenset({"k8s_rollout_undo"}))
+    policy = ApprovalPolicy(environment=environment, auto_approve=frozenset({"paper_place_order"}))
 
-    assert policy.requires_approval("k8s_rollout_undo", _meta(SideEffectLevel.MUTATING)) is False
+    assert policy.requires_approval("paper_place_order", _meta(SideEffectLevel.MUTATING)) is False

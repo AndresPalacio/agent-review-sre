@@ -1,15 +1,15 @@
 {
   "servers": [
     {
-      "name": "runbooks",
+      "name": "financial_research",
       "enabled": false,
       "transport": "http",
       "url": "https://mcp.example.com/mcp",
-      "headers_from_env": {"Authorization": "MCP_RUNBOOK_AUTH"},
+      "headers_from_env": {"Authorization": "MCP_FINANCE_AUTH"},
       "tools": {
-        "search_runbooks": {
-          "domains": ["changes"],
-          "evidence_type": "changes",
+        "search_filings": {
+          "domains": ["fundamentals"],
+          "evidence_type": "financials",
           "side_effect_level": "read_only",
           "idempotent": true
         }

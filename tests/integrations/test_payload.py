@@ -7,21 +7,23 @@ from fin_graph.integrations.payload import PartialList, text_payload, tool_paylo
 
 
 def test_small_data_becomes_compact_json() -> None:
-    assert tool_payload({"pods": ["a", "b"], "ok": True}) == '{"pods":["a","b"],"ok":true}'
+    assert tool_payload({"tickers": ["AAPL", "MSFT"], "ok": True}) == (
+        '{"tickers":["AAPL","MSFT"],"ok":true}'
+    )
 
 
 def test_long_lists_keep_their_head_and_count_the_rest() -> None:
-    payload = json.loads(tool_payload({"pods": list(range(120))}, max_items=50))
+    payload = json.loads(tool_payload({"prices": list(range(120))}, max_items=50))
 
-    assert payload["pods"][:50] == list(range(50))
-    assert payload["pods"][50] == "…[70 more items]"
-    assert len(payload["pods"]) == 51
+    assert payload["prices"][:50] == list(range(50))
+    assert payload["prices"][50] == "…[70 more items]"
+    assert len(payload["prices"]) == 51
 
 
 def test_nested_lists_are_capped_too() -> None:
-    payload = json.loads(tool_payload([{"events": list(range(10))}], max_items=3))
+    payload = json.loads(tool_payload([{"positions": list(range(10))}], max_items=3))
 
-    assert payload == [{"events": [0, 1, 2, "…[7 more items]"]}]
+    assert payload == [{"positions": [0, 1, 2, "…[7 more items]"]}]
 
 
 def test_a_list_too_long_for_the_limit_keeps_whole_entries_and_valid_json() -> None:

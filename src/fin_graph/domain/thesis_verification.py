@@ -36,10 +36,8 @@ _SIGNALS: dict[EvidenceType, re.Pattern[str]] = {
         r"capital expenditure|balance sheet|total debt|liabilities|assets|book value|"
         r"dividends?|buybacks?|repurchases?|shares outstanding|ingresos|ventas|"
         r"beneficio neto|utilidad neta|flujo de caja libre|deuda total|pasivos|activos|"
-        r"valor contable|dividendos?|recompras?)\b"
-    ),
-    EvidenceType.METRICS: re.compile(
-        r"(?:\bp/?e\b|\bp/?b\b|\bp/?s\b|\broe\b|\broic\b|\broa\b|\bmargins?\b|current ratio|"
+        r"valor contable|dividendos?|recompras?|\bp/?e\b|\bp/?b\b|\bp/?s\b|\broe\b|"
+        r"\broic\b|\broa\b|\bmargins?\b|current ratio|"
         r"debt[- ]to[- ]equity|\bd/e\b|\bpeg\b|ev/ebitda|return on equity|interest coverage|"
         r"\bm[aá]rgen(?:es)?\b|rentabilidad sobre (?:el )?patrimonio|ratio corriente|"
         r"deuda (?:sobre|a) patrimonio)"

@@ -1,4 +1,4 @@
-"""Reversible masking of client, account and infrastructure identifiers before a model sees them.
+"""Reversible masking of client and account identifiers before a model sees them.
 
 Financial identifiers (account and card numbers, IBANs, routing numbers, tax ids, phones,
 portfolio ids and client names) are validated where a checksum exists (Luhn, IBAN mod 97, ABA),
@@ -22,14 +22,8 @@ from fin_graph.config.settings import Settings
 class IdentifierKind(StrEnum):
     """Identifier families the built-in detectors recognise."""
 
-    POD = "pod"
-    NAMESPACE = "namespace"
-    CLUSTER = "cluster"
-    HOSTNAME = "hostname"
-    ACCOUNT_ID = "account_id"
     IP_ADDRESS = "ip_address"
     EMAIL = "email"
-    SERVICE_NAME = "service_name"
     ACCOUNT_NUMBER = "account_number"
     IBAN = "iban"
     CARD_NUMBER = "card_number"
@@ -42,41 +36,8 @@ class IdentifierKind(StrEnum):
 
 #: Between a label and its value: ``=``, ``:`` or spaces, with optional JSON quotes.
 _LABEL_SEPARATOR = r"[\"']?(?:\s*[=:]\s*|\s+)[\"']?"
-#: Contextual detectors capture only the value (group 1), not the "namespace:" label.
+#: Contextual detectors capture only the identifier value (group 1), not its label.
 _DETECTORS: dict[IdentifierKind, re.Pattern[str]] = {
-    IdentifierKind.POD: re.compile(
-        r"\b([a-z0-9](?:[-a-z0-9]*[a-z0-9])?-[a-f0-9]{5,10}(?:-[a-z0-9]{3,10})?)\b"
-    ),
-    IdentifierKind.NAMESPACE: re.compile(
-        r"\b(?:kube_namespace|namespace|ns)" + _LABEL_SEPARATOR + r"([a-z0-9][-a-z0-9]*)\b",
-        re.IGNORECASE,
-    ),
-    IdentifierKind.CLUSTER: re.compile(
-        r"\b(?:kube_cluster|eks_cluster|cluster(?:_name)?)"
-        + _LABEL_SEPARATOR
-        + r"([a-zA-Z0-9][-a-zA-Z0-9_]{1,})\b",
-        re.IGNORECASE,
-    ),
-    IdentifierKind.SERVICE_NAME: re.compile(
-        r"\b(?:service|service_name|app|deployment)"
-        + _LABEL_SEPARATOR
-        + r"([a-zA-Z0-9][-a-zA-Z0-9_]{1,})\b",
-        re.IGNORECASE,
-    ),
-    IdentifierKind.HOSTNAME: re.compile(
-        r"\b(kind-[a-z0-9][-a-z0-9]*"
-        r"|ip-\d+-\d+-\d+-\d+(?:\.[a-z0-9][a-z0-9-]*)*"
-        r"|[a-z0-9][-a-z0-9]*(?:\.[a-z0-9][-a-z0-9]*)+\.(?:com|net|org|io|internal|local|cloud))\b",
-        re.IGNORECASE,
-    ),
-    # AWS account ids only in context (an ARN or an "account" label): a bare 12-digit number is
-    # usually a revenue or a market cap, and masking it would corrupt the financial data.
-    IdentifierKind.ACCOUNT_ID: re.compile(
-        r"(?:arn:aws[a-z-]*:[a-z0-9-]*:[a-z0-9-]*:|\b(?:aws[_ ]?)?account(?:[_ ]?id)?"
-        + _LABEL_SEPARATOR
-        + r")(\d{12})\b",
-        re.IGNORECASE,
-    ),
     IdentifierKind.IP_ADDRESS: re.compile(
         r"\b((?:25[0-5]|2[0-4]\d|[01]?\d?\d)(?:\.(?:25[0-5]|2[0-4]\d|[01]?\d?\d)){3})\b"
     ),
@@ -173,14 +134,6 @@ _TOKEN_RE = re.compile(r"<[A-Z0-9_]+_[0-9a-f]{10}>")
 _PROCESS_KEY = token_bytes(32)
 #: Dict keys whose string value is that kind of identifier (tool arguments, structured data).
 _KEYED_KINDS: dict[str, IdentifierKind] = {
-    "namespace": IdentifierKind.NAMESPACE,
-    "kube_namespace": IdentifierKind.NAMESPACE,
-    "cluster": IdentifierKind.CLUSTER,
-    "cluster_name": IdentifierKind.CLUSTER,
-    "service": IdentifierKind.SERVICE_NAME,
-    "service_name": IdentifierKind.SERVICE_NAME,
-    "app": IdentifierKind.SERVICE_NAME,
-    "deployment": IdentifierKind.SERVICE_NAME,
     "account_number": IdentifierKind.ACCOUNT_NUMBER,
     "account_no": IdentifierKind.ACCOUNT_NUMBER,
     "iban": IdentifierKind.IBAN,
@@ -272,8 +225,8 @@ class Masker:
     def mask_value(self, value: Any) -> Any:
         """Mask every string inside nested dicts, lists and tuples.
 
-        A string stored under an identifier key (``namespace``, ``cluster``,
-        ``app``…) is masked whole, since no label precedes it in the text.
+        A string stored under an identifier key (``portfolio_id``, ``account_number``…)
+        is masked whole, since no label precedes it in the text.
         """
         if isinstance(value, dict):
             return {key: self._mask_entry(key, item) for key, item in value.items()}

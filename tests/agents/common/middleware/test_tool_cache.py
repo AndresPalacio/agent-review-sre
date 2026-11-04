@@ -20,11 +20,11 @@ class FakeClock:
         return self.now
 
 
-def _two_identical_calls(name: str = "get_pods") -> ScriptedChatModel:
+def _two_identical_calls(name: str = "get_prices") -> ScriptedChatModel:
     return ScriptedChatModel(
         responses=[
-            tool_call_message(name, {"namespace": "payments"}, "first"),
-            tool_call_message(name, {"namespace": "payments"}, "second"),
+            tool_call_message(name, {"ticker": "AAPL"}, "first"),
+            tool_call_message(name, {"ticker": "AAPL"}, "second"),
             AIMessage("final"),
         ]
     )
@@ -33,7 +33,7 @@ def _two_identical_calls(name: str = "get_pods") -> ScriptedChatModel:
 def _one_call(call_id: str) -> ScriptedChatModel:
     return ScriptedChatModel(
         responses=[
-            tool_call_message("get_pods", {"namespace": "payments"}, call_id),
+            tool_call_message("get_prices", {"ticker": "AAPL"}, call_id),
             AIMessage("final"),
         ]
     )
@@ -50,7 +50,7 @@ def _meta(level: SideEffectLevel) -> ToolMeta:
     return ToolMeta(
         integration="test",
         domains=frozenset({Domain.FUNDAMENTALS}),
-        evidence_type=EvidenceType.TOPOLOGY,
+        evidence_type=EvidenceType.PRICES,
         side_effect_level=level,
     )
 
@@ -63,42 +63,48 @@ def test_repeated_identical_read_only_call_is_served_from_cache() -> None:
     executions: list[str] = []
 
     @tool
-    def get_pods(namespace: str) -> str:
-        """List pods in a namespace."""
-        executions.append(namespace)
-        return f"3 pods in {namespace}"
+    def get_prices(ticker: str) -> str:
+        """Get recent prices for a ticker."""
+        executions.append(ticker)
+        return f"30 prices for {ticker}"
 
     cache = ToolResultCacheMiddleware()
     agent = make_agent(
-        name="k8s", model=_two_identical_calls(), tools=[_read_only(get_pods)], middleware=[cache]
+        name="market",
+        model=_two_identical_calls(),
+        tools=[_read_only(get_prices)],
+        middleware=[cache],
     )
 
     result = agent.invoke({"messages": [HumanMessage("go")]}, _run_config("run-1"))
 
     tool_messages = [m for m in result["messages"] if isinstance(m, ToolMessage)]
-    assert executions == ["payments"]
+    assert executions == ["AAPL"]
     assert cache.hits == 1
     assert [m.tool_call_id for m in tool_messages] == ["first", "second"]
-    assert [m.content for m in tool_messages] == ["3 pods in payments", "3 pods in payments"]
+    assert [m.content for m in tool_messages] == ["30 prices for AAPL", "30 prices for AAPL"]
 
 
 async def test_async_runs_use_the_cache_too() -> None:
     executions: list[str] = []
 
     @tool
-    async def get_pods(namespace: str) -> str:
-        """List pods in a namespace."""
-        executions.append(namespace)
-        return f"3 pods in {namespace}"
+    async def get_prices(ticker: str) -> str:
+        """Get recent prices for a ticker."""
+        executions.append(ticker)
+        return f"30 prices for {ticker}"
 
     cache = ToolResultCacheMiddleware()
     agent = make_agent(
-        name="k8s", model=_two_identical_calls(), tools=[_read_only(get_pods)], middleware=[cache]
+        name="market",
+        model=_two_identical_calls(),
+        tools=[_read_only(get_prices)],
+        middleware=[cache],
     )
 
     await agent.ainvoke({"messages": [HumanMessage("go")]}, _run_config("run-1"))
 
-    assert executions == ["payments"]
+    assert executions == ["AAPL"]
     assert cache.hits == 1
 
 
@@ -106,19 +112,19 @@ def test_a_new_run_on_the_same_thread_reaches_the_tool_again() -> None:
     executions: list[str] = []
 
     @tool
-    def get_pods(namespace: str) -> str:
-        """List pods in a namespace."""
-        executions.append(namespace)
-        return f"3 pods in {namespace}"
+    def get_prices(ticker: str) -> str:
+        """Get recent prices for a ticker."""
+        executions.append(ticker)
+        return f"30 prices for {ticker}"
 
     cache = ToolResultCacheMiddleware()
     for turn in ("turn-1", "turn-2"):
         agent = make_agent(
-            name="k8s", model=_one_call(turn), tools=[_read_only(get_pods)], middleware=[cache]
+            name="market", model=_one_call(turn), tools=[_read_only(get_prices)], middleware=[cache]
         )
         agent.invoke({"messages": [HumanMessage("go")]}, _run_config(turn, thread_id="chat-1"))
 
-    assert executions == ["payments", "payments"]
+    assert executions == ["AAPL", "AAPL"]
     assert cache.hits == 0
 
 
@@ -126,45 +132,48 @@ def test_calls_without_a_scope_are_never_cached() -> None:
     executions: list[str] = []
 
     @tool
-    def get_pods(namespace: str) -> str:
-        """List pods in a namespace."""
-        executions.append(namespace)
-        return f"3 pods in {namespace}"
+    def get_prices(ticker: str) -> str:
+        """Get recent prices for a ticker."""
+        executions.append(ticker)
+        return f"30 prices for {ticker}"
 
     cache = ToolResultCacheMiddleware()
     agent = make_agent(
-        name="k8s", model=_two_identical_calls(), tools=[_read_only(get_pods)], middleware=[cache]
+        name="market",
+        model=_two_identical_calls(),
+        tools=[_read_only(get_prices)],
+        middleware=[cache],
     )
 
     agent.invoke({"messages": [HumanMessage("go")]}, _run_config(None))
 
-    assert executions == ["payments", "payments"]
+    assert executions == ["AAPL", "AAPL"]
     assert cache.hits == 0
 
 
 @pytest.mark.parametrize("level", [None, SideEffectLevel.MUTATING, SideEffectLevel.EXTERNAL])
 def test_tools_not_declared_read_only_always_run(level: SideEffectLevel | None) -> None:
-    restarts: list[str] = []
+    orders: list[str] = []
 
     @tool
-    def rollout_restart(namespace: str) -> str:
-        """Restart every deployment in a namespace."""
-        restarts.append(namespace)
-        return f"restarted {namespace}"
+    def place_order(ticker: str) -> str:
+        """Place a paper order for a ticker."""
+        orders.append(ticker)
+        return f"ordered {ticker}"
 
     if level is not None:
-        attach_tool_meta(rollout_restart, _meta(level))
+        attach_tool_meta(place_order, _meta(level))
     cache = ToolResultCacheMiddleware()
     agent = make_agent(
-        name="ops",
-        model=_two_identical_calls("rollout_restart"),
-        tools=[rollout_restart],
+        name="orders",
+        model=_two_identical_calls("place_order"),
+        tools=[place_order],
         middleware=[cache],
     )
 
     agent.invoke({"messages": [HumanMessage("go")]}, _run_config("run-1"))
 
-    assert restarts == ["payments", "payments"]
+    assert orders == ["AAPL", "AAPL"]
     assert cache.hits == 0
 
 
@@ -172,23 +181,23 @@ def test_entries_expire_after_the_ttl() -> None:
     executions: list[str] = []
 
     @tool
-    def get_pods(namespace: str) -> str:
-        """List pods in a namespace."""
-        executions.append(namespace)
-        return f"3 pods in {namespace}"
+    def get_prices(ticker: str) -> str:
+        """Get recent prices for a ticker."""
+        executions.append(ticker)
+        return f"30 prices for {ticker}"
 
     clock = FakeClock()
     cache = ToolResultCacheMiddleware(ttl_seconds=300, clock=clock)
-    read_only_pods = _read_only(get_pods)
-    make_agent(name="k8s", model=_one_call("a"), tools=[read_only_pods], middleware=[cache]).invoke(
-        {"messages": [HumanMessage("go")]}, _run_config("run-1")
-    )
+    read_only_prices = _read_only(get_prices)
+    make_agent(
+        name="market", model=_one_call("a"), tools=[read_only_prices], middleware=[cache]
+    ).invoke({"messages": [HumanMessage("go")]}, _run_config("run-1"))
     clock.now = 301.0
-    make_agent(name="k8s", model=_one_call("b"), tools=[read_only_pods], middleware=[cache]).invoke(
-        {"messages": [HumanMessage("go")]}, _run_config("run-1")
-    )
+    make_agent(
+        name="market", model=_one_call("b"), tools=[read_only_prices], middleware=[cache]
+    ).invoke({"messages": [HumanMessage("go")]}, _run_config("run-1"))
 
-    assert executions == ["payments", "payments"]
+    assert executions == ["AAPL", "AAPL"]
     assert cache.hits == 0
 
 
@@ -196,21 +205,24 @@ def test_error_results_are_retried_not_cached() -> None:
     attempts: list[str] = []
 
     @tool
-    def get_pods(namespace: str) -> str:
-        """List pods in a namespace."""
-        attempts.append(namespace)
-        raise ToolException("cluster unreachable")
+    def get_prices(ticker: str) -> str:
+        """Get recent prices for a ticker."""
+        attempts.append(ticker)
+        raise ToolException("market data unavailable")
 
-    get_pods.handle_tool_error = True
+    get_prices.handle_tool_error = True
     cache = ToolResultCacheMiddleware()
     agent = make_agent(
-        name="k8s", model=_two_identical_calls(), tools=[_read_only(get_pods)], middleware=[cache]
+        name="market",
+        model=_two_identical_calls(),
+        tools=[_read_only(get_prices)],
+        middleware=[cache],
     )
 
     result = agent.invoke({"messages": [HumanMessage("go")]}, _run_config("run-1"))
 
     tool_messages = [m for m in result["messages"] if isinstance(m, ToolMessage)]
-    assert attempts == ["payments", "payments"]
+    assert attempts == ["AAPL", "AAPL"]
     assert cache.hits == 0
     assert all(m.status == "error" for m in tool_messages)
 
@@ -219,22 +231,24 @@ def test_same_arguments_in_a_different_order_hit_the_cache() -> None:
     executions: list[tuple[str, int]] = []
 
     @tool
-    def get_logs(service: str, limit: int) -> str:
-        """Fetch recent log lines for a service."""
-        executions.append((service, limit))
-        return f"{limit} lines from {service}"
+    def get_financials(ticker: str, limit: int) -> str:
+        """Fetch recent financial periods for a ticker."""
+        executions.append((ticker, limit))
+        return f"{limit} periods for {ticker}"
 
     model = ScriptedChatModel(
         responses=[
-            tool_call_message("get_logs", {"service": "checkout", "limit": 50}, "first"),
-            tool_call_message("get_logs", {"limit": 50, "service": "checkout"}, "second"),
+            tool_call_message("get_financials", {"ticker": "AAPL", "limit": 50}, "first"),
+            tool_call_message("get_financials", {"limit": 50, "ticker": "AAPL"}, "second"),
             AIMessage("final"),
         ]
     )
     cache = ToolResultCacheMiddleware()
-    agent = make_agent(name="logs", model=model, tools=[_read_only(get_logs)], middleware=[cache])
+    agent = make_agent(
+        name="fundamentals", model=model, tools=[_read_only(get_financials)], middleware=[cache]
+    )
 
     agent.invoke({"messages": [HumanMessage("go")]}, _run_config("run-1"))
 
-    assert executions == [("checkout", 50)]
+    assert executions == [("AAPL", 50)]
     assert cache.hits == 1

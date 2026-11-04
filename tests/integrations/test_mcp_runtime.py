@@ -23,16 +23,16 @@ class Adapter:
             raise RuntimeError("password=private")
 
         @tool(response_format="content_and_artifact")
-        async def logs(service: str) -> tuple[str, Any]:
-            """Read service logs."""
-            return "password=private", {"service": service, "token": "private", "items": ["error"]}
+        async def filings(ticker: str) -> tuple[str, Any]:
+            """Read company filings."""
+            return "password=private", {"ticker": ticker, "token": "private", "items": ["10-K"]}
 
         @tool
         async def write() -> str:
             """An undeclared mutation."""
             raise AssertionError("must never be called")
 
-        return [logs, write]
+        return [filings, write]
 
 
 async def test_configured_mcp_routes_reads_and_sanitizes_artifacts(tmp_path: Path) -> None:
@@ -42,14 +42,14 @@ async def test_configured_mcp_routes_reads_and_sanitizes_artifacts(tmp_path: Pat
             {
                 "servers": [
                     {
-                        "name": "logs",
+                        "name": "financial",
                         "enabled": True,
                         "transport": "stdio",
                         "command": "not-executed",
                         "tools": {
-                            "logs": {
+                            "filings": {
                                 "domains": ["fundamentals"],
-                                "evidence_type": "logs",
+                                "evidence_type": "financials",
                                 "side_effect_level": "read_only",
                                 "idempotent": True,
                             }
@@ -70,15 +70,20 @@ async def test_configured_mcp_routes_reads_and_sanitizes_artifacts(tmp_path: Pat
         IntegrationRegistry([], env_file=None), config_path=path, client_factory=Adapter
     )
     context = registry.run_context()
-    assert registry.ids == ("mcp:logs", "mcp:broken", "mcp:disabled")
+    assert registry.ids == ("mcp:financial", "mcp:broken", "mcp:disabled")
     assert "mcp:broken" in context.unavailable and "private" not in str(context.unavailable)
     tools = registry.tools(context, domains={Domain.FUNDAMENTALS})
-    assert [item.name for item in tools] == ["logs_logs"]
+    assert [item.name for item in tools] == ["financial_filings"]
     result = await tools[0].ainvoke(
-        {"name": "logs_logs", "id": "read1", "type": "tool_call", "args": {"service": "checkout"}}
+        {
+            "name": "financial_filings",
+            "id": "read1",
+            "type": "tool_call",
+            "args": {"ticker": "AAPL"},
+        }
     )
     assert isinstance(result, ToolMessage)
-    assert result.artifact["service"] == "checkout"
+    assert result.artifact["ticker"] == "AAPL"
     assert "private" not in str(result)
     checks = await registry.verify_all(context)
     assert [item.status.value for item in checks] == ["ok", "failed", "not_configured"]
@@ -107,7 +112,7 @@ async def test_mcp_bounds_are_reported_as_sanitized_tool_errors(behavior: str) -
         ToolMeta(
             integration="mcp:test",
             domains=frozenset({Domain.FUNDAMENTALS}),
-            evidence_type=EvidenceType.LOGS,
+            evidence_type=EvidenceType.FINANCIALS,
             side_effect_level=SideEffectLevel.READ_ONLY,
             idempotent=True,
         ),
@@ -187,7 +192,7 @@ async def test_mcp_normalizes_custom_artifacts_before_credential_redaction() -> 
         ToolMeta(
             integration="mcp:test",
             domains=frozenset({Domain.FUNDAMENTALS}),
-            evidence_type=EvidenceType.LOGS,
+            evidence_type=EvidenceType.FINANCIALS,
             side_effect_level=SideEffectLevel.READ_ONLY,
             idempotent=True,
         ),

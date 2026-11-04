@@ -31,7 +31,7 @@ INTEGRATION = "analytics"
 _VALUE_ANALYSTS = frozenset({Domain.VALUATION, Domain.BUFFETT, Domain.GRAHAM})
 #: Evidence each compute tool produces; claims about it should cite that kind.
 COMPUTE_EVIDENCE = {
-    Domain.FUNDAMENTALS: EvidenceType.METRICS,
+    Domain.FUNDAMENTALS: EvidenceType.FINANCIALS,
     Domain.VALUATION: EvidenceType.VALUATION_MODEL,
     Domain.TECHNICALS: EvidenceType.INDICATORS,
     Domain.SENTIMENT: EvidenceType.NEWS,
@@ -110,7 +110,7 @@ async def get_prices(
     return tool_payload(summary), rows
 
 
-@integration_tool(_meta({Domain.FUNDAMENTALS, *_VALUE_ANALYSTS}, EvidenceType.METRICS))
+@integration_tool(_meta({Domain.FUNDAMENTALS, *_VALUE_ANALYSTS}, EvidenceType.FINANCIALS))
 async def get_financial_metrics(
     ticker: str,
     runtime: ToolRuntime[RunContext],
@@ -204,7 +204,7 @@ async def get_insider_trades(
     return tool_payload(summary), data
 
 
-@integration_tool(_meta(set(_VALUE_ANALYSTS), EvidenceType.METRICS))
+@integration_tool(_meta(set(_VALUE_ANALYSTS), EvidenceType.FINANCIALS))
 async def get_market_cap(
     ticker: str, runtime: ToolRuntime[RunContext], as_of: str = ""
 ) -> tuple[str, Any]:
