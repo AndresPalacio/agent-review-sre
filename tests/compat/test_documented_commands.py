@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
+import re
 from pathlib import Path
+from urllib.parse import unquote
 
 from dotenv import dotenv_values
 from typer.testing import CliRunner
@@ -11,12 +13,22 @@ from fin_graph.cli.main import app
 
 ROOT = Path(__file__).parents[2]
 DOCS = (
+    "docs/arquitectura-agentes.md",
+    "docs/better-harness.md",
     "docs/compatibility/ai-hedge-fund.md",
     "docs/compatibility/configuration-matrix.md",
     "docs/compatibility/api-manifest.md",
     "docs/operations/local-app.md",
     "docs/operations/remote-deployment.md",
 )
+PRIMARY_DOCS = ("README.md", "docs/arquitectura-agentes.md", "docs/better-harness.md")
+REMOVED_DOC_REFERENCES = (
+    "progress/",
+    "arquitecture-review/",
+    "integrations-wave2",
+    "phase8",
+)
+MARKDOWN_LINK = re.compile(r"\[[^\]]+\]\(([^)]+)\)")
 FORBIDDEN_ENV_PREFIXES = (
     "K8S_",
     "PROMETHEUS_",
@@ -45,10 +57,30 @@ def test_required_product_documents_exist_and_have_no_phase_status() -> None:
         assert "TODO" not in text
 
 
+def test_primary_documents_do_not_reference_removed_history() -> None:
+    for relative in PRIMARY_DOCS:
+        text = (ROOT / relative).read_text(encoding="utf-8")
+        lowered = text.casefold()
+        assert not [value for value in REMOVED_DOC_REFERENCES if value in lowered]
+
+
+def test_all_retained_documentation_links_resolve() -> None:
+    documents = [ROOT / "README.md", *(ROOT / "docs").rglob("*.md")]
+    for document in documents:
+        text = document.read_text(encoding="utf-8")
+        for raw_target in MARKDOWN_LINK.findall(text):
+            target = raw_target.strip().strip("<>").split("#", 1)[0]
+            if not target or "://" in target or target.startswith(("mailto:", "#")):
+                continue
+            resolved = (document.parent / unquote(target)).resolve()
+            relative = document.relative_to(ROOT)
+            assert resolved.exists(), f"{relative} links missing path {raw_target}"
+
+
 def test_readme_describes_the_finished_paper_only_product() -> None:
     text = (ROOT / "README.md").read_text(encoding="utf-8")
     lowered = text.lower()
-    assert "ai hedge fund" in lowered
+    assert "plataforma financiera multiagente" in lowered
     assert "paper trading" in lowered
     assert "no ejecuta operaciones reales" in lowered
     assert "migrando" not in lowered

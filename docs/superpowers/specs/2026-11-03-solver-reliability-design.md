@@ -40,7 +40,7 @@ con DeepAgents 0.7.32.
    Cada intento de resumen, incluido el de recuperación, consume cuota.
    El especialista general predeterminado debe heredar las skills del padre como
    el predeterminado nativo; los especialistas personalizados mantienen fuentes explícitas.
-4. Añadir investigación con múltiples fuentes obtenidas por herramientas y una
+4. Añadir research financiero con múltiples fuentes obtenidas por herramientas y una
    variante reservada. Separar métricas por partición, verificación independiente
    y aprobación interna; medir recuperación observada y tokens completos/parciales.
    Rechazar reutilización accidental del modelo entre brazos.

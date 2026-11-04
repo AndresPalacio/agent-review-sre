@@ -32,8 +32,7 @@ El comportamiento multiagente está implementado, pero sus responsabilidades est
   opcional `better-harness`.
 - `harness/fin.toml` parece configuración necesaria para arrancar la aplicación, aunque solo sirve
   para optimización.
-- `docs/arquitectura-agentes.md` todavía describe el producto SRE anterior y referencias que ya no
-  existen.
+- `docs/arquitectura-agentes.md` debe describir únicamente el producto financiero y rutas vigentes.
 - `fin_graph.compat.ai_hedge_fund` y `fin_graph.server.compat` mezclan adaptadores HTTP, modelos,
   persistencia y pruebas de conformidad bajo nombres de migración que no explican su responsabilidad.
 - Helpers llamados `compact` describen unas veces normalización y otras límites de payload, por lo

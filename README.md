@@ -1,9 +1,8 @@
-# fin-graph — AI Hedge Fund compatible
+# fin-graph — plataforma financiera multiagente
 
-Reemplazo limpio y autónomo de AI Hedge Fund, construido con LangGraph, DeepAgents y modelos
-cuantitativos tipados. Conserva los contratos HTTP, Python y CLI de la aplicación de referencia,
-añade una interfaz web integrada y ofrece una API nativa con autenticación, aprobaciones y
-persistencia durable.
+Plataforma autónoma construida con LangGraph, DeepAgents y modelos cuantitativos tipados. Ofrece
+contratos HTTP, Python y CLI para clientes financieros existentes, una interfaz web integrada y
+una API nativa con autenticación, aprobaciones y persistencia durable.
 
 El producto analiza acciones, ejecuta backtests point-in-time, compone flujos de analistas y
 administra una cartera de paper trading. Es software educativo: **no ejecuta operaciones reales**
@@ -11,7 +10,7 @@ ni constituye asesoría financiera.
 
 ## Qué incluye
 
-- Los 19 analistas/personas de AI Hedge Fund y sus identificadores históricos.
+- Diecinueve analistas/personas financieras y sus identificadores públicos estables.
 - `run_hedge_fund`, `Backtester`, modelos, utilidades y rutas de importación compatibles.
 - API `/api/*` compatible para conectar el frontend o un cliente existente sin cambiarlo.
 - API `/v1/*` nativa para análisis, chat, órdenes paper, aprobaciones, scheduler y auditoría.
@@ -20,8 +19,8 @@ ni constituye asesoría financiera.
 - Ollama local y proveedores cloud configurables; las claves de la UI permanecen en memoria.
 - SQLite para una instancia local y Postgres para despliegue distribuido.
 
-La referencia `ai-hedge-fund` no se importa ni se necesita en ejecución. Las pruebas diferenciales
-usan snapshots congelados y recorridos de navegador para demostrar la compatibilidad.
+La aplicación externa de referencia no se importa ni se necesita en ejecución. Las pruebas
+diferenciales usan snapshots congelados y recorridos de navegador para demostrar compatibilidad.
 
 ## Requisitos
 
@@ -114,7 +113,7 @@ se carga al invocar los comandos opcionales documentados en
 
 ## API y conexión de clientes existentes
 
-El servidor local conserva las rutas y JSON esperados por AI Hedge Fund, entre ellas:
+El servidor local conserva las rutas y JSON esperados por los clientes financieros compatibles:
 
 - `/api/hedge-fund/agents`, `/api/hedge-fund/run`, `/api/hedge-fund/backtest`;
 - `/api/hedge-fund/flows` y sus runs;

@@ -1,7 +1,7 @@
 # Resultado: fiabilidad y evaluación de bm-workflow
 
-Fecha: 3 de noviembre de 2026. Paquete: `bm-workflow` 0.2.0. Continuación del
-[plan de fiabilidad](../plans/2026-11-03-solver-reliability.md), con DeepAgents 0.7.32
+Fecha: 3 de noviembre de 2026. Paquete: `bm-workflow` 0.2.0. Implementación del
+[diseño de fiabilidad](../specs/2026-11-03-solver-reliability-design.md), con DeepAgents 0.7.32
 y dependencias sin cambios. Se conservaron los cambios anteriores y la rama existente.
 
 ## Qué cambió y qué lo demuestra
@@ -14,7 +14,7 @@ y dependencias sin cambios. Se conservaron los cambios anteriores y la rama exis
 | Una terminación textual sin propuesta no permitía reconocer requisitos faltantes. | Consultar al verificador con candidate=None; nunca aprobar sin propuesta. | Bloqueo autoritativo y aprobación sin propuesta convertida en inconclusive. |
 | El resumen personalizado perdía el prompt y recuperación por exceso de contexto nativos. | Modelo de resumen con reservas alrededor del motor nativo. | Una reserva impide el segundo intento; dos permiten la recuperación con historial reducido; contabilidad y callbacks sin duplicación. |
 | El especialista predeterminado no heredaba skills; una herramienta del host llamada task ocultaba la delegación. | Herencia acotada solo para el especialista automático y reserva del nombre task. | Pruebas con delegación real, carga lenta cancelada, aislamiento de especialistas explícitos y formatos de herramienta soportados. |
-| Evaluación limitada y métricas incomparables/incompletas. | Investigación multifuente, variantes reservadas, verificación externa simétrica, recuperación por efectos observados, tokens parciales explícitos y modelos nuevos por brazo. | 22 pruebas de evaluación, incluidas fuentes ocultas inaccesibles para el modelo y errores posteriores al resumen. |
+| Evaluación limitada y métricas incomparables/incompletas. | Research financiero multifuente, variantes reservadas, verificación externa simétrica, recuperación por efectos observados, tokens parciales explícitos y modelos nuevos por brazo. | 22 pruebas de evaluación, incluidas fuentes ocultas inaccesibles para el modelo y errores posteriores al resumen. |
 
 Los mecanismos de compresión y recuperación se reutilizan del
 [código oficial de DeepAgents 0.7.32](https://github.com/langchain-ai/deepagents/blob/deepagents==0.7.32/libs/deepagents/deepagents/middleware/summarization.py).

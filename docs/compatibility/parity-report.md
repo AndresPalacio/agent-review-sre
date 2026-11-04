@@ -1,6 +1,6 @@
-# AI Hedge Fund parity report
+# Financial reference compatibility report
 
-Verified on 2026-11-03 against the frozen local AI Hedge Fund snapshot
+Verified on 2026-11-03 against the frozen local financial reference snapshot
 `42cd3a84c47ccd9ca2a891146a2d818b2ea8c7908162ef107975239b7148a71f`.
 
 ## Closure
@@ -35,18 +35,18 @@ tracks the SHA-256 digest of its owning test file. Any stale or prose-only claim
   trading remains paper-only and subject to the native risk/approval controls.
 - The clean wheel imports outside the repository. Docker builds the web UI, installs the complete
   `app` profile, runs as `fingraph`, owns `/data`, and answers `/health`.
-- The obsolete SRE product, datasets, routes, integrations, dependencies, tests, and UI were
-  removed; only shared finance/runtime infrastructure remains.
+- The obsolete nonfinancial product, datasets, routes, integrations, dependencies, tests, and UI
+  were removed; only shared finance/runtime infrastructure remains.
 
 ## Fresh release gate
 
 | Gate | Result |
 |---|---:|
 | Ruff / format / mypy / import-linter / lock | Pass |
-| Main Python suite | 1,318 passed; 24 optional skips |
-| Workflow package | 125 passed; 4 optional-extra skips |
+| Main Python suite | 1,314 passed; 24 optional skips |
+| Workflow package | 195 passed |
 | Web TypeScript | Pass |
-| Vitest | 40 passed |
+| Vitest | 39 passed |
 | Playwright | 2 passed |
 | Offline equity evaluation | 16/16 passed; signal 1.0; category 1.0 |
 | Scripted smoke evaluation | 3/3 passed; signal 1.0; category 1.0 |

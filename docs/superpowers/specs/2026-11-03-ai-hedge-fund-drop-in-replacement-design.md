@@ -73,7 +73,7 @@ experimental. No abarca casillas futuras sin implementación de `ROADMAP.md`.
   fail-loud de v2.
 - Introducir lookahead en análisis históricos o backtests.
 - Hacer obligatorios TensorFlow u otros paquetes pesados para quien solo usa el producto base.
-- Mantener el dominio SRE legado después de acreditar la paridad y migrar sus últimos tests.
+- Mantener el dominio operacional anterior después de acreditar la paridad financiera.
 
 ## Restricciones y decisiones del usuario
 
@@ -244,7 +244,7 @@ backend, base SQLite y frontend/estáticos en los puertos esperados. Docker inst
 
 ### 7. UI
 
-El workbench visual reemplazará la consola SRE de `web/`. Se portará el comportamiento de la UI de
+El workbench visual reemplazará la consola operacional anterior de `web/`. Se portará el comportamiento de la UI de
 referencia a React/TypeScript actual, manteniendo su disposición, nodos y acciones; se reutilizarán
 assets MIT cuando reduzcan riesgo. La capa API tendrá base URL configurable y no fijará
 `localhost` dentro de componentes.
@@ -291,7 +291,7 @@ el mero hecho de visualizar o cargar una skill.
 - Un analista fallido queda visible en progreso y resultado. El supervisor puede terminar los demás,
   pero nunca inventa la salida faltante.
 - Extras ausentes, modelo no disponible y Ollama detenido tienen errores tipados y acciones de
-  remediación compatibles.
+  reparación compatibles.
 - Un stream siempre termina una sola vez en `complete`, `error` o `cancelled`.
 - Las rutas de mutación son idempotentes por sus identificadores públicos.
 
@@ -307,11 +307,11 @@ el mero hecho de visualizar o cargar una skill.
 6. **Superficies:** contratos HTTP/SSE, CLI, imports, scripts de arranque y Docker.
 7. **Workbench web:** editor de flujos, settings, ejecución y backtesting; extensiones nativas
    separadas.
-8. **Convergencia:** migrar tests restantes, eliminar dominio/datasets SRE y dependencias sin uso,
+8. **Convergencia:** migrar tests restantes, eliminar dominio/datasets no financieros y dependencias sin uso,
    actualizar documentación y empaquetado.
 
 Cada corte debe producir software ejecutable y pasar su suite diferencial antes de continuar. La
-eliminación SRE ocurre al final, nunca antes de que sus reemplazos estén acreditados.
+eliminación del producto anterior ocurre al final, nunca antes de acreditar sus reemplazos.
 
 ## Estrategia de pruebas
 
@@ -346,7 +346,7 @@ hash del commit/estado fuente y licencia.
 2. Todas las pruebas offline de la referencia aplicables pasan contra la fachada nueva; cualquier
    exclusión está ligada a una funcionalidad no implementada en la propia referencia.
 3. La UI original completa el flujo E2E contra el backend nuevo sin cambios de código.
-4. La UI nueva ofrece el mismo recorrido y no contiene superficies SRE.
+4. La UI nueva ofrece el mismo recorrido y no contiene superficies operacionales ajenas a finanzas.
 5. Los backtests v1, v2 y de algoritmos reproducen los golden results con la tolerancia fijada.
 6. El wheel limpio ofrece `fin-graph`, los entrypoints compatibles y todos los imports públicos.
 7. SQLite permite la experiencia local de un comando; Postgres conserva reinicio y concurrencia.
