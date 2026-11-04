@@ -62,10 +62,11 @@ async def value_at_risk(
     except ValueError as exc:
         raise HTTPException(422, "date must be a valid YYYY-MM-DD date") from exc
     holdings = await _holdings(request, tickers, shares)
-    data = _data(request)
-    histories = {
-        ticker: await data.prices(ticker, as_of - timedelta(days=400), as_of) for ticker in holdings
-    }
+    async with _data(request) as data:
+        histories = {
+            ticker: await data.prices(ticker, as_of - timedelta(days=400), as_of)
+            for ticker in holdings
+        }
     by_ticker = {
         ticker: {item.day: adjusted_close(item) for item in values}
         for ticker, values in histories.items()

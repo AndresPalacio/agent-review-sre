@@ -13,6 +13,9 @@ from fastapi import FastAPI
 from fin_graph.adapters.reference_app.http import reference_app_router
 from fin_graph.adapters.reference_app.settings import ReferenceAppProfile
 from fin_graph.domain.market import Price
+from fin_graph.integrations.analytics.engine import AnalyticsEngine
+from fin_graph.integrations.context import RunContext
+from fin_graph.integrations.market_data import StaticMarketData
 from fin_graph.quant.signals.base import Signal
 
 
@@ -110,6 +113,43 @@ async def test_predict_train_model_availability_and_validation(tmp_path: Path) -
     assert trained.json()["results"][0]["success"] is True
     assert unknown.status_code == view_only.status_code == 404
     assert bad_date.status_code == 422
+
+
+async def test_predict_closes_registry_fallback_context(tmp_path: Path) -> None:
+    class CloseableClient:
+        def __init__(self) -> None:
+            self.closes = 0
+
+        async def aclose(self) -> None:
+            self.closes += 1
+
+    closeable = CloseableClient()
+    app = FastAPI()
+    app.state.reference_app_quant_data = None
+    app.state.reference_app_signal_models = {"technical_ml": FakeModel()}
+    app.state.reference_app_quant_artifact_dir = tmp_path / "models"
+
+    def context_factory() -> RunContext:
+        return RunContext(
+            clients={
+                "analytics": AnalyticsEngine("fixtures"),
+                "market_fixtures": StaticMarketData(),
+            },
+            owned_clients=(closeable,),
+        )
+
+    app.state.reference_app_context_factory = context_factory
+    app.include_router(reference_app_router())
+    async with httpx.AsyncClient(
+        transport=httpx.ASGITransport(app=app), base_url="http://test"
+    ) as client:
+        response = await client.get(
+            "/v2/technical_ml/predict", params={"ticker": "AAPL", "date": "2025-01-31"}
+        )
+
+    assert response.status_code == 200
+    assert closeable.closes == 1
+    assert app.state.reference_app_quant_data is None
 
 
 async def test_var_and_algorithm_catalog_routes(tmp_path: Path) -> None:

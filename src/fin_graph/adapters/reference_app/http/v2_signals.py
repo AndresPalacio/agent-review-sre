@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import asyncio
+from collections.abc import AsyncIterator
+from contextlib import asynccontextmanager
 from datetime import date, timedelta
 from pathlib import Path
 from typing import Any
@@ -16,6 +18,7 @@ from fin_graph.adapters.reference_app.schemas import (
     TrainResponse,
     TrainResult,
 )
+from fin_graph.integrations.context import close_run_context
 from fin_graph.quant.artifacts import ArtifactStore, ModelArtifact, TrainingRequest
 from fin_graph.quant.data import MarketDataClient
 from fin_graph.quant.signals import alpha_model_registry
@@ -33,21 +36,24 @@ def _date(value: str | None) -> date:
         raise HTTPException(422, "date must be a valid YYYY-MM-DD date") from exc
 
 
-def _data(request: Request) -> MarketDataClient:
+@asynccontextmanager
+async def _data(request: Request) -> AsyncIterator[MarketDataClient]:
     value = getattr(request.app.state, "reference_app_quant_data", None)
     if isinstance(value, MarketDataClient):
-        return value
+        yield value
+        return
     factory = getattr(request.app.state, "reference_app_context_factory", None)
     if callable(factory):
         from fin_graph.integrations.analytics.engine import AnalyticsEngine
         from fin_graph.integrations.market_data import MarketDataClient as IntegrationMarketData
 
         context = factory()
-        engine = context.client("analytics", AnalyticsEngine)
-        value = context.clients.get(engine.data_integration)
-        if isinstance(value, IntegrationMarketData):
-            request.app.state.reference_app_quant_data = value
-            return value
+        async with close_run_context(context):
+            engine = context.client("analytics", AnalyticsEngine)
+            value = context.clients.get(engine.data_integration)
+            if isinstance(value, IntegrationMarketData):
+                yield value
+                return
     raise HTTPException(503, "quantitative data service unavailable")
 
 
@@ -89,7 +95,8 @@ async def predict(
         raise HTTPException(422, "ticker must not be blank")
     instance = _model(model, request)
     try:
-        signal = await instance.predict(symbol, _date(date), _data(request))
+        async with _data(request) as data:
+            signal = await instance.predict(symbol, _date(date), data)
     except HTTPException:
         raise
     except ImportError as exc:
@@ -121,45 +128,47 @@ async def train(model: str, body: TrainRequest, request: Request) -> TrainRespon
     )
     root = await asyncio.to_thread(lambda: Path(configured_root).resolve())
     store = ArtifactStore(root)
-    data = _data(request)
     results: list[TrainResult] = []
-    for raw_ticker in body.tickers:
-        ticker = raw_ticker.strip().upper()
-        if not ticker:
-            results.append(TrainResult(ticker=raw_ticker, success=False, error="blank ticker"))
-            continue
-        try:
-            artifact = await training(
-                TrainingRequest(
-                    ticker=ticker,
-                    start_date=as_of - timedelta(days=730),
-                    end_date=as_of,
-                ),
-                data,
-                store,
-            )
-            parameters = getattr(artifact, "parameters", {})
-            record: dict[str, Any] = {}
-            if isinstance(artifact, ModelArtifact):
-                payload = ArtifactStore.load(artifact)
-                if isinstance(payload, dict) and isinstance(payload.get("record"), dict):
-                    record = payload["record"]
-            results.append(
-                TrainResult(
-                    ticker=ticker,
-                    success=True,
-                    trained_through=str(getattr(artifact, "trained_through", as_of)),
-                    accuracy=record.get("accuracy", parameters.get("accuracy")),
-                    precision=record.get("precision", parameters.get("precision")),
-                    rmse=record.get("rmse", parameters.get("rmse")),
-                    n_train=record.get("n_train", parameters.get("n_train")),
-                    n_test=record.get("n_test", parameters.get("n_test")),
+    async with _data(request) as data:
+        for raw_ticker in body.tickers:
+            ticker = raw_ticker.strip().upper()
+            if not ticker:
+                results.append(TrainResult(ticker=raw_ticker, success=False, error="blank ticker"))
+                continue
+            try:
+                artifact = await training(
+                    TrainingRequest(
+                        ticker=ticker,
+                        start_date=as_of - timedelta(days=730),
+                        end_date=as_of,
+                    ),
+                    data,
+                    store,
                 )
-            )
-        except ImportError as exc:
-            raise HTTPException(503, f"Optional dependencies for {model} are unavailable") from exc
-        except Exception as exc:
-            results.append(
-                TrainResult(ticker=ticker, success=False, error=f"{type(exc).__name__}: {exc}")
-            )
+                parameters = getattr(artifact, "parameters", {})
+                record: dict[str, Any] = {}
+                if isinstance(artifact, ModelArtifact):
+                    payload = ArtifactStore.load(artifact)
+                    if isinstance(payload, dict) and isinstance(payload.get("record"), dict):
+                        record = payload["record"]
+                results.append(
+                    TrainResult(
+                        ticker=ticker,
+                        success=True,
+                        trained_through=str(getattr(artifact, "trained_through", as_of)),
+                        accuracy=record.get("accuracy", parameters.get("accuracy")),
+                        precision=record.get("precision", parameters.get("precision")),
+                        rmse=record.get("rmse", parameters.get("rmse")),
+                        n_train=record.get("n_train", parameters.get("n_train")),
+                        n_test=record.get("n_test", parameters.get("n_test")),
+                    )
+                )
+            except ImportError as exc:
+                raise HTTPException(
+                    503, f"Optional dependencies for {model} are unavailable"
+                ) from exc
+            except Exception as exc:
+                results.append(
+                    TrainResult(ticker=ticker, success=False, error=f"{type(exc).__name__}: {exc}")
+                )
     return TrainResponse(results=results)

@@ -713,12 +713,12 @@ def create_app(
                 raise HTTPException(503, "integration context unavailable")
             context = replace(base_context, actor=actor, role=role)
             approval_records = _approval_records(pending, decisions)
-            await _manager(request).storage.touch_checkpoint_thread(thread_id, "chat")
-            for decision, action_name, args_digest in approval_records:
-                await _manager(request).storage.record_approval(
-                    thread_id, "chat", actor, decision, action_name, args_digest
-                )
             async with close_run_context(context):
+                await _manager(request).storage.touch_checkpoint_thread(thread_id, "chat")
+                for decision, action_name, args_digest in approval_records:
+                    await _manager(request).storage.record_approval(
+                        thread_id, "chat", actor, decision, action_name, args_digest
+                    )
                 try:
                     result = await graph.ainvoke(
                         Command(resume={"decisions": decisions}), config, context=context
@@ -904,12 +904,12 @@ def create_app(
                 raise HTTPException(503, "integration context unavailable")
             context = replace(base_context, actor=actor, role=role)
             approval_records = _approval_records(pending, decisions)
-            await _manager(request).storage.touch_checkpoint_thread(thread_id, "orders")
-            for decision, action_name, args_digest in approval_records:
-                await _manager(request).storage.record_approval(
-                    thread_id, "orders", actor, decision, action_name, args_digest
-                )
             async with close_run_context(context):
+                await _manager(request).storage.touch_checkpoint_thread(thread_id, "orders")
+                for decision, action_name, args_digest in approval_records:
+                    await _manager(request).storage.record_approval(
+                        thread_id, "orders", actor, decision, action_name, args_digest
+                    )
                 try:
                     result = await graph.ainvoke(
                         Command(resume={"decisions": decisions}), config, context=context
@@ -1537,12 +1537,12 @@ async def _gateway_decide(
         if not isinstance(context, RunContext):
             return "Approval service unavailable."
         context = replace(context, actor=actor, role="approver")
-        await app.state.manager.storage.touch_checkpoint_thread(thread_id, kind)
-        for decision, action_name, args_digest in records:
-            await app.state.manager.storage.record_approval(
-                thread_id, kind, actor, decision, action_name, args_digest
-            )
         async with close_run_context(context):
+            await app.state.manager.storage.touch_checkpoint_thread(thread_id, kind)
+            for decision, action_name, args_digest in records:
+                await app.state.manager.storage.record_approval(
+                    thread_id, kind, actor, decision, action_name, args_digest
+                )
             try:
                 result = await graph.ainvoke(
                     Command(resume={"decisions": decisions}), config, context=context

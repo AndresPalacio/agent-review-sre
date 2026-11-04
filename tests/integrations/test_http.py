@@ -20,6 +20,13 @@ class CloseTrackingTransport(httpx.AsyncBaseTransport):
         self.closes += 1
 
 
+class FailOnceCloseTransport(CloseTrackingTransport):
+    async def aclose(self) -> None:
+        self.closes += 1
+        if self.closes == 1:
+            raise RuntimeError("transport close failed")
+
+
 async def test_json_request_encodes_params_and_headers() -> None:
     seen: list[httpx.Request] = []
 
@@ -55,6 +62,19 @@ async def test_client_reuses_transport_until_explicit_close() -> None:
     assert transport.closes == 1
     with pytest.raises(RuntimeError, match="closed"):
         await client.request("GET", "/three")
+
+
+async def test_client_keeps_failed_transport_close_visible() -> None:
+    transport = FailOnceCloseTransport()
+    client = HttpJsonClient("https://vendor.example", transport=transport)
+    await client.request("GET", "/one")
+
+    with pytest.raises(RuntimeError, match="transport close failed"):
+        await client.aclose()
+    with pytest.raises(RuntimeError, match="transport close failed"):
+        await client.aclose()
+
+    assert transport.closes == 1
 
 
 async def test_mutation_uses_explicit_method_and_still_rejects_redirects() -> None:

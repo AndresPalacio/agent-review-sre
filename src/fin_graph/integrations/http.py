@@ -43,6 +43,7 @@ class HttpJsonClient:
         self.transport = transport
         self._client: httpx.AsyncClient | None = None
         self._closed = False
+        self._close_error: BaseException | None = None
 
     def _active_client(self) -> httpx.AsyncClient:
         if self._closed:
@@ -61,9 +62,15 @@ class HttpJsonClient:
         """Close the run-owned connection pool once."""
         if self._closed:
             return
-        self._closed = True
+        if self._close_error is not None:
+            raise self._close_error
         if self._client is not None:
-            await self._client.aclose()
+            try:
+                await self._client.aclose()
+            except BaseException as exc:
+                self._close_error = exc
+                raise
+        self._closed = True
 
     async def request(
         self,

@@ -85,6 +85,13 @@ class CloseTrackingYahooTransport(httpx.AsyncBaseTransport):
         self.closes += 1
 
 
+class FailOnceCloseYahooTransport(CloseTrackingYahooTransport):
+    async def aclose(self) -> None:
+        self.closes += 1
+        if self.closes == 1:
+            raise RuntimeError("Yahoo transport close failed")
+
+
 @pytest.fixture
 def fake() -> FakeYahoo:
     return FakeYahoo()
@@ -119,6 +126,19 @@ async def test_yahoo_session_reuses_transport_until_explicit_close(fake: FakeYah
     assert transport.closes == 1
     with pytest.raises(RuntimeError, match="closed"):
         await session.get("https://query1.finance.yahoo.com/v8/finance/chart/CASE")
+
+
+async def test_yahoo_session_keeps_failed_transport_close_visible(fake: FakeYahoo) -> None:
+    transport = FailOnceCloseYahooTransport(fake)
+    session = YahooSession(transport=transport, backoff=())
+    await session.get("https://query1.finance.yahoo.com/v8/finance/chart/AAPL")
+
+    with pytest.raises(RuntimeError, match="Yahoo transport close failed"):
+        await session.aclose()
+    with pytest.raises(RuntimeError, match="Yahoo transport close failed"):
+        await session.aclose()
+
+    assert transport.closes == 1
 
 
 async def test_yahoo_client_closes_its_owned_session(fake: FakeYahoo) -> None:
