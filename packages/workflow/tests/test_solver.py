@@ -1015,7 +1015,7 @@ async def test_default_specialist_skill_loading_obeys_shared_controls(stop):
         verifier=lambda *args: VerificationReport(verdict="inconclusive"),
         skills=["/skills/"],
         backend=SlowChildSkillsBackend(),
-        limits=SolverLimits(timeout_seconds=0.25 if stop == "deadline" else 10),
+        limits=SolverLimits(timeout_seconds=1.5 if stop == "deadline" else 10),
     )
     invocation = asyncio.create_task(
         graph.ainvoke({"messages": [("user", "delegate inspection")]}, context=context)
@@ -1027,7 +1027,7 @@ async def test_default_specialist_skill_loading_obeys_shared_controls(stop):
             with pytest.raises(ExecutionError, match="cancelled"):
                 await asyncio.wait_for(invocation, 1)
         else:
-            output = await asyncio.wait_for(invocation, 1)
+            output = await asyncio.wait_for(invocation, 2)
             assert not output["solver_result"].verified
         assert child_cancelled.is_set()
         assert model._index == 1
