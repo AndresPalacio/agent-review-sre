@@ -17,6 +17,7 @@ from langchain_core.tools import BaseTool
 from langgraph.types import Command
 
 from fin_graph.agents.analysis.persona_prompts import persona_prompt
+from fin_graph.agents.common.middleware.deepagents import restricted_deepagents_middleware
 from fin_graph.agents.common.middleware.disclaimer import DisclaimerMiddleware
 from fin_graph.agents.common.middleware.evidence_gate import EvidenceGateMiddleware
 from fin_graph.domain.analysts import AnalystDefinition
@@ -34,26 +35,6 @@ class PersonaToolScope:
 PERSONA_TOOL_SCOPE: ContextVar[PersonaToolScope | None] = ContextVar(
     "persona_tool_scope", default=None
 )
-
-
-class _NoFilesystemMiddleware(AgentMiddleware[Any, Any, Any]):
-    """Replace DeepAgents' additive filesystem middleware with an empty slot."""
-
-    tools: Sequence[BaseTool] = ()
-
-    @property
-    def name(self) -> str:
-        return "FilesystemMiddleware"
-
-
-class _NoSubAgentMiddleware(AgentMiddleware[Any, Any, Any]):
-    """Replace the default general-purpose subagent and its ``task`` tool."""
-
-    tools: Sequence[BaseTool] = ()
-
-    @property
-    def name(self) -> str:
-        return "SubAgentMiddleware"
 
 
 class PersonaPointInTimeMiddleware(AgentMiddleware[Any, Any, Any]):
@@ -94,8 +75,7 @@ def persona_boundary_middleware() -> list[AgentMiddleware[Any, Any, Any]]:
     """Defense-in-depth middleware that leaves only caller-approved tools available."""
 
     return [
-        _NoFilesystemMiddleware(),
-        _NoSubAgentMiddleware(),
+        *restricted_deepagents_middleware(),
         PersonaPointInTimeMiddleware(),
     ]
 

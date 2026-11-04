@@ -11,13 +11,10 @@ from typing import Any, Literal, cast
 type AgentKind = Literal[
     "deepagents_supervisor",
     "deepagents_subagent",
-    "langchain_agent",
 ]
 type ToolPolicy = Literal["read_only", "paper_trade", "workspace"]
 
-_AGENT_KINDS = frozenset[AgentKind](
-    {"deepagents_supervisor", "deepagents_subagent", "langchain_agent"}
-)
+_AGENT_KINDS = frozenset[AgentKind]({"deepagents_supervisor", "deepagents_subagent"})
 _TOOL_POLICIES = frozenset[ToolPolicy]({"read_only", "paper_trade", "workspace"})
 
 

@@ -95,13 +95,40 @@ def _package_imports(root: Path) -> set[str]:
     return imports
 
 
+def _langchain_create_agent_references(root: Path) -> set[str]:
+    found: set[str] = set()
+    for path in _python_files(root):
+        tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
+        imported_aliases: set[str] = set()
+        module_aliases: set[str] = set()
+        for node in ast.walk(tree):
+            if isinstance(node, ast.ImportFrom) and node.module == "langchain.agents":
+                imported_aliases.update(
+                    item.asname or item.name for item in node.names if item.name == "create_agent"
+                )
+            elif isinstance(node, ast.Import):
+                module_aliases.update(
+                    item.asname or item.name
+                    for item in node.names
+                    if item.name == "langchain.agents"
+                )
+        if imported_aliases or module_aliases:
+            found.add(path.relative_to(root).as_posix())
+    return found
+
+
 def test_create_deep_agent_calls_live_only_under_agents() -> None:
     assert _create_deep_agent_call_paths(SRC) == {
         "agents/analysis/persona_team.py",
         "agents/chat/supervisor.py",
+        "agents/common/factory.py",
         "agents/solver/supervisor.py",
         "agents/optimizer/proposer.py",
     }
+
+
+def test_fin_graph_has_no_direct_langchain_agent_factory_imports() -> None:
+    assert _langchain_create_agent_references(SRC) == set()
 
 
 def test_agents_do_not_depend_on_workflows_runtime_or_work() -> None:
@@ -142,6 +169,7 @@ def test_every_deepagent_factory_is_catalogued() -> None:
     assert factories == {
         "fin_graph.agents.analysis.persona_team:make_persona_agent",
         "fin_graph.agents.chat.supervisor:make_chat_graph",
+        "fin_graph.agents.common.factory:make_agent",
         "fin_graph.agents.optimizer.proposer:make_optimizer_agent",
         "fin_graph.agents.solver.supervisor:make_solver_child",
     }

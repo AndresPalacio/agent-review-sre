@@ -1,13 +1,15 @@
 from __future__ import annotations
 
+from collections.abc import Sequence
 from dataclasses import dataclass
+from typing import Any
 
 from langchain.agents.middleware import ModelCallLimitMiddleware
 from langchain.agents.structured_output import ToolStrategy
 from langchain.tools import ToolRuntime
 from langchain_core.messages import AIMessage, HumanMessage, ToolMessage
 from langchain_core.tools import tool
-from pydantic import BaseModel
+from pydantic import BaseModel, PrivateAttr
 
 from fin_graph.agents.common.factory import make_agent
 from fin_graph.agents.common.testing.scripted_model import ScriptedChatModel, tool_call_message
@@ -27,6 +29,41 @@ class TenantContext:
 def noop() -> str:
     """Do nothing."""
     return "ok"
+
+
+class ToolRecordingModel(ScriptedChatModel):
+    _bound_tool_names: list[list[str]] = PrivateAttr(default_factory=list)
+
+    def bind_tools(self, tools: Sequence[Any], **kwargs: Any) -> ToolRecordingModel:
+        self._bound_tool_names.append([getattr(candidate, "name", "") for candidate in tools])
+        return self
+
+    @property
+    def bound_tool_names(self) -> list[list[str]]:
+        return self._bound_tool_names
+
+
+def test_factory_exposes_only_caller_supplied_tools_to_the_model() -> None:
+    model = ToolRecordingModel(responses=[AIMessage("done")])
+    agent = make_agent(name="restricted", model=model, tools=[noop])
+
+    agent.invoke({"messages": [HumanMessage("go")]})
+
+    assert model.bound_tool_names == [["noop"]]
+
+
+def test_factory_exposes_task_only_when_synchronous_subagents_are_allowed() -> None:
+    model = ToolRecordingModel(responses=[AIMessage("done")])
+    agent = make_agent(
+        name="subagent-enabled",
+        model=model,
+        tools=[noop],
+        allow_synchronous_subagents=True,
+    )
+
+    agent.invoke({"messages": [HumanMessage("go")]})
+
+    assert [set(names) for names in model.bound_tool_names] == [{"noop", "task"}]
 
 
 def test_structured_response_comes_back_as_the_schema_type() -> None:

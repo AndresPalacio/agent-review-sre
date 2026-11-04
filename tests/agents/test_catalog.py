@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import replace
+from typing import Any, cast
 
 import pytest
 
@@ -45,6 +46,19 @@ def test_invalid_catalog_fails_closed() -> None:
         validate_agent_catalog(
             (replace(baseline[0], factory_path="missing.module:factory"), *baseline[1:])
         )
+
+
+def test_catalog_rejects_legacy_langchain_agent_kind() -> None:
+    baseline = agent_catalog()
+
+    with pytest.raises(ValueError, match="unknown agent kind"):
+        validate_agent_catalog(
+            (replace(baseline[0], kind=cast(Any, "langchain_agent")), *baseline[1:])
+        )
+
+
+def test_native_react_is_a_deepagents_subagent() -> None:
+    assert agent_by_id("analysis.native_react").kind == "deepagents_subagent"
 
 
 def test_descriptor_export_and_lookup_are_stable() -> None:

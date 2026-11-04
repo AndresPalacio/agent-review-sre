@@ -91,7 +91,7 @@ NATIVE_ANALYSIS_DESCRIPTORS = (
     AgentDescriptor(
         id="analysis.native_react",
         display_name="Native reactive analyst",
-        kind="langchain_agent",
+        kind="deepagents_subagent",
         purpose="Analyze one requested financial domain with read-only tools and typed output.",
         factory_path="fin_graph.agents.common.factory:make_agent",
         tool_policy="read_only",
