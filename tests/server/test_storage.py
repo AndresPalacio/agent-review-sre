@@ -3,13 +3,17 @@ from __future__ import annotations
 import asyncio
 import threading
 import time
+from contextlib import asynccontextmanager
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
+from types import SimpleNamespace
+from typing import Any
 
 import pytest
 from sqlalchemy import event, update
 from sqlalchemy.ext.asyncio import create_async_engine
 
+from fin_graph.server.app import _retention_cycle
 from fin_graph.server.storage import Base, RunRow, Storage
 
 
@@ -62,6 +66,81 @@ async def test_recent_chat_activity_keeps_older_analysis_thread() -> None:
     assert "shared" not in await storage.expired_threads(cutoff)
     assert not await storage.delete_thread("shared", cutoff)
     await engine.dispose()
+
+
+async def test_thread_expired_checks_only_the_requested_thread() -> None:
+    engine = create_async_engine("sqlite+aiosqlite:///:memory:")
+    async with engine.begin() as connection:
+        await connection.run_sync(Base.metadata.create_all)
+    storage = Storage(engine)
+    await storage.create_run("old-run", "old")
+    await storage.create_run("new-run", "new")
+    async with engine.begin() as connection:
+        await connection.execute(
+            update(RunRow)
+            .where(RunRow.run_id == "old-run")
+            .values(updated_at=datetime.now(UTC) - timedelta(days=40))
+        )
+    cutoff = datetime.now(UTC) - timedelta(days=30)
+
+    assert await storage.thread_expired("old", cutoff)
+    assert not await storage.thread_expired("new", cutoff)
+    assert not await storage.thread_expired("missing", cutoff)
+    await engine.dispose()
+
+
+async def test_retention_lists_globally_once_then_rechecks_each_thread() -> None:
+    class RecordingStorage:
+        def __init__(self) -> None:
+            self.global_queries = 0
+            self.rechecks: list[str] = []
+            self.deleted: list[str] = []
+            self.purges = 0
+
+        async def expired_threads(self, cutoff: datetime) -> list[str]:
+            self.global_queries += 1
+            return ["old-1", "old-2"]
+
+        async def thread_expired(self, thread_id: str, cutoff: datetime) -> bool:
+            self.rechecks.append(thread_id)
+            return True
+
+        @asynccontextmanager
+        async def approval_lock(self, kind: str, thread_id: str):
+            yield
+
+        async def delete_thread(self, thread_id: str, cutoff: datetime) -> bool:
+            self.deleted.append(thread_id)
+            return True
+
+        async def purge_metadata_before(self, cutoff: datetime) -> None:
+            self.purges += 1
+
+    class RecordingSaver:
+        def __init__(self) -> None:
+            self.deleted: list[str] = []
+
+        async def adelete_thread(self, thread_id: str) -> None:
+            self.deleted.append(thread_id)
+
+    storage = RecordingStorage()
+    saver = RecordingSaver()
+    manager = SimpleNamespace(storage=storage, locks={})
+
+    await _retention_cycle(manager, saver, datetime.now(UTC), {}, {})
+
+    assert storage.global_queries == 1
+    assert storage.rechecks == ["old-1", "old-2"]
+    assert storage.deleted == ["old-1", "old-2"]
+    assert storage.purges == 1
+    assert saver.deleted == [
+        "old-1",
+        "chat:old-1",
+        "orders:old-1",
+        "old-2",
+        "chat:old-2",
+        "orders:old-2",
+    ]
 
 
 async def test_approval_audit_records_actor_decision_without_raw_arguments() -> None:
@@ -131,6 +210,33 @@ async def test_run_event_dedupe_and_recovery() -> None:
     assert await storage.claim_fingerprint(
         "tradingview", "abc", "t2", now + timedelta(minutes=6), timedelta(minutes=5)
     )
+    await engine.dispose()
+
+
+async def test_known_thread_event_insert_executes_one_statement() -> None:
+    engine = create_async_engine("sqlite+aiosqlite:///:memory:")
+    async with engine.begin() as connection:
+        await connection.run_sync(Base.metadata.create_all)
+    storage = Storage(engine)
+    await storage.create_run("r1", "t1")
+    statements: list[str] = []
+
+    def record_statement(
+        connection: Any,
+        cursor: Any,
+        statement: str,
+        parameters: Any,
+        context: Any,
+        executemany: bool,
+    ) -> None:
+        statements.append(statement)
+
+    event.listen(engine.sync_engine, "before_cursor_execute", record_statement)
+    await storage.add_event("r1", "stage", {"stage": "plan"}, thread_id="t1")
+    event.remove(engine.sync_engine, "before_cursor_execute", record_statement)
+
+    assert len(statements) == 1
+    assert statements[0].lstrip().upper().startswith("INSERT")
     await engine.dispose()
 
 

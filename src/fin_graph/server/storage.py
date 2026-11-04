@@ -890,15 +890,23 @@ class Storage:
             rows = (await session.scalars(query)).all()
             return [_run_dict(row) for row in rows]
 
-    async def add_event(self, run_id: str, kind: str, data: dict[str, Any]) -> int:
+    async def add_event(
+        self,
+        run_id: str,
+        kind: str,
+        data: dict[str, Any],
+        *,
+        thread_id: str | None = None,
+    ) -> int:
         async with self.sessions.begin() as session:
             row = RunEventRow(run_id=run_id, kind=kind, data=data, created_at=datetime.now(UTC))
             session.add(row)
             await session.flush()
             if self.engine.dialect.name == "postgresql":
-                thread_id = await session.scalar(
-                    select(RunRow.thread_id).where(RunRow.run_id == run_id)
-                )
+                if thread_id is None:
+                    thread_id = await session.scalar(
+                        select(RunRow.thread_id).where(RunRow.run_id == run_id)
+                    )
                 await session.execute(
                     text("SELECT pg_notify(:channel, :thread_id)"),
                     {"channel": "fin_graph_events", "thread_id": thread_id},
@@ -1105,6 +1113,20 @@ class Storage:
                 .having(func.max(activity.c.seen_at) < cutoff)
             )
             return list((await session.scalars(query)).all())
+
+    async def thread_expired(self, thread_id: str, cutoff: datetime) -> bool:
+        """Recheck one candidate without repeating the global retention scan."""
+        async with self.sessions() as session:
+            activity = union_all(
+                select(RunRow.updated_at.label("seen_at")).where(RunRow.thread_id == thread_id),
+                select(CheckpointThreadRow.touched_at.label("seen_at")).where(
+                    CheckpointThreadRow.thread_id == thread_id
+                ),
+            ).subquery()
+            newest = await session.scalar(select(func.max(activity.c.seen_at)))
+            if newest is not None and newest.tzinfo is None:
+                newest = newest.replace(tzinfo=UTC)
+            return newest is not None and newest < cutoff
 
     async def delete_thread(self, thread_id: str, cutoff: datetime) -> bool:
         """Delete a wholly expired thread; recheck age under the transaction."""

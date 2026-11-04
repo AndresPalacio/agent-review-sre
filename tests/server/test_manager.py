@@ -73,6 +73,64 @@ async def test_manager_closes_run_context_when_execution_is_cancelled(tmp_path: 
     await engine.dispose()
 
 
+async def test_manager_uses_atomic_running_event_and_known_thread_for_progress(
+    tmp_path: Path,
+) -> None:
+    class ImmediateGraph:
+        async def astream(
+            self, value: object, *, context: object, stream_mode: object, config: dict[str, Any]
+        ) -> AsyncIterator[tuple[str, dict[str, Any]]]:
+            yield "custom", {"type": "stage", "data": {"stage": "plan"}}
+            yield "values", {"report": {"done": True}}
+
+    class TrackingStorage(Storage):
+        def __init__(self, engine: Any) -> None:
+            super().__init__(engine)
+            self.plain_statuses: list[str] = []
+            self.atomic_statuses: list[str] = []
+            self.event_threads: list[tuple[str, str | None]] = []
+
+        async def set_status(self, run_id: str, status: str, error: str | None = None) -> None:
+            self.plain_statuses.append(status)
+            await super().set_status(run_id, status, error)
+
+        async def set_status_with_event(
+            self,
+            run_id: str,
+            status: str,
+            error: str | None = None,
+            *,
+            data: dict[str, Any] | None = None,
+        ) -> None:
+            self.atomic_statuses.append(status)
+            await super().set_status_with_event(run_id, status, error, data=data)
+
+        async def add_event(
+            self,
+            run_id: str,
+            kind: str,
+            data: dict[str, Any],
+            *,
+            thread_id: str | None = None,
+        ) -> int:
+            self.event_threads.append((kind, thread_id))
+            return await super().add_event(run_id, kind, data, thread_id=thread_id)
+
+    engine = create_async_engine(f"sqlite+aiosqlite:///{tmp_path / 'lean-events.sqlite'}")
+    async with engine.begin() as connection:
+        await connection.run_sync(Base.metadata.create_all)
+    storage = TrackingStorage(engine)
+    manager = RunManager(ImmediateGraph(), storage, lambda: object())
+
+    run = await manager.submit("analyze", None)
+    await manager.wait(run["run_id"])
+
+    assert storage.plain_statuses == []
+    assert storage.atomic_statuses == ["running", "completed"]
+    assert storage.event_threads == [("stage", run["thread_id"])]
+    await engine.dispose()
+
+
 async def test_manager_persists_only_safe_plan_and_analyst_metadata(tmp_path: Path) -> None:
     class ProgressGraph:
         async def astream(

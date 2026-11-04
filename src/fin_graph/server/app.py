@@ -1646,7 +1646,7 @@ async def _retention_cycle(
             manager.storage.approval_lock("orders", thread_id),
         ):
             try:
-                if thread_id not in await manager.storage.expired_threads(cutoff):
+                if not await manager.storage.thread_expired(thread_id, cutoff):
                     continue
                 for checkpoint_id in checkpoint_thread_ids(thread_id):
                     await saver.adelete_thread(checkpoint_id)

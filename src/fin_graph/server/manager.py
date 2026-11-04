@@ -269,8 +269,7 @@ class RunManager:
             current = await self.storage.get_run(run_id)
             if current is None or current["status"] in {"completed", "failed"}:
                 return
-            await self.storage.set_status(run_id, "running")
-            await self.storage.add_event(run_id, "status", {"status": "running"})
+            await self.storage.set_status_with_event(run_id, "running")
             try:
                 report_ready = False
                 context = self.context_factory()
@@ -301,7 +300,9 @@ class RunManager:
                                     )
                                     if isinstance(data.get(key), str)
                                 }
-                                await self.storage.add_event(run_id, "harness_trace", safe_trace)
+                                await self.storage.add_event(
+                                    run_id, "harness_trace", safe_trace, thread_id=thread_id
+                                )
                             if kind in {
                                 "stage",
                                 "report",
@@ -344,7 +345,9 @@ class RunManager:
                                                 str(ticker)[:16]: str(signal)[:16]
                                                 for ticker, signal in list(signals.items())[:10]
                                             }
-                                    await self.storage.add_event(run_id, kind, safe)
+                                    await self.storage.add_event(
+                                        run_id, kind, safe, thread_id=thread_id
+                                    )
                         elif mode == "values" and isinstance(event, dict):
                             report_ready = bool(event.get("report"))
                 finally:
