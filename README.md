@@ -1,6 +1,6 @@
 # fin-graph — plataforma financiera multiagente
 
-Plataforma autónoma construida con LangGraph, DeepAgents y modelos cuantitativos tipados. Ofrece
+Plataforma autónoma construida con LangGraph, Deep Agents y modelos cuantitativos tipados. Ofrece
 contratos HTTP, Python y CLI para clientes financieros existentes, una interfaz web integrada y
 una API nativa con autenticación, aprobaciones y persistencia durable.
 
@@ -62,6 +62,7 @@ La UI ofrece:
 - backtests, cancelación y resultados;
 - selección de modelos cloud/Ollama y estado de descargas;
 - cartera paper, órdenes, aprobaciones y auditoría.
+- mapa interactivo de la arquitectura de agentes y sus límites de concurrencia.
 
 Para desarrollo:
 
@@ -73,6 +74,9 @@ npm run dev
 ```
 
 Vite reenvía la API al puerto 8000. No pongas secretos en variables `VITE_*`, URLs ni localStorage.
+Abre la URL que imprime Vite y selecciona **Arquitectura** en la barra superior para explorar los
+modos `Actual`, `Objetivo` y `Literal`, inspeccionar rutas del repositorio y simular la capacidad de
+workers. La misma entrada aparece en la UI compilada que sirve `uv run fin-graph app`.
 
 ## CLI compatible
 
@@ -102,9 +106,16 @@ siendo obligatorios antes del fill simulado.
 
 ## Arquitectura multiagente
 
-El código separa agentes DeepAgents, workflows LangGraph, runtime productivo, trading determinista
-y optimización opcional. `fin-graph agents list` muestra el catálogo ejecutable —incluidas las 19
-personas financieras— sin construir modelos ni hacer llamadas externas. Consulta la
+“Full Deep Agents” significa que todo loop autónomo dirigido por un modelo bajo `src/fin_graph`
+se construye mediante `deepagents.create_deep_agent`; no significa eliminar LangChain o LangGraph,
+que forman parte del runtime usado por Deep Agents. LangGraph y código ordinario siguen siendo el
+control plane determinista para routing, fan-out, aprobaciones, persistencia CAS y ledgers de
+efectos financieros.
+
+El proyecto raíz instala `deepagents>=0.7.32,<0.8` (el lock resuelve `0.7.32`). El paquete
+independiente `packages/workflow` conserva su propio contrato y ofrece agentes solo mediante su
+extra opcional. `fin-graph agents list` muestra el catálogo ejecutable —incluidas las 19 personas
+financieras— sin construir modelos ni hacer llamadas externas. Consulta la
 [guía de arquitectura](docs/arquitectura-agentes.md) y los
 [README colocados junto a los agentes](src/fin_graph/agents/README.md).
 
