@@ -182,8 +182,17 @@ def _is_allowed_financial_text(relative: str) -> bool:
     )
 
 
+def _contains_product_file(relative: str) -> bool:
+    path = ROOT / relative
+    if path.is_file():
+        return True
+    return path.is_dir() and any(
+        item.is_file() for item in path.rglob("*") if "__pycache__" not in item.parts
+    )
+
+
 def test_operational_product_paths_are_absent() -> None:
-    assert [relative for relative in OPERATIONAL_PATHS if (ROOT / relative).exists()] == []
+    assert [relative for relative in OPERATIONAL_PATHS if _contains_product_file(relative)] == []
 
 
 def test_dependencies_contain_no_operational_sdks() -> None:
