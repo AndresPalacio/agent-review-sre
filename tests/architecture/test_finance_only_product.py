@@ -173,12 +173,9 @@ def _product_text_paths() -> list[Path]:
 
 
 def _is_allowed_financial_text(relative: str) -> bool:
-    return (
-        relative in ALLOWED_TEXT_PATHS
-        or (
-            relative.startswith("src/fin_graph/evals/data/equities/")
-            and relative.endswith("/news.json")
-        )
+    return relative in ALLOWED_TEXT_PATHS or (
+        relative.startswith("src/fin_graph/evals/data/equities/")
+        and relative.endswith("/news.json")
     )
 
 
@@ -232,9 +229,7 @@ def test_http_routes_expose_no_operational_endpoints() -> None:
         "/remediation",
         "/runbooks",
     )
-    assert not [
-        path for path in paths if any(fragment in path for fragment in forbidden_fragments)
-    ]
+    assert not [path for path in paths if any(fragment in path for fragment in forbidden_fragments)]
 
 
 def test_financial_product_surfaces_remain_importable() -> None:

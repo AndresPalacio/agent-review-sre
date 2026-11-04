@@ -177,7 +177,9 @@ def from_native_backtest_result(result: NativeBacktestResult) -> BacktestRespons
             gross_exposure=metrics.gross_exposure,
             net_exposure=metrics.net_exposure,
         ),
-        final_portfolio=ReferencePortfolio.from_native(result.final_portfolio).model_dump(mode="json"),
+        final_portfolio=ReferencePortfolio.from_native(result.final_portfolio).model_dump(
+            mode="json"
+        ),
     )
 
 

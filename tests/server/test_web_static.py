@@ -41,9 +41,7 @@ async def test_static_assets_are_cached_and_compressed_but_spa_entries_are_not(
     async with httpx.AsyncClient(
         transport=httpx.ASGITransport(app=app), base_url="http://test"
     ) as client:
-        asset = await client.get(
-            "/assets/index-AbCd1234.js", headers={"accept-encoding": "gzip"}
-        )
+        asset = await client.get("/assets/index-AbCd1234.js", headers={"accept-encoding": "gzip"})
         index = await client.get("/")
         fallback = await client.get("/analyses/abc")
 

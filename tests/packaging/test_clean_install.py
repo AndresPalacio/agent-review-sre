@@ -41,9 +41,7 @@ def test_wheel_contains_app_static_and_every_compatibility_namespace(tmp_path: P
             name for name in lowered_names if name.startswith("fin_graph/evals/data/")
         ]
         assert packaged_eval_data
-        assert all(
-            name.startswith("fin_graph/evals/data/equities/") for name in packaged_eval_data
-        )
+        assert all(name.startswith("fin_graph/evals/data/equities/") for name in packaged_eval_data)
         expected_scenarios = {path.parent.name for path in EQUITY_DATA.glob("*/scenario.yml")}
         assert len(expected_scenarios) == 16
         for filename in ("scenario.yml", "answer.yml"):

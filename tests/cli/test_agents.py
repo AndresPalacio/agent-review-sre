@@ -49,9 +49,7 @@ def test_specialized_agent_guides_have_one_consistent_navigation() -> None:
 
 
 def test_architecture_guides_name_product_routes_and_optional_optimization() -> None:
-    root_guide = (ROOT / "src" / "fin_graph" / "agents" / "README.md").read_text(
-        encoding="utf-8"
-    )
+    root_guide = (ROOT / "src" / "fin_graph" / "agents" / "README.md").read_text(encoding="utf-8")
     architecture = (ROOT / "docs" / "arquitectura-agentes.md").read_text(encoding="utf-8")
     optimization = (ROOT / "docs" / "better-harness.md").read_text(encoding="utf-8")
 

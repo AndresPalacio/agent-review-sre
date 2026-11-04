@@ -1165,10 +1165,11 @@ class Storage:
             return True
 
     async def purge_before(self, cutoff: datetime) -> list[str]:
-        deleted = []
-        for thread_id in await self.expired_threads(cutoff):
-            if await self.delete_thread(thread_id, cutoff):
-                deleted.append(thread_id)
+        deleted = [
+            thread_id
+            for thread_id in await self.expired_threads(cutoff)
+            if await self.delete_thread(thread_id, cutoff)
+        ]
         await self.purge_metadata_before(cutoff)
         return deleted
 

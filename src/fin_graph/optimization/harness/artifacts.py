@@ -106,13 +106,15 @@ def export_variant(directory: Path, destination: Path) -> dict[str, Any]:
         path = destination / target
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(text, encoding="utf-8", newline="")
-        for line in difflib.unified_diff(
-            before[target].splitlines(keepends=True),
-            text.splitlines(keepends=True),
-            fromfile=f"a/{target}",
-            tofile=f"b/{target}",
-        ):
-            diff.append(line if line.endswith("\n") else line + "\n\\ No newline at end of file\n")
+        diff.extend(
+            line if line.endswith("\n") else line + "\n\\ No newline at end of file\n"
+            for line in difflib.unified_diff(
+                before[target].splitlines(keepends=True),
+                text.splitlines(keepends=True),
+                fromfile=f"a/{target}",
+                tofile=f"b/{target}",
+            )
+        )
     manifest = {
         "run": str(directory.resolve()),
         "variant": key,

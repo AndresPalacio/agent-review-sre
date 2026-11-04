@@ -400,9 +400,7 @@ PERSONA_TEAM_DESCRIPTORS = (
         display_name="Financial persona team",
         kind="deepagents_supervisor",
         purpose="Run the selected deterministic financial personas and retain their scores.",
-        factory_path=(
-            "fin_graph.agents.analysis.persona_team:make_persona_analysis_supervisor"
-        ),
+        factory_path=("fin_graph.agents.analysis.persona_team:make_persona_analysis_supervisor"),
         children=_PERSONA_IDS,
         tool_policy="read_only",
         middleware=("MaskingMiddleware",),

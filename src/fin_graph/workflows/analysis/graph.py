@@ -234,21 +234,21 @@ def _compile_analysis_graph(
         if memory is not None:
             try:
                 for ticker in request.tickers:
-                    for item in await memory.search_theses(ticker=ticker, limit=2):
-                        recalled.append(
-                            {
-                                key: item.get(key)
-                                for key in (
-                                    "ticker",
-                                    "as_of",
-                                    "stance",
-                                    "category",
-                                    "confidence",
-                                    "summary",
-                                    "outcome",
-                                )
-                            }
-                        )
+                    recalled.extend(
+                        {
+                            key: item.get(key)
+                            for key in (
+                                "ticker",
+                                "as_of",
+                                "stance",
+                                "category",
+                                "confidence",
+                                "summary",
+                                "outcome",
+                            )
+                        }
+                        for item in await memory.search_theses(ticker=ticker, limit=2)
+                    )
             except Exception as exc:
                 errors.append(f"thesis recall failed: {type(exc).__name__}")
         _emit(state, "stage", "gather_context")

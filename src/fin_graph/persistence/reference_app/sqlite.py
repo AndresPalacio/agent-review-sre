@@ -774,9 +774,7 @@ class SqliteReferenceStore:
 
 
 @asynccontextmanager
-async def _open_reference_sqlite(
-    path: Path, cipher: SecretCipher
-) -> AsyncIterator[ReferenceStore]:
+async def _open_reference_sqlite(path: Path, cipher: SecretCipher) -> AsyncIterator[ReferenceStore]:
     engine = create_async_engine(
         URL.create("sqlite+aiosqlite", database=str(path)),
         connect_args={"timeout": 30},

@@ -728,8 +728,12 @@ async def run_benchmark(
     # shell happens to have tracing enabled. Provider calls remain explicit.
     with tracing_context(enabled=False):
         for case in cases() if selected_cases is None else selected_cases:
-            for arm in ("baseline", "solver"):
-                rows.append(await _run_arm(case, arm, model_factory, seen_models))
+            rows.extend(
+                [
+                    await _run_arm(case, arm, model_factory, seen_models)
+                    for arm in ("baseline", "solver")
+                ]
+            )
     return EvaluationReport(
         "scripted_contract" if model_factory is None else "provider", tuple(rows)
     )

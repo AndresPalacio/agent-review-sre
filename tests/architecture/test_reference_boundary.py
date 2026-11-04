@@ -64,9 +64,11 @@ def test_live_python_identifiers_use_responsibility_names() -> None:
                 names.append(node.id)
             elif isinstance(node, ast.arg):
                 names.append(node.arg)
-            for name in names:
-                if name.startswith(("Legacy", "Compatibility", "make_compat")):
-                    violations.append(f"{path.relative_to(ROOT).as_posix()}:{node.lineno}:{name}")
+            violations.extend(
+                f"{path.relative_to(ROOT).as_posix()}:{node.lineno}:{name}"
+                for name in names
+                if name.startswith(("Legacy", "Compatibility", "make_compat"))
+            )
     assert violations == []
 
 
@@ -198,9 +200,7 @@ def test_public_and_persisted_reference_identifiers_are_exactly_allowlisted() ->
     )
     assert frozenset({migration.revision}) == REFERENCE_MIGRATION_REVISIONS
 
-    factory_tree = ast.parse(
-        (SRC / "server" / "factory.py").read_text(encoding="utf-8")
-    )
+    factory_tree = ast.parse((SRC / "server" / "factory.py").read_text(encoding="utf-8"))
     assert (
         frozenset(
             node.value

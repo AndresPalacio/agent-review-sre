@@ -181,7 +181,8 @@ async def test_partial_trace_streams_before_cancelled_analyst_returns(monkeypatc
             context=context,
             stream_mode="custom",
         ):
-            events.append(event)
+            # Keep partial events visible when the consumer is cancelled mid-stream.
+            events.extend((event,))
 
     task = asyncio.create_task(consume())
     await asyncio.wait_for(started.wait(), timeout=5)

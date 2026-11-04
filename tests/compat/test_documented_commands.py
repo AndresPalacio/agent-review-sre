@@ -29,6 +29,8 @@ REMOVED_DOC_REFERENCES = (
     "phase8",
 )
 MARKDOWN_LINK = re.compile(r"\[[^\]]+\]\(([^)]+)\)")
+
+
 def test_required_product_documents_exist_and_have_no_phase_status() -> None:
     for relative in DOCS:
         text = (ROOT / relative).read_text(encoding="utf-8")

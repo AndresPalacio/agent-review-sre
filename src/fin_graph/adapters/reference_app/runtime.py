@@ -43,9 +43,7 @@ def make_reference_analysis_supervisor(
     )
 
 
-def make_reference_analysis_runtime() -> tuple[
-    CompiledStateGraph[Any, Any, Any, Any], RunContext
-]:
+def make_reference_analysis_runtime() -> tuple[CompiledStateGraph[Any, Any, Any, Any], RunContext]:
     """Create the reference application's nineteen-persona analysis runtime."""
     disable_external_tracing()
     settings = Settings()

@@ -18,15 +18,11 @@ def _deepagent_aliases(tree: ast.AST) -> tuple[set[str], set[str]]:
     for node in ast.walk(tree):
         if isinstance(node, ast.ImportFrom) and node.module == "deepagents":
             function_aliases.update(
-                item.asname or item.name
-                for item in node.names
-                if item.name == "create_deep_agent"
+                item.asname or item.name for item in node.names if item.name == "create_deep_agent"
             )
         elif isinstance(node, ast.Import):
             module_aliases.update(
-                item.asname or item.name
-                for item in node.names
-                if item.name == "deepagents"
+                item.asname or item.name for item in node.names if item.name == "deepagents"
             )
     return function_aliases, module_aliases
 

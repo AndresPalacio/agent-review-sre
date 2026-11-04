@@ -21,9 +21,7 @@ def test_validate_accepts_positional_and_config_option() -> None:
 
 
 def test_validate_rejects_two_config_paths() -> None:
-    result = runner.invoke(
-        app, ["harness", "validate", str(CONFIG), "--config", str(CONFIG)]
-    )
+    result = runner.invoke(app, ["harness", "validate", str(CONFIG), "--config", str(CONFIG)])
 
     assert result.exit_code == 2
     assert "config" in result.output.lower()

@@ -237,4 +237,5 @@ def test_built_wheel_keeps_heavy_packages_optional_and_app_is_complete(tmp_path:
     assert base.isdisjoint({"numpy", "pandas", "tensorflow"})
     assert quant >= quant_expected
     assert ml >= {"tensorflow"}
-    assert app >= quant_expected | {"tensorflow"} | agents_expected
+    assert app >= quant_expected | agents_expected
+    assert "tensorflow" not in app

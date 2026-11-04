@@ -289,9 +289,7 @@ async def test_remote_analysis_polls_for_report_and_reads_integrations() -> None
         paths.append(request.url.path)
         assert request.headers["x-api-key"] == "secret-key"
         if request.url.path == "/v1/integrations":
-            return httpx.Response(
-                200, json=[{"id": "financial_datasets", "status": "available"}]
-            )
+            return httpx.Response(200, json=[{"id": "financial_datasets", "status": "available"}])
         if request.method == "POST":
             assert request.content == b'{"text":"DEEP"}'
             return httpx.Response(
