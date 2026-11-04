@@ -20,7 +20,7 @@ class Finding(BaseModel):
     confidence: float
 
 
-class InvestigationState(TypedDict, total=False):
+class AnalysisState(TypedDict, total=False):
     domains: list[str]
     findings: Annotated[list[dict[str, Any]], operator.add]
 
@@ -43,10 +43,10 @@ async def test_each_send_branch_runs_its_own_subagent_and_findings_merge() -> No
         for domain, responses in scripts.items()
     }
 
-    def plan(state: InvestigationState) -> dict[str, Any]:
+    def plan(state: AnalysisState) -> dict[str, Any]:
         return {"domains": ["fundamentals", "technicals"]}
 
-    def dispatch(state: InvestigationState) -> list[Send]:
+    def dispatch(state: AnalysisState) -> list[Send]:
         return [Send("specialist", {"domain": domain}) for domain in state["domains"]]
 
     async def specialist(task: dict[str, Any]) -> dict[str, Any]:
@@ -56,7 +56,7 @@ async def test_each_send_branch_runs_its_own_subagent_and_findings_merge() -> No
         )
         return {"findings": [result["structured_response"].model_dump()]}
 
-    graph = StateGraph(InvestigationState)
+    graph = StateGraph(AnalysisState)
     graph.add_node("plan", plan)
     graph.add_node("specialist", specialist)
     graph.add_node("synthesize", lambda state: {})

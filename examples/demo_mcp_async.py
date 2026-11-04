@@ -28,7 +28,7 @@ async def main() -> None:
 
         command = {
             "command_id": f"mcp-{uuid4().hex}",
-            "text": "Investiga pagos con métricas y logs",
+            "text": "Analiza ticker=MSFT con fundamentales y tecnicos",
             "delay_seconds": 12,
         }
         first = await call("work_start", {"command": command})
@@ -49,7 +49,7 @@ async def main() -> None:
                 "command": {
                     "command_id": f"u-{uuid4().hex}",
                     "expected_revision": 1,
-                    "message": "Actualiza el hijo de logs para revisar últimos 5 minutos",
+                    "message": "Actualiza el hijo de technicals para horizonte=short",
                 },
             },
         )

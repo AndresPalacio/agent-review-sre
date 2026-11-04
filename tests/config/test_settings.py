@@ -22,13 +22,13 @@ def test_defaults_without_environment() -> None:
 def test_environment_variables_override_defaults(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("LLM_PROVIDER", "openai")
     monkeypatch.setenv("PERSISTENCE_BACKEND", "postgres")
-    monkeypatch.setenv("DATABASE_URL", "postgresql://u:p@db:5432/sre")
+    monkeypatch.setenv("DATABASE_URL", "postgresql://u:p@db:5432/fin_graph")
 
     settings = Settings(_env_file=None)
 
     assert settings.llm_provider == "openai"
     assert settings.persistence_backend is PersistenceBackend.POSTGRES
-    assert settings.require_database_url() == "postgresql://u:p@db:5432/sre"
+    assert settings.require_database_url() == "postgresql://u:p@db:5432/fin_graph"
 
 
 def test_dotenv_file_in_working_directory_is_read(
@@ -129,18 +129,18 @@ def test_reference_provider_names_are_canonicalized_in_settings(
 
 
 def test_database_password_never_appears_in_repr(monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setenv("DATABASE_URL", "postgresql://sre:s3cr3t-pw@db:5432/sre")
+    monkeypatch.setenv("DATABASE_URL", "postgresql://analyst:s3cr3t-pw@db:5432/fin_graph")
 
     assert "s3cr3t-pw" not in repr(Settings(_env_file=None))
 
 
 def test_comma_separated_lists_are_split(monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setenv("AUTO_APPROVE_TOOLS", "alertmanager_create_silence, k8s_scale")
+    monkeypatch.setenv("AUTO_APPROVE_TOOLS", "get_prices,get_financials")
     monkeypatch.setenv("MASK_KINDS", "portfolio_id,ip_address")
 
     settings = Settings(_env_file=None)
 
-    assert settings.auto_approve_tools == ("alertmanager_create_silence", "k8s_scale")
+    assert settings.auto_approve_tools == ("get_prices", "get_financials")
     assert settings.mask_kinds == ("portfolio_id", "ip_address")
 
 

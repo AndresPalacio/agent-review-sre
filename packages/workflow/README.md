@@ -207,7 +207,7 @@ del host conservan su identidad. Se vuelven a validar el problema y los límites
 si provienen de `model_construct` o `model_copy`, que pueden omitir validadores de Pydantic.
 
 El host inyecta `host_model`, `host_tools` y un verificador; este ejemplo de composición
-usa una comprobación de salud real proporcionada por la aplicación:
+usa una comprobación de límites de cartera proporcionada por la aplicación:
 
 ```python
 from pydantic import BaseModel
@@ -224,10 +224,10 @@ class Solution(BaseModel):
 
 
 async def verify(problem, candidate, context):
-    healthy = await context.host_context.healthcheck()
+    within_limits = await context.host_context.portfolio_within_limits()
     return VerificationReport(
-        verdict="verified" if healthy else "failed",
-        checks=[VerificationCheck(criterion_id="healthy", passed=healthy)],
+        verdict="verified" if within_limits else "failed",
+        checks=[VerificationCheck(criterion_id="risk_limits", passed=within_limits)],
     )
 
 
@@ -241,9 +241,9 @@ node = solver_step("solve", agent, solution_schema=Solution, output_key="resolut
 ```
 
 La entrada del paso es un `ProblemSpec` serializado con `id`, `goal` y
-`acceptance_criteria={"healthy": "La comprobación de salud pasa"}`. `problem_mapper`
-permite extraerlo de un estado mayor. Para aportar el servicio de salud, usar
-`invocation_factory=lambda state, run: AgentInvocation(context=health_service)`.
+`acceptance_criteria={"risk_limits": "La cartera respeta sus límites"}`. `problem_mapper`
+permite extraerlo de un estado mayor. Para aportar el contexto financiero, usar
+`invocation_factory=lambda state, run: AgentInvocation(context=portfolio)`.
 El verificador recibe `SolverContext`, cuyo `host_context` conserva ese objeto y cuyo
 `workflow_context` conserva el deadline y la cancelación del workflow.
 
@@ -312,16 +312,16 @@ de la herramienta. El callback del host conserva la aprobación definitiva.
 El [benchmark pareado](examples/solver_benchmark.py)
 compara un agente básico de LangChain con el solver, usando entornos nuevos por caso y
 los mismos modelos, herramientas y límites. Incluye configuración, transformación de
-datos, artefactos e investigación de incidentes, además de errores de herramientas,
-evidencia falsa y requisitos faltantes. La investigación necesita descubrir tres fuentes
-mediante un manifiesto, cruzar inventario, observaciones y política, y producir un artefacto
-comprobable. Su variante reservada cambia rutas, identificadores, umbral y respuesta esperada.
+datos, artefactos y research financiero, además de errores de herramientas, evidencia
+falsa y requisitos faltantes. El caso de research descubre tres fuentes mediante un
+manifiesto, cruza universo, fundamentales y política, y produce una watchlist comprobable.
+Su variante reservada cambia rutas, tickers, umbral y respuesta esperada.
 
 ```console
 uv run --project packages/workflow --locked --extra agents python packages/workflow/examples/solver_offline.py
 uv run --project packages/workflow --locked --extra agents python packages/workflow/examples/solver_team.py
 uv run --project packages/workflow --locked --extra agents python packages/workflow/examples/solver_benchmark.py
-uv run --project packages/workflow --locked --extra agents python packages/workflow/examples/solver_benchmark.py --case investigate-holdout
+uv run --project packages/workflow --locked --extra agents python packages/workflow/examples/solver_benchmark.py --case research-holdout
 ```
 
 Por defecto se usan modelos guionizados sin red: estos resultados prueban contratos,

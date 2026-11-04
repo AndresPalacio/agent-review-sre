@@ -12,7 +12,7 @@ from bm_workflow.agents import ProblemSpec, SolverLimits
 @dataclass(frozen=True)
 class Case:
     id: str
-    family: Literal["configuration", "transformation", "artifact", "investigation"]
+    family: Literal["configuration", "transformation", "artifact", "research"]
     scenario: str = "direct"
     split: Literal["contract", "holdout"] = "contract"
     variant: int = 0
@@ -23,14 +23,14 @@ class Case:
             "configuration": "config/service.json",
             "transformation": "data/orders.csv",
             "artifact": "docs/release.txt",
-            "investigation": "incident/manifest.json",
+            "research": "research/manifest.json",
         }[self.family]
 
     @property
     def destination(self) -> str:
         return {
             "transformation": "artifacts/totals.json",
-            "investigation": "artifacts/pages.json",
+            "research": "artifacts/watchlist.json",
         }.get(self.family, self.source)
 
     @property
@@ -46,55 +46,55 @@ class Case:
             return (
                 "region,quantity,unit_price,status\neast,2,10,paid\nwest,3,4,paid\neast,1,9,void\n"
             )
-        if self.family == "investigation":
+        if self.family == "research":
             return self.initial_documents[self.source]
         suffix = "Owner: QA\n" if self.variant else "Owner: Operations\n"
         return "Project Atlas\nRELEASE_PENDING\n" + suffix
 
     @property
     def initial_documents(self) -> dict[str, str]:
-        if self.family != "investigation":
+        if self.family != "research":
             return {self.source: self.initial_source}
-        # The holdout changes lookup paths, ordering, identifiers, owners, threshold
-        # and eligible services. The model sees these only through local tools.
+        # The holdout changes lookup paths, ordering, tickers, sectors, threshold
+        # and eligible equities. The model sees these only through local tools.
         if self.variant:
             manifest = {
-                "policy": "policies/night.json",
-                "observations": "snapshots/eu.json",
-                "inventory": "registry/production.json",
+                "policy": "policies/quality.json",
+                "fundamentals": "research/quality-scores.json",
+                "universe": "universe/us-equities.json",
             }
-            services = [
-                {"id": "search", "owner": "discovery", "active": True},
-                {"id": "legacy", "owner": "archive", "active": False},
-                {"id": "billing", "owner": "finance", "active": True},
-                {"id": "auth", "owner": "identity", "active": True},
+            stocks = [
+                {"ticker": "MSFT", "sector": "technology", "active": True},
+                {"ticker": "KO", "sector": "consumer staples", "active": False},
+                {"ticker": "JNJ", "sector": "healthcare", "active": True},
+                {"ticker": "AAPL", "sector": "technology", "active": True},
             ]
-            rates = {"billing": 5, "legacy": 99, "auth": 11, "search": 7}
+            scores = {"JNJ": 5, "KO": 99, "AAPL": 7, "MSFT": 9}
             threshold = 5
         else:
             manifest = {
-                "inventory": "inventory/services.json",
-                "observations": "telemetry/current.json",
-                "policy": "runbooks/escalation.json",
+                "universe": "universe/watchable.json",
+                "fundamentals": "research/current-scores.json",
+                "policy": "policies/screening.json",
             }
-            services = [
-                {"id": "checkout", "owner": "payments", "active": True},
-                {"id": "catalog", "owner": "catalog-team", "active": True},
-                {"id": "retired", "owner": "legacy", "active": False},
+            stocks = [
+                {"ticker": "AAPL", "sector": "technology", "active": True},
+                {"ticker": "MSFT", "sector": "technology", "active": True},
+                {"ticker": "GE", "sector": "industrials", "active": False},
             ]
-            rates = {"checkout": 12, "catalog": 2, "retired": 99}
-            threshold = 10
+            scores = {"AAPL": 8, "MSFT": 4, "GE": 99}
+            threshold = 7
         return {
             self.source: json.dumps(manifest),
-            manifest["inventory"]: json.dumps({"services": services}),
-            manifest["observations"]: json.dumps({"error_rates": rates}),
-            manifest["policy"]: json.dumps({"page_above": threshold}),
+            manifest["universe"]: json.dumps({"stocks": stocks}),
+            manifest["fundamentals"]: json.dumps({"quality_scores": scores}),
+            manifest["policy"]: json.dumps({"minimum_quality": threshold}),
         }
 
     @property
     def missing_document(self) -> str:
-        if self.family == "investigation":
-            return json.loads(self.initial_source)["observations"]
+        if self.family == "research":
+            return json.loads(self.initial_source)["fundamentals"]
         return self.source
 
     def problem(self) -> ProblemSpec:
@@ -105,12 +105,12 @@ class Case:
                 "unit_price for paid rows only. Preserve the source CSV."
             ),
             "artifact": "Replace RELEASE_PENDING with Version 2.0; preserve all other text.",
-            "investigation": (
-                "Read the incident manifest, then discover and read its inventory, observations "
-                "and policy documents. Write a JSON object with a pages list, sorted by service "
-                "ID. Include {service: ID, owner: OWNER} for each active inventory service whose "
-                "observed error_rate is strictly greater than policy page_above. Use error_rates "
-                "from observations; do not guess absent observations. Preserve every input."
+            "research": (
+                "Read the financial research manifest, then discover and read its universe, "
+                "fundamentals and policy documents. Write a JSON object with a watchlist, sorted "
+                "by ticker. Include {ticker: TICKER, sector: SECTOR} for each active stock whose "
+                "quality score is strictly greater than policy minimum_quality. Use quality_scores "
+                "from fundamentals; do not guess absent scores. Preserve every input."
             ),
         }
         criteria = {
@@ -126,13 +126,13 @@ class Case:
                 "artifact": "The release marker is replaced exactly once by Version 2.0.",
                 "preservation": "The project title and owner lines remain unchanged.",
             },
-            "investigation": {
-                "investigation": (
-                    "The sorted pages list contains exactly eligible services "
-                    "and their inventory owners."
+            "research": {
+                "research": (
+                    "The sorted watchlist contains exactly the eligible tickers "
+                    "and their universe sectors."
                 ),
                 "preservation": (
-                    "All manifest, inventory, observation and policy documents remain unchanged."
+                    "All manifest, universe, fundamental and policy documents remain unchanged."
                 ),
             },
         }
@@ -158,15 +158,15 @@ def cases() -> tuple[Case, ...]:
         Case("config-direct", "configuration"),
         Case("transform-direct", "transformation"),
         Case("artifact-direct", "artifact"),
-        Case("investigate-direct", "investigation"),
+        Case("research-direct", "research"),
         Case("transform-tool-failure", "transformation", "tool_failure"),
         Case("config-wrong-diagnosis", "configuration", "wrong_diagnosis"),
         Case("config-forged-evidence", "configuration", "forged_evidence"),
         Case("config-depleted-budget", "configuration", "depleted_budget"),
         Case("transform-missing-data", "transformation", "missing_data"),
-        Case("investigate-missing-data", "investigation", "missing_data"),
+        Case("research-missing-data", "research", "missing_data"),
         Case("artifact-missing-tool", "artifact", "missing_tool"),
         Case("transform-holdout", "transformation", split="holdout", variant=1),
         Case("artifact-holdout", "artifact", split="holdout", variant=1),
-        Case("investigate-holdout", "investigation", split="holdout", variant=1),
+        Case("research-holdout", "research", split="holdout", variant=1),
     )

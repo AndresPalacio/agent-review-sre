@@ -25,9 +25,8 @@ _PROVIDER_AND_TRACING_ENV = (
     "LANGSMITH_OTEL_ENABLED",
 )
 #: Every integration reads its settings from variables with its own prefix.
-_INTEGRATION_ENV_PREFIXES = ("K8S_", "YAHOO_", "FINANCIAL_DATASETS_")
-#: Read by client libraries directly (the Kubernetes SDK falls back to KUBECONFIG).
-_CLIENT_LIBRARY_ENV = ("KUBECONFIG",)
+_INTEGRATION_ENV_PREFIXES = ("YAHOO_", "FINANCIAL_DATASETS_")
+_CLIENT_LIBRARY_ENV: tuple[str, ...] = ()
 
 
 def pytest_asyncio_loop_factories(

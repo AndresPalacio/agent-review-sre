@@ -148,17 +148,18 @@ class LocalEnvironment:
                         )
                 primary = json.loads(content) == expected
                 preserved = self.documents.get(self.case.source) == self.case.initial_source
-            elif self.case.family == "investigation":
+            elif self.case.family == "research":
                 inputs = self.case.initial_documents
                 manifest = json.loads(inputs[self.case.source])
-                services = json.loads(inputs[manifest["inventory"]])["services"]
-                rates = json.loads(inputs[manifest["observations"]])["error_rates"]
-                threshold = json.loads(inputs[manifest["policy"]])["page_above"]
-                pages = []
-                for service in sorted(services, key=lambda service: service["id"]):
-                    if service["active"] and rates[service["id"]] > threshold:
-                        pages.append({"service": service["id"], "owner": service["owner"]})
-                primary = json.loads(content) == {"pages": pages}
+                stocks = json.loads(inputs[manifest["universe"]])["stocks"]
+                scores = json.loads(inputs[manifest["fundamentals"]])["quality_scores"]
+                threshold = json.loads(inputs[manifest["policy"]])["minimum_quality"]
+                watchlist = []
+                for stock in sorted(stocks, key=lambda stock: stock["ticker"]):
+                    ticker = stock["ticker"]
+                    if stock["active"] and scores[ticker] > threshold:
+                        watchlist.append({"ticker": ticker, "sector": stock["sector"]})
+                primary = json.loads(content) == {"watchlist": watchlist}
                 preserved = all(self.documents.get(path) == value for path, value in inputs.items())
             else:
                 primary = content == self.case.initial_source.replace(
@@ -223,17 +224,17 @@ def grade_environment(case: Case, environment: LocalEnvironment, candidate: Any 
                 json.loads(output) == expected
                 and environment.documents.get(case.source) == case.initial_source
             )
-        elif case.family == "investigation":
+        elif case.family == "research":
             # Hand-derived fixture answers, independent of host/model selection logic.
-            pages = (
+            watchlist = (
                 [
-                    {"service": "auth", "owner": "identity"},
-                    {"service": "search", "owner": "discovery"},
+                    {"ticker": "AAPL", "sector": "technology"},
+                    {"ticker": "MSFT", "sector": "technology"},
                 ]
                 if case.variant
-                else [{"service": "checkout", "owner": "payments"}]
+                else [{"ticker": "AAPL", "sector": "technology"}]
             )
-            passed = json.loads(output) == {"pages": pages} and all(
+            passed = json.loads(output) == {"watchlist": watchlist} and all(
                 environment.documents.get(path) == content
                 for path, content in case.initial_documents.items()
             )
@@ -328,7 +329,7 @@ class ScriptedModel(BaseChatModel):
             return final(False)
         if turn == 0:
             return response("read_document", {"path": self.case.source})
-        if self.case.family == "investigation":
+        if self.case.family == "research":
             if self._missing_input:
                 return final(False)
             # Only observed tool contents determine lookup paths and the answer.
@@ -336,10 +337,10 @@ class ScriptedModel(BaseChatModel):
             for path in manifest.values():
                 if path not in self._observations:
                     return response("read_document", {"path": path})
-            services = json.loads(self._observations[manifest["inventory"]])["services"]
-            rates = json.loads(self._observations[manifest["observations"]])["error_rates"]
-            threshold = json.loads(self._observations[manifest["policy"]])["page_above"]
-            if any(service["active"] and service["id"] not in rates for service in services):
+            stocks = json.loads(self._observations[manifest["universe"]])["stocks"]
+            scores = json.loads(self._observations[manifest["fundamentals"]])["quality_scores"]
+            threshold = json.loads(self._observations[manifest["policy"]])["minimum_quality"]
+            if any(stock["active"] and stock["ticker"] not in scores for stock in stocks):
                 return final(False)
             if (
                 last_tool is not None
@@ -347,17 +348,20 @@ class ScriptedModel(BaseChatModel):
                 and json.loads(str(last_tool.content)).get("ok")
             ):
                 return final()
-            pages = sorted(
+            watchlist = sorted(
                 [
-                    {"service": service["id"], "owner": service["owner"]}
-                    for service in services
-                    if service["active"] and rates[service["id"]] > threshold
+                    {"ticker": stock["ticker"], "sector": stock["sector"]}
+                    for stock in stocks
+                    if stock["active"] and scores[stock["ticker"]] > threshold
                 ],
-                key=lambda page: page["service"],
+                key=lambda item: item["ticker"],
             )
             return response(
                 "write_document",
-                {"path": self.case.destination, "content": json.dumps({"pages": pages})},
+                {
+                    "path": self.case.destination,
+                    "content": json.dumps({"watchlist": watchlist}),
+                },
             )
         if scenario == "missing_data":
             return final(False)

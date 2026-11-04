@@ -143,7 +143,7 @@ async def wait_for(
 async def scenario(service: WorkService, args: argparse.Namespace) -> None:
     command = StartWork(
         command_id=f"demo-{uuid4().hex}",
-        text="Investiga la latencia de pagos con métricas y logs",
+        text="Analiza ticker=AAPL con fundamentales y tecnicos",
         delay_seconds=6,
     )
     work = await service.start(command, actor=ACTOR)
@@ -166,7 +166,7 @@ async def scenario(service: WorkService, args: argparse.Namespace) -> None:
         UpdateWork(
             command_id=f"update-{uuid4().hex}",
             expected_revision=work.revision,
-            message="Actualiza el hijo de logs para revisar últimos 5 minutos",
+            message="Actualiza el hijo de technicals para horizonte=short",
         ),
         actor=ACTOR,
     )
@@ -181,8 +181,9 @@ async def scenario(service: WorkService, args: argparse.Namespace) -> None:
     assert {c["agent_name"]: c["thread_id"] for c in final.children} == child_threads
     if os.environ.get("FIN_ASYNC_MODEL", "offline") == "offline":
         assert any(call["tool"] == "update_async_task" for call in final.decision_trace)
-        assert "5m" in (final.result or "")
-        assert "metrics" in (final.result or "") and "logs" in (final.result or "")
+        assert "short" in (final.result or "")
+        assert "fundamentals" in (final.result or "")
+        assert "technicals" in (final.result or "")
     report("completed", final)
 
 

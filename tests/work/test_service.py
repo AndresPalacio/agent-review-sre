@@ -58,7 +58,7 @@ def service(tmp_path, engine=None):
 
 async def test_start_is_idempotent_across_gateway_restart_and_payload_conflicts(tmp_path):
     gateway, engine = service(tmp_path)
-    command = StartWork(command_id="incident-1", text="Analiza los fundamentales de MSFT")
+    command = StartWork(command_id="analysis-1", text="Analiza los fundamentales de MSFT")
     first = await gateway.start(command, actor="ana")
     restarted, _ = service(tmp_path, engine)
     again = await restarted.start(command, actor="ana")

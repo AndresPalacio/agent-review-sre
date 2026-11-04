@@ -45,7 +45,7 @@ async def test_paired_offline_direct_cases_measure_real_changes_in_all_four_fami
         "configuration",
         "transformation",
         "artifact",
-        "investigation",
+        "research",
     }
     assert len(report.rows) == 8
     for row in report.rows:
@@ -232,11 +232,11 @@ async def test_provider_factory_cannot_reuse_one_stateful_model_across_arms():
 async def test_information_gathering_and_holdout_resolve_from_multiple_sources():
     from examples.solver_benchmark import cases, run_benchmark
 
-    selected = tuple(case for case in cases() if case.family == "investigation")
+    selected = tuple(case for case in cases() if case.family == "research")
     assert {case.id for case in selected} == {
-        "investigate-direct",
-        "investigate-holdout",
-        "investigate-missing-data",
+        "research-direct",
+        "research-holdout",
+        "research-missing-data",
     }
     report = await run_benchmark(selected)
     for row in report.rows:
@@ -257,20 +257,20 @@ def test_information_grader_rejects_wrong_selection_and_changed_sources():
 
     from examples.solver_benchmark import LocalEnvironment, cases, grade_environment
 
-    case = next((case for case in cases() if case.id == "investigate-holdout"), None)
+    case = next((case for case in cases() if case.id == "research-holdout"), None)
     assert case is not None, "changed-data information-gathering holdout is required"
     environment = LocalEnvironment(case)
     good = {
-        "pages": [
-            {"service": "auth", "owner": "identity"},
-            {"service": "search", "owner": "discovery"},
+        "watchlist": [
+            {"ticker": "AAPL", "sector": "technology"},
+            {"ticker": "MSFT", "sector": "technology"},
         ]
     }
     environment.documents[case.destination] = json.dumps(good)
     assert grade_environment(case, environment).passed
     assert environment.verify(case.problem(), None, None).verdict == "verified"
     environment.documents[case.destination] = json.dumps(
-        {"pages": [{"service": "checkout", "owner": "payments"}]}
+        {"watchlist": [{"ticker": "JNJ", "sector": "healthcare"}]}
     )
     assert not grade_environment(case, environment).passed
     assert environment.verify(case.problem(), None, None).verdict == "failed"
@@ -280,7 +280,7 @@ def test_information_grader_rejects_wrong_selection_and_changed_sources():
     assert environment.verify(case.problem(), None, None).verdict != "verified"
 
 
-def test_investigation_policy_uses_observed_documents_without_hidden_fixture_answers():
+def test_research_policy_uses_observed_documents_without_hidden_fixture_answers():
     import json
 
     from langchain_core.messages import HumanMessage, ToolMessage
@@ -296,23 +296,23 @@ def test_investigation_policy_uses_observed_documents_without_hidden_fixture_ans
         def initial_documents(self):
             raise AssertionError("model must not access hidden fixture data")
 
-    case = HiddenCase("observations-only", "investigation")
-    assert case.family in {item.family for item in cases()}, "investigation family is required"
+    case = HiddenCase("observations-only", "research")
+    assert case.family in {item.family for item in cases()}, "research family is required"
     model = ScriptedModel(case=case)
     documents = {
         case.source: {
-            "inventory": "custom/registry",
-            "observations": "custom/signals",
+            "universe": "custom/universe",
+            "fundamentals": "custom/scores",
             "policy": "custom/rule",
         },
-        "custom/registry": {
-            "services": [
-                {"id": "delta", "owner": "new-owner", "active": True},
-                {"id": "alpha", "owner": "ignored", "active": False},
+        "custom/universe": {
+            "stocks": [
+                {"ticker": "NVDA", "sector": "technology", "active": True},
+                {"ticker": "IBM", "sector": "technology", "active": False},
             ]
         },
-        "custom/signals": {"error_rates": {"delta": 14, "alpha": 99}},
-        "custom/rule": {"page_above": 12},
+        "custom/scores": {"quality_scores": {"NVDA": 14, "IBM": 99}},
+        "custom/rule": {"minimum_quality": 12},
     }
     messages = [HumanMessage(case.problem().model_dump_json())]
     for _ in range(8):
@@ -321,7 +321,7 @@ def test_investigation_policy_uses_observed_documents_without_hidden_fixture_ans
         call = response.tool_calls[0]
         if call["name"] == "write_document":
             assert json.loads(call["args"]["content"]) == {
-                "pages": [{"service": "delta", "owner": "new-owner"}]
+                "watchlist": [{"ticker": "NVDA", "sector": "technology"}]
             }
             return
         assert call["name"] == "read_document"

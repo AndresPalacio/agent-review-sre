@@ -15,10 +15,10 @@ def test_home_shortcut_is_expanded_and_its_folder_created(
     # Left unexpanded, "~" would become a folder in the working directory: keep it in tmp_path.
     monkeypatch.chdir(tmp_path)
 
-    resolved = prepare_sqlite_path("~/sre-data/state.sqlite")
+    resolved = prepare_sqlite_path("~/finance-data/state.sqlite")
 
-    assert Path(resolved) == tmp_path / "sre-data" / "state.sqlite"
-    assert (tmp_path / "sre-data").is_dir()
+    assert Path(resolved) == tmp_path / "finance-data" / "state.sqlite"
+    assert (tmp_path / "finance-data").is_dir()
 
 
 def test_empty_path_is_rejected() -> None:

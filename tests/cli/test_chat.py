@@ -149,7 +149,7 @@ async def test_remote_chat_consumes_sse_and_posts_approval_with_api_key() -> Non
         )
 
     async with httpx.AsyncClient(
-        transport=httpx.MockTransport(respond), base_url="https://sre.example"
+        transport=httpx.MockTransport(respond), base_url="https://finance.example"
     ) as client:
         session = RemoteChatSession(client, "secret-key", thread_id="thread-1")
         assert await session.start() == "thread-1"
@@ -175,7 +175,7 @@ async def test_remote_chat_handles_thread_commands_and_redacts_http_errors() -> 
         return httpx.Response(401, json={"detail": "secret-key invalid"})
 
     async with httpx.AsyncClient(
-        transport=httpx.MockTransport(respond), base_url="https://sre.example"
+        transport=httpx.MockTransport(respond), base_url="https://finance.example"
     ) as client:
         session = RemoteChatSession(client, "secret-key")
         first = await session.start()
@@ -205,7 +205,7 @@ async def test_remote_resume_recovers_pending_approval_without_sse_history() -> 
         )
 
     async with httpx.AsyncClient(
-        transport=httpx.MockTransport(respond), base_url="https://sre.example"
+        transport=httpx.MockTransport(respond), base_url="https://finance.example"
     ) as client:
         session = RemoteChatSession(client, "secret-key")
         output = await session.command("/resume existing-thread")
@@ -223,7 +223,10 @@ async def test_remote_approval_shows_a_followup_rollback_request() -> None:
                     "requests": [
                         {
                             "action_requests": [
-                                {"name": "k8s_scale_deployment", "arguments": {"replicas": 3}}
+                                {
+                                    "name": "propose_order",
+                                    "arguments": {"ticker": "MSFT", "quantity": 3},
+                                }
                             ]
                         }
                     ],
@@ -237,7 +240,10 @@ async def test_remote_approval_shows_a_followup_rollback_request() -> None:
                 "requests": [
                     {
                         "action_requests": [
-                            {"name": "k8s_scale_deployment", "arguments": {"replicas": 1}}
+                            {
+                                "name": "propose_order",
+                                "arguments": {"ticker": "MSFT", "quantity": 1},
+                            }
                         ]
                     }
                 ],
@@ -245,12 +251,13 @@ async def test_remote_approval_shows_a_followup_rollback_request() -> None:
         )
 
     async with httpx.AsyncClient(
-        transport=httpx.MockTransport(respond), base_url="https://sre.example"
+        transport=httpx.MockTransport(respond), base_url="https://finance.example"
     ) as client:
         session = RemoteChatSession(client, "secret-key", thread_id="thread-1")
         output = await session.command("/approve approve")
     assert "Aprobación pendiente" in output
-    assert '"replicas": 1' in output
+    assert '"ticker": "MSFT"' in output
+    assert '"quantity": 1' in output
 
 
 async def test_remote_transport_exception_hides_api_key() -> None:
@@ -258,7 +265,7 @@ async def test_remote_transport_exception_hides_api_key() -> None:
         raise httpx.ConnectError("secret-key connection details", request=request)
 
     async with httpx.AsyncClient(
-        transport=httpx.MockTransport(fail), base_url="https://sre.example"
+        transport=httpx.MockTransport(fail), base_url="https://finance.example"
     ) as client:
         session = RemoteChatSession(client, "secret-key", thread_id="t1")
         try:
@@ -297,7 +304,7 @@ async def test_remote_analysis_polls_for_report_and_reads_integrations() -> None
         )
 
     async with httpx.AsyncClient(
-        transport=httpx.MockTransport(respond), base_url="https://sre.example"
+        transport=httpx.MockTransport(respond), base_url="https://finance.example"
     ) as client:
         session = RemoteChatSession(client, "secret-key")
         assert await session.command("/integrations") == "grafana: available"
@@ -344,7 +351,7 @@ def test_ask_remote_uses_env_api_key_and_existing_thread(monkeypatch: MonkeyPatc
     monkeypatch.setattr("fin_graph.cli.main.httpx.AsyncClient", mock_client)
     result = CliRunner().invoke(
         app,
-        ["ask", "hola", "--server", "https://sre.example", "--thread-id", "saved-thread"],
+        ["ask", "hola", "--server", "https://finance.example", "--thread-id", "saved-thread"],
         env={"FIN_GRAPH_API_KEY": "secret-key"},
     )
     assert result.exit_code == 0, result.output
@@ -357,7 +364,7 @@ def test_ask_remote_uses_env_api_key_and_existing_thread(monkeypatch: MonkeyPatc
 
 def test_remote_api_key_requires_tls_outside_loopback() -> None:
     result = CliRunner().invoke(
-        app, ["ask", "hola", "--server", "http://sre.example", "--api-key", "secret-key"]
+        app, ["ask", "hola", "--server", "http://finance.example", "--api-key", "secret-key"]
     )
     assert result.exit_code != 0
     assert "HTTPS" in result.output

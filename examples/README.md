@@ -1,163 +1,88 @@
-# Demo de agentes sin credenciales
+# Ejemplos financieros multiagente
 
-Desde la raíz del repositorio, ejecuta:
+Estos ejemplos muestran el flujo asíncrono real de Fin Graph con datos financieros
+sintéticos. No consultan cuentas, mercados ni carteras reales.
+
+## Supervisor y agentes DeepAgents
+
+Desde la raíz del repositorio:
 
 ```powershell
-uv run python examples/demo_agentes.py
+$env:UV_NO_SYNC='1'
+$env:PYTHONPATH=(Join-Path (Resolve-Path '.').Path 'src')
+.\.venv\Scripts\python.exe examples/demo_supervisor_async.py --scenario lifecycle
 ```
 
-Necesitas Python 3.12 y `uv`, como el proyecto. La primera ejecución puede descargar
-las dependencias del proyecto; después la demo trabaja con datos locales.
-No requiere `.env`, Docker, Kubernetes, Datadog ni una clave de un proveedor LLM.
-
-## Qué vas a ver
-
-El incidente predefinido es un contenedor de `payments-api` que registra
-`OOMKilled`. El ejemplo ejecuta el grafo de investigación real:
+El supervisor crea dos hijos durables y acotados:
 
 ```text
-Alerta → contexto → plan → especialista → herramienta local → síntesis
-                                                               ↓
-                                primera verificación: cita inexistente
-                                                               ↓
-                              refinar → plan → especialista → síntesis
-                                                               ↓
-                                segunda verificación: evidencia citada
-                                                               ↓
-                                               propuesta → reporte
+pedido sobre AAPL
+        |
+        v
+supervisor asíncrono
+   |             |
+   v             v
+fundamentals   technicals
+   |             |
+   +------> síntesis
 ```
 
-- **Workflow determinista:** el grafo controla el orden y la repetición.
-- **Plan-and-Execute:** se plantea una hipótesis y una tarea para Kubernetes.
-- **ReAct:** un modelo guionado solicita `k8s_list_pods`, recibe el resultado
-  de una herramienta real respaldada por un cliente simulado y termina su turno.
-- **Critic:** la primera síntesis cita deliberadamente un ID inexistente.
-  El verificador real rechaza la cita. La segunda usa el ID recopilado y una regla
-  didáctica comprueba que los datos contienen `OOMKilled`.
+- `fundamentals` lee ratios fundamentales sintéticos.
+- `technicals` lee indicadores técnicos sintéticos.
+- `AsyncSubAgentMiddleware` crea, actualiza y consulta ambos trabajos.
+- `WorkService` conserva identidad, revisión, cancelación e idempotencia.
+- `PilotGuard` limita herramientas, hijos, plazo y revisión.
 
-El plan y la síntesis están predefinidos; el juez es una regla, no un LLM.
-La segunda ronda repite la consulta para enseñar el ciclo, no descubre nuevos datos.
-Se verifica una observación, no la causa subyacente del exceso de memoria.
-Esta demo muestra un especialista, no el supervisor de chat ni un swarm.
-No ejecuta remediaciones ni envía reportes a servicios externos.
-
-## Run / Debug para entender al orquestador
-
-Para recorrerlo sin IDE, con una pausa después de cada etapa:
+La demostración actualiza el horizonte del agente técnico mientras la ejecución está
+activa, reconstruye el gateway con el mismo ledger y verifica que el trabajo se reanuda
+sin duplicarse. Para probar cancelación:
 
 ```powershell
-uv run python examples/demo_agentes.py --step
+.\.venv\Scripts\python.exe examples/demo_supervisor_async.py --scenario cancel
 ```
 
-Pulsa **Enter** para continuar o escribe **q** para salir. Se muestran el plan,
-las tareas restantes, las llamadas a herramientas, sus evidencias y la verificación.
-El grafo se interrumpe después de guardar el checkpoint y reanuda con `None`,
-conservando la misma investigación. Mientras lees, no queda un nodo ejecutándose.
-Los checkpoints están en memoria: cerrar el proceso termina esta sesión didáctica.
+## Panel HTTP y MCP
 
-Para ejecutar todo mostrando los mismos checkpoints, sin esperar entrada:
+Inicia el panel local:
 
 ```powershell
-uv run python examples/demo_agentes.py --inspect
+.\.venv\Scripts\python.exe examples/demo_supervisor_async.py --serve
 ```
 
-### PyCharm: configuración compartida
-
-El repositorio incluye
-[Fin Graph - Orquestador offline](../.run/SRE%20Graph%20-%20Orquestador%20offline.run.xml).
-Usa el intérprete del módulo `fin-graph`, configurado en el proyecto como `uv (fin-graph)`.
-Si falta el entorno, ejecuta `uv sync` y selecciona `.venv/Scripts/python.exe`.
-
-1. Abre [demo_agentes.py](demo_agentes.py) y busca `# BREAKPOINT` en
-   `inspect_checkpoint`. Pon el breakpoint en la siguiente línea ejecutable,
-   `view: dict[str, Any] = {`.
-2. Selecciona **Fin Graph - Orquestador offline** y pulsa **Debug**.
-3. Inspecciona las variables `node`, `state` y `next_nodes`. Usa **Resume** para
-   llegar al siguiente checkpoint. Con **Run** se imprime todo sin detenerse.
-4. Si quieres detenerte únicamente en la decisión de repetir, usa la condición
-   `node == "verify"` en ese breakpoint.
-
-Observaciones que puedes añadir al panel **Watches**:
-
-| Expresión | Qué explica |
-|---|---|
-| `state.get("available_domains")` | Qué especialidades están disponibles. |
-| `state.get("plan")` | Hipótesis y tareas elegidas por el planificador guionado. |
-| `state.get("wave")`, `state.get("budget")` | Ronda actual y número de tareas restantes. |
-| `state.get("evidence")` | Respuestas originales de las herramientas locales. |
-| `state.get("harness_trace")` | Llamadas, argumentos redactados, parentesco y resultados. |
-| `state.get("diagnosis")`, `state.get("verification")` | Conclusión propuesta y si las citas la respaldan. |
-| `next_nodes` | Próximo paso que realmente programó LangGraph. |
-
-En la primera parada de `verify` verás `passed=False` y `next_nodes=("refine",)`.
-En la segunda verás `passed=True` y `next_nodes=("propose_remediation",)`.
-La demo fija dos rondas y dos tareas totales. Este presupuesto cuenta tareas;
-no implementa las reservas de coste compartidas que propone el simulador HTML.
-
-### Entrar en el código de cada decisión
-
-Para seguir una ejecución dentro de sus nodos, coloca breakpoints adicionales:
-
-| Archivo y función | Variables o acción que observar |
-|---|---|
-| [demo_agentes.py](demo_agentes.py), `DemoServices.plan` | `available`, `findings`, `self.round` y el plan que se propone. |
-| [graph.py](../src/fin_graph/graphs/investigation/graph.py), `plan` | `candidate`, `chosen`, `max_tasks`: cómo se restringe el plan. |
-| [graph.py](../src/fin_graph/graphs/investigation/graph.py), `dispatch` | `tasks` y los `Send` que despachan al especialista. |
-| [runner.py](../src/fin_graph/evals/runner.py), `ScriptedServices.investigate` | `name`, `args`, `result`: petición de tool, ejecución y observación. |
-| [fixtures.py](../src/fin_graph/evals/fixtures.py), `FixtureKubernetes.list_pods` | La herramienta obtiene datos locales en lugar de consultar un clúster. |
-| [demo_agentes.py](demo_agentes.py), `DemoServices.synthesize` | La primera cita es inexistente; la segunda usa evidencia recopilada. |
-| [graph.py](../src/fin_graph/graphs/investigation/graph.py), `after_verify` | Verificación, rondas, presupuesto y tiempo determinan si se repite. |
-
-Las pausas en `inspect_checkpoint` quedan fuera de los timeouts de los nodos.
-Al entrar dentro de un nodo sí aplica el timeout de la demo, fijado en 30 minutos.
-
-El modelo real usaría `LangChainServices.plan` en
-[services.py](../src/fin_graph/graphs/investigation/services.py). Esta demo sustituye
-esa llamada por un plan guionado para que puedas repetir y depurar el recorrido
-sin credenciales. Las transiciones, filtros del plan, tools, verificador de citas,
-checkpoints y trazas del harness sí usan el código del proyecto.
-
-### Prueba automatizada que también puedes depurar
+Abre <http://127.0.0.1:8012>. El panel, la API HTTP y MCP usan el mismo `WorkService`.
+En otra terminal puedes probar la misma ejecución por ambos transportes:
 
 ```powershell
-uv run pytest tests/examples/test_demo_agentes.py::test_debug_checkpoints_expose_committed_state_and_resume_without_restarting -q
+.\.venv\Scripts\python.exe examples/demo_mcp_async.py
 ```
 
-En PyCharm también puedes abrir [test_demo_agentes.py](../tests/examples/test_demo_agentes.py)
-y usar **Debug** sobre esa prueba. Pon un breakpoint en su función
-`inspect_checkpoint` para observar los mismos estados. Comprueba que solo hay una
-entrada de alerta, dos rondas, dos llamadas reales a la tool local y verificación
-`False → True` al reanudar.
+El cliente MCP inicia un análisis de MSFT, repite el comando por HTTP para comprobar
+idempotencia, actualiza `technicals` y finalmente cancela el trabajo.
 
-Esto cubre el orquestador de investigación implementado. La fachada MCP `work_*`,
-WorkService, los agentes hijos durables y el registro completo de releases del
-[diseño propuesto](../docs/arquitecture-review/2026-10-22-revision-rovo.md) todavía no
-están implementados. Esta demo usa una integración nativa local; no inicia un servidor MCP.
+## Evals del solver
 
-## Probar por endpoint
+El benchmark de `packages/workflow` ejecuta pares comparables: un agente LangChain base
+y el solver DeepAgents. El evaluador inspecciona los documentos resultantes; no acepta
+como evidencia la afirmación del modelo.
 
 ```powershell
-uv run python examples/demo_agentes.py --serve
+Set-Location packages/workflow
+$env:UV_NO_SYNC='1'
+$env:PYTHONPATH=(Join-Path (Resolve-Path '.').Path 'src')+';'+(Resolve-Path '.').Path
+..\..\.venv\Scripts\python.exe examples/solver_benchmark.py --case research-holdout
 ```
 
-Abre <http://127.0.0.1:8010/docs>. En cada operación usa **Try it out → Execute**:
+La familia `research` descubre un manifiesto financiero, lee universo, fundamentales y
+política de selección, y escribe `artifacts/watchlist.json`. También hay escenarios de
+datos faltantes, fallos de herramienta, recuperación, presupuesto agotado y holdouts.
+El reporte separa resultados por brazo y muestra llamadas, bloqueos, recuperaciones,
+coste observable y verificación independiente.
 
-1. `POST /v1/investigations`: sin body ni credenciales. Ejecuta el caso completo
-   y devuelve `thread_id`.
-2. `GET /v1/investigations/{thread_id}`: pega ese ID para consultar evidencia,
-   diagnóstico y verificación.
-3. `GET /v1/investigations/{thread_id}/explain`: muestra las etapas recorridas;
-   busca `verify` con `passed: false`, luego `refine` y finalmente `passed: true`.
-
-También puedes usar otra terminal PowerShell:
+Para ejecutar las pruebas del benchmark:
 
 ```powershell
-$demo = Invoke-RestMethod -Method Post http://127.0.0.1:8010/v1/investigations
-Invoke-RestMethod "http://127.0.0.1:8010/v1/investigations/$($demo.thread_id)/explain" |
-    ConvertTo-Json -Depth 10
+..\..\.venv\Scripts\python.exe -m pytest tests/test_solver_evaluation.py -q
 ```
 
-Esta API educativa es independiente de la API de producción: usa los mismos
- nombres de tres rutas, pero espera el resultado del POST (HTTP 200), simplifica
-las respuestas y conserva solo las últimas 20 ejecuciones en memoria. Al cerrar
-con `Ctrl+C`, se pierden. Solo escucha en `127.0.0.1:8010`.
+El modo predeterminado es determinista y no usa credenciales. Un proveedor real solo se
+activa de forma explícita mediante `--model-factory modulo:crear_modelo`.
