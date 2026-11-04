@@ -101,4 +101,4 @@ def test_cli_exposes_contracts_inspection_and_export():
     result = cli.invoke(app, ["harness", "contract", "equities/012-two-tickers"])
     assert result.exit_code == 0, result.output
     assert "analyst_valuation" in result.output and "compute_valuation" in result.output
-    assert cli.invoke(app, ["harness", "contract", "eks/002-image-pull-backoff"]).exit_code == 2
+    assert cli.invoke(app, ["harness", "contract", "forex/002-eurusd-breakout"]).exit_code == 2

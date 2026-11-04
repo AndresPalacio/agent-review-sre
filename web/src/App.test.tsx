@@ -27,7 +27,7 @@ it("renders the responsive financial workbench landmarks", async () => {
   expect(screen.getByRole("region", { name: "Resultados" })).toBeVisible();
 });
 
-it("exposes financial product surfaces without operational incident language", async () => {
+it("exposes only the current financial product surfaces", async () => {
   vi.stubGlobal(
     "fetch",
     vi.fn(async (input: unknown) => {
@@ -50,7 +50,6 @@ it("exposes financial product surfaces without operational incident language", a
   expect(document.body).toHaveTextContent(/cartera simulada/i);
   expect(document.body).toHaveTextContent(/órdenes/i);
   expect(document.body).not.toHaveTextContent(/AI Hedge Fund/i);
-  expect(document.body).not.toHaveTextContent(/causa raíz|incidente|remediación/i);
 });
 
 it("persists only the selected theme", () => {

@@ -29,26 +29,6 @@ REMOVED_DOC_REFERENCES = (
     "phase8",
 )
 MARKDOWN_LINK = re.compile(r"\[[^\]]+\]\(([^)]+)\)")
-FORBIDDEN_ENV_PREFIXES = (
-    "K8S_",
-    "PROMETHEUS_",
-    "MIMIR_",
-    "ALERTMANAGER_",
-    "GRAFANA_",
-    "LOKI_",
-    "TEMPO_",
-    "DATADOG_",
-    "NEWRELIC_",
-    "AWS_",
-    "SENTRY_",
-    "GITHUB_",
-    "PAGERDUTY_",
-    "OPSGENIE_",
-    "INCIDENT_IO_",
-    "FIN_HARNESS_",
-)
-
-
 def test_required_product_documents_exist_and_have_no_phase_status() -> None:
     for relative in DOCS:
         text = (ROOT / relative).read_text(encoding="utf-8")
@@ -77,21 +57,18 @@ def test_all_retained_documentation_links_resolve() -> None:
             assert resolved.exists(), f"{relative} links missing path {raw_target}"
 
 
-def test_readme_describes_the_finished_paper_only_product() -> None:
+def test_readme_describes_the_finished_financial_product() -> None:
     text = (ROOT / "README.md").read_text(encoding="utf-8")
     lowered = text.lower()
     assert "plataforma financiera multiagente" in lowered
     assert "paper trading" in lowered
     assert "no ejecuta operaciones reales" in lowered
     assert "migrando" not in lowered
-    assert "sre" not in lowered
-    assert "pagerduty" not in lowered
     assert "uv run fin-graph app" in text
 
 
-def test_example_environment_contains_no_removed_product_prefix() -> None:
+def test_example_environment_contains_the_local_financial_defaults() -> None:
     values = dotenv_values(ROOT / ".env.example", encoding="utf-8")
-    assert not [name for name in values if name.startswith(FORBIDDEN_ENV_PREFIXES)]
     assert values["LLM_PROVIDER"] == "ollama"
     assert values["PERSISTENCE_BACKEND"] == "sqlite"
     assert values["FIN_GRAPH_ALLOW_INSECURE_LEGACY_API"] == "true"

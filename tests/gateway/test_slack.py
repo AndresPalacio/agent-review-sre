@@ -192,9 +192,9 @@ async def send(
         return await client.post("/slack", content=raw, headers=headers)
 
 
-async def test_external_alert_bot_is_investigated_but_own_bot_is_ignored(setup: Any) -> None:
+async def test_external_market_bot_is_analyzed_but_own_bot_is_ignored(setup: Any) -> None:
     gateway, store, _web, submitted, _ = setup
-    for event_id, bot_id in (("vendor-alert", "ALERTMANAGER"), ("own-message", "B1")):
+    for event_id, bot_id in (("market-signal", "MARKET_FEED"), ("own-message", "B1")):
         response = await send(
             gateway,
             {
@@ -204,7 +204,7 @@ async def test_external_alert_bot_is_investigated_but_own_bot_is_ignored(setup: 
                 "event": {
                     "type": "message",
                     "channel": "C1",
-                    "text": "Critical CPU alert",
+                    "text": "AAPL crossed the portfolio risk limit",
                     "bot_id": bot_id,
                     "subtype": "bot_message",
                     "ts": "100.100",
@@ -213,8 +213,8 @@ async def test_external_alert_bot_is_investigated_but_own_bot_is_ignored(setup: 
         )
         assert response.status_code == 200
     await gateway.close()
-    assert submitted == ["Critical CPU alert"]
-    assert ("slack", "vendor-alert") in store.events
+    assert submitted == ["AAPL crossed the portfolio risk limit"]
+    assert ("slack", "market-signal") in store.events
     assert ("slack", "own-message") not in store.events
 
 

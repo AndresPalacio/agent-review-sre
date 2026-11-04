@@ -6,8 +6,8 @@ This product includes material adapted from the following Apache-2.0 licensed pr
 * OpenSRE - https://github.com/Tracer-Cloud/opensre
   Copyright 2026 Tracer Cloud
   Generic security, redaction and integration infrastructure retained from the original
-  repository lineage. The incident-response product is not distributed. Nothing is imported
-  from OpenSRE at runtime.
+  repository lineage. Previous product surfaces are not distributed, and no code is imported
+  from the upstream project at runtime.
 
 * LangGraph Starter Kit - https://github.com/ac12644/langgraph-starter-kit
   Copyright 2025 Abhishek Chauhan

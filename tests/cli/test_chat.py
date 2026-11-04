@@ -289,7 +289,9 @@ async def test_remote_analysis_polls_for_report_and_reads_integrations() -> None
         paths.append(request.url.path)
         assert request.headers["x-api-key"] == "secret-key"
         if request.url.path == "/v1/integrations":
-            return httpx.Response(200, json=[{"id": "grafana", "status": "available"}])
+            return httpx.Response(
+                200, json=[{"id": "financial_datasets", "status": "available"}]
+            )
         if request.method == "POST":
             assert request.content == b'{"text":"DEEP"}'
             return httpx.Response(
@@ -307,7 +309,7 @@ async def test_remote_analysis_polls_for_report_and_reads_integrations() -> None
         transport=httpx.MockTransport(respond), base_url="https://finance.example"
     ) as client:
         session = RemoteChatSession(client, "secret-key")
-        assert await session.command("/integrations") == "grafana: available"
+        assert await session.command("/integrations") == "financial_datasets: available"
         result = await session.command("/analiza DEEP")
 
     assert "Análisis DEEP" in result

@@ -202,7 +202,7 @@ async def test_start_releases_webhook_claim_without_checkpoint(tmp_path: Path) -
         await connection.run_sync(Base.metadata.create_all)
     storage = Storage(engine)
     await storage.claim_webhook_run(
-        "alertmanager", "f1", "t1", "r1", datetime.now(UTC), timedelta(minutes=5)
+        "market_feed", "f1", "t1", "r1", datetime.now(UTC), timedelta(minutes=5)
     )
     async with engine.begin() as connection:
         await connection.execute(
@@ -218,7 +218,7 @@ async def test_start_releases_webhook_claim_without_checkpoint(tmp_path: Path) -
     manager = RunManager(MissingGraph(), storage, lambda: None)
     await manager.start()
     assert (await storage.get_run("r1"))["status"] == "failed"
-    assert await storage.fingerprint_thread("alertmanager", "f1") is None
+    assert await storage.fingerprint_thread("market_feed", "f1") is None
     await manager.stop()
     await engine.dispose()
 

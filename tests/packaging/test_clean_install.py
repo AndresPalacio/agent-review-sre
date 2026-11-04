@@ -36,17 +36,12 @@ def test_wheel_contains_app_static_and_every_compatibility_namespace(tmp_path: P
         assert not any("ai-hedge-fund" in name for name in lowered_names)
         assert not any(name.endswith("optimization/fin.toml") for name in lowered_names)
         assert not any(name.endswith((".sqlite", ".db", ".env", ".key")) for name in names)
-        forbidden_operational_members = (
-            "/rds_",
-            "/eks/",
-            "cloudwatch",
-            "sre-",
-            "evals/data/manifest.json",
-        )
-        assert not any(
-            forbidden in name
-            for name in lowered_names
-            for forbidden in forbidden_operational_members
+        packaged_eval_data = [
+            name for name in lowered_names if name.startswith("fin_graph/evals/data/")
+        ]
+        assert packaged_eval_data
+        assert all(
+            name.startswith("fin_graph/evals/data/equities/") for name in packaged_eval_data
         )
 
 
