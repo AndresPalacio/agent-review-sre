@@ -50,6 +50,7 @@ it("exposes only the current financial product surfaces", async () => {
   expect(document.body).toHaveTextContent(/cartera simulada/i);
   expect(document.body).toHaveTextContent(/órdenes/i);
   expect(document.body).not.toHaveTextContent(/AI Hedge Fund/i);
+  expect(document.body).not.toHaveTextContent(/causa raíz|incidente|remediación/i);
 });
 
 it("persists only the selected theme", () => {

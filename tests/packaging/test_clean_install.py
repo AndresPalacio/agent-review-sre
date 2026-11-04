@@ -9,6 +9,7 @@ import zipfile
 from pathlib import Path
 
 ROOT = Path(__file__).parents[2]
+EQUITY_DATA = ROOT / "src" / "fin_graph" / "evals" / "data" / "equities"
 
 
 def _build(tmp_path: Path) -> Path:
@@ -43,6 +44,15 @@ def test_wheel_contains_app_static_and_every_compatibility_namespace(tmp_path: P
         assert all(
             name.startswith("fin_graph/evals/data/equities/") for name in packaged_eval_data
         )
+        expected_scenarios = {path.parent.name for path in EQUITY_DATA.glob("*/scenario.yml")}
+        assert len(expected_scenarios) == 16
+        for filename in ("scenario.yml", "answer.yml"):
+            packaged_scenarios = {
+                Path(name).parent.name
+                for name in packaged_eval_data
+                if name.endswith(f"/{filename}")
+            }
+            assert packaged_scenarios == expected_scenarios
 
 
 def test_extracted_wheel_imports_without_repository_on_pythonpath(tmp_path: Path) -> None:

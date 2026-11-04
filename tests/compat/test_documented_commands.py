@@ -45,7 +45,12 @@ def test_primary_documents_do_not_reference_removed_history() -> None:
 
 
 def test_all_retained_documentation_links_resolve() -> None:
-    documents = [ROOT / "README.md", *(ROOT / "docs").rglob("*.md")]
+    documents = [
+        ROOT / "README.md",
+        ROOT / "examples" / "README.md",
+        ROOT / "packages" / "workflow" / "README.md",
+        *(ROOT / "docs").rglob("*.md"),
+    ]
     for document in documents:
         text = document.read_text(encoding="utf-8")
         for raw_target in MARKDOWN_LINK.findall(text):

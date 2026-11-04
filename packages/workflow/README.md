@@ -360,7 +360,7 @@ proveedores debe igualar también llamadas totales, tokens o coste; las pruebas 
 no acreditan esa equivalencia ni una ventaja de razonamiento.
 
 La revisión de compatibilidad y las mejoras están descritas en el
-[plan de fiabilidad](../../docs/superpowers/plans/2026-11-03-solver-reliability.md).
+[reporte de fiabilidad](../../docs/superpowers/reports/2026-11-03-solver-reliability.md).
 La integración conserva los mecanismos oficiales de
 [resumen de DeepAgents 0.7.32](https://github.com/langchain-ai/deepagents/blob/deepagents==0.7.32/libs/deepagents/deepagents/middleware/summarization.py),
 [contexto y aislamiento](https://docs.langchain.com/oss/python/deepagents/context-engineering)
@@ -511,7 +511,6 @@ La tabla distingue lo implementado de lo que requiere composición o trabajo adi
 | 24. Reproducción/composición | Instalación aislada, ejemplo, CI y wheel; sin imágenes Fury, índices privados ni manifest de las fuentes originales. |
 
 Las decisiones y el alcance están en el
-[diseño](../../docs/superpowers/specs/2026-11-02-workflow-library-design.md) y el
-[plan](../../docs/superpowers/plans/2026-11-02-workflow-library.md).
-La ampliación de agentes está descrita en el
-[plan de soluciones verificadas](../../docs/superpowers/plans/2026-11-02-verified-solver.md).
+[diseño](../../docs/superpowers/specs/2026-11-02-workflow-library-design.md).
+La ampliación de agentes y su evaluación están resumidas en el
+[reporte de fiabilidad](../../docs/superpowers/reports/2026-11-03-solver-reliability.md).

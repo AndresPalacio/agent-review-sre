@@ -43,7 +43,7 @@ tracks the SHA-256 digest of its owning test file. Any stale or prose-only claim
 | Gate | Result |
 |---|---:|
 | Ruff / format / mypy / import-linter / lock | Pass |
-| Main Python suite | 1,314 passed; 24 optional skips |
+| Main Python suite | 1,319 passed; 24 optional skips |
 | Workflow package | 195 passed |
 | Web TypeScript | Pass |
 | Vitest | 39 passed |

@@ -19,6 +19,7 @@ build/
 .superpowers/
 .eval-results/
 .harness-runs/
+/.runs/
 /projects/
 web/node_modules/
 web/test-results/
