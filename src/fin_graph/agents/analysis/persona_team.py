@@ -235,6 +235,7 @@ def make_persona_analysis_supervisor(
     definitions = analyst_catalog()
     specs = build_persona_subagents(model, definitions, registry.tools(context))
     options = Settings(_env_file=None)
+    model_semaphore = asyncio.Semaphore(options.llm_max_concurrency)
     masking = MaskingPolicy.from_settings(options) if options.mask_enabled else None
     agents: dict[AnalystId, Any] = {}
     for definition, spec in zip(definitions, specs, strict=True):
@@ -303,17 +304,20 @@ def make_persona_analysis_supervisor(
             try:
                 token = PERSONA_TOOL_SCOPE.set(PersonaToolScope(ticker=ticker, as_of=request.as_of))
                 try:
-                    result = await asyncio.wait_for(
-                        agents[definition.id].ainvoke(
-                            {
-                                "messages": [
-                                    HumanMessage(content=_score_payload(request, definition, score))
-                                ]
-                            },
-                            context=context,
-                        ),
-                        timeout=options.llm_timeout_seconds,
-                    )
+                    async with model_semaphore:
+                        result = await asyncio.wait_for(
+                            agents[definition.id].ainvoke(
+                                {
+                                    "messages": [
+                                        HumanMessage(
+                                            content=_score_payload(request, definition, score)
+                                        )
+                                    ]
+                                },
+                                context=context,
+                            ),
+                            timeout=options.llm_timeout_seconds,
+                        )
                 finally:
                     PERSONA_TOOL_SCOPE.reset(token)
                 reasoning = _authoritative_reasoning(_last_text(result), score)

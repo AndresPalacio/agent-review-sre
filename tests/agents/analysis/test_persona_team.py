@@ -360,6 +360,46 @@ async def test_explicit_selection_preserves_scores_and_child_failure(
     assert "risk_management_agent" in legacy_result.analyst_signals
 
 
+async def test_persona_model_calls_respect_configured_concurrency(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    active = 0
+    maximum = 0
+
+    class CountingAgent:
+        async def ainvoke(self, payload: object, **kwargs: object) -> dict[str, Any]:
+            nonlocal active, maximum
+            active += 1
+            maximum = max(maximum, active)
+            try:
+                await asyncio.sleep(0.01)
+                return {"messages": [AIMessage("Deterministic score acknowledged.")]}
+            finally:
+                active -= 1
+
+    monkeypatch.setenv("LLM_MAX_CONCURRENCY", "2")
+    monkeypatch.setattr(
+        "fin_graph.agents.analysis.persona_team.create_deep_agent",
+        lambda **kwargs: CountingAgent(),
+    )
+    graph = make_persona_analysis_supervisor(
+        ScriptedChatModel(responses=[]), Registry(), RunContext(), Services(), checkpointer=False
+    )
+    request = AnalysisRequest(
+        tickers=["CASE"],
+        as_of=date(2026, 1, 1),
+        analysts=(
+            AnalystId.FUNDAMENTALS_ANALYST,
+            AnalystId.GROWTH_ANALYST,
+            AnalystId.NEWS_SENTIMENT_ANALYST,
+        ),
+    )
+
+    await graph.ainvoke({"request": request.model_dump(mode="json")})
+
+    assert maximum == 2
+
+
 @pytest.mark.parametrize(
     ("signal", "narrative"),
     [

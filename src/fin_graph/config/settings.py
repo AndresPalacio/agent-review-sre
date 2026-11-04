@@ -105,6 +105,7 @@ class Settings(BaseSettings):
     llm_temperature: float = 0.0
     llm_timeout_seconds: float = 120.0
     llm_max_retries: int = 2
+    llm_max_concurrency: int = Field(default=8, ge=1, le=64)
     #: Context window requested from Ollama; its own default (2048) truncates analysis prompts.
     llm_num_ctx: int = Field(default=8192, ge=512)
     #: Output cap for Ollama: a small model in JSON mode can keep a list open until the context

@@ -5,6 +5,8 @@ from collections.abc import Mapping, Sequence
 from datetime import UTC, date, datetime, timedelta
 from typing import ClassVar
 
+import pytest
+
 from fin_graph.backtesting.models import BacktestEventKind, BacktestStatus
 from fin_graph.backtesting.strategies import StrategyBacktestRequest, run_strategy_backtest
 from fin_graph.domain.market import Price
@@ -34,6 +36,22 @@ class PriceData:
 
     async def prices(self, ticker: str, start: date, end: date) -> list[Price]:
         return [row for row in self.values if start <= row.day <= end]
+
+
+class ConcurrentPriceData(PriceData):
+    def __init__(self, values: list[Price]) -> None:
+        super().__init__(values)
+        self.active = 0
+        self.maximum = 0
+
+    async def prices(self, ticker: str, start: date, end: date) -> list[Price]:
+        self.active += 1
+        self.maximum = max(self.maximum, self.active)
+        try:
+            await asyncio.sleep(0.01)
+            return await super().prices(ticker, start, end)
+        finally:
+            self.active -= 1
 
 
 class StepStrategy(AlgorithmStrategy):
@@ -106,3 +124,44 @@ async def test_strategy_cancellation_never_reports_success() -> None:
     assert output.result.status is BacktestStatus.CANCELLED
     assert [event.kind for event in events if event.terminal] == [BacktestEventKind.CANCELLED]
     assert output.result.trades == ()
+
+
+async def test_strategy_price_loading_is_parallel_and_bounded() -> None:
+    data = ConcurrentPriceData(_prices([100, 100, 110, 110]))
+
+    output = await run_strategy_backtest(
+        StrategyBacktestRequest(
+            algorithm_key="step_strategy",
+            symbols=("AAA", "BBB", "CCC"),
+            start_date=date(2024, 1, 1),
+            end_date=date(2024, 1, 4),
+            commission_rate=0,
+            slippage_bps=0,
+        ),
+        StepStrategy(ticker="AAA"),
+        data,
+        event_sink=None,
+        cancellation=None,
+        data_concurrency=2,
+    )
+
+    assert data.maximum == 2
+    assert [item.symbol for item in output.result.signal_summary] == ["AAA", "BBB", "CCC"]
+
+
+async def test_strategy_rejects_non_positive_data_concurrency() -> None:
+    with pytest.raises(ValueError, match="data_concurrency must be at least one"):
+        async with asyncio.timeout(0.05):
+            await run_strategy_backtest(
+                StrategyBacktestRequest(
+                    algorithm_key="step_strategy",
+                    symbols=("AAA",),
+                    start_date=date(2024, 1, 1),
+                    end_date=date(2024, 1, 4),
+                ),
+                StepStrategy(ticker="AAA"),
+                PriceData(_prices([100, 100, 110, 110])),
+                event_sink=None,
+                cancellation=None,
+                data_concurrency=0,
+            )

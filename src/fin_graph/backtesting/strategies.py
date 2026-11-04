@@ -380,9 +380,12 @@ async def run_strategy_backtest(
     *,
     event_sink: EventSink | None,
     cancellation: Cancellation | None,
+    data_concurrency: int = 8,
 ) -> StrategyBacktestOutput:
     """Generate pure signals, shift them one bar, then rebalance one global account."""
 
+    if data_concurrency < 1:
+        raise ValueError("data_concurrency must be at least one")
     events = _Events(event_sink)
     await events.emit(BacktestEventKind.RUNNING, 0, "Backtest started")
     histories: dict[str, list[Price]] = {}
@@ -390,14 +393,21 @@ async def run_strategy_backtest(
     trades: list[StrategyTrade] = []
     signal_points: list[StrategySignalPoint] = []
     try:
-        for symbol in request.symbols:
-            rows = sorted(
-                await data.prices(symbol, request.start_date, request.end_date),
-                key=lambda item: item.time,
-            )
+        semaphore = asyncio.Semaphore(data_concurrency)
+
+        async def load_history(symbol: str) -> list[Price]:
+            async with semaphore:
+                rows = sorted(
+                    await data.prices(symbol, request.start_date, request.end_date),
+                    key=lambda item: item.time,
+                )
             if not rows:
                 raise ValueError(f"Missing market data for {symbol}")
-            histories[symbol] = rows
+            return rows
+
+        async with asyncio.TaskGroup() as group:
+            loads = {symbol: group.create_task(load_history(symbol)) for symbol in request.symbols}
+        histories.update((symbol, loads[symbol].result()) for symbol in request.symbols)
         raw: dict[str, dict[date, float]] = {}
         bars: dict[str, dict[date, Price]] = {}
         for symbol, rows in histories.items():
