@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 from datetime import date
+from pathlib import Path
 from typing import Any, cast
 
 import pytest
@@ -22,6 +23,7 @@ from fin_graph.agents.analysis.persona_team import (
 )
 from fin_graph.agents.analysis.personas import build_persona_subagents
 from fin_graph.agents.common.testing.scripted_model import ScriptedChatModel
+from fin_graph.config.settings import Settings
 from fin_graph.domain.analysts import AnalystId, analyst_catalog, resolve_analysts
 from fin_graph.domain.company import CompanySnapshot
 from fin_graph.domain.market import FinancialMetrics, LineItem, Price
@@ -361,7 +363,7 @@ async def test_explicit_selection_preserves_scores_and_child_failure(
 
 
 async def test_persona_model_calls_respect_configured_concurrency(
-    monkeypatch: pytest.MonkeyPatch,
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
     active = 0
     maximum = 0
@@ -377,13 +379,19 @@ async def test_persona_model_calls_respect_configured_concurrency(
             finally:
                 active -= 1
 
-    monkeypatch.setenv("LLM_MAX_CONCURRENCY", "2")
+    env_file = tmp_path / ".env"
+    env_file.write_text("LLM_MAX_CONCURRENCY=2\n", encoding="utf-8")
     monkeypatch.setattr(
         "fin_graph.agents.analysis.persona_team.create_deep_agent",
         lambda **kwargs: CountingAgent(),
     )
     graph = make_persona_analysis_supervisor(
-        ScriptedChatModel(responses=[]), Registry(), RunContext(), Services(), checkpointer=False
+        ScriptedChatModel(responses=[]),
+        Registry(),
+        RunContext(),
+        Services(),
+        checkpointer=False,
+        settings=Settings(_env_file=env_file),
     )
     request = AnalysisRequest(
         tickers=["CASE"],

@@ -7,13 +7,14 @@ error leaves that ticker ``unknown`` instead of failing the run.
 
 from __future__ import annotations
 
-from collections.abc import Callable
-from datetime import UTC, datetime, timedelta
+from collections.abc import Awaitable, Callable
+from datetime import UTC, date, datetime, timedelta
 from typing import Any, TypedDict
 
 from langgraph.graph import END, START, StateGraph
 from langgraph.graph.state import CompiledStateGraph
 
+from fin_graph.domain.market import Price
 from fin_graph.domain.market_watch import (
     WatchResult,
     WatchRule,
@@ -22,7 +23,6 @@ from fin_graph.domain.market_watch import (
     watch_question,
 )
 from fin_graph.integrations.base import IntegrationError
-from fin_graph.integrations.market_data import MarketDataClient
 
 #: Calendar days of history: a trading year for the drawdown plus margin for holidays.
 HISTORY_DAYS = 400
@@ -38,11 +38,11 @@ class MarketWatchState(TypedDict, total=False):
 
 
 def make_market_watch_graph(
-    market: Callable[[], MarketDataClient],
+    prices: Callable[[str, date, date], Awaitable[list[Price]]],
     *,
     clock: Callable[[], datetime] = lambda: datetime.now(UTC),
 ) -> CompiledStateGraph[Any, Any, Any, Any]:
-    """Compile the watch; ``market`` returns the data client for this run."""
+    """Compile the watch; ``prices`` owns the lifetime of each provider request."""
 
     async def check(state: MarketWatchState) -> dict[str, Any]:
         rules = [WatchRule.model_validate(item) for item in state.get("rules", [])]
@@ -50,15 +50,13 @@ def make_market_watch_graph(
         results: list[WatchResult] = []
         for rule in rules:
             try:
-                prices = await market().prices(
-                    rule.ticker, today - timedelta(days=HISTORY_DAYS), today
-                )
+                history = await prices(rule.ticker, today - timedelta(days=HISTORY_DAYS), today)
             except (IntegrationError, TypeError) as exc:
                 results.append(
                     WatchResult(ticker=rule.ticker, status="unknown", reasons=[type(exc).__name__])
                 )
                 continue
-            results.append(assess(rule, prices))
+            results.append(assess(rule, history))
         triggered = [item for item in results if item.status == "triggered"]
         return {
             "results": [item.model_dump(mode="json") for item in results],

@@ -159,6 +159,7 @@ def _local_model_graphs(
             context,
             MarketSnapshotServices(),
             checkpointer=False,
+            settings=settings,
         )
         memory_store = InMemoryStore()
         chat = make_chat_graph(

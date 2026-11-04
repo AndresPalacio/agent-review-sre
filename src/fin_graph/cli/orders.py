@@ -11,7 +11,7 @@ import asyncio
 import getpass
 import json
 from collections.abc import AsyncIterator, Sequence
-from contextlib import asynccontextmanager
+from contextlib import asynccontextmanager, nullcontext
 from dataclasses import dataclass, replace
 from datetime import UTC, datetime
 from typing import Annotated, Any
@@ -28,7 +28,7 @@ from fin_graph.domain.requests.model import normalize_ticker
 from fin_graph.integrations.broker.paper.broker import PaperBroker, PaperBrokerError
 from fin_graph.integrations.broker.paper.runtime import ledger_path, open_trading_context
 from fin_graph.integrations.catalog import default_registry
-from fin_graph.integrations.context import RunContext
+from fin_graph.integrations.context import RunContext, close_run_context
 from fin_graph.persistence.checkpointer import open_checkpointer
 from fin_graph.safety.approval import ApprovalPolicy
 from fin_graph.safety.secrets import redact_secrets
@@ -64,9 +64,11 @@ async def open_orders_runtime(
     """The broker, the order graph and its checkpoints, beside the paper ledger."""
     active = settings or Settings()
     base = context or default_registry().run_context()
+    context_scope = close_run_context(base) if context is None else nullcontext(base)
     threads = ledger_path(active).with_name("orders.sqlite")
     checkpoints = Settings(persistence_backend=PersistenceBackend.SQLITE, sqlite_path=str(threads))
     async with (
+        context_scope,
         open_checkpointer(checkpoints) as saver,
         open_trading_context(active, base) as (broker, trading),
     ):

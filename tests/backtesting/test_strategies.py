@@ -165,3 +165,39 @@ async def test_strategy_rejects_non_positive_data_concurrency() -> None:
                 cancellation=None,
                 data_concurrency=0,
             )
+
+
+async def test_strategy_preserves_provider_error_and_cancels_sibling_loads() -> None:
+    provider_error = RuntimeError("provider failed")
+    sibling_started = asyncio.Event()
+    sibling_cancelled = asyncio.Event()
+
+    class FailingPriceData(PriceData):
+        async def prices(self, ticker: str, start: date, end: date) -> list[Price]:
+            if ticker == "AAA":
+                await sibling_started.wait()
+                raise provider_error
+            sibling_started.set()
+            try:
+                await asyncio.Event().wait()
+            except asyncio.CancelledError:
+                sibling_cancelled.set()
+                raise
+
+    with pytest.raises(RuntimeError) as caught:
+        await run_strategy_backtest(
+            StrategyBacktestRequest(
+                algorithm_key="step_strategy",
+                symbols=("AAA", "BBB"),
+                start_date=date(2024, 1, 1),
+                end_date=date(2024, 1, 4),
+            ),
+            StepStrategy(ticker="AAA"),
+            FailingPriceData(_prices([100, 100, 110, 110])),
+            event_sink=None,
+            cancellation=None,
+            data_concurrency=2,
+        )
+
+    assert caught.value is provider_error
+    assert sibling_cancelled.is_set()

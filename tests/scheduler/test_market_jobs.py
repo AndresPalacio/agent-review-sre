@@ -160,6 +160,29 @@ async def test_a_trigger_starts_one_deduplicated_analysis_of_the_moved_tickers()
     assert [status for _, status, _ in watch.storage.results] == ["triggered", "triggered"]
 
 
+async def test_market_watch_closes_each_price_context() -> None:
+    class CloseableClient:
+        def __init__(self) -> None:
+            self.closes = 0
+
+        async def aclose(self) -> None:
+            self.closes += 1
+
+    market = StaticMarketData(prices={"KO": bars(calm(200))})
+    closeable = CloseableClient()
+
+    def context_factory() -> RunContext:
+        return RunContext(
+            clients={"analytics": AnalyticsEngine("fixtures"), "market_fixtures": market},
+            owned_clients=(closeable,),
+        )
+
+    watch = MarketJobs(Storage(), Manager(), context_factory, now=lambda: NOW)
+    await watch.market_watch("watch-close", {"kind": "market_watch", "rules": [{"ticker": "KO"}]})
+
+    assert closeable.closes == 1
+
+
 async def test_the_digest_reports_the_paper_book_and_queued_orders(broker: PaperBroker) -> None:
     await broker.place(
         ProposedOrder(

@@ -22,6 +22,13 @@ from fin_graph.server.storage import Base, Storage
 
 
 async def test_chat_sse_requires_operator_and_keeps_thread(tmp_path: Path) -> None:
+    class CloseableClient:
+        def __init__(self) -> None:
+            self.closes = 0
+
+        async def aclose(self) -> None:
+            self.closes += 1
+
     engine = create_async_engine(f"sqlite+aiosqlite:///{tmp_path / 'chat-api.sqlite'}")
     async with engine.begin() as connection:
         await connection.run_sync(Base.metadata.create_all)
@@ -29,7 +36,14 @@ async def test_chat_sse_requires_operator_and_keeps_thread(tmp_path: Path) -> No
     await storage.put_key("viewer-key", "viewer")
     await storage.put_key("operator-key", "operator")
     registry = IntegrationRegistry([], env_file=None)
-    manager = analysis_manager(storage, fixture_context())
+    clients: list[CloseableClient] = []
+
+    def context_factory() -> RunContext:
+        client = CloseableClient()
+        clients.append(client)
+        return RunContext(owned_clients=(client,))
+
+    manager = analysis_manager(storage, context_factory)
     chat = make_chat_graph(
         ScriptedChatModel(responses=[AIMessage("Hola, ¿qué falla?"), AIMessage("Entendido.")]),
         registry,
@@ -60,6 +74,7 @@ async def test_chat_sse_requires_operator_and_keeps_thread(tmp_path: Path) -> No
         assert "event: message" in first.text
         assert "Hola" in first.text
         assert "Entendido" in second.text
+        assert [client.closes for client in clients] == [1, 1]
     await engine.dispose()
 
 

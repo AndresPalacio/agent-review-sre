@@ -405,8 +405,20 @@ async def run_strategy_backtest(
                 raise ValueError(f"Missing market data for {symbol}")
             return rows
 
-        async with asyncio.TaskGroup() as group:
-            loads = {symbol: group.create_task(load_history(symbol)) for symbol in request.symbols}
+        loads: dict[str, asyncio.Task[list[Price]]] = {}
+        try:
+            async with asyncio.TaskGroup() as group:
+                loads = {
+                    symbol: group.create_task(load_history(symbol)) for symbol in request.symbols
+                }
+        except ExceptionGroup as group_error:
+            for symbol in request.symbols:
+                task = loads.get(symbol)
+                if task is None or task.cancelled() or not task.done():
+                    continue
+                if error := task.exception():
+                    raise error from None
+            raise group_error
         histories.update((symbol, loads[symbol].result()) for symbol in request.symbols)
         raw: dict[str, dict[date, float]] = {}
         bars: dict[str, dict[date, Price]] = {}

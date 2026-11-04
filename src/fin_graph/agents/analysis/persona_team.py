@@ -229,12 +229,13 @@ def make_persona_analysis_supervisor(
     *,
     checkpointer: Checkpointer = None,
     result_builder: PersonaResultBuilder | None = None,
+    settings: Settings | None = None,
 ) -> CompiledStateGraph[Any, Any, Any, Any]:
     """Compile the full nineteen-persona analysis graph."""
 
     definitions = analyst_catalog()
     specs = build_persona_subagents(model, definitions, registry.tools(context))
-    options = Settings(_env_file=None)
+    options = settings or Settings(_env_file=None)
     model_semaphore = asyncio.Semaphore(options.llm_max_concurrency)
     masking = MaskingPolicy.from_settings(options) if options.mask_enabled else None
     agents: dict[AnalystId, Any] = {}

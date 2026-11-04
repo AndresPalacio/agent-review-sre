@@ -31,6 +31,7 @@ def make_reference_analysis_supervisor(
     services: PersonaSnapshotServices,
     *,
     checkpointer: Checkpointer = None,
+    settings: Settings | None = None,
 ) -> CompiledStateGraph[Any, Any, Any, Any]:
     """Build the persona team with the reference application's result mapping."""
     return make_persona_analysis_supervisor(
@@ -40,6 +41,7 @@ def make_reference_analysis_supervisor(
         services,
         checkpointer=checkpointer,
         result_builder=build_reference_portfolio_result,
+        settings=settings,
     )
 
 
@@ -54,6 +56,7 @@ def make_reference_analysis_runtime() -> tuple[CompiledStateGraph[Any, Any, Any,
         registry,
         context,
         MarketSnapshotServices(),
+        settings=settings,
     )
     return graph, context
 
@@ -71,5 +74,6 @@ async def make_reference_analysis_runtime_async() -> tuple[
         registry,
         context,
         MarketSnapshotServices(),
+        settings=settings,
     )
     return graph, context

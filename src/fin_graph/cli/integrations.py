@@ -12,6 +12,7 @@ import typer
 from rich.console import Console
 
 from fin_graph.integrations.catalog import default_registry
+from fin_graph.integrations.context import close_run_context
 from fin_graph.integrations.setup import settings_models, update_env, verify_proposed
 
 app = typer.Typer(no_args_is_help=True)
@@ -34,17 +35,24 @@ def list_integrations(
     env_file: Annotated[Path, typer.Option("--env-file")] = Path(".env"),
     mcp_config: Annotated[Path | None, typer.Option("--mcp-config")] = None,
 ) -> None:
-    try:
-        registry = asyncio.run(_registry(env_file, mcp_config))
+    async def listing() -> list[tuple[str, str]]:
+        registry = await _registry(env_file, mcp_config)
         context = registry.run_context()
-        for name in registry.ids:
-            state = (
-                "configured"
-                if name in context.clients
-                else "invalid"
-                if name in context.unavailable
-                else "not_configured"
-            )
+        async with close_run_context(context):
+            return [
+                (
+                    name,
+                    "configured"
+                    if name in context.clients
+                    else "invalid"
+                    if name in context.unavailable
+                    else "not_configured",
+                )
+                for name in registry.ids
+            ]
+
+    try:
+        for name, state in asyncio.run(listing()):
             console.print(f"{name}: {state}")
     except Exception as exc:
         console.print(f"Integration listing failed ({type(exc).__name__})")

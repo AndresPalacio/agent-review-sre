@@ -13,7 +13,7 @@ from typing import Any, Protocol
 
 from langgraph.types import Command
 
-from fin_graph.integrations.context import RunContext
+from fin_graph.integrations.context import RunContext, close_run_context
 
 EXPIRY_ACTOR = "scheduler:expiry"
 EXPIRY_ROLE = "internal_rejector"
@@ -116,12 +116,15 @@ async def expire_pending_approvals(
             if not isinstance(context, RunContext):
                 raise TypeError("approval expiry requires RunContext")
             context = replace(context, actor=EXPIRY_ACTOR, role=EXPIRY_ROLE)
-            decisions = [{"type": "reject"} for _ in records]
-            for action_name, args_digest in records:
-                await storage.record_approval(
-                    thread_id, kind, EXPIRY_ACTOR, "reject", action_name, args_digest
+            async with close_run_context(context):
+                decisions = [{"type": "reject"} for _ in records]
+                for action_name, args_digest in records:
+                    await storage.record_approval(
+                        thread_id, kind, EXPIRY_ACTOR, "reject", action_name, args_digest
+                    )
+                await graph.ainvoke(
+                    Command(resume={"decisions": decisions}), config, context=context
                 )
-            await graph.ainvoke(Command(resume={"decisions": decisions}), config, context=context)
-            await storage.touch_checkpoint_thread(thread_id, kind)
+                await storage.touch_checkpoint_thread(thread_id, kind)
             expired += 1
     return expired

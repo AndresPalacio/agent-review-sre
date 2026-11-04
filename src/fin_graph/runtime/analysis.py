@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 from collections.abc import Awaitable, Callable
+from dataclasses import replace
 from datetime import UTC, datetime
 from typing import Any, Literal
 
@@ -115,13 +116,15 @@ def make_analysis_runtime() -> tuple[CompiledStateGraph[Any, Any, Any, Any], Run
     disable_external_tracing()
     settings = Settings()
     registry = _sync_registry()
+    delivery = DeliveryService.from_env()
     graph = make_analysis_graph(
         _analysis_services(settings),
         registry,
-        delivery=DeliveryService.from_env(),
+        delivery=delivery,
         settings=settings,
     )
-    return graph, registry.run_context()
+    context = registry.run_context()
+    return graph, replace(context, owned_clients=(*context.owned_clients, delivery))
 
 
 async def make_analysis_runtime_async() -> tuple[
@@ -131,13 +134,15 @@ async def make_analysis_runtime_async() -> tuple[
     disable_external_tracing()
     settings = Settings()
     registry = await with_configured_mcp(default_registry())
+    delivery = DeliveryService.from_env()
     graph = make_analysis_graph(
         _analysis_services(settings),
         registry,
-        delivery=DeliveryService.from_env(),
+        delivery=delivery,
         settings=settings,
     )
-    return graph, registry.run_context()
+    context = registry.run_context()
+    return graph, replace(context, owned_clients=(*context.owned_clients, delivery))
 
 
 async def make_analysis_graph_async() -> CompiledStateGraph[Any, Any, Any, Any]:

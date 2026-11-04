@@ -19,6 +19,7 @@ from fin_graph.adapters.reference_app.schemas import (
     ModelProvider,
     PortfolioPosition,
 )
+from fin_graph.integrations.context import close_run_context
 
 
 def parse_hedge_fund_response(response: object) -> dict[str, Any] | None:
@@ -119,15 +120,18 @@ async def run_hedge_fund_async(
         model_provider,
     )
     native = to_native_analysis_request(request)
-    graph, _context = await make_reference_analysis_runtime_async()
-    state = await graph.ainvoke(
-        {
-            "request": native.model_dump(mode="json"),
-            "portfolio": (
-                native.portfolio.model_dump(mode="json") if native.portfolio is not None else None
-            ),
-        }
-    )
+    graph, context = await make_reference_analysis_runtime_async()
+    async with close_run_context(context):
+        state = await graph.ainvoke(
+            {
+                "request": native.model_dump(mode="json"),
+                "portfolio": (
+                    native.portfolio.model_dump(mode="json")
+                    if native.portfolio is not None
+                    else None
+                ),
+            }
+        )
     result = state.get("result") if isinstance(state, dict) else None
     if not isinstance(result, dict):
         raise RuntimeError("analysis did not produce a compatible result")

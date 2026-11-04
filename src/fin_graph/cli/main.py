@@ -29,7 +29,7 @@ from fin_graph.config.settings import PersistenceBackend, Settings
 from fin_graph.config.tracing import disable_external_tracing
 from fin_graph.integrations.broker.paper.runtime import open_trading_context
 from fin_graph.integrations.catalog import default_registry
-from fin_graph.integrations.context import RunContext
+from fin_graph.integrations.context import RunContext, close_run_context
 from fin_graph.llm.models import ModelRole, get_model
 from fin_graph.memory.theses import ThesisMemory
 from fin_graph.persistence.action_ledger import open_sqlite_action_ledger
@@ -144,7 +144,7 @@ async def _analyze(
     """Run with the paper broker in the context; with ``propose``, queue each order for approval."""
     from fin_graph.cli.orders import open_orders_runtime, outcome_line, submit, thread_for
 
-    async with open_orders_runtime(context=context) as orders:
+    async with close_run_context(context), open_orders_runtime(context=context) as orders:
         report = await _run_analysis(graph, orders.context, raw, portfolio, as_json)
         if not propose:
             return
@@ -353,6 +353,7 @@ async def _local_session(sqlite_path: Path | None) -> AsyncIterator[ChatSession]
     registry = await with_configured_mcp(default_registry())
     base = registry.run_context()
     async with (
+        close_run_context(base),
         open_checkpointer(settings) as saver,
         open_store(settings) as store,
         open_sqlite_action_ledger(path) as action_ledger,

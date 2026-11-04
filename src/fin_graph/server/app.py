@@ -55,7 +55,7 @@ from fin_graph.integrations.base import IntegrationError, IntegrationNotConfigur
 from fin_graph.integrations.broker.paper.broker import PaperBroker, PaperBrokerError
 from fin_graph.integrations.broker.paper.runtime import context_quotes, paper_broker
 from fin_graph.integrations.catalog import default_registry
-from fin_graph.integrations.context import RunContext
+from fin_graph.integrations.context import RunContext, close_run_context
 from fin_graph.integrations.registry import IntegrationRegistry
 from fin_graph.llm.models import ModelRole, get_model
 from fin_graph.memory.theses import ThesisMemory
@@ -256,12 +256,15 @@ def create_app(
                         make_reference_analysis_supervisor,
                     )
 
+                    chat_analysis_context = context_factory()
+                    stack.push_async_callback(chat_analysis_context.aclose)
                     chat_analysis = make_reference_analysis_supervisor(
                         model,
                         active_registry,
-                        context_factory(),
+                        chat_analysis_context,
                         MarketSnapshotServices(),
                         checkpointer=False,  # Disable the inherited chat saver.
+                        settings=settings,
                     )
                     app.state.reference_app_analysis_graph = chat_analysis
                     app.state.reference_app_backtest_runner = make_v1_backtest_runner(
@@ -269,10 +272,12 @@ def create_app(
                     )
                     from fin_graph.agents.chat.supervisor import make_chat_graph
 
+                    chat_context = context_factory()
+                    stack.push_async_callback(chat_context.aclose)
                     active_chat = make_chat_graph(
                         model,
                         active_registry,
-                        context_factory(),
+                        chat_context,
                         theses,
                         policy=active_policy,
                         analysis=chat_analysis,
@@ -607,23 +612,25 @@ def create_app(
                         return
                     await _manager(request).storage.touch_checkpoint_thread(thread_id, "chat")
                     seen: set[str] = set()
-                    async for _, snapshot in graph.astream(
-                        {"messages": [HumanMessage(body.message)]},
-                        config=config,
-                        context=_manager(request).context_factory(),
-                        stream_mode=["values"],
-                    ):
-                        if not isinstance(snapshot, dict):
-                            continue
-                        messages = snapshot.get("messages") or []
-                        if messages and isinstance(messages[-1], AIMessage):
-                            message = messages[-1]
-                            if message.tool_calls or message.id in seen:
+                    context = _manager(request).context_factory()
+                    async with close_run_context(context):
+                        async for _, snapshot in graph.astream(
+                            {"messages": [HumanMessage(body.message)]},
+                            config=config,
+                            context=context,
+                            stream_mode=["values"],
+                        ):
+                            if not isinstance(snapshot, dict):
                                 continue
-                            if message.id:
-                                seen.add(message.id)
-                            content = redact_secrets(str(message.text))
-                            yield _sse("message", {"text": content, "thread_id": thread_id})
+                            messages = snapshot.get("messages") or []
+                            if messages and isinstance(messages[-1], AIMessage):
+                                message = messages[-1]
+                                if message.tool_calls or message.id in seen:
+                                    continue
+                                if message.id:
+                                    seen.add(message.id)
+                                content = redact_secrets(str(message.text))
+                                yield _sse("message", {"text": content, "thread_id": thread_id})
                     state = await graph.aget_state(config)
                     pending_items = [item for task in state.tasks for item in task.interrupts]
                     pending = [item.value for item in pending_items]
@@ -711,14 +718,15 @@ def create_app(
                 await _manager(request).storage.record_approval(
                     thread_id, "chat", actor, decision, action_name, args_digest
                 )
-            try:
-                result = await graph.ainvoke(
-                    Command(resume={"decisions": decisions}), config, context=context
-                )
-            except (ValueError, PermissionError) as exc:
-                raise HTTPException(422, type(exc).__name__) from exc
-            except RuntimeError as exc:
-                raise HTTPException(409, "the paper book kept changing; retry") from exc
+            async with close_run_context(context):
+                try:
+                    result = await graph.ainvoke(
+                        Command(resume={"decisions": decisions}), config, context=context
+                    )
+                except (ValueError, PermissionError) as exc:
+                    raise HTTPException(422, type(exc).__name__) from exc
+                except RuntimeError as exc:
+                    raise HTTPException(409, "the paper book kept changing; retry") from exc
             remaining = result.get("__interrupt__", ())
             if remaining:
                 await _notify_gateways(request.app, "chat", thread_id, remaining)
@@ -901,16 +909,17 @@ def create_app(
                 await _manager(request).storage.record_approval(
                     thread_id, "orders", actor, decision, action_name, args_digest
                 )
-            try:
-                result = await graph.ainvoke(
-                    Command(resume={"decisions": decisions}), config, context=context
-                )
-            except (ValueError, ValidationError, PermissionError, PaperBrokerError) as exc:
-                raise HTTPException(422, type(exc).__name__) from exc
-            except IntegrationNotConfiguredError as exc:
-                raise HTTPException(503, "paper broker unavailable") from exc
-            except RuntimeError as exc:
-                raise HTTPException(409, "the paper book kept changing; retry") from exc
+            async with close_run_context(context):
+                try:
+                    result = await graph.ainvoke(
+                        Command(resume={"decisions": decisions}), config, context=context
+                    )
+                except (ValueError, ValidationError, PermissionError, PaperBrokerError) as exc:
+                    raise HTTPException(422, type(exc).__name__) from exc
+                except IntegrationNotConfiguredError as exc:
+                    raise HTTPException(503, "paper broker unavailable") from exc
+                except RuntimeError as exc:
+                    raise HTTPException(409, "the paper book kept changing; retry") from exc
             pending_after = result.get("__interrupt__", ())
             if pending_after:
                 await _notify_gateways(request.app, "orders", thread_id, pending_after)
@@ -1177,19 +1186,20 @@ def create_app(
         await _authorize(request, x_api_key, "viewer")
         active_registry: IntegrationRegistry = request.app.state.registry
         context = active_registry.run_context()
-        return [
-            {
-                "id": identity,
-                "status": (
-                    "available"
-                    if identity in context.clients
-                    else "failed"
-                    if identity in context.unavailable
-                    else "not_configured"
-                ),
-            }
-            for identity in active_registry.ids
-        ]
+        async with close_run_context(context):
+            return [
+                {
+                    "id": identity,
+                    "status": (
+                        "available"
+                        if identity in context.clients
+                        else "failed"
+                        if identity in context.unavailable
+                        else "not_configured"
+                    ),
+                }
+                for identity in active_registry.ids
+            ]
 
     @app.post("/v1/integrations/verify")
     async def verify_integrations(
@@ -1435,14 +1445,16 @@ async def _run_order(app: FastAPI, thread_id: str, value: dict[str, Any]) -> dic
     lock = locks.setdefault(thread_id, asyncio.Lock())
     async with lock, manager.storage.approval_lock("orders", thread_id):
         await manager.storage.touch_checkpoint_thread(thread_id, "orders")
-        try:
-            result: dict[str, Any] = await graph.ainvoke(
-                value, _graph_config("orders", thread_id), context=manager.context_factory()
-            )
-        except (ValueError, ValidationError) as exc:
-            raise HTTPException(422, "invalid order") from exc
-        except IntegrationNotConfiguredError as exc:
-            raise HTTPException(503, "paper broker unavailable") from exc
+        context = manager.context_factory()
+        async with close_run_context(context):
+            try:
+                result: dict[str, Any] = await graph.ainvoke(
+                    value, _graph_config("orders", thread_id), context=context
+                )
+            except (ValueError, ValidationError) as exc:
+                raise HTTPException(422, "invalid order") from exc
+            except IntegrationNotConfiguredError as exc:
+                raise HTTPException(503, "paper broker unavailable") from exc
     pending = result.get("__interrupt__", ())
     if pending:
         await _notify_gateways(app, "orders", thread_id, pending)
@@ -1530,12 +1542,13 @@ async def _gateway_decide(
             await app.state.manager.storage.record_approval(
                 thread_id, kind, actor, decision, action_name, args_digest
             )
-        try:
-            result = await graph.ainvoke(
-                Command(resume={"decisions": decisions}), config, context=context
-            )
-        except Exception:
-            return "Approval could not be completed; inspect the thread in the API."
+        async with close_run_context(context):
+            try:
+                result = await graph.ainvoke(
+                    Command(resume={"decisions": decisions}), config, context=context
+                )
+            except Exception:
+                return "Approval could not be completed; inspect the thread in the API."
         if result.get("__interrupt__"):
             await _notify_gateways(app, kind, thread_id, result["__interrupt__"])
             return "Decision recorded; another approval is pending."

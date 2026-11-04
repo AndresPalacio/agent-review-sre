@@ -14,10 +14,11 @@ from uuid import uuid4
 from zoneinfo import ZoneInfo
 
 from fin_graph.domain.fills import OrderStatus
+from fin_graph.domain.market import Price
 from fin_graph.domain.market_watch import WatchResult
 from fin_graph.integrations.analytics.engine import AnalyticsEngine
 from fin_graph.integrations.broker.paper.broker import PaperBroker
-from fin_graph.integrations.context import RunContext
+from fin_graph.integrations.context import RunContext, close_run_context
 from fin_graph.integrations.market_data import MarketDataClient
 from fin_graph.memory.theses import ThesisMemory
 from fin_graph.workflows.market_watch.graph import make_market_watch_graph
@@ -62,18 +63,21 @@ class AnalysisManager(Protocol):
     ) -> dict[str, Any]: ...
 
 
-def market_client(context_factory: Callable[[], RunContext]) -> Callable[[], MarketDataClient]:
-    """The data client the analytics engine reads, resolved for every run."""
+def market_prices(
+    context_factory: Callable[[], RunContext],
+) -> Callable[[str, date, date], Awaitable[list[Price]]]:
+    """Load prices through a fresh context and close it after the provider call."""
 
-    def resolve() -> MarketDataClient:
+    async def load(ticker: str, start: date, end: date) -> list[Price]:
         context = context_factory()
-        engine = context.client("analytics", AnalyticsEngine)
-        client = context.client(engine.data_integration, object)
-        if not isinstance(client, MarketDataClient):
-            raise TypeError(f"{engine.data_integration} is not a market data client")
-        return client
+        async with close_run_context(context):
+            engine = context.client("analytics", AnalyticsEngine)
+            client = context.client(engine.data_integration, object)
+            if not isinstance(client, MarketDataClient):
+                raise TypeError(f"{engine.data_integration} is not a market data client")
+            return await client.prices(ticker, start, end)
 
-    return resolve
+    return load
 
 
 def _day_key(kind: str, schedule_id: str, day: date) -> str:
@@ -100,7 +104,7 @@ class MarketJobs:
         self.memory = memory
         self.send_text = send_text
         self.now = now
-        self.graph = make_market_watch_graph(market_client(context_factory), clock=now)
+        self.graph = make_market_watch_graph(market_prices(context_factory), clock=now)
 
     async def market_watch(self, schedule_id: str, definition: dict[str, Any]) -> None:
         """Check the rules; a trigger starts one deduplicated analysis of the moved tickers."""

@@ -2,7 +2,8 @@
 
 from __future__ import annotations
 
-from collections.abc import Mapping
+from collections.abc import AsyncIterator, Mapping
+from contextlib import asynccontextmanager
 from dataclasses import dataclass, field
 from typing import Any, Protocol, runtime_checkable
 
@@ -33,14 +34,23 @@ class RunContext:
     _closed_client_ids: set[int] = field(default_factory=set, init=False, repr=False, compare=False)
 
     async def aclose(self) -> None:
-        """Close each client owned by this run exactly once."""
+        """Attempt every unique close and retry only clients whose close failed."""
+        attempted: set[int] = set()
+        errors: list[BaseException] = []
         for client in self.owned_clients:
             identity = id(client)
-            if identity in self._closed_client_ids:
+            if identity in self._closed_client_ids or identity in attempted:
                 continue
-            self._closed_client_ids.add(identity)
+            attempted.add(identity)
             if isinstance(client, AsyncCloseable):
-                await client.aclose()
+                try:
+                    await client.aclose()
+                except BaseException as exc:
+                    errors.append(exc)
+                else:
+                    self._closed_client_ids.add(identity)
+        if errors:
+            raise BaseExceptionGroup("run context close failed", errors)
 
     def client[ClientT](self, integration: str, expected_type: type[ClientT]) -> ClientT:
         """The client for ``integration``; an error the model can read when there is none."""
@@ -55,6 +65,16 @@ class RunContext:
                 f"{integration} client is {type(found).__name__}, expected {expected_type.__name__}"
             )
         return found
+
+
+@asynccontextmanager
+async def close_run_context[ContextT](context: ContextT) -> AsyncIterator[ContextT]:
+    """Close a run context after one graph/tool operation; pass through test contexts."""
+    try:
+        yield context
+    finally:
+        if isinstance(context, RunContext):
+            await context.aclose()
 
 
 def require_client[ClientT](

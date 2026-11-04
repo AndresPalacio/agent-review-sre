@@ -202,6 +202,7 @@ def event_study_command(
 
     from fin_graph.integrations.analytics.engine import AnalyticsEngine
     from fin_graph.integrations.catalog import default_registry
+    from fin_graph.integrations.context import close_run_context
     from fin_graph.integrations.market_data import MarketDataClient
     from fin_graph.quant.event_study import EventStudyRequest, run_event_study
 
@@ -214,13 +215,18 @@ def event_study_command(
         n_bootstrap=bootstrap,
         seed=seed,
     )
-    context = default_registry().run_context()
-    engine = context.client("analytics", AnalyticsEngine)
-    data = context.clients.get(engine.data_integration)
-    if not isinstance(data, MarketDataClient):
-        raise typer.BadParameter("configured market-data provider is unavailable")
+
+    async def execute() -> Any:
+        context = default_registry().run_context()
+        async with close_run_context(context):
+            engine = context.client("analytics", AnalyticsEngine)
+            data = context.clients.get(engine.data_integration)
+            if not isinstance(data, MarketDataClient):
+                raise typer.BadParameter("configured market-data provider is unavailable")
+            return await run_event_study(request, data)
+
     try:
-        result = asyncio.run(run_event_study(request, data))
+        result = asyncio.run(execute())
     except (OSError, RuntimeError, ValueError) as exc:
         console.print(f"Error: {type(exc).__name__}: {exc}", markup=False)
         raise typer.Exit(1) from None

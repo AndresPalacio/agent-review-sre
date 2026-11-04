@@ -118,6 +118,34 @@ async def test_expired_paper_order_rejected_and_audited() -> None:
 
 
 @pytest.mark.asyncio
+async def test_expiry_closes_its_run_context() -> None:
+    class CloseableClient:
+        def __init__(self) -> None:
+            self.closes = 0
+
+        async def aclose(self) -> None:
+            self.closes += 1
+
+    storage = FakeStorage({("orders", "r1"): NOW - timedelta(hours=25)})
+    graph = FakeGraph([{"name": "place_paper_order", "args": {"quantity": 1}}])
+    client = CloseableClient()
+
+    count = await expire_pending_approvals(
+        storage=storage,
+        chat_graph=FakeGraph([]),
+        order_graph=graph,
+        chat_locks={},
+        order_locks={},
+        context_factory=lambda: RunContext(owned_clients=(client,)),
+        ttl=timedelta(hours=24),
+        now=lambda: NOW,
+    )
+
+    assert count == 1
+    assert client.closes == 1
+
+
+@pytest.mark.asyncio
 async def test_fresh_approval_is_not_expired() -> None:
     storage = FakeStorage({("chat", "c1"): NOW - timedelta(hours=23)})
     graph = FakeGraph([{"name": "save_note", "args": {"text": "safe"}}])

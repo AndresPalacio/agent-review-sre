@@ -32,7 +32,7 @@ from fin_graph.domain.analysts import analyst_catalog
 from fin_graph.domain.company import CompanySnapshot
 from fin_graph.domain.portfolio import Portfolio
 from fin_graph.domain.requests.model import AnalysisRequest
-from fin_graph.integrations.context import RunContext
+from fin_graph.integrations.context import RunContext, close_run_context
 from fin_graph.workflows.analysis.snapshots import MarketSnapshotServices
 
 router = APIRouter(prefix="/hedge-fund")
@@ -183,14 +183,16 @@ def make_v1_backtest_runner(
                 )
             )
 
-        result = await run_v1_backtest(
-            native,
-            _GraphAnalysisRunner(graph),
-            _BacktestData(context_factory()),
-            event_sink=on_event,
-            cancellation=cancellation,
-            initial_portfolio=to_native_portfolio(request, cash=request.initial_capital),
-        )
+        context = context_factory()
+        async with close_run_context(context):
+            result = await run_v1_backtest(
+                native,
+                _GraphAnalysisRunner(graph),
+                _BacktestData(context),
+                event_sink=on_event,
+                cancellation=cancellation,
+                initial_portfolio=to_native_portfolio(request, cash=request.initial_capital),
+            )
         compatible = from_native_backtest_result(result)
         for day in compatible.results:
             await emit(
