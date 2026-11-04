@@ -12,27 +12,49 @@ def _python_files(root: Path) -> list[Path]:
     return sorted(path for path in root.rglob("*.py") if "__pycache__" not in path.parts)
 
 
-def _deepagent_aliases(tree: ast.AST) -> set[str]:
-    aliases: set[str] = set()
+def _deepagent_aliases(tree: ast.AST) -> tuple[set[str], set[str]]:
+    function_aliases: set[str] = set()
+    module_aliases: set[str] = set()
     for node in ast.walk(tree):
         if isinstance(node, ast.ImportFrom) and node.module == "deepagents":
-            aliases.update(
+            function_aliases.update(
                 item.asname or item.name
                 for item in node.names
                 if item.name == "create_deep_agent"
             )
-    return aliases
+        elif isinstance(node, ast.Import):
+            module_aliases.update(
+                item.asname or item.name
+                for item in node.names
+                if item.name == "deepagents"
+            )
+    return function_aliases, module_aliases
+
+
+def _is_create_deep_agent_call(
+    node: ast.AST,
+    function_aliases: set[str],
+    module_aliases: set[str],
+) -> bool:
+    if not isinstance(node, ast.Call):
+        return False
+    if isinstance(node.func, ast.Name):
+        return node.func.id in function_aliases
+    return (
+        isinstance(node.func, ast.Attribute)
+        and node.func.attr == "create_deep_agent"
+        and isinstance(node.func.value, ast.Name)
+        and node.func.value.id in module_aliases
+    )
 
 
 def _create_deep_agent_call_paths(root: Path) -> set[str]:
     found: set[str] = set()
     for path in _python_files(root):
         tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
-        aliases = _deepagent_aliases(tree)
-        if aliases and any(
-            isinstance(node, ast.Call)
-            and isinstance(node.func, ast.Name)
-            and node.func.id in aliases
+        function_aliases, module_aliases = _deepagent_aliases(tree)
+        if any(
+            _is_create_deep_agent_call(node, function_aliases, module_aliases)
             for node in ast.walk(tree)
         ):
             found.add(path.relative_to(root).as_posix())
@@ -43,8 +65,8 @@ def _create_deep_agent_factory_paths(root: Path) -> set[str]:
     factories: set[str] = set()
     for path in _python_files(root):
         tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
-        aliases = _deepagent_aliases(tree)
-        if not aliases:
+        function_aliases, module_aliases = _deepagent_aliases(tree)
+        if not function_aliases and not module_aliases:
             continue
         for node in ast.walk(tree):
             if not isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
@@ -52,9 +74,7 @@ def _create_deep_agent_factory_paths(root: Path) -> set[str]:
             if node.name.startswith("_"):
                 continue
             if any(
-                isinstance(child, ast.Call)
-                and isinstance(child.func, ast.Name)
-                and child.func.id in aliases
+                _is_create_deep_agent_call(child, function_aliases, module_aliases)
                 for child in ast.walk(node)
             ):
                 module = ".".join(("fin_graph", *path.relative_to(root).with_suffix("").parts))
@@ -103,7 +123,30 @@ def test_comments_do_not_count_as_deepagent_calls(tmp_path: Path) -> None:
     assert _create_deep_agent_call_paths(tmp_path) == {"aliased.py"}
 
 
+def test_qualified_deepagent_calls_are_detected(tmp_path: Path) -> None:
+    (tmp_path / "qualified.py").write_text(
+        "import deepagents\ndeepagents.create_deep_agent()\n",
+        encoding="utf-8",
+    )
+    (tmp_path / "module_alias.py").write_text(
+        "import deepagents as da\nda.create_deep_agent()\n",
+        encoding="utf-8",
+    )
+
+    assert _create_deep_agent_call_paths(tmp_path) == {
+        "module_alias.py",
+        "qualified.py",
+    }
+
+
 def test_every_deepagent_factory_is_catalogued() -> None:
     catalogued = {item.factory_path for item in agent_catalog()}
+    factories = _create_deep_agent_factory_paths(SRC)
 
-    assert _create_deep_agent_factory_paths(SRC) <= catalogued
+    assert factories == {
+        "fin_graph.agents.analysis.persona_team:make_persona_agent",
+        "fin_graph.agents.chat.supervisor:make_chat_graph",
+        "fin_graph.agents.optimizer.proposer:make_optimizer_agent",
+        "fin_graph.agents.solver.supervisor:make_solver_child",
+    }
+    assert factories <= catalogued

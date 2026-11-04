@@ -2,9 +2,13 @@ from __future__ import annotations
 
 import ast
 import importlib
+import inspect
+import re
 from pathlib import Path
 
 import pytest
+from fastapi.routing import APIRoute
+from pydantic import BaseModel
 
 ROOT = Path(__file__).resolve().parents[2]
 SRC = ROOT / "src" / "fin_graph"
@@ -96,3 +100,128 @@ def test_bounded_and_normalized_names_replace_ambiguous_compact() -> None:
     assert "normalized_hex" in names
     assert "normalized_iban" in names
     assert "compact" not in names
+
+
+def _module_names(root: Path, package: str) -> frozenset[str]:
+    names: set[str] = set()
+    for path in root.rglob("*.py"):
+        parts = path.relative_to(root).with_suffix("").parts
+        if parts[-1] == "__init__":
+            parts = parts[:-1]
+        names.add(".".join((package, *parts)).rstrip("."))
+    return frozenset(names)
+
+
+def _environment_aliases() -> frozenset[str]:
+    files = (
+        SRC / "config" / "settings.py",
+        SRC / "adapters" / "reference_app" / "settings.py",
+        SRC / "adapters" / "reference_app" / "schemas.py",
+        SRC / "persistence" / "reference_app" / "postgres.py",
+    )
+    aliases: set[str] = set()
+    for path in files:
+        tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
+        for node in ast.walk(tree):
+            if not isinstance(node, ast.Call):
+                continue
+            call_name = (
+                node.func.id
+                if isinstance(node.func, ast.Name)
+                else node.func.attr
+                if isinstance(node.func, ast.Attribute)
+                else ""
+            )
+            if call_name in {"resolve_alias", "_environment_bool"}:
+                arguments = node.args[1:3]
+            elif call_name == "AliasChoices":
+                arguments = node.args
+            elif call_name == "getenv":
+                arguments = node.args[:1]
+            else:
+                continue
+            aliases.update(
+                value.value
+                for argument in arguments
+                for value in ast.walk(argument)
+                if isinstance(value, ast.Constant)
+                and isinstance(value.value, str)
+                and re.fullmatch(r"[A-Z][A-Z0-9_]+", value.value)
+            )
+    return frozenset(aliases)
+
+
+def _reference_routes(router: object, prefix: str = "") -> frozenset[tuple[str, str]]:
+    routes: set[tuple[str, str]] = set()
+    for route in getattr(router, "routes", ()):
+        if isinstance(route, APIRoute):
+            routes.update(
+                (method, f"{prefix}{route.path}")
+                for method in (route.methods or set()) - {"HEAD", "OPTIONS"}
+            )
+            continue
+        included = getattr(route, "original_router", None)
+        context = getattr(route, "include_context", None)
+        if included is not None and context is not None:
+            routes.update(_reference_routes(included, f"{prefix}{context.prefix}"))
+    return frozenset(routes)
+
+
+def test_public_and_persisted_reference_identifiers_are_exactly_allowlisted() -> None:
+    import fin_graph.adapters.reference_app.schemas as schemas
+    from fin_graph.adapters.reference_app.http import reference_app_router
+    from fin_graph.conformance.reference_app.public_identifiers import (
+        REFERENCE_ENVIRONMENT_ALIASES,
+        REFERENCE_HTTP_ROUTES,
+        REFERENCE_MIGRATION_REVISIONS,
+        REFERENCE_PAYLOAD_FIELDS,
+        REFERENCE_PERSISTENT_FILENAMES,
+        REFERENCE_PYTHON_SHIMS,
+        REFERENCE_SQL_CONSTRAINTS,
+        REFERENCE_SQL_TABLES,
+    )
+    from fin_graph.persistence.reference_app.sqlite import _metadata
+
+    migration = importlib.import_module(
+        "fin_graph.server.migrations.versions.0013_compatibility_store"
+    )
+
+    assert frozenset(_metadata.tables) == REFERENCE_SQL_TABLES
+    assert (
+        frozenset(
+            constraint.name
+            for table in _metadata.tables.values()
+            for constraint in table.constraints
+            if constraint.name
+        )
+        == REFERENCE_SQL_CONSTRAINTS
+    )
+    assert frozenset({migration.revision}) == REFERENCE_MIGRATION_REVISIONS
+
+    factory_tree = ast.parse(
+        (SRC / "server" / "factory.py").read_text(encoding="utf-8")
+    )
+    assert (
+        frozenset(
+            node.value
+            for node in ast.walk(factory_tree)
+            if isinstance(node, ast.Constant)
+            and isinstance(node.value, str)
+            and re.fullmatch(r"compatibility\.(?:sqlite|key)", node.value)
+        )
+        == REFERENCE_PERSISTENT_FILENAMES
+    )
+    assert _environment_aliases() == REFERENCE_ENVIRONMENT_ALIASES
+    assert (
+        _module_names(ROOT / "src" / "src", "src")
+        | _module_names(ROOT / "src" / "app" / "backend", "app.backend")
+        == REFERENCE_PYTHON_SHIMS
+    )
+    assert _reference_routes(reference_app_router()) == REFERENCE_HTTP_ROUTES
+    assert {
+        name: tuple(value.model_fields)
+        for name, value in vars(schemas).items()
+        if inspect.isclass(value)
+        and issubclass(value, BaseModel)
+        and value.__module__ == schemas.__name__
+    } == REFERENCE_PAYLOAD_FIELDS
