@@ -52,20 +52,6 @@ def test_factory_exposes_only_caller_supplied_tools_to_the_model() -> None:
     assert model.bound_tool_names == [["noop"]]
 
 
-def test_factory_exposes_task_only_when_synchronous_subagents_are_allowed() -> None:
-    model = ToolRecordingModel(responses=[AIMessage("done")])
-    agent = make_agent(
-        name="subagent-enabled",
-        model=model,
-        tools=[noop],
-        allow_synchronous_subagents=True,
-    )
-
-    agent.invoke({"messages": [HumanMessage("go")]})
-
-    assert [set(names) for names in model.bound_tool_names] == [{"noop", "task"}]
-
-
 def test_structured_response_comes_back_as_the_schema_type() -> None:
     model = ScriptedChatModel(
         responses=[tool_call_message("Finding", {"summary": "oom", "confidence": 0.9}, "s1")]

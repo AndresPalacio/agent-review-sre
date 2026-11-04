@@ -89,6 +89,22 @@ describe("DeepAgentsArchitecture", () => {
     ).toBeVisible();
   });
 
+  it("presenta make_agent como ruta restringida sin ocultar las rutas directas", async () => {
+    const user = await renderArchitecture();
+
+    await user.click(
+      screen.getByRole("button", { name: "Fábrica restringida" }),
+    );
+
+    const inspector = screen.getByRole("region", { name: "Detalle del nodo" });
+    expect(inspector).toHaveTextContent(
+      "make_agent restringe la ruta común de los agentes pequeños",
+    );
+    expect(inspector).toHaveTextContent(
+      "persona, chat, optimizer y solver-child llaman create_deep_agent directamente",
+    );
+  });
+
   it("calcula 1 + hijos y avisa cuando faltan workers", async () => {
     await renderArchitecture();
 

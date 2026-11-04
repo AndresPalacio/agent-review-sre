@@ -118,14 +118,14 @@ const modes: Record<ArchitectureMode, ArchitectureModeDefinition> = {
       {
         id: "restricted-factory",
         title: "Fábrica restringida",
-        eyebrow: "Entrada única",
-        summary: "make_agent normaliza todos los bucles autónomos.",
+        eyebrow: "Ruta común restringida",
+        summary: "make_agent restringe la ruta común de los agentes pequeños.",
         purpose:
-          "Ofrecer una sola frontera para construir agentes pequeños y seguros.",
+          "make_agent restringe la ruta común de los agentes pequeños para construirlos con una frontera segura.",
         implementation:
-          "make_agent llama create_deep_agent y reemplaza filesystem y subagentes síncronos por slots vacíos de forma predeterminada.",
+          "make_agent llama create_deep_agent con slots restringidos; persona, chat, optimizer y solver-child llaman create_deep_agent directamente con políticas especializadas.",
         rationale:
-          "Los agentes financieros sólo ven herramientas aprobadas por el llamador; no reciben filesystem, shell ni task por accidente.",
+          "Las restricciones de make_agent cubren sólo sus consumidores; cada ruta especializada declara su propio middleware y límite de herramientas.",
         path: "src/fin_graph/agents/common/factory.py",
         tone: "agent",
         icon: ShieldCheck,
@@ -139,7 +139,7 @@ const modes: Record<ArchitectureMode, ArchitectureModeDefinition> = {
         purpose:
           "Delegar a grafos compilados y esperar su resultado dentro de la ejecución.",
         implementation:
-          'make_supervisor convierte cada especialista a CompiledSubAgent(mode="isolated") y habilita el middleware nativo.',
+          'make_supervisor convierte cada especialista a CompiledSubAgent(mode="isolated") e instala SubAgentMiddleware sólo con esos hijos.',
         rationale:
           "La ejecución puede ser paralela internamente, pero bloquea al supervisor hasta que el hijo termina; por eso no es el patrón para trabajo en segundo plano.",
         path: "src/fin_graph/agents/common/subagents.py",
@@ -456,9 +456,12 @@ export function DeepAgentsArchitecture() {
           <div className="architecture-section-heading">
             <div>
               <span>INSPECTOR DE FÁBRICA</span>
-              <h2 id="factory-title">Una llamada, tres capas</h2>
+              <h2 id="factory-title">Ruta común, tres capas</h2>
             </div>
-            <p>El arnés cambia; la base de ejecución sigue siendo LangGraph.</p>
+            <p>
+              Los arneses especializados entran directamente en create_deep_agent;
+              la base de ejecución sigue siendo LangGraph.
+            </p>
           </div>
           <ol className="factory-chain">
             <li>

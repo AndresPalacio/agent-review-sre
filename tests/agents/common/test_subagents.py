@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+from collections.abc import Sequence
 from dataclasses import dataclass
 from typing import Any
 
@@ -12,7 +13,7 @@ from langgraph.checkpoint.memory import InMemorySaver
 from langgraph.graph import MessagesState, StateGraph
 from langgraph.graph.state import CompiledStateGraph
 from langgraph.types import Command, interrupt
-from pydantic import BaseModel
+from pydantic import BaseModel, PrivateAttr
 
 from fin_graph.agents.common.factory import make_agent
 from fin_graph.agents.common.subagents import SubagentSpec, make_supervisor
@@ -35,10 +36,63 @@ class TenantContext:
     tenant: str
 
 
+class TaskInspectingModel(ScriptedChatModel):
+    _task_descriptions: list[str] = PrivateAttr(default_factory=list)
+    _task_schemas: list[dict[str, Any]] = PrivateAttr(default_factory=list)
+
+    def bind_tools(self, tools: Sequence[Any], **kwargs: Any) -> TaskInspectingModel:
+        task_tool = next(candidate for candidate in tools if candidate.name == "task")
+        self._task_descriptions.append(task_tool.description)
+        self._task_schemas.append(task_tool.get_input_schema().model_json_schema())
+        return self
+
+    @property
+    def task_descriptions(self) -> list[str]:
+        return self._task_descriptions
+
+    @property
+    def task_schemas(self) -> list[dict[str, Any]]:
+        return self._task_schemas
+
+
 def _tool_contents(result: dict[str, object]) -> list[object]:
     messages = result["messages"]
     assert isinstance(messages, list)
     return [m.content for m in messages if isinstance(m, ToolMessage)]
+
+
+async def test_task_offers_only_declared_subagents_and_runs_the_selected_child() -> None:
+    specialist_model = ScriptedChatModel(responses=[AIMessage("Declared child ran.")])
+    supervisor_model = TaskInspectingModel(
+        responses=[
+            tool_call_message(
+                "task",
+                {"description": "handle the declared work", "subagent_type": "declared_child"},
+                "c1",
+            ),
+            AIMessage("Delegation complete."),
+        ]
+    )
+    specialist = make_agent(name="declared_child", model=specialist_model)
+    app = make_supervisor(
+        subagents=[SubagentSpec("declared_child", "Handles declared work.", specialist)],
+        model=supervisor_model,
+    )
+
+    result = await app.ainvoke({"messages": [HumanMessage("delegate this")]})
+
+    assert supervisor_model.task_descriptions
+    assert all(
+        "- declared_child: Handles declared work." in description
+        for description in supervisor_model.task_descriptions
+    )
+    assert all(
+        "- general-purpose:" not in description
+        for description in supervisor_model.task_descriptions
+    )
+    assert supervisor_model.task_schemas[0]["required"] == ["description", "subagent_type"]
+    assert _tool_contents(result) == ["Declared child ran."]
+    assert result["messages"][-1].content == "Delegation complete."
 
 
 async def test_supervisor_sees_only_each_subagents_final_answer() -> None:

@@ -7,7 +7,6 @@ from typing import Any
 
 from deepagents import create_deep_agent
 from deepagents.middleware.async_subagents import AsyncSubAgent
-from deepagents.middleware.subagents import CompiledSubAgent, SubAgent
 from langchain.agents.middleware import AgentMiddleware
 from langchain_core.language_models import BaseChatModel
 from langchain_core.tools import BaseTool
@@ -26,8 +25,7 @@ def make_agent(
     system_prompt: str | None = None,
     response_format: Any = None,
     middleware: Sequence[AgentMiddleware[Any, Any]] = (),
-    subagents: Sequence[SubAgent | CompiledSubAgent | AsyncSubAgent] = (),
-    allow_synchronous_subagents: bool = False,
+    subagents: Sequence[AsyncSubAgent] = (),
     context_schema: type[Any] | None = None,
     checkpointer: Checkpointer = None,
     store: BaseStore | None = None,
@@ -38,11 +36,12 @@ def make_agent(
     agents inherit them at run time, which is what lets ``interrupt()`` inside a
     nested agent pause the whole run.
     """
-    restricted_middleware = restricted_deepagents_middleware()
-    if allow_synchronous_subagents:
-        restricted_middleware = [
-            item for item in restricted_middleware if item.name != "SubAgentMiddleware"
-        ]
+    custom_middleware_names = {item.name for item in middleware}
+    restricted_middleware = [
+        item
+        for item in restricted_deepagents_middleware()
+        if item.name not in custom_middleware_names
+    ]
     return create_deep_agent(
         model=model,
         tools=list(tools),

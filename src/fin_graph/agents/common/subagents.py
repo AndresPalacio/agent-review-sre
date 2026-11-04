@@ -6,6 +6,8 @@ from collections.abc import Sequence
 from dataclasses import dataclass
 from typing import Any
 
+from deepagents.backends import StateBackend
+from deepagents.middleware import SubAgentMiddleware
 from deepagents.middleware.subagents import CompiledSubAgent
 from langchain.agents.middleware import AgentMiddleware
 from langchain_core.language_models import BaseChatModel
@@ -57,14 +59,16 @@ def make_supervisor(
         }
         for spec in subagents
     ]
+    subagent_middleware = SubAgentMiddleware(
+        backend=StateBackend(),
+        subagents=compiled_subagents,
+    )
     return make_agent(
         name=name,
         model=model,
         tools=tools,
         system_prompt=system_prompt or default_supervisor_prompt(subagents),
-        middleware=middleware,
-        subagents=compiled_subagents,
-        allow_synchronous_subagents=True,
+        middleware=[subagent_middleware, *middleware],
         context_schema=context_schema,
         checkpointer=checkpointer,
         store=store,
