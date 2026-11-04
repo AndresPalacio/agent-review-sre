@@ -9,12 +9,13 @@ from langchain.tools import ToolRuntime
 from langchain_core.messages import AIMessage, HumanMessage, ToolMessage
 from langchain_core.tools import tool
 from langgraph.checkpoint.memory import InMemorySaver
+from langgraph.graph import MessagesState, StateGraph
 from langgraph.graph.state import CompiledStateGraph
 from langgraph.types import Command, interrupt
 from pydantic import BaseModel
 
 from fin_graph.agents.common.factory import make_agent
-from fin_graph.agents.common.subagents import SubagentSpec, make_supervisor, subagent_result_text
+from fin_graph.agents.common.subagents import SubagentSpec, make_supervisor
 from fin_graph.agents.common.testing.scripted_model import ScriptedChatModel, tool_call_message
 
 
@@ -43,10 +44,18 @@ def _tool_contents(result: dict[str, object]) -> list[object]:
 async def test_supervisor_sees_only_each_subagents_final_answer() -> None:
     model = ScriptedChatModel(
         responses=[
-            tool_call_message("math_expert", {"task": "sum 10 and 15"}, "c1"),
+            tool_call_message(
+                "task",
+                {"description": "sum 10 and 15", "subagent_type": "math_expert"},
+                "c1",
+            ),
             tool_call_message("add", {"a": 10, "b": 15}, "c2"),
             AIMessage("The sum of 10 and 15 is 25."),
-            tool_call_message("writer", {"task": "One line: 10 + 15 = 25."}, "c3"),
+            tool_call_message(
+                "task",
+                {"description": "One line: 10 + 15 = 25.", "subagent_type": "writer"},
+                "c3",
+            ),
             AIMessage("10 + 15 = 25, tidy."),
             AIMessage("Sum is 25. 10 + 15 = 25, tidy."),
         ]
@@ -74,7 +83,11 @@ async def test_supervisor_sees_only_each_subagents_final_answer() -> None:
 def test_synchronous_invoke_also_delegates() -> None:
     model = ScriptedChatModel(
         responses=[
-            tool_call_message("math_expert", {"task": "sum 1 and 2"}, "c1"),
+            tool_call_message(
+                "task",
+                {"description": "sum 1 and 2", "subagent_type": "math_expert"},
+                "c1",
+            ),
             AIMessage("3"),
             AIMessage("The answer is 3."),
         ]
@@ -119,7 +132,11 @@ def _approval_app(outcomes: list[str]) -> CompiledStateGraph[Any, Any, Any, Any]
 
     model = ScriptedChatModel(
         responses=[
-            tool_call_message("db_admin", {"task": "delete rec_2"}, "c1"),
+            tool_call_message(
+                "task",
+                {"description": "delete rec_2", "subagent_type": "db_admin"},
+                "c1",
+            ),
             tool_call_message("delete_record", {"record_id": "rec_2"}, "c2"),
             AIMessage("The deletion was handled."),
             AIMessage("Done."),
@@ -170,7 +187,11 @@ async def test_structured_subagent_result_reaches_the_supervisor_as_json() -> No
     )
     supervisor_model = ScriptedChatModel(
         responses=[
-            tool_call_message("logs_specialist", {"task": "check logs"}, "c1"),
+            tool_call_message(
+                "task",
+                {"description": "check logs", "subagent_type": "logs_specialist"},
+                "c1",
+            ),
             AIMessage("Logs show OOMKilled."),
         ]
     )
@@ -200,7 +221,11 @@ async def test_runtime_context_reaches_the_subagents_tools() -> None:
 
     model = ScriptedChatModel(
         responses=[
-            tool_call_message("identity", {"task": "who am I?"}, "c1"),
+            tool_call_message(
+                "task",
+                {"description": "who am I?", "subagent_type": "identity"},
+                "c1",
+            ),
             tool_call_message("whoami", {}, "c2"),
             AIMessage("You are acme."),
             AIMessage("Tenant: acme."),
@@ -231,7 +256,11 @@ def test_synchronous_invoke_forwards_runtime_context_too() -> None:
 
     model = ScriptedChatModel(
         responses=[
-            tool_call_message("identity", {"task": "who am I?"}, "c1"),
+            tool_call_message(
+                "task",
+                {"description": "who am I?", "subagent_type": "identity"},
+                "c1",
+            ),
             tool_call_message("whoami", {}, "c2"),
             AIMessage("You are acme."),
             AIMessage("Tenant: acme."),
@@ -258,8 +287,26 @@ def test_only_the_text_of_a_multi_block_reply_reaches_the_supervisor() -> None:
             {"type": "text", "text": "Logs show OOMKilled."},
         ]
     )
+    model = ScriptedChatModel(
+        responses=[
+            tool_call_message(
+                "task",
+                {"description": "check logs", "subagent_type": "logs_specialist"},
+                "c1",
+            ),
+            reply,
+            AIMessage("The logs show OOMKilled."),
+        ]
+    )
+    specialist = make_agent(name="logs_specialist", model=model)
+    app = make_supervisor(
+        subagents=[SubagentSpec("logs_specialist", "Reads logs.", specialist)], model=model
+    )
 
-    assert subagent_result_text({"messages": [reply]}) == "Logs show OOMKilled."
+    result = app.invoke({"messages": [HumanMessage("why did it crash?")]})
+
+    assert result["messages"][-1].content == "The logs show OOMKilled."
+    assert _tool_contents(result) == ["Logs show OOMKilled."]
 
 
 @dataclass
@@ -268,7 +315,37 @@ class DataclassFinding:
     confidence: float
 
 
-def test_a_dataclass_structured_response_is_sent_as_json() -> None:
-    text = subagent_result_text({"structured_response": DataclassFinding("OOMKilled", 0.8)})
+class DataclassFindingState(MessagesState):
+    structured_response: DataclassFinding | None
 
-    assert json.loads(text) == {"summary": "OOMKilled", "confidence": 0.8}
+
+def test_a_dataclass_structured_response_is_sent_as_json() -> None:
+    def respond(_state: DataclassFindingState) -> dict[str, object]:
+        return {
+            "messages": [AIMessage("Finding ready.")],
+            "structured_response": DataclassFinding("OOMKilled", 0.8),
+        }
+
+    builder = StateGraph(DataclassFindingState)
+    builder.add_node("respond", respond)
+    builder.set_entry_point("respond")
+    specialist = builder.compile()
+    model = ScriptedChatModel(
+        responses=[
+            tool_call_message(
+                "task",
+                {"description": "check logs", "subagent_type": "logs_specialist"},
+                "c1",
+            ),
+            AIMessage("Logs show OOMKilled."),
+        ]
+    )
+    app = make_supervisor(
+        subagents=[SubagentSpec("logs_specialist", "Reads logs.", specialist)], model=model
+    )
+
+    result = app.invoke({"messages": [HumanMessage("why did it crash?")]})
+
+    [content] = _tool_contents(result)
+    assert isinstance(content, str)
+    assert json.loads(content) == {"summary": "OOMKilled", "confidence": 0.8}
