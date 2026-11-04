@@ -43,12 +43,15 @@ tracks the SHA-256 digest of its owning test file. Any stale or prose-only claim
 | Gate | Result |
 |---|---:|
 | Ruff / format / mypy / import-linter / lock | Pass |
-| Main Python suite | 1,221 passed; 28 optional skips |
+| Main Python suite | 1,316 passed; 24 optional skips |
 | Workflow package | 125 passed; 4 optional-extra skips |
 | Web TypeScript | Pass |
 | Vitest | 40 passed |
 | Playwright | 2 passed |
 | Offline equity evaluation | 16/16 passed; signal 1.0; category 1.0 |
+| Scripted smoke evaluation | 3/3 passed; signal 1.0; category 1.0 |
+| Ollama `llama3.2:3b` smoke | 3/3 passed; 22,556 tokens; 89.67 s mean; no fallback/error |
+| Optional optimization config | Valid; 16 cases across train, holdout, and scorecard |
 | Wheel build and clean-install tests | Pass; 5/5 |
 | Docker non-root runtime and health | Pass |
 | Manifest checker | 39/39 closed |
@@ -63,6 +66,9 @@ pgvector-enabled PostgreSQL 17 instance and passed before it was removed.
 uv run python scripts/check_compatibility_manifest.py
 uv run pytest tests/compat tests/acceptance -q
 uv run python scripts/acceptance_ai_hedge_fund.py --backend sqlite --output artifacts/acceptance
+uv run fin-graph eval run --suite smoke --model scripted --output-dir .runs/scripted
+uv run --extra harness fin-graph harness validate optimization/fin.toml
+uv run fin-graph eval run --suite smoke --model ollama:llama3.2:3b --output-dir .runs/ollama
 ```
 
 For PostgreSQL, set `FIN_GRAPH_TEST_DATABASE_URL` to an isolated pgvector-enabled database and run
@@ -72,6 +78,7 @@ database URL, bootstrap key, provider key, or raw credential.
 ## Deliberate boundary
 
 The release gate proves deterministic finance behavior, transport compatibility, storage,
-concurrency, packaging, and offline orchestration. It does not claim byte-identical prose from a
-live LLM or availability/quality of third-party market-data and model providers. Those smokes are
-optional and cannot override an offline contract failure.
+concurrency, packaging, and offline orchestration. The recorded Ollama smoke proves the three
+selected scenarios completed with the local model; it does not claim byte-identical prose or
+general availability/quality of third-party market-data and model providers. Live smokes cannot
+override an offline contract failure.
