@@ -12,6 +12,15 @@ Abre `http://127.0.0.1:8000`. El directorio se elige con `--data-dir` o
 `FIN_GRAPH_DATA_DIR`; contiene SQLite, checkpoints, artefactos y una clave nativa local. Haz backup
 de ese directorio con la aplicación detenida.
 
+La instalación base omite TensorFlow. Solo si necesitas los modelos LSTM, instala el extra ML:
+
+```powershell
+uv sync --extra app --extra ml
+```
+
+La imagen Docker también es ligera por defecto. Construye la variante ML explícitamente con
+`docker build --build-arg FIN_GRAPH_INSTALL_ML=true -t fin-graph:ml .`.
+
 ## Ollama
 
 Instala Ollama, inicia su servicio y descarga `llama3.2:3b`, o usa la pantalla Modelos. Verifica:

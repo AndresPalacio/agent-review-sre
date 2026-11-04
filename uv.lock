@@ -544,7 +544,6 @@ app = [
     { name = "scipy" },
     { name = "statsmodels" },
     { name = "ta" },
-    { name = "tensorflow" },
     { name = "vadersentiment" },
 ]
 harness = [
@@ -634,7 +633,6 @@ requires-dist = [
     { name = "statsmodels", marker = "extra == 'quant'", specifier = ">=0.14.6,<0.15" },
     { name = "ta", marker = "extra == 'app'", specifier = ">=0.11,<0.12" },
     { name = "ta", marker = "extra == 'quant'", specifier = ">=0.11,<0.12" },
-    { name = "tensorflow", marker = "extra == 'app'", specifier = ">=2.21,<2.22" },
     { name = "tensorflow", marker = "extra == 'ml'", specifier = ">=2.21,<2.22" },
     { name = "typer", specifier = ">=0.27.3" },
     { name = "urllib3", specifier = ">=2.8,<3" },

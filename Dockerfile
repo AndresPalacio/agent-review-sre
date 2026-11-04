@@ -15,7 +15,12 @@ RUN pip install --no-cache-dir uv
 COPY pyproject.toml uv.lock README.md ./
 COPY src ./src
 COPY --from=web-build /app/src/fin_graph/server/static ./src/fin_graph/server/static
-RUN uv sync --frozen --no-dev --no-editable --extra app
+ARG FIN_GRAPH_INSTALL_ML=false
+RUN if [ "$FIN_GRAPH_INSTALL_ML" = "true" ]; then \
+        uv sync --frozen --no-dev --no-editable --extra app --extra ml; \
+    else \
+        uv sync --frozen --no-dev --no-editable --extra app; \
+    fi
 
 RUN useradd --system --create-home fingraph \
     && install -d -o fingraph -g fingraph /data

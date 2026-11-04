@@ -40,6 +40,8 @@ uv run fin-graph app
 
 Abre `http://127.0.0.1:8000`. El comando crea almacenamiento local dentro del directorio de datos,
 sirve la UI compilada y habilita la API compatible únicamente para uso local.
+TensorFlow no forma parte de esta instalación base. Para habilitar los modelos LSTM instala también
+el extra opcional: `uv sync --extra app --extra ml`.
 
 Con Docker:
 
@@ -200,6 +202,8 @@ Construcción:
 uv lock --check
 uv build --wheel
 docker build -t fin-graph:compat .
+# Variante con TensorFlow/LSTM:
+docker build --build-arg FIN_GRAPH_INSTALL_ML=true -t fin-graph:ml .
 ```
 
 ## Licencias

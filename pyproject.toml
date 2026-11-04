@@ -74,7 +74,6 @@ app = [
     "vaderSentiment>=3.3.2,<4",
     "joblib>=1.4,<2",
     "matplotlib>=3.9,<4",
-    "tensorflow>=2.21,<2.22",
 ]
 harness = [
     "better-harness",
