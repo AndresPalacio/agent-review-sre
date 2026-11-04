@@ -43,6 +43,30 @@ afterEach(() => {
 });
 
 describe("flow CRUD and tabs", () => {
+  it("does not republish tab context for an identical document", () => {
+    let renders = 0;
+    function IdentityHarness() {
+      const tabs = useTabs();
+      renders += 1;
+      return <>
+        <output aria-label="identidad activa">{tabs.activeTab?.flow.name ?? "ninguno"}</output>
+        <button onClick={() => tabs.openTab(flow(1))}>Abrir identidad</button>
+        <button onClick={() => {
+          if (tabs.activeTab) tabs.updateDocument(tabs.activeTab.flow.id, tabs.activeTab.document);
+        }}>Republicar identidad</button>
+      </>;
+    }
+
+    render(<TabsProvider><IdentityHarness /></TabsProvider>);
+    fireEvent.click(screen.getByRole("button", { name: "Abrir identidad" }));
+    expect(screen.getByLabelText("identidad activa")).toHaveTextContent("Flow 1");
+    const before = renders;
+
+    fireEvent.click(screen.getByRole("button", { name: "Republicar identidad" }));
+
+    expect(renders).toBe(before);
+  });
+
   it("lists, creates, renames, duplicates and deletes with exact legacy requests", async () => {
     const requests: Array<[string, string, unknown]> = [];
     vi.stubGlobal("fetch", vi.fn(async (url: unknown, init?: RequestInit) => {

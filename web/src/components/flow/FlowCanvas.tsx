@@ -113,6 +113,9 @@ const ownsKeyboard = (target: EventTarget | null): boolean => {
   return !!element?.closest("input, textarea, select, [contenteditable='true'], [role='dialog']");
 };
 
+const sameValues = <T,>(left: T[], right: T[]): boolean =>
+  left === right || JSON.stringify(left) === JSON.stringify(right);
+
 export interface FlowCanvasProps {
   initialNodes?: FlowNode[];
   initialEdges?: FlowEdge[];
@@ -125,15 +128,18 @@ function Canvas({ initialNodes = [], initialEdges = [], onChange }: FlowCanvasPr
   const [edges, setEdges] = useState<FlowEdge[]>(initialEdges);
   const selected = useRef<string[]>([]);
   const clipboard = useRef<FlowNode[]>([]);
+  const onChangeRef = useRef(onChange);
+
+  useEffect(() => { onChangeRef.current = onChange; }, [onChange]);
 
   useEffect(() => {
-    setNodes((current) => JSON.stringify(current) === JSON.stringify(repaired.nodes) ? current : repaired.nodes);
+    setNodes((current) => sameValues(current, repaired.nodes) ? current : repaired.nodes);
   }, [repaired.nodes]);
   useEffect(() => {
-    setEdges((current) => JSON.stringify(current) === JSON.stringify(initialEdges) ? current : initialEdges);
+    setEdges((current) => sameValues(current, initialEdges) ? current : initialEdges);
   }, [initialEdges]);
 
-  useEffect(() => { onChange?.(serializeFlow(nodes, edges)); }, [nodes, edges, onChange]);
+  useEffect(() => { onChangeRef.current?.(serializeFlow(nodes, edges)); }, [nodes, edges]);
 
   const onNodesChange = useCallback((changes: NodeChange<FlowNode>[]) => {
     setNodes((current) => applyNodeChanges(changes, current));

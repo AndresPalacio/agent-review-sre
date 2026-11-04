@@ -1,4 +1,4 @@
-import { Component, useState, type ErrorInfo, type ReactNode } from "react";
+import { Component, useCallback, useState, type ErrorInfo, type ReactNode } from "react";
 import { FilePlus2, Landmark, LineChart } from "lucide-react";
 import { LayoutProvider } from "./contexts/LayoutContext";
 import { NodeProvider } from "./contexts/NodeContext";
@@ -23,6 +23,7 @@ import {
 } from "./components/settings/SettingsDialog";
 import { createCatalogNode, type CatalogItem } from "./data/node-catalog";
 import { useKeyboardShortcuts } from "./hooks/useKeyboardShortcuts";
+import type { FlowDocument } from "./types/flow";
 import "./style.css";
 
 interface BoundaryProps {
@@ -80,6 +81,10 @@ function Workbench() {
       ],
     });
   };
+  const activeFlowId = activeTab?.flow.id;
+  const updateCanvas = useCallback((document: FlowDocument) => {
+    if (activeFlowId !== undefined) updateDocument(activeFlowId, document);
+  }, [activeFlowId, updateDocument]);
   const canvas = (
     <div className="canvas-workspace">
       <TabBar />
@@ -88,7 +93,7 @@ function Workbench() {
           <FlowCanvas
             initialNodes={activeTab.document.nodes}
             initialEdges={activeTab.document.edges}
-            onChange={(document) => updateDocument(activeTab.flow.id, document)}
+            onChange={updateCanvas}
           />
         ) : (
           <div className="canvas-empty">

@@ -1,4 +1,4 @@
-import { createContext, useContext, useMemo, useState, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from "react";
 import type { Flow } from "../types/compat";
 import type { FlowDocument, FlowEdge, FlowNode } from "../types/flow";
 
@@ -31,11 +31,24 @@ const documentFrom = (flow: Flow): FlowDocument => ({
 });
 
 const sameDocument = (left: FlowDocument, right: FlowDocument) =>
-  JSON.stringify(left) === JSON.stringify(right);
+  left === right || (
+    left.nodes === right.nodes &&
+    left.edges === right.edges &&
+    left.viewport === right.viewport
+  ) || JSON.stringify(left) === JSON.stringify(right);
 
 export function TabsProvider({ children }: { children: ReactNode }) {
   const [tabs, setTabs] = useState<FlowTab[]>([]);
   const [activeId, setActiveId] = useState<number | null>(null);
+  const updateDocument = useCallback((id: number, document: FlowDocument) => {
+    setTabs((current) => {
+      const index = current.findIndex((tab) => tab.flow.id === id);
+      if (index < 0 || sameDocument(current[index].document, document)) return current;
+      return current.map((tab, tabIndex) => tabIndex === index
+        ? { ...tab, document, dirty: true }
+        : tab);
+    });
+  }, []);
 
   const value = useMemo<TabsState>(() => ({
     tabs,
@@ -67,10 +80,7 @@ export function TabsProvider({ children }: { children: ReactNode }) {
       if (activeId === id) setActiveId(remaining.at(-1)?.flow.id ?? null);
       return true;
     },
-    updateDocument: (id, document) => setTabs((current) => current.map((tab) => {
-      if (tab.flow.id !== id || sameDocument(tab.document, document)) return tab;
-      return { ...tab, document, dirty: true };
-    })),
+    updateDocument,
     markSaved: (flow) => setTabs((current) => current.map((tab) => tab.flow.id === flow.id ? {
       flow,
       document: documentFrom(flow),
@@ -84,7 +94,7 @@ export function TabsProvider({ children }: { children: ReactNode }) {
       setTabs(remaining);
       if (activeId === id) setActiveId(remaining.at(-1)?.flow.id ?? null);
     },
-  }), [tabs, activeId]);
+  }), [tabs, activeId, updateDocument]);
 
   return <TabsContext.Provider value={value}>{children}</TabsContext.Provider>;
 }

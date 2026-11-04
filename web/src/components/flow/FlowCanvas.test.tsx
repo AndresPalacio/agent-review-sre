@@ -96,4 +96,19 @@ describe("FlowCanvas", () => {
     fireEvent.keyDown(window, { key: "Delete" });
     expect(screen.queryByTestId(nodes[0].id)).not.toBeInTheDocument();
   });
+
+  it("does not emit an unchanged document when only the callback identity changes", () => {
+    const first = vi.fn();
+    const second = vi.fn();
+    const view = render(
+      <FlowCanvas initialNodes={nodes} initialEdges={[]} onChange={first} />,
+    );
+    expect(first).toHaveBeenCalledOnce();
+
+    view.rerender(
+      <FlowCanvas initialNodes={nodes} initialEdges={[]} onChange={second} />,
+    );
+
+    expect(second).not.toHaveBeenCalled();
+  });
 });
