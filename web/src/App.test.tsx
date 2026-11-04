@@ -27,6 +27,32 @@ it("renders the responsive financial workbench landmarks", async () => {
   expect(screen.getByRole("region", { name: "Resultados" })).toBeVisible();
 });
 
+it("exposes financial product surfaces without operational incident language", async () => {
+  vi.stubGlobal(
+    "fetch",
+    vi.fn(async (input: unknown) => {
+      const url = String(input);
+      if (url.endsWith("/flows/")) return new Response("[]");
+      if (url.endsWith("/v2/algorithms")) return Response.json([]);
+      return Response.json({ agents: [] });
+    }),
+  );
+  render(<App />);
+
+  expect(screen.getByRole("heading", { name: /estrategia/i })).toBeVisible();
+  expect(document.body).toHaveTextContent(/analistas/i);
+
+  fireEvent.click(screen.getByRole("button", { name: "Backtests" }));
+  expect(await screen.findByRole("heading", { name: "Backtests" })).toBeVisible();
+
+  fireEvent.click(screen.getByRole("button", { name: "Paper trading" }));
+  expect(await screen.findByRole("heading", { name: "Mesa de inversión" })).toBeVisible();
+  expect(document.body).toHaveTextContent(/cartera simulada/i);
+  expect(document.body).toHaveTextContent(/órdenes/i);
+  expect(document.body).not.toHaveTextContent(/AI Hedge Fund/i);
+  expect(document.body).not.toHaveTextContent(/causa raíz|incidente|remediación/i);
+});
+
 it("persists only the selected theme", () => {
   const write = vi.spyOn(Storage.prototype, "setItem");
   render(<App />);

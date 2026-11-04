@@ -128,4 +128,6 @@ it("loads an analysis explanation on demand", async () => {
   });
   fireEvent.click(screen.getByRole("button", { name: "Explicar análisis" }));
   expect(await screen.findByText("Valuation gap")).toBeVisible();
+  expect(screen.getByText("Conclusión del análisis")).toBeVisible();
+  expect(document.body).not.toHaveTextContent(/causa raíz/i);
 });

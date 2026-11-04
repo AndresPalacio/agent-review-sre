@@ -37,7 +37,7 @@ export function TopBar({
           <BarChart3 size={18} />
         </span>
         <strong>Fin Graph</strong>
-        <span>AI Hedge Fund</span>
+        <span>Multi-Agent Finance</span>
       </div>
       <nav className="product-navigation" aria-label="Secciones del producto">
         <button

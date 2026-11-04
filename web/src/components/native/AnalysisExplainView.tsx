@@ -56,7 +56,7 @@ export function AnalysisExplainView({
       {data && (
         <div className="explanation">
           <article>
-            <span>Causa raíz</span>
+            <span>Conclusión del análisis</span>
             <strong>{String(diagnosis.root_cause ?? "No establecida")}</strong>
           </article>
           <article>
