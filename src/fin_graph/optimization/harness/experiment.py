@@ -28,7 +28,7 @@ from fin_graph.llm.models import missing_credentials, parse_model_spec
 from fin_graph.optimization.harness.artifacts import save_source_baseline
 from fin_graph.optimization.harness.configuration import HarnessConfig, load_config
 from fin_graph.optimization.harness.dataset import SPLITS, Split
-from fin_graph.optimization.harness.proposer import propose_candidate
+from fin_graph.optimization.harness.proposer import preflight_proposer, propose_candidate
 from fin_graph.optimization.harness.quality import acceptance_decision
 from fin_graph.optimization.harness.runner import SplitEvaluation, evaluate_split, write_json
 from fin_graph.optimization.harness.surfaces import validate_values
@@ -167,6 +167,9 @@ async def run_experiment(
             services_for(experiment.model)
             if limit and proposer is None:
                 _require_credentials(experiment.better_agent_model)
+                if progress:
+                    progress("preflight: verifying native Deep Agents read/edit tools")
+                await asyncio.to_thread(preflight_proposer, config, layout)
         except Exception as exc:
             summary.update(status="blocked", error=redact_secrets(f"{type(exc).__name__}: {exc}"))
             persist_summary(layout, summary)

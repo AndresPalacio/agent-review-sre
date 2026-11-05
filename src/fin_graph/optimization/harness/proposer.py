@@ -9,6 +9,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import re
 import subprocess
 import sys
 from pathlib import Path
@@ -34,11 +35,51 @@ from fin_graph.safety.secrets import redact_secrets
 
 #: Room for the system prompt, task file and the surface files a proposer reads and rewrites.
 PROPOSER_NUM_CTX = 16384
-PROPOSER_NUM_PREDICT = 4096
+PROPOSER_NUM_PREDICT = 1024
+PREFLIGHT_TIMEOUT_SECONDS = 180
 _START = (
-    "Read /task.md first. Then inspect the current surface files, visible history, and failing "
-    "train cases, edit only /current, and finish by updating /proposal.md."
+    "Use native tool calls, exactly one tool call at a time. Never print, describe, or wrap a "
+    "tool call as JSON. Your first action must be one read_file call for /task.md. After its "
+    "result, inspect the current surface files, visible history, and failing train cases. Edit "
+    "only /current and finish by updating /proposal.md."
 )
+_PREFLIGHT_START = (
+    "Use native tool calls, exactly one at a time, and never print tool-call JSON. First call "
+    "read_file for /probe.txt. After reading it, call edit_file for /probe.txt with old_string "
+    "exactly 'deepagents-before\\n' and new_string exactly 'deepagents-after\\n'. Then finish."
+)
+
+
+class ToolProtocolError(RuntimeError):
+    """The configured proposer model did not execute Deep Agents tools natively."""
+
+
+def _printed_tool_call(message: str | None) -> bool:
+    if not message:
+        return False
+    return bool(
+        re.search(r'["\']type["\']\s*:\s*["\']function["\']', message, re.IGNORECASE)
+        and re.search(
+            r'["\']name["\']\s*:\s*["\'](?:read_file|edit_file|write_file|task)["\']',
+            message,
+            re.IGNORECASE,
+        )
+    )
+
+
+def _model_and_system(config: HarnessConfig) -> tuple[Any, str]:
+    experiment = config.experiment
+    spec = parse_model_spec(experiment.better_agent_model)
+    settings = Settings(
+        _env_file=None,
+        llm_provider=spec.provider,
+        llm_num_ctx=PROPOSER_NUM_CTX,
+        llm_num_predict=PROPOSER_NUM_PREDICT,
+    )
+    system = DEFAULT_SYSTEM_PROMPT
+    if experiment.better_agent_system_prompt:
+        system = experiment.better_agent_system_prompt.strip() + "\n\n" + system
+    return build_chat_model(spec, settings, temperature=0), system
 
 
 def prepare_workspace(
@@ -100,18 +141,9 @@ def run_outer_agent(config: HarnessConfig, workspace: ProposerWorkspace) -> str 
     from langchain_core.messages import HumanMessage
 
     experiment = config.experiment
-    spec = parse_model_spec(experiment.better_agent_model)
-    settings = Settings(
-        _env_file=None,
-        llm_provider=spec.provider,
-        llm_num_ctx=PROPOSER_NUM_CTX,
-        llm_num_predict=PROPOSER_NUM_PREDICT,
-    )
-    system = DEFAULT_SYSTEM_PROMPT
-    if experiment.better_agent_system_prompt:
-        system = experiment.better_agent_system_prompt.strip() + "\n\n" + system
+    model, system = _model_and_system(config)
     agent = make_optimizer_agent(
-        model=build_chat_model(spec, settings, temperature=0),
+        model=model,
         system_prompt=system,
         workspace_root=workspace.root,
     )
@@ -123,6 +155,91 @@ def run_outer_agent(config: HarnessConfig, workspace: ProposerWorkspace) -> str 
         if getattr(message, "type", None) == "ai":
             return redact_secrets(str(message.content))[:24000]
     return None
+
+
+def run_preflight_in_process(config: HarnessConfig, workspace_root: Path) -> None:
+    """Require a real native read/edit round trip in the bounded Deep Agents workspace."""
+    from langchain_core.messages import HumanMessage
+    from langgraph.errors import GraphRecursionError
+
+    workspace_root.mkdir(parents=True, exist_ok=False)
+    probe = workspace_root / "probe.txt"
+    probe.write_text("deepagents-before\n", encoding="utf-8")
+    model, system = _model_and_system(config)
+    agent = make_optimizer_agent(
+        model=model,
+        system_prompt=system,
+        workspace_root=workspace_root,
+    )
+    try:
+        result: dict[str, Any] = agent.invoke(
+            {"messages": [HumanMessage(content=_PREFLIGHT_START)]},
+            config={"recursion_limit": min(config.experiment.better_agent_max_turns, 8)},
+        )
+    except GraphRecursionError as exc:
+        if probe.read_text(encoding="utf-8") == "deepagents-after\n":
+            return
+        raise ToolProtocolError(
+            "Deep Agents native tool preflight exhausted its turn bound without editing"
+        ) from exc
+    final_message = next(
+        (
+            redact_secrets(str(message.content))[:24000]
+            for message in reversed(result.get("messages", []))
+            if getattr(message, "type", None) == "ai"
+        ),
+        None,
+    )
+    if probe.read_text(encoding="utf-8") != "deepagents-after\n":
+        detail = (
+            "the model printed tool-call JSON instead of using a native tool"
+            if _printed_tool_call(final_message)
+            else "the native edit did not change the probe file"
+        )
+        raise ToolProtocolError(f"Deep Agents native tool preflight failed: {detail}")
+
+
+def preflight_proposer(config: HarnessConfig, layout: RunLayout) -> None:
+    """Run the capability probe in a killable child before expensive evaluation."""
+    command = [
+        sys.executable,
+        "-m",
+        "fin_graph.optimization.harness.proposer",
+        str(config.experiment.path),
+        "--root",
+        str(layout.root),
+        "--model",
+        config.experiment.model,
+        "--proposer-model",
+        config.experiment.better_agent_model,
+        "--preflight",
+    ]
+    env = os.environ.copy()
+    env["PYTHONUTF8"] = "1"
+    env["LANGSMITH_TRACING"] = "false"
+    try:
+        completed = subprocess.run(
+            command,
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+            env=env,
+            timeout=min(config.options.proposer_timeout, PREFLIGHT_TIMEOUT_SECONDS),
+            check=False,
+        )
+    except subprocess.TimeoutExpired as exc:
+        raise ToolProtocolError(
+            f"Deep Agents native tool preflight exceeded {exc.timeout} seconds"
+        ) from exc
+    (layout.root / "preflight.log").write_text(
+        redact_secrets(completed.stdout + "\n" + completed.stderr), encoding="utf-8"
+    )
+    if completed.returncode or not (layout.root / "preflight.json").is_file():
+        raise ToolProtocolError(
+            "Deep Agents native tool preflight failed; see preflight.log and choose a "
+            "tool-capable proposer model"
+        )
 
 
 def propose_in_process(
@@ -142,10 +259,15 @@ def propose_in_process(
             raise ValueError("surface too large")
         values[name] = path.read_text(encoding="utf-8")
     validate_values(values, complete=True)
+    changed_surfaces = tuple(
+        sorted(name for name in values if values[name] != current.values[name])
+    )
+    if not changed_surfaces and _printed_tool_call(message):
+        raise ToolProtocolError(
+            "proposer printed function JSON instead of executing a native tool call"
+        )
     proposal = Proposal(
-        changed_surfaces=tuple(
-            sorted(name for name in values if values[name] != current.values[name])
-        ),
+        changed_surfaces=changed_surfaces,
         workspace_dir=str(workspace.root),
         summary=workspace.proposal_file.read_text(encoding="utf-8")[:24000],
         final_message=message,
@@ -232,12 +354,19 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("config", type=Path)
     parser.add_argument("--root", type=Path, required=True)
-    parser.add_argument("--iteration", type=int, required=True)
+    parser.add_argument("--iteration", type=int)
     parser.add_argument("--model", required=True)
     parser.add_argument("--proposer-model", required=True)
+    parser.add_argument("--preflight", action="store_true")
     args = parser.parse_args()
     config = load_config(args.config, model=args.model, proposer_model=args.proposer_model)
     layout = RunLayout(args.root)
+    if args.preflight:
+        run_preflight_in_process(config, layout.root / "preflight")
+        write_json(layout.root / "preflight.json", {"valid": True})
+        return
+    if args.iteration is None:
+        parser.error("--iteration is required unless --preflight is used")
     directory = layout.iteration_dir(args.iteration)
     propose_in_process(
         config,

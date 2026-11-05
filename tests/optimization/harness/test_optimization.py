@@ -70,6 +70,13 @@ async def test_loop_keeps_train_gain_but_rejects_paired_holdout_regression(
 
     monkeypatch.setattr(loop, "evaluate_split", evaluate)
     monkeypatch.setattr(loop, "services_for", lambda name: None)
+    monkeypatch.setattr(
+        loop,
+        "preflight_proposer",
+        lambda *args, **kwargs: (_ for _ in ()).throw(
+            AssertionError("injected proposers must bypass the built-in preflight")
+        ),
+    )
     result = await loop.run_experiment(
         CONFIG, tmp_path / "run", model="offline:controlled", proposer=propose, max_iterations=1
     )
@@ -135,6 +142,84 @@ async def test_official_proposer_adapter_reads_only_allowed_text_edits(tmp_path,
     assert proposal.changed_surfaces == ("plan",)
     assert candidate.values["plan"] == "Compare the price with the intrinsic value first."
     assert current_values() == original
+
+
+async def test_preflight_proves_the_deep_agent_can_read_and_edit(tmp_path, monkeypatch):
+    from langchain_core.messages import AIMessage
+
+    import fin_graph.optimization.harness.proposer as outer
+    from fin_graph.agents.common.testing.scripted_model import ScriptedChatModel, tool_call_message
+    from fin_graph.optimization.harness.configuration import load_config
+
+    model = ScriptedChatModel(
+        responses=[
+            tool_call_message("read_file", {"file_path": "/probe.txt"}, "read-probe"),
+            tool_call_message(
+                "edit_file",
+                {
+                    "file_path": "/probe.txt",
+                    "old_string": "deepagents-before\n",
+                    "new_string": "deepagents-after\n",
+                },
+                "edit-probe",
+            ),
+            AIMessage(content="Native read and edit completed."),
+        ]
+    )
+    monkeypatch.setattr(outer, "build_chat_model", lambda *args, **kwargs: model)
+
+    outer.run_preflight_in_process(load_config(CONFIG), tmp_path / "preflight")
+
+    assert (tmp_path / "preflight" / "probe.txt").read_text(encoding="utf-8") == (
+        "deepagents-after\n"
+    )
+
+
+def test_preflight_accepts_a_proven_edit_when_the_small_model_does_not_stop(tmp_path, monkeypatch):
+    from langgraph.errors import GraphRecursionError
+
+    import fin_graph.optimization.harness.proposer as outer
+    from fin_graph.optimization.harness.configuration import load_config
+
+    class RecursingAgent:
+        def invoke(self, *args, **kwargs):
+            (tmp_path / "preflight" / "probe.txt").write_text(
+                "deepagents-after\n", encoding="utf-8"
+            )
+            raise GraphRecursionError("small model did not terminate")
+
+    monkeypatch.setattr(outer, "_model_and_system", lambda config: (object(), "system"))
+    monkeypatch.setattr(outer, "make_optimizer_agent", lambda **kwargs: RecursingAgent())
+
+    outer.run_preflight_in_process(load_config(CONFIG), tmp_path / "preflight")
+
+    assert (tmp_path / "preflight" / "probe.txt").read_text(encoding="utf-8") == (
+        "deepagents-after\n"
+    )
+
+
+async def test_printed_tool_json_is_a_protocol_error_not_a_noop(tmp_path, monkeypatch):
+    from better_harness.core import RunLayout
+    from better_harness.patching import build_baseline_variant
+
+    import fin_graph.optimization.harness.proposer as outer
+    from fin_graph.optimization.harness.configuration import load_config
+    from fin_graph.optimization.harness.runner import evaluate_split
+
+    config = load_config(CONFIG, model="scripted", repeat=1)
+    layout = RunLayout(tmp_path)
+    baseline = build_baseline_variant(config.experiment)
+    train = await evaluate_split(config, baseline, "train", layout)
+    monkeypatch.setattr(
+        outer,
+        "run_outer_agent",
+        lambda config, workspace: (
+            '{"type":"function","name":"edit_file","arguments":{"file_path":"/current/plan.txt"}}'
+        ),
+    )
+
+    with pytest.raises(outer.ToolProtocolError, match="native tool"):
+        outer.propose_in_process(config, baseline, train.result, layout, 1)
 
 
 async def test_proposer_rejects_a_surface_symlink_outside_workspace(tmp_path, monkeypatch):

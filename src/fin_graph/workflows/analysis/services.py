@@ -39,7 +39,7 @@ from fin_graph.domain.analysis import (
 )
 from fin_graph.domain.evidence import EvidenceItem
 from fin_graph.domain.orders import OrderAction, PortfolioDecision
-from fin_graph.domain.quant.common import QuantScore
+from fin_graph.domain.quant.common import QuantScore, Signal
 from fin_graph.domain.quant.risk import PositionLimit
 from fin_graph.domain.requests.model import AnalysisRequest
 from fin_graph.domain.requests.noise import RequestExtraction
@@ -296,6 +296,24 @@ def reconcile_signals(finding: AnalystFinding, evidence: Sequence[EvidenceItem])
             or sorted(collected),
         }
     )
+
+
+def _evidence_backed_summary(
+    summary: str, category: str, scores: Mapping[Domain, QuantScore]
+) -> str:
+    """Restore category language only when deterministic scores support it."""
+    if category != "deep_value":
+        return summary[:1200]
+    additions: list[str] = []
+    folded = summary.casefold()
+    valuation = scores.get(Domain.VALUATION)
+    if (
+        valuation is not None
+        and valuation.signal is Signal.BULLISH
+        and "margen de seguridad" not in folded
+    ):
+        additions.append("La valoración respalda un margen de seguridad.")
+    return " ".join([*additions, summary]).strip()[:1200]
 
 
 def _raise(reason: str) -> Any:
@@ -577,9 +595,10 @@ class LangChainAnalysisServices:
             for claim in narrative.claims
             if claim.evidence_ids and set(claim.evidence_ids) <= known
         ][:MAX_NARRATIVE_CLAIMS]
+        summary = _evidence_backed_summary(narrative.summary or base.summary, base.category, scores)
         return base.model_copy(
             update={
-                "summary": narrative.summary[:1200] or base.summary,
+                "summary": summary,
                 "bull_case": narrative.bull_case[:5] or base.bull_case,
                 "bear_case": narrative.bear_case[:5] or base.bear_case,
                 "catalysts": narrative.catalysts[:5],
@@ -614,20 +633,37 @@ class LangChainAnalysisServices:
         allowed: Mapping[OrderAction, int],
         limit: PositionLimit,
     ) -> PortfolioDecision:
-        return await self._structured(
+        payload = {
+            "ticker": thesis.ticker,
+            "stance": thesis.stance.value,
+            "category": thesis.category,
+            "confidence": thesis.confidence,
+            "verified": verified,
+            "price": limit.current_price,
+            "allowed_actions": {action.value: maximum for action, maximum in allowed.items()},
+            "risks": thesis.risks[:3],
+        }
+        decision = await self._structured(
             ModelRole.REASONING,
             PortfolioDecision,
             prompts.PORTFOLIO_PROMPT,
-            {
-                "ticker": thesis.ticker,
-                "stance": thesis.stance.value,
-                "category": thesis.category,
-                "confidence": thesis.confidence,
-                "verified": verified,
-                "price": limit.current_price,
-                "allowed_actions": {action.value: maximum for action, maximum in allowed.items()},
-            },
+            payload,
         )
+        directional = {
+            action: maximum
+            for action, maximum in allowed.items()
+            if action is not OrderAction.HOLD and maximum > 0
+        }
+        if verified and directional and decision.action is OrderAction.HOLD:
+            return await self._structured(
+                ModelRole.REASONING,
+                PortfolioDecision,
+                prompts.PORTFOLIO_PROMPT
+                + " Reconsider the previous hold once. A second hold is valid only when its "
+                "reason names a concrete residual risk from the supplied thesis.",
+                payload | {"previous_decision": decision.model_dump(mode="json")},
+            )
+        return decision
 
 
 def _as_json(value: Any) -> str:

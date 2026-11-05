@@ -7,8 +7,11 @@ from tests.workflows.analysis.conftest import AS_OF
 from fin_graph.agents.common.testing.scripted_model import ScriptedChatModel, tool_call_message
 from fin_graph.config.settings import Settings
 from fin_graph.domain.analysis import AnalystFinding, AnalystTask, ThesisHypothesis, TickerSignal
+from fin_graph.domain.orders import OrderAction
 from fin_graph.domain.quant.common import Signal
+from fin_graph.domain.quant.risk import PositionLimit, VolatilityMetrics
 from fin_graph.domain.requests.model import AnalysisRequest
+from fin_graph.domain.thesis import InvestmentThesis
 from fin_graph.domain.tools import Domain
 from fin_graph.domain.window import AnalysisWindow
 from fin_graph.integrations.analytics.tools import ANALYTICS_TOOLS
@@ -33,6 +36,29 @@ GRAHAM = AnalystTask(domain=Domain.GRAHAM, objective="score")
 def services(*responses: AIMessage, mode: str = "tool_plan") -> LangChainAnalysisServices:
     model = ScriptedChatModel(responses=list(responses))
     return LangChainAnalysisServices(dict.fromkeys(ModelRole, model), mode=mode)  # type: ignore[arg-type]
+
+
+def _portfolio_inputs() -> tuple[InvestmentThesis, dict[OrderAction, int], PositionLimit]:
+    thesis = InvestmentThesis(
+        ticker="DEEP",
+        stance=Signal.BULLISH,
+        summary="Descuento verificable.",
+        category="deep_value",
+        confidence=66.4,
+    )
+    allowed = {OrderAction.HOLD: 0, OrderAction.BUY: 1000}
+    limit = PositionLimit(
+        ticker="DEEP",
+        current_price=5.5,
+        remaining_limit=5_500,
+        volatility=VolatilityMetrics(
+            daily=0.01,
+            annualized=0.16,
+            percentile=25,
+            data_points=252,
+        ),
+    )
+    return thesis, allowed, limit
 
 
 async def test_tool_plan_runs_the_compute_tool_for_every_ticker(context: RunContext) -> None:
@@ -148,6 +174,112 @@ async def test_the_narrative_keeps_score_stance_and_filters_claims(context: RunC
     model_claims = [claim for claim in thesis.claims if claim.source == "model"]
     assert [claim.statement for claim in model_claims] == ["El valor intrínseco supera el precio."]
     assert {claim.source for claim in thesis.claims} == {"scores", "model"}
+
+
+async def test_deep_value_narrative_restores_evidence_backed_category_terms(
+    context: RunContext,
+) -> None:
+    findings_and_evidence = [
+        await run_tool_plan(
+            AnalystTask(domain=domain, objective="x"), REQUEST, WINDOW, ANALYTICS_TOOLS, context
+        )
+        for domain in (Domain.VALUATION, Domain.GRAHAM)
+    ]
+    findings = [item[0] for item in findings_and_evidence]
+    evidence = [ev for item in findings_and_evidence for ev in item[1]]
+    generic = tool_call_message(
+        "ThesisNarrative",
+        {
+            "summary": "La empresa parece atractiva.",
+            "bull_case": ["descuento"],
+            "bear_case": ["trampa de valor"],
+            "claims": [],
+        },
+        "narrative-1",
+    )
+    context_ = SynthesisContext(suggested_category="deep_value", suggested_stance="bullish")
+
+    thesis = await services(generic).synthesize("DEEP", REQUEST, None, findings, evidence, context_)  # type: ignore[arg-type]
+
+    assert "margen de seguridad" in thesis.summary.casefold()
+    assert any("graham" in claim.statement.casefold() for claim in thesis.claims)
+
+
+async def test_verified_directional_thesis_reconsiders_an_initial_hold() -> None:
+    model = ScriptedChatModel(
+        responses=[
+            tool_call_message(
+                "PortfolioDecision",
+                {"action": "hold", "quantity": 0, "confidence": 50, "reasoning": "Esperar."},
+                "hold-1",
+            ),
+            tool_call_message(
+                "PortfolioDecision",
+                {
+                    "action": "buy",
+                    "quantity": 1000,
+                    "confidence": 66.4,
+                    "reasoning": "Tesis alcista verificada con compra permitida.",
+                },
+                "buy-2",
+            ),
+        ]
+    )
+    service = LangChainAnalysisServices(dict.fromkeys(ModelRole, model), mode="tool_plan")  # type: ignore[arg-type]
+    thesis, allowed, limit = _portfolio_inputs()
+
+    decision = await service.decide(thesis, True, allowed, limit)
+
+    assert decision.action is OrderAction.BUY and decision.quantity == 1000
+    assert len(model.calls) == 2
+
+
+async def test_a_second_hold_remains_fail_closed() -> None:
+    model = ScriptedChatModel(
+        responses=[
+            tool_call_message(
+                "PortfolioDecision",
+                {"action": "hold", "quantity": 0, "confidence": 50, "reasoning": "Esperar."},
+                "hold-1",
+            ),
+            tool_call_message(
+                "PortfolioDecision",
+                {
+                    "action": "hold",
+                    "quantity": 0,
+                    "confidence": 55,
+                    "reasoning": "La incertidumbre residual justifica esperar.",
+                },
+                "hold-2",
+            ),
+        ]
+    )
+    service = LangChainAnalysisServices(dict.fromkeys(ModelRole, model), mode="tool_plan")  # type: ignore[arg-type]
+    thesis, allowed, limit = _portfolio_inputs()
+
+    decision = await service.decide(thesis, True, allowed, limit)
+
+    assert decision.action is OrderAction.HOLD and decision.quantity == 0
+    assert len(model.calls) == 2
+
+
+async def test_unverified_thesis_does_not_trigger_portfolio_retry() -> None:
+    model = ScriptedChatModel(
+        responses=[
+            tool_call_message(
+                "PortfolioDecision",
+                {"action": "hold", "quantity": 0, "confidence": 0, "reasoning": "No verificada."},
+                "hold-1",
+            )
+        ]
+    )
+    service = LangChainAnalysisServices(dict.fromkeys(ModelRole, model), mode="tool_plan")  # type: ignore[arg-type]
+    thesis, allowed, limit = _portfolio_inputs()
+
+    decision = await service.decide(thesis, False, allowed, limit)
+
+    assert decision.action is OrderAction.HOLD
+    assert len(model.calls) == 1
 
 
 async def test_unavailable_services_raise_for_every_model_step() -> None:

@@ -79,7 +79,7 @@ base_value = "Write one investment thesis for the ticker from the analysts' sign
 kind = "module_attr"
 target = "fin_graph.workflows.analysis.prompts:NARRATIVE_PROMPT"
 filename = "narrative.txt"
-base_value = "The stance and the category were decided from the scores: do not change them. Write in Spanish: a two or three sentence summary, the bull case, the bear case, catalysts and risks, and up to three factual claims. Each claim states one number from an analyst's numbers and cites that analyst's evidence_id. Never claim a price target."
+base_value = "The stance and the category were decided from the scores: do not change them. Write in Spanish: a two or three sentence summary, the bull case, the bear case, catalysts and risks, and up to three factual claims. Each claim states one number from an analyst's numbers and cites that analyst's evidence_id. For a deep_value category, use the phrase 'margen de seguridad' when the supplied valuation numbers support a discount, and mention Graham only when Graham analyst evidence is supplied. Never claim a price target."
 
 [surfaces.judge]
 kind = "module_attr"
@@ -91,7 +91,7 @@ base_value = "Decide whether the cited evidence supports this specific claim. Co
 kind = "module_attr"
 target = "fin_graph.workflows.analysis.prompts:PORTFOLIO_PROMPT"
 filename = "portfolio.txt"
-base_value = "Pick exactly one of the allowed actions for the ticker and a quantity no larger than its maximum. Prefer hold when the thesis is weak, unverified or neutral. No cash or margin math: the limits are already applied. Reason in one short sentence."
+base_value = "Pick exactly one of the allowed actions for the ticker and a quantity no larger than its maximum. Choose hold when the thesis is unverified, neutral, below the trading confidence threshold, or has no stance-consistent directional action available. When the thesis is verified, non-neutral and confident enough to reach this step, choose an available stance-consistent directional action with a positive quantity. No cash or margin math: the limits are already applied. Explain the concrete choice in one short sentence."
 
 [[cases]]
 case_id = "evals/harness/train/test_analysis.py::test_analysis[equities/000-no-edge]"

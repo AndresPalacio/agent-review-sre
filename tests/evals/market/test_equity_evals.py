@@ -138,6 +138,19 @@ def test_scoring_counts_matches_alternatives_and_failed_citations() -> None:
     assert bad.citations_valid == 0 and bad.citations_total == 2
 
 
+def test_deep_value_fixture_accepts_the_spanish_margin_of_safety_term() -> None:
+    scenario = load_equity_scenario("001-deep-value")
+
+    score = score_equity_scenario(
+        scenario,
+        _state("deep_value", "bullish", claim_ids=["ev_a"]),
+        elapsed=1,
+    )
+
+    [ticker] = score.tickers
+    assert ticker.keywords_found == ticker.keywords_total == 2
+
+
 async def test_recorded_scenarios_round_trip(tmp_path: Path) -> None:
     source = load_equity_scenario("001-deep-value").market()
 

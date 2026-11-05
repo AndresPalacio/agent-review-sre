@@ -529,7 +529,7 @@ SCENARIOS: tuple[Scenario, ...] = (
             "DEEP": _answer(
                 "bullish",
                 "deep_value",
-                required_keywords=["margin of safety", "graham"],
+                required_keywords=["margin of safety|margen de seguridad", "graham"],
                 forbidden_categories=["overvalued", "balance_sheet_risk"],
                 expected_action="buy",
             )

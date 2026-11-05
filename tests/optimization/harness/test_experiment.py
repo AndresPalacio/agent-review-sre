@@ -78,6 +78,35 @@ async def test_missing_credentials_records_blocked_before_proposing(tmp_path, mo
     assert (tmp_path / "blocked" / "summary.json").is_file()
 
 
+async def test_proposer_preflight_blocks_before_baseline_evaluation(tmp_path, monkeypatch):
+    import fin_graph.optimization.harness.experiment as loop
+
+    evaluations: list[str] = []
+
+    async def evaluate(*args, **kwargs):
+        evaluations.append("evaluated")
+        raise AssertionError("baseline must not run after a failed proposer preflight")
+
+    def fail_preflight(*args, **kwargs):
+        raise RuntimeError("native tool preflight failed")
+
+    monkeypatch.setattr(loop, "services_for", lambda name: None)
+    monkeypatch.setattr(loop, "evaluate_split", evaluate)
+    monkeypatch.setattr(loop, "preflight_proposer", fail_preflight)
+
+    result = await loop.run_experiment(
+        CONFIG,
+        tmp_path / "blocked-preflight",
+        model="ollama:llama3.2:3b",
+        max_iterations=1,
+    )
+
+    assert result["status"] == "blocked"
+    assert "native tool preflight failed" in result["error"]
+    assert evaluations == []
+    assert result["baseline"] == result["final"] == {}
+
+
 async def test_train_workspace_contains_no_private_case_data(tmp_path):
     from better_harness.core import RunLayout
     from better_harness.patching import build_baseline_variant

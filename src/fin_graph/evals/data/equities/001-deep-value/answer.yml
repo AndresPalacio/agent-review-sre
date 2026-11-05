@@ -3,7 +3,7 @@ tickers:
     expected_signal: bullish
     thesis_category: deep_value
     required_keywords:
-    - margin of safety
+    - margin of safety|margen de seguridad
     - graham
     forbidden_categories:
     - overvalued

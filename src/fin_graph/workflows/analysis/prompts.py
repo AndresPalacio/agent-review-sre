@@ -28,7 +28,9 @@ NARRATIVE_PROMPT = (
     "The stance and the category were decided from the scores: do not change them. Write in "
     "Spanish: a two or three sentence summary, the bull case, the bear case, catalysts and "
     "risks, and up to three factual claims. Each claim states one number from an analyst's "
-    "numbers and cites that analyst's evidence_id. Never claim a price target."
+    "numbers and cites that analyst's evidence_id. For a deep_value category, use the phrase "
+    "'margen de seguridad' when the supplied valuation numbers support a discount, and mention "
+    "Graham only when Graham analyst evidence is supplied. Never claim a price target."
 )
 JUDGE_PROMPT = (
     "Decide whether the cited evidence supports this specific claim. Compare the numbers. "
@@ -36,6 +38,9 @@ JUDGE_PROMPT = (
 )
 PORTFOLIO_PROMPT = (
     "Pick exactly one of the allowed actions for the ticker and a quantity no larger than its "
-    "maximum. Prefer hold when the thesis is weak, unverified or neutral. No cash or margin "
-    "math: the limits are already applied. Reason in one short sentence."
+    "maximum. Choose hold when the thesis is unverified, neutral, below the trading confidence "
+    "threshold, or has no stance-consistent directional action available. When the thesis is "
+    "verified, non-neutral and confident enough to reach this step, choose an available "
+    "stance-consistent directional action with a positive quantity. No cash or margin math: "
+    "the limits are already applied. Explain the concrete choice in one short sentence."
 )

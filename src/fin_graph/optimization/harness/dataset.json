@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dataset_fingerprint": "6e68d8c011efdcf9f11bc68cbd6c163633df780c98c895c8828e80622ffe3632",
+  "dataset_fingerprint": "b50896d67fa732b8dda9ae2d4167e0e1972cb75fd0a7335214c93d2b73183962",
   "cases": [
     {
       "scenario": "equities/000-no-edge",
