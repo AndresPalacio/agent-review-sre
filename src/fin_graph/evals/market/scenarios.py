@@ -86,7 +86,10 @@ class EquityScenario:
         for path in sorted(self.directory.rglob("*")):
             if path.is_file():
                 digest.update(path.relative_to(self.directory).as_posix().encode())
-                digest.update(path.read_bytes())
+                content = path.read_bytes()
+                if path.suffix.lower() in {".json", ".yaml", ".yml"}:
+                    content = content.replace(b"\r\n", b"\n")
+                digest.update(content)
         return digest.hexdigest()
 
 

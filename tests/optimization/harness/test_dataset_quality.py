@@ -5,6 +5,25 @@ import copy
 import pytest
 
 
+def test_scenario_fingerprint_is_stable_across_platform_line_endings(tmp_path):
+    from fin_graph.evals.market.scenarios import EquityAnswer, EquityScenario
+
+    roots = [tmp_path / "lf", tmp_path / "crlf"]
+    contents = {
+        "scenario.yml": b"tickers:\n- TEST\n",
+        "prices.json": b'{\n  "close": 10\n}\n',
+    }
+    for root, newline in zip(roots, (b"\n", b"\r\n"), strict=True):
+        root.mkdir()
+        for name, content in contents.items():
+            (root / name).write_bytes(content.replace(b"\n", newline))
+
+    answer = EquityAnswer(tickers={})
+    scenarios = [EquityScenario("example", {}, answer, root) for root in roots]
+
+    assert scenarios[0].fingerprint() == scenarios[1].fingerprint()
+
+
 def test_manifest_covers_corpus_and_keeps_related_cases_together():
     from fin_graph.optimization.harness.dataset import load_manifest
 
